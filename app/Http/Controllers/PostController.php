@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Hashtag;
+use App\Models\Post;
+use Illuminate\Http\Request;
+
+class PostController extends Controller
+{
+    // Menampilkan halaman Feed
+    public function index()
+    {
+        // Ambil semua postingan beserta nama pembuatnya, urutkan dari yang terbaru
+        // Menambahkan 'comments.user' agar nama pembuat komentar ikut terpanggil
+        $posts = Post::with(['user', 'likes', 'comments.user'])->latest()->get();
+        return view('feed', compact('posts'));
+    }
+
+    // Menyimpan postingan baru ke database
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string|max:1000',
+            // Aturan gambar: maksimal 2MB (2048 KB)
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
+			'topic' => 'nullable|string|max:50',
+        ]);
+
+        // Jika user mengunggah file gambar
+        if ($request->hasFile('image')) {
+            // Simpan gambar ke folder storage/app/public/posts
+            $imagePath = $request->file('image')->store('posts', 'public');
+            $validated['image'] = $imagePath;
+        }
+
+        // Simpan postingan atas nama user yang sedang login dan tampung ke variabel $post
+        $post = $request->user()->posts()->create($validated);
+
+        // --- LOGIKA DETEKSI TAGAR (HASHTAG) ---
+        
+        // 1. Keajaiban Regex: Cari semua kata yang diawali tanda '#'
+        preg_match_all('/#([a-zA-Z0-9_]+)/', $post->content, $matches);
+        
+        // $matches[1] berisi daftar teks tagarnya saja (tanpa simbol '#')
+        $hashtagNames = $matches[1]; 
+
+        $hashtagIds = [];
+        foreach ($hashtagNames as $name) {
+            // Ubah ke huruf kecil semua
+            $hashtag = Hashtag::firstOrCreate(['name' => strtolower($name)]);
+            $hashtagIds[] = $hashtag->id;
+        }
+
+        // 2. Hubungkan postingan ini dengan tagar-tagar yang ditemukan
+        if (!empty($hashtagIds)) {
+            $post->hashtags()->attach($hashtagIds);
+        }
+        
+        // --- BATAS LOGIKA DETEKSI TAGAR ---
+
+        return redirect()->route('feed');
+    }
+	
+	// Menampilkan halaman form edit
+    public function edit(Post $post)
+    {
+        // Tolak jika yang mencoba mengedit bukan pemiliknya
+        abort_if($post->user_id !== auth()->id(), 403);
+        return view('edit-post', compact('post'));
+    }
+
+    // Menyimpan perubahan ke database
+    public function update(Request $request, Post $post)
+    {
+        abort_if($post->user_id !== auth()->id(), 403);
+        
+        $validated = $request->validate([
+            'content' => 'required|string|max:1000',
+        ]);
+
+        $post->update($validated);
+        return redirect()->route('feed');
+    }
+
+    // Menghapus postingan
+    public function destroy(Post $post)
+    {
+        abort_if($post->user_id !== auth()->id(), 403);
+        $post->delete();
+        return back();
+    }
+	
+	// Fungsi untuk menampilkan postingan berdasarkan topik
+    public function topic($topic)
+    {
+        // Cari postingan yang kolom 'topic'-nya sama dengan parameter URL
+        $posts = \App\Models\Post::with(['user', 'likes', 'comments.user', 'comments.replies.user'])
+                    ->where('topic', $topic)
+                    ->latest()
+                    ->get();
+
+        // Lempar data postingan dan nama topiknya ke halaman view 'topic'
+        return view('topic', compact('posts', 'topic'));
+    }
+}
