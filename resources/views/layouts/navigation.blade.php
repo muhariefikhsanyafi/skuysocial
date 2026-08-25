@@ -9,6 +9,19 @@
                     </a>
                 </div>
             </div>
+			
+			<!-- NEO-BRUTALIST HEADER CONTROLS -->
+			<div class="flex items-center gap-2">
+    <!-- 1. Tombol Dark Mode (Tampil di HP & Desktop) -->
+			<button x-data @click="document.documentElement.classList.toggle('dark')" type="button" class="bg-black dark:bg-[#242424] text-yellow-300 border-2 border-black dark:border-[#333333] p-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+			</button>
+    
+    <!-- 2. Tombol Hamburger Sidebar (HANYA tampil di HP, panggil @toggle-sidebar) -->
+			<button x-data @click="$dispatch('toggle-sidebar')" type="button" class="md:hidden bg-white dark:bg-[#181818] text-black dark:text-white border-2 border-black dark:border-[#333333] p-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+			</button>
+			</div>
 
             <!-- KANAN: Tombol Dropdown Profil -->
             <div class="hidden sm:flex sm:items-center sm:ml-6">

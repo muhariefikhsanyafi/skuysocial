@@ -4,7 +4,7 @@
         <div class="w-full 2xl:max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 flex flex-col md:flex-row gap-8 lg:gap-20 items-start">
             
             <!-- SIDEBAR KIRI -->
-            <div class="w-full md:w-52 flex-shrink-0 sticky top-28 z-10">
+            <div class="w-full md:w-52 flex-shrink-0 relative md:sticky md:top-28 z-10 mb-8 md:mb-0">
                 <div class="flex flex-col gap-2">
                     
                     <a href="{{ route('feed') }}" class="flex items-center gap-3 bg-yellow-300 border-2 border-black dark:border-[#333333] px-3 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black font-black uppercase text-sm group">
