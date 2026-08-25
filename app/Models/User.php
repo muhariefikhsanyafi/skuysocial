@@ -39,7 +39,7 @@ class User extends Authenticatable
 	/**
      * Menggunakan kolom username sebagai route key default untuk URL profil
      */
-    getRouteKeyName()
+    public function getRouteKeyName(): string
     {
         return 'username';
     }
