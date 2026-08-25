@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL; // <--- Wajib dipanggil untuk fitur HTTPS
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Paksa semua URL (termasuk CSS Vite) menjadi HTTPS jika sedang online (production)
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
     }
 }
