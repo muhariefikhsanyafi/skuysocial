@@ -52,4 +52,5 @@ use App\Http\Controllers\HashtagController;
         return 'Error: ' . $e->getMessage();
     }
 });
+});
 
