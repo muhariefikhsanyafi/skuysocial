@@ -20,5 +20,8 @@ RUN composer install --optimize-autoloader --no-dev
 RUN npm install
 RUN npm run build
 
+# Membuat jalan pintas untuk gambar
+RUN php artisan storage:link
+
 # 6. Perintah wajib untuk menyalakan server saat berhasil di-deploy
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}

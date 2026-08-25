@@ -9,6 +9,17 @@
             <x-input-error :messages="$errors->get('name')" class="mt-2 text-red-600 font-bold" />
         </div>
 
+		<!-- Username -->
+		<div>
+        <label for="username" class="block font-black text-black uppercase text-sm mb-1">Username <span class="text-xs text-gray-500 lowercase">(tanpa spasi)</span></label>
+        <input id="username" type="text" name="username" value="{{ old('username') }}" required autocomplete="username" 
+               class="w-full border-4 border-black p-3 font-bold focus:ring-0 focus:outline-none" 
+               oninput="this.value = this.value.replace(/\s/g, '').toLowerCase()" 
+               pattern="^[a-zA-Z0-9_.]+$" 
+               title="Username tidak boleh menggunakan spasi" />
+        <x-input-error :messages="$errors->get('username')" class="mt-2 text-red-600 font-bold" />
+		</div>
+	
         <!-- Email -->
         <div>
             <label for="email" class="block font-black text-black uppercase text-sm mb-1">Alamat Email</label>

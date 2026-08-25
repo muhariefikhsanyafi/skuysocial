@@ -1,6 +1,6 @@
 <x-app-layout>
     <!-- Background utama (#101010) -->
-    <div class="py-8 sm:py-12 bg-gray-50 dark:bg-[#101010] min-h-screen transition-colors duration-300">
+    <div class="pt-8 pb-28 sm:pt-12 md:pb-12 bg-gray-50 dark:bg-[#101010] min-h-screen transition-colors duration-300">
         <div class="w-full 2xl:max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 flex flex-col md:flex-row gap-8 lg:gap-20 items-start">
             
             <!-- SIDEBAR KIRI -->
@@ -327,5 +327,36 @@
 
             </div>
         </div>
+    </div>
+	
+	<!-- BOTTOM NAVIGATION BAR (HANYA MUNCUL DI HP) -->
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-[#101010] border-t-4 border-black dark:border-[#333333] flex justify-around items-center p-3 z-50 pb-safe">
+        
+        <!-- Beranda -->
+        <a href="{{ route('feed') }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3l8 6v12h-5v-7h-6v7H4V9l8-6z"></path></svg>
+        </a>
+
+        <!-- Pencarian -->
+        <a href="#" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </a>
+
+        <!-- Buat Thread / Postingan (Tombol Tengah Mencolok) -->
+        <!-- Gunakan Alpine untuk menggulir ke atas ke area form input -->
+        <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" class="bg-yellow-300 border-2 border-black p-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+        </button>
+
+        <!-- Aktivitas / Notifikasi -->
+        <a href="#" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+        </a>
+
+        <!-- Profil -->
+        <a href="{{ route('user.profile', auth()->id()) }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        </a>
+
     </div>
 </x-app-layout>
