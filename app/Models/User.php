@@ -35,5 +35,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class);
     }
-
+	
+	/**
+     * Menggunakan kolom username sebagai route key default untuk URL profil
+     */
+    getRouteKeyName()
+    {
+        return 'username';
+    }
 }
