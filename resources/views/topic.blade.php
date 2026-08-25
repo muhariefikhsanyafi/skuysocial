@@ -171,17 +171,21 @@
                                                                 <button @click="openReply = !openReply" type="button" class="mt-1 text-[11px] font-black uppercase text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
                                                                     Balas
                                                                 </button>
-                                                                <div x-show="openReply" style="display: none;" class="mt-2 flex gap-2 items-center">
-                                                                    <form action="{{ route('comments.store', $post->id) }}" method="POST" class="flex-1 flex gap-2 items-center" @submit="isSubmitting = true">
-                                                                        @csrf
-                                                                        <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                                                                        <input type="text" name="content" class="flex-1 bg-transparent border-b-2 border-black dark:border-[#333333] focus:ring-0 focus:outline-none text-xs font-bold p-0 pb-1 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="Balas ke {{ $comment->user->name }}..." required>
-                                                                        <button type="submit" :disabled="isSubmitting" class="text-[10px] text-black font-black uppercase border-2 border-black dark:border-[#333333] bg-yellow-300 px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:bg-gray-400 disabled:shadow-none">
-                                                                            <span x-show="!isSubmitting">Kirim</span>
-                                                                            <span x-show="isSubmitting">...</span>
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
+                                                                <!-- Perhatikan class w-full ditambahkan pada div dan form -->
+<div x-show="openReply" style="display: none;" class="mt-2 w-full">
+    <form action="{{ route('comments.store', $post->id) }}" method="POST" class="w-full flex gap-2 items-center" @submit="isSubmitting = true">
+        @csrf
+        <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+        
+        <!-- Tambahkan w-full di sini juga -->
+        <input type="text" name="content" class="flex-1 min-w-0 w-full bg-transparent border-b-2 border-black dark:border-[#333333] focus:ring-0 focus:outline-none text-xs font-bold p-0 pb-1 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500" placeholder="Balas ke {{ $comment->user->name }}..." required>
+        
+        <button type="submit" :disabled="isSubmitting" class="flex-shrink-0 text-[10px] text-black font-black uppercase border-2 border-black dark:border-[#333333] bg-yellow-300 px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:bg-gray-400 disabled:shadow-none">
+            <span x-show="!isSubmitting">Kirim</span>
+            <span x-show="isSubmitting">...</span>
+        </button>
+    </form>
+</div>
                                                                 @if ($comment->replies->count() > 0)
                                                                     <div class="mt-3 space-y-3">
                                                                         @foreach ($comment->replies as $reply)
@@ -218,25 +222,30 @@
                                                 @endforeach
                                             </div>
 
-                                            <div x-data="{ isSubmitting: false }" class="mt-2 pt-3 border-t-2 border-black dark:border-[#333333] border-dashed flex gap-3 items-center">
-                                                <div class="flex-shrink-0">
-                                                    @if (Auth::user()->avatar)
-                                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="h-8 w-8 rounded-full border-2 border-black dark:border-[#333333] object-cover shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)]">
-                                                    @else
-                                                        <div class="h-8 w-8 border-2 border-black dark:border-[#333333] bg-cyan-400 dark:bg-cyan-500 rounded-full flex items-center justify-center text-black font-black uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)]">
-                                                            {{ substr(Auth::user()->name, 0, 1) }}
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                                <form action="{{ route('comments.store', $post->id) }}" method="POST" class="flex-1 flex gap-2 items-center" @submit="isSubmitting = true">
-                                                    @csrf
-                                                    <input type="text" name="content" class="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-black dark:text-white font-bold text-sm placeholder-gray-400 dark:placeholder-gray-500" placeholder="Tambahkan komentar..." required>
-                                                    <button type="submit" :disabled="isSubmitting" class="text-[11px] text-black font-black uppercase border-2 border-black dark:border-[#333333] bg-cyan-400 px-3 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:bg-gray-400 disabled:shadow-none">
-                                                        <span x-show="!isSubmitting">Kirim</span>
-                                                        <span x-show="isSubmitting">...</span>
-                                                    </button>
-                                                </form>
-                                            </div>
+                                            <!-- Tambahkan w-full dan min-w-0 pada div pembungkus utama -->
+<div x-data="{ isSubmitting: false }" class="mt-2 pt-3 border-t-2 border-black dark:border-[#333333] border-dashed flex gap-3 items-center w-full min-w-0">
+    <div class="flex-shrink-0">
+        @if (Auth::user()->avatar)
+            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="h-8 w-8 rounded-full border-2 border-black dark:border-[#333333] object-cover shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)]">
+        @else
+            <div class="h-8 w-8 border-2 border-black dark:border-[#333333] bg-cyan-400 dark:bg-cyan-500 rounded-full flex items-center justify-center text-black font-black uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)]">
+                {{ substr(Auth::user()->name, 0, 1) }}
+            </div>
+        @endif
+    </div>
+    
+    <!-- Tambahkan min-w-0 pada tag form -->
+    <form action="{{ route('comments.store', $post->id) }}" method="POST" class="flex-1 flex gap-2 items-center min-w-0" @submit="isSubmitting = true">
+        @csrf
+        <!-- Tambahkan w-full pada tag input -->
+        <input type="text" name="content" class="flex-1 min-w-0 w-full bg-transparent border-none focus:ring-0 focus:outline-none text-black dark:text-white font-bold text-sm placeholder-gray-400 dark:placeholder-gray-500" placeholder="Tambahkan komentar..." required>
+        
+        <button type="submit" :disabled="isSubmitting" class="flex-shrink-0 text-[11px] text-black font-black uppercase border-2 border-black dark:border-[#333333] bg-cyan-400 px-3 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:bg-gray-400 disabled:shadow-none">
+            <span x-show="!isSubmitting">Kirim</span>
+            <span x-show="isSubmitting">...</span>
+        </button>
+    </form>
+</div>
 
                                         </div>
                                     </div>
