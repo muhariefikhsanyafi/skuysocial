@@ -34,6 +34,14 @@ Route::get('/jalankan-migrasi', function () {
     }
 });
 
+Route::get('/perbaiki-username-lama', function () {
+    \App\Models\User::whereNull('username')->get()->each(function($user) {
+        $user->username = strtolower(str_replace(' ', '', $user->name)) . $user->id;
+        $user->save();
+    });
+    return 'Berhasil memperbaiki username akun lama!';
+});
+
 	// Rute ini hanya bisa diakses kalau user sudah login (auth)
 	Route::middleware(['auth'])->group(function () {
     Route::get('/feed', [PostController::class, 'index'])->name('feed');
@@ -56,13 +64,5 @@ Route::get('/jalankan-migrasi', function () {
 
 	// RUTE PROFIL PENGGUNA (Diletakkan di paling bawah karena menggunakan wildcard satu segmen)
     Route::get('/{user:username}', [UserController::class, 'show'])->name('user.profile');
-	
-	Route::get('/perbaiki-username-lama', function () {
-    \App\Models\User::whereNull('username')->get()->each(function($user) {
-        $user->username = strtolower(str_replace(' ', '', $user->name)) . $user->id;
-        $user->save();
-    });
-    return 'Berhasil memperbaiki username akun lama!';
-});
 });
 
