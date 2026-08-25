@@ -4,42 +4,49 @@
         <div class="w-full 2xl:max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 flex flex-col md:flex-row gap-8 lg:gap-20 items-start">
             
             <!-- SIDEBAR KIRI -->
-            <div class="w-full md:w-52 flex-shrink-0 sticky top-28 z-10">
-                <div class="flex flex-col gap-2">
-                    
-                    <a href="{{ route('feed') }}" class="flex items-center gap-3 bg-yellow-300 border-2 border-black dark:border-[#333333] px-3 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black font-black uppercase text-sm group">
-                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                        Beranda
-                    </a>
+<div class="w-full md:w-52 flex-shrink-0 md:sticky md:top-28 z-20 mb-6 md:mb-0">
+    
+    <!-- Flex Row untuk HP (bisa digeser horizontal), Flex Col untuk Laptop -->
+    <div class="flex flex-row md:flex-col gap-2.5 overflow-x-auto pb-4 md:pb-0 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        
+        <!-- Tombol Beranda -->
+        <a href="{{ route('feed') }}" class="flex-shrink-0 snap-start flex items-center gap-2.5 bg-yellow-300 border-2 border-black dark:border-[#333333] px-4 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black font-black uppercase text-sm group">
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            Beranda
+        </a>
 
-                    <a href="#" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-pink-400 dark:hover:bg-pink-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm group">
-                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        Cari
-                    </a>
+        <!-- Tombol Cari -->
+        <a href="#" class="flex-shrink-0 snap-start flex items-center gap-2.5 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-pink-400 dark:hover:bg-pink-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm group">
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            Cari
+        </a>
 
-                    <a href="#" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-cyan-400 dark:hover:bg-cyan-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm group">
-                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                        Aktivitas
-                    </a>
+        <!-- Tombol Aktivitas -->
+        <a href="#" class="flex-shrink-0 snap-start flex items-center gap-2.5 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-cyan-400 dark:hover:bg-cyan-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm group">
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+            Aktivitas
+        </a>
 
-                    <a href="{{ route('user.profile', auth()->id()) }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-emerald-400 dark:hover:bg-emerald-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm group">
-                        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        Profil
-                    </a>
-                    
-                    <div class="border-t-2 border-black dark:border-[#333333] border-dashed my-2"></div>
+        <!-- Tombol Profil -->
+        <a href="{{ route('user.profile', auth()->id()) }}" class="flex-shrink-0 snap-start flex items-center gap-2.5 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-emerald-400 dark:hover:bg-emerald-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm group">
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            Profil
+        </a>
+        
+        <div class="hidden md:block border-t-2 border-black dark:border-[#333333] border-dashed my-2"></div>
 
-                    <!-- Tombol Tema -->
-                    <button @click="darkMode = !darkMode" type="button" class="flex w-full items-center justify-between bg-black dark:bg-[#242424] border-2 border-black dark:border-[#333333] px-3 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-white font-black uppercase text-sm group">
-                        <div class="flex items-center gap-3">
-                            <svg x-show="!darkMode" class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                            <svg x-show="darkMode" style="display: none;" class="w-5 h-5 group-hover:scale-110 transition-transform text-yellow-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                            Tema
-                        </div>
-                        <span class="text-[10px] text-yellow-300" x-text="darkMode ? 'GELAP' : 'TERANG'"></span>
-                    </button>
-                </div>
+        <!-- Tombol Tema -->
+        <button @click="darkMode = !darkMode" type="button" class="flex-shrink-0 snap-start flex md:w-full items-center justify-between gap-4 bg-black dark:bg-[#242424] border-2 border-black dark:border-[#333333] px-4 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-white font-black uppercase text-sm group">
+            <div class="flex items-center gap-2.5">
+                <svg x-show="!darkMode" class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg x-show="darkMode" style="display: none;" class="w-5 h-5 group-hover:scale-110 transition-transform text-yellow-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                Tema
             </div>
+            <span class="text-[10px] text-yellow-300" x-text="darkMode ? 'GELAP' : 'TERANG'"></span>
+        </button>
+        
+    </div>
+</div>
 
             <!-- AREA KONTEN TENGAH (Feed) -->
             <div class="flex-1 w-full max-w-3xl xl:max-w-4xl mx-auto">
