@@ -1,5 +1,5 @@
 # 1. Gunakan sistem operasi dengan PHP 8.2
-FROM php:8.2-cli
+FROM php:8.3-cli
 
 # 2. Install perlengkapan dasar, database PostgreSQL, dan Node.js (untuk Vite/Tailwind)
 RUN apt-get update && apt-get install -y \
