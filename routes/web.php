@@ -43,5 +43,13 @@ use App\Http\Controllers\HashtagController;
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+	// Rute Render.com
+	Route::get('/jalankan-migrasi', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return 'Mantap! Migrasi Database Berhasil! Silakan buka halaman utama.';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
 });
 
