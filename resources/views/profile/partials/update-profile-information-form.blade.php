@@ -22,7 +22,23 @@
             <x-text-input id="name" name="name" type="text" class="mt-1 block w-full border-4 border-black p-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none" :value="old('name', $user->name)" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
-
+		
+		<!-- Username -->
+    <div>
+        <label for="username" class="block font-black text-black dark:text-white uppercase text-sm mb-1">Username</label>
+        <input id="username" 
+               name="username" 
+               type="text" 
+               class="w-full border-4 border-black dark:border-[#333333] bg-white dark:bg-[#101010] p-3 font-bold text-black dark:text-white focus:ring-0 focus:outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(51,51,51,1)]" 
+               value="{{ old('username', $user->username) }}" 
+               required 
+               autocomplete="username" 
+               oninput="this.value = this.value.replace(/\s/g, '').toLowerCase()" 
+               pattern="^[a-zA-Z0-9_.]+$" 
+               title="Hanya boleh huruf, angka, titik, dan garis bawah tanpa spasi" />
+        <x-input-error class="mt-2 text-red-600 font-bold" :messages="$errors->get('username')" />
+    </div>
+	
         <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full border-4 border-black p-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none" :value="old('email', $user->email)" required autocomplete="username" />

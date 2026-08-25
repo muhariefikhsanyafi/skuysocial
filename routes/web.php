@@ -38,19 +38,23 @@ Route::get('/jalankan-migrasi', function () {
 	Route::middleware(['auth'])->group(function () {
     Route::get('/feed', [PostController::class, 'index'])->name('feed');
     Route::post('/feed', [PostController::class, 'store'])->name('posts.store')->middleware('throttle:5,1');
+    
 	// Rute untuk Topik
 	Route::get('/topik/{topic}', [\App\Http\Controllers\PostController::class, 'topic'])->name('topik.show')->middleware('auth');
+    
 	// Rute Hashtag
 	Route::get('/tags/{name}', [HashtagController::class, 'show'])->name('tags.show');
-	// RUTE BARU UNTUK FITUR LIKE:
+    
+	// Rute Fitur Like & Komentar
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
-	// RUTE BARU UNTUK KOMENTAR:
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store')->middleware('throttle:10,1');
-	// RUTE BARU UNTUK PROFIL PENGGUNA:
-    Route::get('/u/{user}', [UserController::class, 'show'])->name('user.profile');
-	// RUTE BARU UNTUK FITUR EDIT & HAPUS:
+    
+	// Rute Fitur Edit & Hapus Postingan
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+
+	// RUTE PROFIL PENGGUNA (Diletakkan di paling bawah karena menggunakan wildcard satu segmen)
+    Route::get('/{user:username}', [UserController::class, 'show'])->name('user.profile');
 });
 

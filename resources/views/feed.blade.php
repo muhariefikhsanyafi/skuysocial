@@ -127,7 +127,7 @@
                             <div x-data="{ showComments: false }" class="bg-white dark:bg-[#101010] border-4 border-black dark:border-[#333333] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-4 sm:p-5 transition-colors duration-300">
                                 <div class="flex gap-4">
                                     <div class="flex flex-col items-center flex-shrink-0">
-                                        <a href="{{ route('user.profile', $post->user->id) }}">
+                                        <a href="{{ route('user.profile', $post->user) }}">
                                             @if ($post->user->avatar)
                                                 <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="Avatar" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:shadow-none transition-all hover:translate-x-[2px] hover:translate-y-[2px]">
                                             @else
@@ -141,7 +141,7 @@
                                     <div class="flex-1 min-w-0 pb-2">
                                         <div class="flex justify-between items-start mb-1">
                                             <div class="flex items-center gap-1.5 flex-wrap">
-                                                <a href="{{ route('user.profile', $post->user->id) }}" class="font-black text-sm sm:text-base text-black dark:text-white uppercase hover:underline hover:decoration-2 hover:underline-offset-2">
+                                                <a href="{{ route('user.profile', $post->user->username) }}" class="font-black text-sm sm:text-base text-black dark:text-white uppercase hover:underline hover:decoration-2 hover:underline-offset-2">
                                                     {{ $post->user->name }}
                                                 </a>
                                                 @if($post->user->is_verified)

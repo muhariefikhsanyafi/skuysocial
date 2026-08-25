@@ -30,7 +30,7 @@
                     </a>
 
                     <!-- Pintasan ke Profil -->
-                    <a href="{{ route('user.profile', auth()->user()->id) }}" class="bg-cyan-400 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[6px] hover:translate-x-[6px] font-black uppercase px-8 py-4 text-black transition-all text-xl flex items-center justify-center gap-2">
+                    <a href="{{ route('user.profile', auth()->user()->username) }}" class="bg-cyan-400 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[6px] hover:translate-x-[6px] font-black uppercase px-8 py-4 text-black transition-all text-xl flex items-center justify-center gap-2">
                         <span>👤</span> Lihat Profilku
                     </a>
                     

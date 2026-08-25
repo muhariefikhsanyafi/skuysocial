@@ -27,6 +27,22 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+		// 1. Validasi input termasuk username dengan regex anti-spasi & izinkan titik (.)
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => [
+                'required', 
+                'string', 
+                'max:255', 
+                'regex:/^[a-zA-Z0-9_.]+$/', 
+                'unique:users,username,' . $request->user()->id
+            ],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,' . $request->user()->id],
+        ]);
+
+        // 2. Menyimpan data name, username, dan email yang sudah divalidasi
+        $request->user()->fill($request->only(['name', 'username', 'email']));
+		
         // Menyimpan data name, email, dan bio
         $request->user()->fill($request->validated());
 
