@@ -12,7 +12,11 @@ class Post extends Model
     use HasFactory;
 
     // Mengizinkan kolom 'content' agar bisa diisi form input nanti
-    protected $fillable = ['content', 'image', 'user_id', 'topic'];
+    protected $fillable = ['content', 'image', 'images', 'user_id', 'topic'];
+	
+	protected $casts = [
+    'images' => 'array',
+];
 
     // Relasi: Setiap satu postingan itu pasti dimiliki oleh satu user
     public function user(): BelongsTo

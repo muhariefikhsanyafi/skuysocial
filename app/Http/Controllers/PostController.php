@@ -22,16 +22,21 @@ class PostController extends Controller
     {
         $validated = $request->validate([
             'content' => 'required|string|max:1000',
-            // Aturan gambar: maksimal 2MB (2048 KB)
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
-			'topic' => 'nullable|string|max:50',
+            // Aturan multi-gambar: maksimal 4 gambar, tiap gambar max 5MB (5120 KB)
+            'images'   => 'nullable|array|max:4',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+            'topic'    => 'nullable|string|max:50',
         ]);
 
-        // Jika user mengunggah file gambar
-        if ($request->hasFile('image')) {
-            // Simpan gambar ke folder storage/app/public/posts
-            $imagePath = $request->file('image')->store('posts', 'public');
-            $validated['image'] = $imagePath;
+        // Jika user mengunggah file gambar (multi)
+        if ($request->hasFile('images')) {
+            $imagePaths = [];
+            // Looping untuk menyimpan setiap gambar yang dipilih
+            foreach ($request->file('images') as $image) {
+                $imagePaths[] = $image->store('posts', 'public');
+            }
+            // Masukkan array lokasi gambar ke data validasi kolom 'images'
+            $validated['images'] = $imagePaths;
         }
 
         // Simpan postingan atas nama user yang sedang login dan tampung ke variabel $post
