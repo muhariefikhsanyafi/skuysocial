@@ -13,7 +13,7 @@ class PostController extends Controller
     {
         // Ambil semua postingan beserta nama pembuatnya, urutkan dari yang terbaru
         // Menambahkan 'comments.user' agar nama pembuat komentar ikut terpanggil
-        $posts = Post::with(['user', 'likes', 'comments.user'])->latest()->get();
+        $posts = Post::with(['user', 'likes', 'comments.user', 'originalPost.user'])->latest()->get();
         return view('feed', compact('posts'));
     }
 
@@ -66,7 +66,38 @@ class PostController extends Controller
 
         return redirect()->route('feed');
     }
+    
+    // Menampilkan Halaman Detail Postingan Tunggal
+    public function show(Post $post)
+    {
+        // Memuat relasi yang dibutuhkan agar tidak berat (N+1 query)
+        $post->load(['user', 'likes', 'comments.user', 'comments.replies.user']);
+        
+        return view('show-post', compact('post'));
+    }
 	
+	// Logika Repost (Posting Ulang)
+    public function repost(Post $post)
+    {
+        // Cari apakah user sudah merepost postingan ini sebelumnya
+        $existingRepost = Post::where('user_id', auth()->id())
+                              ->where('repost_id', $post->id)
+                              ->first();
+
+        if ($existingRepost) {
+            // Jika sudah diklik, maka batalkan (hapus data repost)
+            $existingRepost->delete();
+        } else {
+            // Jika belum, ciptakan postingan baru sebagai repost
+            auth()->user()->posts()->create([
+                'repost_id' => $post->id,
+                'content' => null, // Teks dikosongkan karena ini murni repost
+            ]);
+        }
+
+        return back();
+    }
+ 
 	// Menampilkan halaman form edit
     public function edit(Post $post)
     {

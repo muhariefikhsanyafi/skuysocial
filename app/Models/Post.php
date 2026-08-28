@@ -12,7 +12,7 @@ class Post extends Model
     use HasFactory;
 
     // Mengizinkan kolom 'content' agar bisa diisi form input nanti
-    protected $fillable = ['content', 'image', 'images', 'user_id', 'topic'];
+    protected $fillable = ['content', 'image', 'images', 'user_id', 'repost_id', 'topic'];
 	
 	protected $casts = [
     'images' => 'array',
@@ -46,5 +46,41 @@ class Post extends Model
     public function hashtags()
     {
         return $this->belongsToMany(Hashtag::class);
+    }
+	
+	// Beritahu Laravel agar menggunakan kolom 'uid' di URL, bukan 'id'
+    public function getRouteKeyName()
+    {
+        return 'uid';
+    }
+
+    // Buat kode acak 11 karakter secara otomatis setiap kali utas baru diposting
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($post) {
+            if (empty($post->uid)) {
+                $post->uid = \Illuminate\Support\Str::random(11);
+            }
+        });
+    }
+	
+	// Relasi ke postingan asli yang di-repost
+    public function originalPost()
+    {
+        return $this->belongsTo(Post::class, 'repost_id');
+    }
+
+    // Menghitung berapa kali postingan ini di-repost orang lain
+    public function reposts()
+    {
+        return $this->hasMany(Post::class, 'repost_id');
+    }
+
+    // Mengecek apakah user tertentu sudah merepost postingan ini
+    public function isRepostedBy($user)
+    {
+        if (!$user) return false;
+        return $this->reposts()->where('user_id', $user->id)->exists();
     }
 }

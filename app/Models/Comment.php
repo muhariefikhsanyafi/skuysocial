@@ -36,4 +36,16 @@ class Comment extends Model
     {
         return $this->belongsTo(Post::class);
     }
+	
+	// Relasi untuk mengambil data Like pada komentar
+    public function likes()
+    {
+        return $this->belongsToMany(User::class, 'comment_likes');
+    }
+
+    // Mengecek apakah komentar ini sudah disukai oleh user tertentu
+    public function isLikedBy(User $user)
+    {
+        return $this->likes->contains('id', $user->id);
+    }
 }

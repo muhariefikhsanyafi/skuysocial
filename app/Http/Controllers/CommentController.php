@@ -22,4 +22,13 @@ class CommentController extends Controller
 
         return back();
     }
+	
+	// Menyukai atau membatalkan suka pada komentar
+    public function like(\App\Models\Comment $comment)
+    {
+        // Fitur 'toggle' akan menambah like jika belum, dan menghapus jika sudah ada
+        $comment->likes()->toggle(auth()->id());
+        
+        return back();
+    }
 }

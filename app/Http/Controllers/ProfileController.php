@@ -63,6 +63,15 @@ class ProfileController extends Controller
             // Masukkan path foto tersebut ke database
             $request->user()->avatar = $path;
         }
+		
+		if ($request->hasFile('cover')) {
+            if ($request->user()->cover) {
+                Storage::disk('public')->delete($request->user()->cover);
+            }
+            
+            $coverPath = $request->file('cover')->store('covers', 'public');
+            $request->user()->cover = $coverPath;
+        }
 
         // Simpan semua perubahan ke database
         $request->user()->save();
