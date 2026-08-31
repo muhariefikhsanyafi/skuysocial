@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -52,6 +53,30 @@ class Post extends Model
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->limit(3);
+    }
+
+    /**
+     * Load the data used by post listings that render full comment threads.
+     */
+    public function scopeWithInteractiveListing(Builder $query, int $viewerId): Builder
+    {
+        return $query
+            ->with([
+                'user',
+                'originalPost.user',
+                'comments.user',
+                'comments.replies.user',
+            ])
+            ->withCount([
+                'likes',
+                'comments',
+                'comments as root_comments_count' => fn (Builder $query) => $query->whereNull('parent_id'),
+                'reposts',
+            ])
+            ->withExists([
+                'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+            ]);
     }
 	
 	// Relasi ke tabel hashtags

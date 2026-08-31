@@ -14,7 +14,11 @@ class UserController extends Controller
         $user = User::where('username', $username)->firstOrFail();
         
         // Ambil postingan miliknya (termasuk hasil repost)
-        $posts = $user->posts()->with(['user', 'likes', 'comments.user', 'originalPost.user'])->latest()->get();
+        $posts = $user->posts()
+            ->with(['user', 'originalPost.user'])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->simplePaginate(15);
 
         return view('profile', compact('user', 'posts'));
     }

@@ -178,13 +178,15 @@ class PostController extends Controller
     }
 	
 	// Fungsi untuk menampilkan postingan berdasarkan topik
-    public function topic($topic)
+    public function topic(Request $request, $topic)
     {
         // Cari postingan yang kolom 'topic'-nya sama dengan parameter URL
-        $posts = \App\Models\Post::with(['user', 'likes', 'comments.user', 'comments.replies.user'])
+        $posts = Post::query()
                     ->where('topic', $topic)
-                    ->latest()
-                    ->get();
+                    ->withInteractiveListing($request->user()->getKey())
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id')
+                    ->paginate(15);
 
         // Lempar data postingan dan nama topiknya ke halaman view 'topic'
         return view('topic', compact('posts', 'topic'));

@@ -13,7 +13,7 @@
             <h1 class="text-2xl sm:text-4xl font-black uppercase text-black">
                 Menjelajahi Tagar
             </h1>
-            <p class="font-bold text-gray-900 mt-1">Ditemukan {{ $posts->count() }} postingan mantul.</p>
+            <p class="font-bold text-gray-900 mt-1">Ditemukan {{ $posts->total() }} postingan mantul.</p>
         </div>
         <div class="bg-black text-white border-4 border-white px-4 py-2 font-black text-2xl sm:text-3xl shadow-[4px_4px_0px_0px_rgba(255,255,0,1)] rotate-[-2deg]">
             #{{ $hashtag->name }}
@@ -80,13 +80,13 @@
                         <div class="mt-6 pt-4 border-t-4 border-black flex items-center">
                             <form action="{{ route('posts.like', $post->uid) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="flex items-center gap-2 px-4 py-2 border-4 border-black font-black uppercase transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] {{ $post->isLikedBy(auth()->user()) ? 'bg-pink-400 text-black' : 'bg-white text-black' }}">
+                                <button type="submit" class="flex items-center gap-2 px-4 py-2 border-4 border-black font-black uppercase transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] {{ $post->liked_by_me ? 'bg-pink-400 text-black' : 'bg-white text-black' }}">
                                     <!-- Ikon Hati -->
-                                    <svg class="w-6 h-6" fill="{{ $post->isLikedBy(auth()->user()) ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6" fill="{{ $post->liked_by_me ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                         <path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                     </svg>
                                     <!-- Jumlah Suka -->
-                                    <span>{{ $post->likes->count() }} Suka</span>
+                                    <span>{{ $post->likes_count }} Suka</span>
                                 </button>
                             </form>
                         </div>
@@ -163,6 +163,12 @@
                     </div>
                 @endforeach
             </div>
+
+            @if ($posts->hasPages())
+                <div class="mt-6">
+                    {{ $posts->links() }}
+                </div>
+            @endif
 
         </div>
     </div>

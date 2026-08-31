@@ -48,7 +48,7 @@
                 <div class="bg-pink-400 dark:bg-[#181818] border-4 border-black dark:border-[#333333] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-6 sm:p-10 mb-8 flex flex-col items-center justify-center transition-colors duration-300 text-center">
                     <span class="text-sm font-black text-black dark:text-gray-400 uppercase tracking-[0.3em] mb-2 border-2 border-black dark:border-[#333333] px-3 py-1 bg-white dark:bg-[#101010] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-none">Menelusuri Topik</span>
                     <h1 class="text-4xl sm:text-5xl font-black text-black dark:text-white uppercase mt-3">#{{ $topic }}</h1>
-                    <p class="text-sm font-bold text-black dark:text-gray-400 mt-4 bg-yellow-300 dark:bg-[#242424] border-2 border-black dark:border-[#333333] px-4 py-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-none">{{ $posts->count() }} Utas ditemukan</p>
+                    <p class="text-sm font-bold text-black dark:text-gray-400 mt-4 bg-yellow-300 dark:bg-[#242424] border-2 border-black dark:border-[#333333] px-4 py-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-none">{{ $posts->total() }} Utas ditemukan</p>
                 </div>
 
                     <!-- Area Daftar Status / Timeline -->
@@ -113,10 +113,10 @@
                                             <form action="{{ route('posts.like', $post->uid) }}" method="POST">
                                                 @csrf
                                                 <button type="submit" class="flex items-center gap-1.5 group transition-all">
-                                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform {{ $post->isLikedBy(auth()->user()) ? 'text-red-500 fill-red-500' : 'text-black dark:text-white fill-none' }}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform {{ $post->liked_by_me ? 'text-red-500 fill-red-500' : 'text-black dark:text-white fill-none' }}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                                     </svg>
-                                                    <span class="text-xs sm:text-sm font-bold {{ $post->isLikedBy(auth()->user()) ? 'text-red-500' : 'text-black dark:text-white' }}">{{ $post->likes->count() > 0 ? $post->likes->count() : '' }}</span>
+                                                    <span class="text-xs sm:text-sm font-bold {{ $post->liked_by_me ? 'text-red-500' : 'text-black dark:text-white' }}">{{ $post->likes_count > 0 ? $post->likes_count : '' }}</span>
                                                 </button>
                                             </form>
                                             
@@ -125,7 +125,7 @@
                                                 <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                                 </svg>
-                                                <span class="text-xs sm:text-sm font-bold">{{ $post->comments->count() > 0 ? $post->comments->count() : '' }}</span>
+                                                <span class="text-xs sm:text-sm font-bold">{{ $post->comments_count > 0 ? $post->comments_count : '' }}</span>
                                             </button>
 
                                             <!-- Tombol Repost (Visual) -->
@@ -255,6 +255,12 @@
                     </div>
                     
                 </div> <!-- PENUTUP WADAH KUNING RAKSASA -->
+
+                @if ($posts->hasPages())
+                    <div class="mt-6">
+                        {{ $posts->links() }}
+                    </div>
+                @endif
 
             </div>
         </div>
