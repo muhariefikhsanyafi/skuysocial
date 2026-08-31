@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Hashtag;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -112,7 +113,8 @@ class PostController extends Controller
     public function repost(Post $post)
     {
         // Cari apakah user sudah merepost postingan ini sebelumnya
-        $existingRepost = Post::where('user_id', auth()->id())
+        $actorId = auth()->id();
+        $existingRepost = Post::where('user_id', $actorId)
                               ->where('repost_id', $post->id)
                               ->first();
 
@@ -121,13 +123,35 @@ class PostController extends Controller
             $existingRepost->delete();
         } else {
             // Jika belum, ciptakan postingan baru sebagai repost
-            auth()->user()->posts()->create([
-                'repost_id' => $post->id,
-                'content' => null, // Teks dikosongkan karena ini murni repost
-            ]);
+            try {
+                auth()->user()->posts()->create([
+                    'repost_id' => $post->id,
+                    'content' => null, // Teks dikosongkan karena ini murni repost
+                ]);
+            } catch (QueryException $exception) {
+                if (! $this->isDuplicateRepostConflict($exception)) {
+                    throw $exception;
+                }
+            }
         }
 
         return back();
+    }
+
+    private function isDuplicateRepostConflict(QueryException $exception): bool
+    {
+        $sqlState = $exception->errorInfo[0] ?? $exception->getCode();
+        $message = strtolower($exception->getMessage());
+
+        if ((string) $sqlState !== '23000') {
+            return false;
+        }
+
+        return str_contains($message, 'posts_user_id_repost_id_unique')
+            || (
+                str_contains($message, 'posts.user_id')
+                && str_contains($message, 'posts.repost_id')
+            );
     }
  
 	// Menampilkan halaman form edit
