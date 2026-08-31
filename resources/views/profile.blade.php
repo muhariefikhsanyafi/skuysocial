@@ -46,8 +46,8 @@
                             @else
                                 <form action="{{ route('user.follow', $user->username) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="px-4 py-2 sm:px-6 sm:py-2.5 border-2 border-black font-black uppercase text-xs sm:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ auth()->user()->isFollowing($user) ? 'bg-white text-black' : 'bg-black text-white hover:bg-gray-800' }}">
-                                        {{ auth()->user()->isFollowing($user) ? 'Mengikuti' : 'Ikuti' }}
+                                    <button type="submit" class="px-4 py-2 sm:px-6 sm:py-2.5 border-2 border-black font-black uppercase text-xs sm:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $isFollowing ? 'bg-white text-black' : 'bg-black text-white hover:bg-gray-800' }}">
+                                        {{ $isFollowing ? 'Mengikuti' : 'Ikuti' }}
                                     </button>
                                 </form>
                             @endif
@@ -74,11 +74,11 @@
                     <!-- Statistik Follower -->
                     <div class="flex items-center gap-6 pt-4 border-t-2 border-dashed border-gray-300 dark:border-[#333333]">
                         <div class="flex flex-col">
-                            <span class="font-black text-2xl text-black dark:text-white">{{ $user->followings()->count() }}</span>
+                            <span class="font-black text-2xl text-black dark:text-white">{{ $followingsCount }}</span>
                             <span class="font-bold text-xs uppercase text-gray-500 tracking-wider">Mengikuti</span>
                         </div>
                         <div class="flex flex-col">
-                            <span class="font-black text-2xl text-black dark:text-white">{{ $user->followers()->count() }}</span>
+                            <span class="font-black text-2xl text-black dark:text-white">{{ $followersCount }}</span>
                             <span class="font-bold text-xs uppercase text-gray-500 tracking-wider">Pengikut</span>
                         </div>
                     </div>

@@ -12,7 +12,15 @@ class UserController extends Controller
     public function show($username)
     {
         // Cari user berdasarkan username, jika tidak ada, tampilkan 404
-        $user = User::where('username', $username)->firstOrFail();
+        $user = User::query()
+            ->withCount(['followings', 'followers'])
+            ->where('username', $username)
+            ->firstOrFail();
+
+        $isFollowing = auth()->id() !== $user->id
+            && auth()->user()->isFollowing($user);
+        $followersCount = (int) $user->followers_count;
+        $followingsCount = (int) $user->followings_count;
         
         // Ambil postingan miliknya (termasuk hasil repost)
         $posts = $user->posts()
@@ -21,7 +29,13 @@ class UserController extends Controller
             ->orderByDesc('id')
             ->simplePaginate(15);
 
-        return view('profile', compact('user', 'posts'));
+        return view('profile', compact(
+            'user',
+            'posts',
+            'isFollowing',
+            'followersCount',
+            'followingsCount',
+        ));
     }
 
     // 2. Tombol Aksi Ikuti / Batal Mengikuti

@@ -43,8 +43,69 @@ class ProfileHashtagTopicTest extends TestCase
         $response->assertOk();
         $response->assertSee(route('user.profile', $owner), false);
         $response->assertSee(route('posts.show', $post), false);
+        $response->assertSee('Ikuti', false);
+        $this->assertFalse($response->viewData('isFollowing'));
         $this->assertSame('profile-owner', $owner->getRouteKey());
         $this->assertSame($post->uid, $post->getRouteKey());
+    }
+
+    public function test_profile_follow_state_and_counts_are_prepared_without_blade_relation_queries(): void
+    {
+        $owner = User::factory()->create(['username' => 'profile-owner']);
+        $viewer = User::factory()->create(['username' => 'profile-viewer']);
+        $followedUser = User::factory()->create(['username' => 'followed-user']);
+        $followerUser = User::factory()->create(['username' => 'follower-user']);
+
+        $viewer->followings()->attach($owner->id);
+        $owner->followings()->attach($followedUser->id);
+        $followerUser->followings()->attach($owner->id);
+
+        $response = $this->actingAs($viewer)->get(route('user.profile', $owner));
+
+        $response->assertOk();
+        $response->assertSee('Mengikuti');
+        $this->assertTrue($response->viewData('isFollowing'));
+        $this->assertSame(2, $response->viewData('followersCount'));
+        $this->assertSame(1, $response->viewData('followingsCount'));
+        $this->assertStringNotContainsString('isFollowing($user)', $response->getContent());
+        $this->assertStringNotContainsString('followings()->count()', $response->getContent());
+        $this->assertStringNotContainsString('followers()->count()', $response->getContent());
+    }
+
+    public function test_own_profile_prepares_false_follow_state_and_follow_counts(): void
+    {
+        $user = User::factory()->create();
+        $followedUser = User::factory()->create();
+        $followerUser = User::factory()->create();
+
+        $user->followings()->attach($followedUser->id);
+        $followerUser->followings()->attach($user->id);
+
+        $response = $this->actingAs($user)->get(route('user.profile', $user));
+
+        $response->assertOk();
+        $this->assertFalse($response->viewData('isFollowing'));
+        $this->assertSame(1, $response->viewData('followersCount'));
+        $this->assertSame(1, $response->viewData('followingsCount'));
+    }
+
+    public function test_profile_follow_state_query_is_not_repeated_for_other_user(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $this->actingAs($viewer)->get(route('user.profile', $owner));
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $followStateQueries = collect($queries)
+            ->filter(fn (array $query): bool => str_contains($query['query'], 'and "following_id" = ?'));
+
+        $this->assertCount(1, $followStateQueries);
     }
 
     public function test_profile_orders_posts_by_created_at_then_id_and_paginates(): void
