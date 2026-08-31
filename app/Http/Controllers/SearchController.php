@@ -10,14 +10,22 @@ class SearchController extends Controller
 {
     public function index(Request $request)
     {
-        // Tangkap kata kunci yang diketik user
-        $query = $request->input('q');
+        // Normalize and validate the search input before using it in a query.
+        $rawQuery = $request->input('q');
+
+        if (is_string($rawQuery)) {
+            $request->merge(['q' => trim($rawQuery)]);
+        }
+
+        $query = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+        ])['q'] ?? '';
 
         $users = collect();
         $posts = collect();
 
         // Jika user mengetik sesuatu, mulai pencarian ke database
-        if ($query) {
+        if ($query !== '') {
             // 1. Cari berdasarkan Nama atau Username (Maksimal ambil 5)
             $users = User::where('name', 'like', "%{$query}%")
                          ->orWhere('username', 'like', "%{$query}%")
