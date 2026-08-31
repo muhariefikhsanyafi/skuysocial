@@ -10,11 +10,14 @@ class ActivityController extends Controller
     {
         $user = auth()->user();
 
-        // Ambil semua notifikasi milik user ini
-        $notifications = $user->notifications;
+        // Ambil notifikasi secara terbatas dengan urutan yang deterministik
+        $notifications = $user->notifications()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->simplePaginate(20);
 
-        // Tandai semua notifikasi yang belum dibaca menjadi "sudah dibaca" ketika halaman ini dibuka
-        $user->unreadNotifications->markAsRead();
+        // Pertahankan perilaku lama: membuka Activity membaca semua notifikasi yang belum dibaca
+        $user->unreadNotifications()->update(['read_at' => now()]);
 
         return view('activity', compact('notifications'));
     }

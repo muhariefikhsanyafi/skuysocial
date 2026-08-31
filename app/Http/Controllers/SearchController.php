@@ -27,9 +27,10 @@ class SearchController extends Controller
             // 2. Cari di dalam teks konten postingan (Maksimal ambil 20)
             $posts = Post::with('user')
                          ->where('content', 'like', "%{$query}%")
-                         ->latest()
-                         ->take(20)
-                         ->get();
+                         ->orderByDesc('created_at')
+                         ->orderByDesc('id')
+                         ->simplePaginate(20)
+                         ->withQueryString();
         }
 
         // Kirim data ke tampilan halaman pencarian

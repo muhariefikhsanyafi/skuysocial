@@ -64,6 +64,12 @@
                             </a>
                         @endforeach
                     </div>
+
+                    @if($posts->hasPages())
+                        <div class="mt-6">
+                            {{ $posts->links() }}
+                        </div>
+                    @endif
                 @endif
             </div>
 

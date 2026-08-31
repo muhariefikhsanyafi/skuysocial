@@ -75,6 +75,12 @@
                     </div>
                 @endforeach
             @endif
+
+            @if($notifications->hasPages())
+                <div class="mt-6">
+                    {{ $notifications->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>
