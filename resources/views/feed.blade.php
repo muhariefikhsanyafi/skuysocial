@@ -73,7 +73,7 @@
                                     <div x-data="{
                                             topicQuery: '',
                                             showSuggestions: false,
-                                            availableTopics: {{ \App\Models\Post::whereNotNull('topic')->distinct()->pluck('topic')->toJson() }},
+                                            availableTopics: {{ $availableTopics->toJson() }},
                                             
                                             get filteredTopics() {
                                                 if (this.topicQuery === '') return [];

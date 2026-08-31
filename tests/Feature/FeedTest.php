@@ -28,6 +28,53 @@ class FeedTest extends TestCase
         });
     }
 
+    public function test_feed_exposes_bounded_unique_ordered_topic_suggestions(): void
+    {
+        $user = User::factory()->create();
+
+        for ($number = 0; $number < 3; $number++) {
+            $this->createPost($user, ['topic' => null]);
+        }
+        $this->createPost($user, ['topic' => '']);
+
+        $topics = collect(['zeta', 'alpha', 'middle']);
+        foreach ($topics as $topic) {
+            for ($number = 0; $number < 2; $number++) {
+                $this->createPost($user, ['topic' => $topic]);
+            }
+        }
+
+        $response = $this->actingAs($user)->get(route('feed'));
+        $availableTopics = $response->viewData('availableTopics');
+
+        $response->assertOk();
+        $this->assertSame(['alpha', 'middle', 'zeta'], $availableTopics->all());
+        $this->assertCount(3, $availableTopics);
+        $this->assertStringContainsString(
+            'availableTopics: [&quot;alpha&quot;,&quot;middle&quot;,&quot;zeta&quot;]',
+            $response->getContent(),
+        );
+    }
+
+    public function test_feed_topic_suggestions_are_limited_to_twenty(): void
+    {
+        $user = User::factory()->create();
+
+        for ($number = 1; $number <= 25; $number++) {
+            $this->createPost($user, [
+                'topic' => sprintf('topic-%02d', $number),
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('feed'));
+        $availableTopics = $response->viewData('availableTopics');
+
+        $this->assertCount(20, $availableTopics);
+        $this->assertSame('topic-01', $availableTopics->first());
+        $this->assertSame('topic-20', $availableTopics->last());
+        $this->assertNotContains('topic-21', $availableTopics->all());
+    }
+
     public function test_feed_orders_posts_by_created_at_then_id_descending(): void
     {
         $user = User::factory()->create();

@@ -52,6 +52,14 @@ class PostController extends Controller
 
         $unreadNotificationCount = $request->user()->unreadNotifications()->count();
 
+        $availableTopics = Post::query()
+            ->whereNotNull('topic')
+            ->where('topic', '<>', '')
+            ->distinct()
+            ->orderBy('topic')
+            ->limit(20)
+            ->pluck('topic');
+
         // --- AWAL LOGIKA SEDANG HANGAT (TRENDING HASHTAGS) ---
         $trendingHashtags = Hashtag::query()
             ->select('hashtags.name as name')
@@ -67,7 +75,12 @@ class PostController extends Controller
             ])
             ->all();
 
-        return view('feed', compact('posts', 'trendingHashtags', 'unreadNotificationCount'));
+        return view('feed', compact(
+            'posts',
+            'trendingHashtags',
+            'unreadNotificationCount',
+            'availableTopics',
+        ));
     }
 
     // Menyimpan postingan baru ke database
