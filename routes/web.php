@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\SearchController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -16,11 +17,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-	
+
+	// Rute untuk Pencarian
+	Route::get('/cari', [SearchController::class, 'index'])->name('search');
+
 	// Rute untuk aksi Follow/Unfollow
-Route::post('/user/{user}/follow', [App\Http\Controllers\UserController::class, 'toggleFollow'])->name('user.follow');
-// Rute untuk Halaman Profil
-Route::get('/user/{username}', [App\Http\Controllers\UserController::class, 'show'])->name('user.profile');
+	Route::post('/user/{user}/follow', [App\Http\Controllers\UserController::class, 'toggleFollow'])->name('user.follow');
+
+	Route::get('/aktivitas', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activity.index');
+
+	// Rute untuk Halaman Profil
+	Route::get('/user/{username}', [App\Http\Controllers\UserController::class, 'show'])->name('user.profile');
 });
 
 require __DIR__.'/auth.php';
@@ -60,4 +67,3 @@ use App\Http\Controllers\HashtagController;
     Route::get('/pengaturan/profil', [App\Http\Controllers\UserController::class, 'edit'])->name('user.edit');
     Route::post('/pengaturan/profil', [App\Http\Controllers\UserController::class, 'update'])->name('user.update');
 });
-

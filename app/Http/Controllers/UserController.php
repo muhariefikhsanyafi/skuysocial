@@ -34,6 +34,9 @@ class UserController extends Controller
             $currentUser->followings()->detach($user->id);
         } else {
             $currentUser->followings()->attach($user->id);
+
+			// --- PELATUK NOTIFIKASI FOLLOW ---
+            $user->notify(new \App\Notifications\UserFollowed($currentUser));
         }
 
         return back();
