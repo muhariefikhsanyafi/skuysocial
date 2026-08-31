@@ -54,6 +54,15 @@ class Post extends Model
         return 'uid';
     }
 
+    /**
+     * Backward-compatible alias for notification payloads created before uid
+     * became the public route key.
+     */
+    public function getSlugAttribute(): ?string
+    {
+        return $this->uid;
+    }
+
     // Buat kode acak 11 karakter secara otomatis setiap kali utas baru diposting
     protected static function boot()
     {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CommentController extends Controller
 {
@@ -11,14 +12,25 @@ class CommentController extends Controller
     {
         $validated = $request->validate([
             'content' => 'required|string|max:500',
-            'parent_id' => 'nullable|exists:comments,id', // <-- Tambahkan validasi ini
+            'parent_id' => [
+                'nullable',
+                Rule::exists('comments', 'id')->where(function ($query) use ($post) {
+                    $query->where('post_id', $post->getKey());
+                }),
+            ],
         ]);
 
         $post->comments()->create([
             'user_id' => $request->user()->id,
             'content' => $validated['content'],
-            'parent_id' => $request->parent_id, // <-- Tangkap parent_id dari form
+            'parent_id' => $validated['parent_id'] ?? null,
         ]);
+
+		// --- PELATUK NOTIFIKASI BALASAN ---
+        // Cegah kirim notifikasi jika user membalas postingannya sendiri
+        if ($post->user_id !== auth()->id()) {
+            $post->user->notify(new \App\Notifications\CommentPosted(auth()->user(), $post));
+        }
 
         return back();
     }

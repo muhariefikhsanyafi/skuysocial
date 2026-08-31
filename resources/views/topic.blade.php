@@ -22,7 +22,7 @@
                         Aktivitas
                     </a>
 
-                    <a href="{{ route('user.profile', auth()->id()) }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-emerald-400 dark:hover:bg-emerald-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm group">
+                                        <a href="{{ route('user.profile', auth()->user()->username) }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-2.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-emerald-400 dark:hover:bg-emerald-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none dark:hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm group">
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         Profil
                     </a>
@@ -58,7 +58,7 @@
                             <div x-data="{ showComments: false }" class="bg-white dark:bg-[#101010] border-4 border-black dark:border-[#333333] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-4 sm:p-5 transition-colors duration-300">
                                 <div class="flex gap-4">
                                     <div class="flex flex-col items-center flex-shrink-0">
-                                        <a href="{{ route('user.profile', $post->user->id) }}">
+                                        <a href="{{ route('user.profile', $post->user->username) }}">
                                             @if ($post->user->avatar)
                                                 <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="Avatar" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:shadow-none transition-all hover:translate-x-[2px] hover:translate-y-[2px]">
                                             @else
@@ -72,7 +72,7 @@
                                     <div class="flex-1 min-w-0 pb-2">
                                         <div class="flex justify-between items-start mb-1">
                                             <div class="flex items-center gap-1.5 flex-wrap">
-                                                <a href="{{ route('user.profile', $post->user->id) }}" class="font-black text-sm sm:text-base text-black dark:text-white uppercase hover:underline hover:decoration-2 hover:underline-offset-2">
+                                                <a href="{{ route('user.profile', $post->user->username) }}" class="font-black text-sm sm:text-base text-black dark:text-white uppercase hover:underline hover:decoration-2 hover:underline-offset-2">
                                                     {{ $post->user->name }}
                                                 </a>
                                                 @if($post->user->is_verified)
@@ -91,8 +91,8 @@
                                             </div>
                                             @if ($post->user_id === auth()->id())
                                                 <div class="flex gap-3">
-                                                    <a href="{{ route('posts.edit', $post->id) }}" class="text-[10px] font-black uppercase text-black dark:text-white border-b-2 border-black dark:border-[#333333] hover:bg-yellow-300 dark:hover:bg-yellow-500 transition-colors">Edit</a>
-                                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Hapus utas ini?');" class="inline">
+                                                    <a href="{{ route('posts.edit', $post->uid) }}" class="text-[10px] font-black uppercase text-black dark:text-white border-b-2 border-black dark:border-[#333333] hover:bg-yellow-300 dark:hover:bg-yellow-500 transition-colors">Edit</a>
+                                                    <form action="{{ route('posts.destroy', $post->uid) }}" method="POST" onsubmit="return confirm('Hapus utas ini?');" class="inline">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="text-[10px] font-black uppercase text-red-500 border-b-2 border-red-500 hover:bg-red-200 transition-colors">Hapus</button>
@@ -110,7 +110,7 @@
                                         <!-- ICON INTERAKSI ALA THREADS (4 Icon) -->
                                         <div class="flex items-center gap-4 sm:gap-6 mt-3 mb-2 text-black dark:text-white">
                                             <!-- Tombol Like -->
-                                            <form action="{{ route('posts.like', $post->id) }}" method="POST">
+                                            <form action="{{ route('posts.like', $post->uid) }}" method="POST">
                                                 @csrf
                                                 <button type="submit" class="flex items-center gap-1.5 group transition-all">
                                                     <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform {{ $post->isLikedBy(auth()->user()) ? 'text-red-500 fill-red-500' : 'text-black dark:text-white fill-none' }}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -173,7 +173,7 @@
                                                                 </button>
                                                                 <!-- Perhatikan class w-full ditambahkan pada div dan form -->
 <div x-show="openReply" style="display: none;" class="mt-2 w-full">
-    <form action="{{ route('comments.store', $post->id) }}" method="POST" class="w-full flex gap-2 items-center" @submit="isSubmitting = true">
+    <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="w-full flex gap-2 items-center" @submit="isSubmitting = true">
         @csrf
         <input type="hidden" name="parent_id" value="{{ $comment->id }}">
         
@@ -235,7 +235,7 @@
     </div>
     
     <!-- Tambahkan min-w-0 pada tag form -->
-    <form action="{{ route('comments.store', $post->id) }}" method="POST" class="flex-1 flex gap-2 items-center min-w-0" @submit="isSubmitting = true">
+    <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="flex-1 flex gap-2 items-center min-w-0" @submit="isSubmitting = true">
         @csrf
         <!-- Tambahkan w-full pada tag input -->
         <input type="text" name="content" class="flex-1 min-w-0 w-full bg-transparent border-none focus:ring-0 focus:outline-none text-black dark:text-white font-bold text-sm placeholder-gray-400 dark:placeholder-gray-500" placeholder="Tambahkan komentar..." required>

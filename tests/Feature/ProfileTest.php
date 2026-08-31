@@ -21,6 +21,15 @@ class ProfileTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_user_factory_generates_valid_unique_usernames(): void
+    {
+        $users = User::factory()->count(2)->create();
+
+        $this->assertMatchesRegularExpression('/^[a-zA-Z0-9_.]+$/', $users[0]->username);
+        $this->assertMatchesRegularExpression('/^[a-zA-Z0-9_.]+$/', $users[1]->username);
+        $this->assertNotSame($users[0]->username, $users[1]->username);
+    }
+
     public function test_profile_information_can_be_updated(): void
     {
         $user = User::factory()->create();
@@ -29,6 +38,7 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->patch('/profile', [
                 'name' => 'Test User',
+                'username' => 'updated_user',
                 'email' => 'test@example.com',
             ]);
 
@@ -39,6 +49,7 @@ class ProfileTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
+        $this->assertSame('updated_user', $user->username);
         $this->assertSame('test@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
     }
@@ -51,6 +62,7 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->patch('/profile', [
                 'name' => 'Test User',
+                'username' => $user->username,
                 'email' => $user->email,
             ]);
 

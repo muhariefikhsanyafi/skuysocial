@@ -30,23 +30,6 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\HashtagController;
 
-Route::get('/jalankan-migrasi', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        return 'Mantap! Migrasi Database Berhasil! Silakan buka halaman utama.';
-    } catch (\Exception $e) {
-        return 'Error: ' . $e->getMessage();
-    }
-});
-
-Route::get('/perbaiki-username-lama', function () {
-    \App\Models\User::whereNull('username')->get()->each(function($user) {
-        $user->username = strtolower(str_replace(' ', '', $user->name)) . $user->id;
-        $user->save();
-    });
-    return 'Berhasil memperbaiki username akun lama!';
-});
-
 	Route::get('/post/{post}', [App\Http\Controllers\PostController::class, 'show'])->name('posts.show');
 
 	// Rute ini hanya bisa diakses kalau user sudah login (auth)

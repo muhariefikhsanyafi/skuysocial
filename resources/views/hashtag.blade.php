@@ -40,7 +40,7 @@
                 </div>
             @endif
                                 <div class="ml-4">
-                                    <a href="{{ route('user.profile', $post->user->id) }}" class="text-xl font-black text-black uppercase tracking-wide hover:underline hover:decoration-yellow-400 hover:decoration-4 transition-all">
+                                    <a href="{{ route('user.profile', $post->user->username) }}" class="text-xl font-black text-black uppercase tracking-wide hover:underline hover:decoration-yellow-400 hover:decoration-4 transition-all">
     {{ $post->user->name }}
 	</a>
                                     <p class="text-xs font-bold text-gray-800 mt-1 bg-gray-200 border-2 border-black inline-block px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">
@@ -53,11 +53,11 @@
                             @if ($post->user_id === auth()->id())
                                 <div class="flex gap-2">
                                     <!-- Tombol Edit -->
-                                    <a href="{{ route('posts.edit', $post->id) }}" class="bg-yellow-300 border-2 border-black font-bold uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+                                    <a href="{{ route('posts.edit', $post->uid) }}" class="bg-yellow-300 border-2 border-black font-bold uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
                                         Edit
                                     </a>
                                     <!-- Tombol Hapus -->
-                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus status ini?');">
+                                    <form action="{{ route('posts.destroy', $post->uid) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus status ini?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="bg-red-400 text-black border-2 border-black font-black uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
@@ -78,7 +78,7 @@
                         @endif
 						<!-- Tombol Interaksi -->
                         <div class="mt-6 pt-4 border-t-4 border-black flex items-center">
-                            <form action="{{ route('posts.like', $post->id) }}" method="POST">
+                            <form action="{{ route('posts.like', $post->uid) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="flex items-center gap-2 px-4 py-2 border-4 border-black font-black uppercase transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] {{ $post->isLikedBy(auth()->user()) ? 'bg-pink-400 text-black' : 'bg-white text-black' }}">
                                     <!-- Ikon Hati -->
@@ -120,7 +120,7 @@
 
             <!-- 2. Form Input Balasan (Tersembunyi secara default) -->
             <div x-show="openReply" style="display: none;" class="ml-6 sm:ml-10">
-                <form action="{{ route('comments.store', $post->id) }}" method="POST" class="flex gap-2">
+                <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="flex gap-2">
                     @csrf
                     <!-- Input rahasia untuk mengirimkan ID komentar yang dibalas -->
                     <input type="hidden" name="parent_id" value="{{ $comment->id }}">
@@ -152,7 +152,7 @@
 </div>
 
                             <!-- Form Input Komentar Baru -->
-                            <form action="{{ route('comments.store', $post->id) }}" method="POST" class="flex gap-2">
+                            <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="flex gap-2">
                                 @csrf
                                 <input type="text" name="content" class="flex-1 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none p-2 font-bold text-black text-sm" placeholder="Balas postingan ini..." required autocomplete="off">
                                 <button type="submit" class="bg-emerald-400 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] font-black uppercase px-4 py-2 text-black transition-all text-sm">

@@ -12,7 +12,7 @@
             
             <div class="bg-yellow-300 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-12">
                 <div class="p-6">
-                    <form action="{{ route('posts.update', $post->id) }}" method="POST">
+                    <form action="{{ route('posts.update', $post->uid) }}" method="POST">
                         @csrf
                         @method('PATCH')
                         <textarea 

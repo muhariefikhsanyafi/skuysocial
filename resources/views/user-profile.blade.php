@@ -120,8 +120,8 @@
                             <!-- Tombol Edit & Hapus -->
                             @if ($post->user_id === auth()->id())
                                 <div class="flex gap-2">
-                                    <a href="{{ route('posts.edit', $post->id) }}" class="bg-yellow-300 border-2 border-black font-bold uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">Edit</a>
-                                    <form action="{{ route('posts.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus status ini?');">
+                                    <a href="{{ route('posts.edit', $post->uid) }}" class="bg-yellow-300 border-2 border-black font-bold uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">Edit</a>
+                                    <form action="{{ route('posts.destroy', $post->uid) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus status ini?');">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="bg-red-400 text-black border-2 border-black font-black uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">Hapus</button>
                                     </form>

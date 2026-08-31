@@ -44,7 +44,7 @@
                                     Edit Profil
                                 </a>
                             @else
-                                <form action="{{ route('user.follow', $user->id) }}" method="POST">
+                                <form action="{{ route('user.follow', $user->username) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="px-4 py-2 sm:px-6 sm:py-2.5 border-2 border-black font-black uppercase text-xs sm:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ auth()->user()->isFollowing($user) ? 'bg-white text-black' : 'bg-black text-white hover:bg-gray-800' }}">
                                         {{ auth()->user()->isFollowing($user) ? 'Mengikuti' : 'Ikuti' }}
