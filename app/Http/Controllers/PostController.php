@@ -15,7 +15,7 @@ class PostController extends Controller
         $viewerId = $request->user()->getKey();
         $loadDisplayPost = function ($query) use ($viewerId): void {
             $query
-                ->with(['user', 'comments.user', 'comments.replies.user'])
+                ->with(['user', 'feedComments.user', 'feedComments.feedReplies.user'])
                 ->withCount([
                     'likes',
                     'comments',
@@ -31,8 +31,8 @@ class PostController extends Controller
         $posts = Post::query()
             ->with([
                 'user',
-                'comments.user',
-                'comments.replies.user',
+                'feedComments.user',
+                'feedComments.feedReplies.user',
                 'originalPost' => $loadDisplayPost,
             ])
             ->withCount([

@@ -295,7 +295,7 @@
 										<!-- PREVIEW KOMENTAR TERBARU (Gaya Threads) -->
                                         @php
                                             // Mengambil 1 komentar induk paling terbaru
-                                            $topComment = $displayPost->comments->whereNull('parent_id')->sortByDesc('created_at')->first();
+                                            $topComment = $displayPost->feedComments->first();
                                         @endphp
                                         
                                         @if ($topComment)
@@ -338,7 +338,7 @@
                                         <!-- Area Komentar -->
                                         <div x-show="showComments" x-transition.opacity.duration.300ms style="display: none;" class="mt-4 pt-3 border-t-2 border-black dark:border-[#333333] border-dashed"> 
                                             <div class="space-y-4 mb-3">
-                                                @foreach ($displayPost->comments->whereNull('parent_id') as $comment)
+                                                @foreach ($displayPost->feedComments as $comment)
                                                     <div x-data="{ openReply: false, isSubmitting: false }" class="relative">
                                                         <div class="flex gap-3">
                                                             <div class="flex flex-col items-center flex-shrink-0">
@@ -349,7 +349,7 @@
                                                                         {{ substr($comment->user->name, 0, 1) }}
                                                                     </div>
                                                                 @endif
-                                                                <div class="w-0.5 sm:w-1 bg-black dark:bg-[#333333] flex-1 mt-1.5 sm:mt-2 mb-1 min-h-[16px]" x-show="openReply || {{ $comment->replies->count() > 0 ? 'true' : 'false' }}"></div>
+                                                                <div class="w-0.5 sm:w-1 bg-black dark:bg-[#333333] flex-1 mt-1.5 sm:mt-2 mb-1 min-h-[16px]" x-show="openReply || {{ $comment->feedReplies->count() > 0 ? 'true' : 'false' }}"></div>
                                                             </div>
                                                             <div class="flex-1 min-w-0 pb-1">
                                                                 <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
@@ -376,9 +376,9 @@
                                                                     </form>
                                                                 </div>
                                                                 
-                                                                @if ($comment->replies->count() > 0)
+                                                                @if ($comment->feedReplies->count() > 0)
                                                                     <div class="mt-3 space-y-3">
-                                                                        @foreach ($comment->replies as $reply)
+                                                                        @foreach ($comment->feedReplies as $reply)
                                                                             <div class="flex gap-2">
                                                                                 <div class="flex flex-col items-center flex-shrink-0 mt-0.5">
                                                                                     @if ($reply->user->avatar)

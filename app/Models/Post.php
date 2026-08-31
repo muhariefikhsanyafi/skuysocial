@@ -41,6 +41,18 @@ class Post extends Model
     {
         return $this->hasMany(Comment::class);
     }
+
+    /**
+     * Bounded root comments used by the feed preview.
+     */
+    public function feedComments(): HasMany
+    {
+        return $this->comments()
+            ->whereNull('parent_id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(3);
+    }
 	
 	// Relasi ke tabel hashtags
     public function hashtags()
