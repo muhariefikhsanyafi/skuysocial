@@ -12,9 +12,26 @@ class PostController extends Controller
     public function index()
     {
         // Ambil semua postingan beserta nama pembuatnya, urutkan dari yang terbaru
-        // Menambahkan 'comments.user' agar nama pembuat komentar ikut terpanggil
+        // (Kode asli Anda tetap dipertahankan)
         $posts = Post::with(['user', 'likes', 'comments.user', 'originalPost.user'])->latest()->get();
-        return view('feed', compact('posts'));
+
+        // --- AWAL LOGIKA SEDANG HANGAT (TRENDING HASHTAGS) ---
+        $trendingHashtags = Hashtag::query()
+            ->select('hashtags.name as name')
+            ->selectRaw('COUNT(DISTINCT hashtag_post.post_id) as post_count')
+            ->join('hashtag_post', 'hashtags.id', '=', 'hashtag_post.hashtag_id')
+            ->groupBy('hashtags.id', 'hashtags.name')
+            ->orderByDesc('post_count')
+            ->orderBy('hashtags.name')
+            ->limit(5)
+            ->get()
+            ->mapWithKeys(fn (Hashtag $hashtag): array => [
+                $hashtag->name => (int) $hashtag->post_count,
+            ])
+            ->all();
+
+        // Tambahkan variabel $trendingHashtags ke dalam compact() agar bisa dipakai di tampilan
+        return view('feed', compact('posts', 'trendingHashtags'));
     }
 
     // Menyimpan postingan baru ke database
@@ -42,27 +59,7 @@ class PostController extends Controller
         // Simpan postingan atas nama user yang sedang login dan tampung ke variabel $post
         $post = $request->user()->posts()->create($validated);
 
-        // --- LOGIKA DETEKSI TAGAR (HASHTAG) ---
-        
-        // 1. Keajaiban Regex: Cari semua kata yang diawali tanda '#'
-        preg_match_all('/#([a-zA-Z0-9_]+)/', $post->content, $matches);
-        
-        // $matches[1] berisi daftar teks tagarnya saja (tanpa simbol '#')
-        $hashtagNames = $matches[1]; 
-
-        $hashtagIds = [];
-        foreach ($hashtagNames as $name) {
-            // Ubah ke huruf kecil semua
-            $hashtag = Hashtag::firstOrCreate(['name' => strtolower($name)]);
-            $hashtagIds[] = $hashtag->id;
-        }
-
-        // 2. Hubungkan postingan ini dengan tagar-tagar yang ditemukan
-        if (!empty($hashtagIds)) {
-            $post->hashtags()->attach($hashtagIds);
-        }
-        
-        // --- BATAS LOGIKA DETEKSI TAGAR ---
+        $this->syncHashtags($post);
 
         return redirect()->route('feed');
     }
@@ -116,6 +113,7 @@ class PostController extends Controller
         ]);
 
         $post->update($validated);
+        $this->syncHashtags($post);
         return redirect()->route('feed');
     }
 
@@ -125,6 +123,23 @@ class PostController extends Controller
         abort_if($post->user_id !== auth()->id(), 403);
         $post->delete();
         return back();
+    }
+
+    private function syncHashtags(Post $post): void
+    {
+        preg_match_all('/#([a-zA-Z0-9_]+)/', $post->content ?? '', $matches);
+
+        $hashtagNames = array_values(array_unique(array_map(
+            'strtolower',
+            $matches[1] ?? [],
+        )));
+
+        $hashtagIds = [];
+        foreach ($hashtagNames as $name) {
+            $hashtagIds[] = Hashtag::firstOrCreate(['name' => $name])->id;
+        }
+
+        $post->hashtags()->sync($hashtagIds);
     }
 	
 	// Fungsi untuk menampilkan postingan berdasarkan topik

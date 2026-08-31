@@ -1,7 +1,7 @@
 <x-app-layout>
     <!-- 1. Background utama (pt-8 dipangkas jadi pt-3 untuk HP) -->
     <div class="pt-3 sm:pt-12 pb-28 md:pb-12 bg-gray-50 dark:bg-[#101010] min-h-screen transition-colors duration-300">
-        
+
         <!-- 2. Wadah 3 Kolom (Padding kiri-kanan diperlebar jadi px-2 khusus di HP) -->
         <div class="w-full max-w-[1600px] mx-auto px-2 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between gap-0 md:gap-6 lg:gap-8 items-start min-h-screen">
             
@@ -446,31 +446,22 @@
             <div class="hidden xl:flex flex-col w-[280px] flex-shrink-0 md:sticky md:top-28 z-20 gap-6">
                 
                 <!-- Widget 1: Topik Hangat -->
-                <div class="bg-white dark:bg-[#181818] border-4 border-black dark:border-[#333333] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(51,51,51,1)] p-5 transition-colors">
-                    <h3 class="font-black text-black dark:text-white uppercase text-base border-b-4 border-black dark:border-[#333333] pb-2 mb-4 flex items-center gap-2">
-                        <span>🔥</span> Sedang Hangat
-                    </h3>
-                    <ul class="space-y-4">
-                        <li>
-                            <a href="#" class="block hover:bg-yellow-300 dark:hover:bg-[#333333] p-2 -mx-2 transition-colors group border-2 border-transparent hover:border-black dark:hover:border-transparent">
-                                <p class="font-black text-sm text-black dark:text-white group-hover:text-black">#Makassar</p>
-                                <p class="font-bold text-xs text-gray-500">Populer saat ini</p>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="block hover:bg-cyan-400 dark:hover:bg-[#333333] p-2 -mx-2 transition-colors group border-2 border-transparent hover:border-black dark:hover:border-transparent">
-                                <p class="font-black text-sm text-black dark:text-white group-hover:text-black">#SkuySocial</p>
-                                <p class="font-bold text-xs text-gray-500">Pembaruan Web</p>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="block hover:bg-pink-400 dark:hover:bg-[#333333] p-2 -mx-2 transition-colors group border-2 border-transparent hover:border-black dark:hover:border-transparent">
-                                <p class="font-black text-sm text-black dark:text-white group-hover:text-black">Neo Brutalisme</p>
-                                <p class="font-bold text-xs text-gray-500">Gaya Desain</p>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                <div class="p-4 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+    <h2 class="text-lg font-black uppercase mb-4 flex items-center gap-2 border-b-4 border-black pb-2">
+        🔥 Sedang Hangat
+    </h2>
+
+    <div class="space-y-3">
+        @forelse($trendingHashtags ?? [] as $tag => $count)
+            <a href="{{ route('search', ['q' => '#' . $tag]) }}" class="block p-2 border-2 border-black bg-gray-50 hover:bg-yellow-300 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <p class="font-black text-black text-sm">#{{ $tag }}</p>
+                <p class="text-xs font-bold text-gray-500">{{ $count }} Utas</p>
+            </a>
+        @empty
+            <p class="text-xs font-bold text-gray-500 italic">Belum ada topik hangat hari ini.</p>
+        @endforelse
+    </div>
+</div>
 
                 <!-- Widget 2: Kartu Dukungan -->
                 <div class="bg-pink-400 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-5 relative overflow-hidden">
