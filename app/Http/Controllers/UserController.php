@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -37,13 +38,37 @@ class UserController extends Controller
         if ($currentUser->isFollowing($user)) {
             $currentUser->followings()->detach($user->id);
         } else {
-            $currentUser->followings()->attach($user->id);
+            try {
+                $currentUser->followings()->attach($user->id);
+            } catch (QueryException $exception) {
+                if (! $this->isDuplicateFollowConflict($exception)) {
+                    throw $exception;
+                }
+
+                return back();
+            }
 
 			// --- PELATUK NOTIFIKASI FOLLOW ---
             $user->notify(new \App\Notifications\UserFollowed($currentUser));
         }
 
         return back();
+    }
+
+    private function isDuplicateFollowConflict(QueryException $exception): bool
+    {
+        $sqlState = $exception->errorInfo[0] ?? $exception->getCode();
+        $message = strtolower($exception->getMessage());
+
+        if ((string) $sqlState !== '23000') {
+            return false;
+        }
+
+        return str_contains($message, 'follows_follower_id_following_id_unique')
+            || (
+                str_contains($message, 'follows.follower_id')
+                && str_contains($message, 'follows.following_id')
+            );
     }
 	
 	// Menampilkan Halaman Edit Profil
