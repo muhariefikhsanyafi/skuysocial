@@ -103,10 +103,35 @@ class PostController extends Controller
     // Menampilkan Halaman Detail Postingan Tunggal
     public function show(Post $post)
     {
-        // Memuat relasi yang dibutuhkan agar tidak berat (N+1 query)
-        $post->load(['user', 'likes', 'comments.user', 'comments.replies.user']);
-        
-        return view('show-post', compact('post'));
+        $viewerId = auth()->id();
+
+        $post->load(['user', 'originalPost.user']);
+
+        $displayPost = $post->originalPost ?? $post;
+        $displayPost
+            ->loadCount(['likes', 'comments', 'reposts'])
+            ->loadExists([
+                'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                'reposts as reposted_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
+            ]);
+
+        $comments = $displayPost->detailComments()
+            ->with([
+                'user',
+                'feedReplies' => fn ($query) => $query
+                    ->with('user')
+                    ->withCount('likes')
+                    ->withExists([
+                        'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                    ]),
+            ])
+            ->withCount('likes')
+            ->withExists([
+                'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
+            ])
+            ->simplePaginate(20, ['*'], 'comments_page');
+
+        return view('show-post', compact('post', 'displayPost', 'comments'));
     }
 	
 	// Logika Repost (Posting Ulang)

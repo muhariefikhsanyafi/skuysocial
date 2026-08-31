@@ -56,6 +56,17 @@ class Post extends Model
     }
 
     /**
+     * Root comments used by the post detail paginator.
+     */
+    public function detailComments(): HasMany
+    {
+        return $this->comments()
+            ->whereNull('parent_id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
+    }
+
+    /**
      * Load the data used by post listings that render full comment threads.
      */
     public function scopeWithInteractiveListing(Builder $query, int $viewerId): Builder

@@ -37,7 +37,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\HashtagController;
 
-	Route::get('/post/{post}', [App\Http\Controllers\PostController::class, 'show'])->name('posts.show');
+	Route::get('/post/{post}', [App\Http\Controllers\PostController::class, 'show'])->name('posts.show')->middleware('auth');
 
 	// Rute ini hanya bisa diakses kalau user sudah login (auth)
 	Route::middleware(['auth'])->group(function () {
