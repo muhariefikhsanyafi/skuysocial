@@ -97,7 +97,10 @@
                             <!-- Daftar Komentar Sebelumnya (Threaded) -->
 <div class="space-y-4 mb-4">
     <!-- Hanya ambil komentar utama (yang tidak punya parent_id) -->
-    @foreach ($post->comments->whereNull('parent_id') as $comment)
+    <a href="{{ route('posts.show', $post->uid) }}" class="inline-block mb-3 text-xs font-black uppercase text-blue-600 hover:underline">
+        Lihat utas lengkap
+    </a>
+    @foreach ($post->feedComments as $comment)
         
         <!-- Bungkus dengan Alpine.js untuk fitur buka-tutup form balasan -->
         <div x-data="{ openReply: false }" class="flex flex-col gap-2">
@@ -133,9 +136,9 @@
             </div>
 
             <!-- 3. Daftar Balasan (Anak Komentar) -->
-            @if ($comment->replies->count() > 0)
+            @if ($comment->feedReplies->count() > 0)
                 <div class="ml-6 sm:ml-10 flex flex-col gap-2 border-l-4 border-black pl-3 mt-1">
-                    @foreach ($comment->replies as $reply)
+                    @foreach ($comment->feedReplies as $reply)
                         <div class="bg-pink-200 border-2 border-black p-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col">
                             <div class="flex justify-between items-center mb-1 border-b-2 border-black pb-1">
                                 <span class="font-black text-[11px] uppercase">{{ $reply->user->name }}</span>

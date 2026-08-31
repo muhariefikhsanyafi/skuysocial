@@ -192,9 +192,10 @@ class ProfileHashtagTopicTest extends TestCase
         $this->assertSame(1, $listedPost->root_comments_count);
         $this->assertTrue($listedPost->liked_by_me);
         $this->assertFalse($listedPost->reposted_by_me);
-        $this->assertTrue($listedPost->relationLoaded('comments'));
-        $this->assertTrue($listedPost->comments->first()->relationLoaded('user'));
-        $this->assertTrue($listedPost->comments->first()->replies->first()->relationLoaded('user'));
+        $this->assertTrue($listedPost->relationLoaded('feedComments'));
+        $this->assertTrue($listedPost->feedComments->first()->relationLoaded('user'));
+        $this->assertTrue($listedPost->feedComments->first()->feedReplies->first()->relationLoaded('user'));
+        $response->assertSee(route('posts.show', $post), false);
     }
 
     public function test_topic_listing_preserves_interaction_state_and_route_keys(): void
@@ -225,7 +226,113 @@ class ProfileHashtagTopicTest extends TestCase
         $this->assertSame(2, $listedPost->comments_count);
         $this->assertTrue($listedPost->liked_by_me);
         $this->assertFalse($listedPost->reposted_by_me);
-        $this->assertTrue($listedPost->comments->first()->replies->first()->relationLoaded('user'));
+        $this->assertTrue($listedPost->feedComments->first()->feedReplies->first()->relationLoaded('user'));
+        $response->assertSee(route('posts.show', $post), false);
+    }
+
+    public function test_topic_listing_bounds_root_comments_and_replies_per_root(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($owner, 'Bounded topic post', 'bounded-topic');
+        $timestamp = Carbon::parse('2026-08-31 12:00:00');
+        $rootIds = [];
+        $replyIdsByRoot = [];
+
+        for ($rootIndex = 0; $rootIndex < 5; $rootIndex++) {
+            $root = Comment::create([
+                'user_id' => $owner->id,
+                'post_id' => $post->id,
+                'content' => "Root {$rootIndex}",
+            ]);
+            $root->update(['created_at' => $timestamp]);
+            $rootIds[] = $root->id;
+            $replyIdsByRoot[$root->id] = [];
+
+            for ($replyIndex = 0; $replyIndex < 3; $replyIndex++) {
+                $reply = Comment::create([
+                    'user_id' => $viewer->id,
+                    'post_id' => $post->id,
+                    'parent_id' => $root->id,
+                    'content' => "Reply {$rootIndex}-{$replyIndex}",
+                ]);
+                $reply->update(['created_at' => $timestamp]);
+                $replyIdsByRoot[$root->id][] = $reply->id;
+            }
+        }
+
+        $listedPost = $this->actingAs($viewer)
+            ->get(route('topik.show', 'bounded-topic'))
+            ->viewData('posts')
+            ->first();
+
+        $this->assertSame(20, $listedPost->comments_count);
+        $this->assertSame(5, $listedPost->root_comments_count);
+        $this->assertCount(3, $listedPost->feedComments);
+        $this->assertSame(array_reverse(array_slice($rootIds, -3)), $listedPost->feedComments->pluck('id')->all());
+
+        foreach ($listedPost->feedComments as $root) {
+            $this->assertTrue($root->relationLoaded('user'));
+            $this->assertCount(2, $root->feedReplies);
+            $this->assertSame(
+                array_reverse(array_slice($replyIdsByRoot[$root->id], -2)),
+                $root->feedReplies->pluck('id')->all(),
+            );
+            $this->assertTrue($root->feedReplies->every(fn (Comment $reply) => $reply->relationLoaded('user')));
+        }
+    }
+
+    public function test_hashtag_listing_bounds_root_comments_and_replies_per_root(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $hashtag = Hashtag::create(['name' => 'bounded-hashtag']);
+        $post = $this->createPost($owner, 'Bounded hashtag post');
+        $post->hashtags()->attach($hashtag->id);
+        $timestamp = Carbon::parse('2026-08-31 13:00:00');
+        $rootIds = [];
+        $replyIdsByRoot = [];
+
+        for ($rootIndex = 0; $rootIndex < 5; $rootIndex++) {
+            $root = Comment::create([
+                'user_id' => $owner->id,
+                'post_id' => $post->id,
+                'content' => "Root {$rootIndex}",
+            ]);
+            $root->update(['created_at' => $timestamp]);
+            $rootIds[] = $root->id;
+            $replyIdsByRoot[$root->id] = [];
+
+            for ($replyIndex = 0; $replyIndex < 3; $replyIndex++) {
+                $reply = Comment::create([
+                    'user_id' => $viewer->id,
+                    'post_id' => $post->id,
+                    'parent_id' => $root->id,
+                    'content' => "Reply {$rootIndex}-{$replyIndex}",
+                ]);
+                $reply->update(['created_at' => $timestamp]);
+                $replyIdsByRoot[$root->id][] = $reply->id;
+            }
+        }
+
+        $response = $this->actingAs($viewer)->get(route('tags.show', $hashtag->name));
+        $listedPost = $response->viewData('posts')->first();
+
+        $response->assertSee(route('posts.show', $post), false);
+        $this->assertSame(20, $listedPost->comments_count);
+        $this->assertSame(5, $listedPost->root_comments_count);
+        $this->assertCount(3, $listedPost->feedComments);
+        $this->assertSame(array_reverse(array_slice($rootIds, -3)), $listedPost->feedComments->pluck('id')->all());
+
+        foreach ($listedPost->feedComments as $root) {
+            $this->assertTrue($root->relationLoaded('user'));
+            $this->assertCount(2, $root->feedReplies);
+            $this->assertSame(
+                array_reverse(array_slice($replyIdsByRoot[$root->id], -2)),
+                $root->feedReplies->pluck('id')->all(),
+            );
+            $this->assertTrue($root->feedReplies->every(fn (Comment $reply) => $reply->relationLoaded('user')));
+        }
     }
 
     public function test_hashtag_reply_user_queries_do_not_grow_per_post(): void
@@ -247,6 +354,25 @@ class ProfileHashtagTopicTest extends TestCase
         }
 
         $threePostQueries = $this->measureHashtagQueryCount($hashtag, $viewer);
+
+        $this->assertSame($onePostQueries, $threePostQueries);
+    }
+
+    public function test_topic_reply_user_queries_do_not_grow_per_post(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $firstPost = $this->createPost($owner, 'First topic query post', 'query-topic');
+        $this->createCommentWithReply($firstPost, $owner, $viewer);
+
+        $onePostQueries = $this->measureTopicQueryCount($viewer);
+
+        for ($index = 0; $index < 2; $index++) {
+            $post = $this->createPost($owner, "Additional topic query post {$index}", 'query-topic');
+            $this->createCommentWithReply($post, $owner, $viewer);
+        }
+
+        $threePostQueries = $this->measureTopicQueryCount($viewer);
 
         $this->assertSame($onePostQueries, $threePostQueries);
     }
@@ -286,6 +412,19 @@ class ProfileHashtagTopicTest extends TestCase
         DB::enableQueryLog();
 
         $this->actingAs($viewer)->get(route('tags.show', $hashtag->name));
+
+        $queryCount = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $queryCount;
+    }
+
+    private function measureTopicQueryCount(User $viewer): int
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $this->actingAs($viewer)->get(route('topik.show', 'query-topic'));
 
         $queryCount = count(DB::getQueryLog());
         DB::disableQueryLog();

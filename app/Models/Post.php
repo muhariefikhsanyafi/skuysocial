@@ -67,7 +67,7 @@ class Post extends Model
     }
 
     /**
-     * Load the data used by post listings that render full comment threads.
+     * Load the data used by post listings that render comment previews.
      */
     public function scopeWithInteractiveListing(Builder $query, int $viewerId): Builder
     {
@@ -75,8 +75,8 @@ class Post extends Model
             ->with([
                 'user',
                 'originalPost.user',
-                'comments.user',
-                'comments.replies.user',
+                'feedComments.user',
+                'feedComments.feedReplies.user',
             ])
             ->withCount([
                 'likes',
