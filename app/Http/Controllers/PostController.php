@@ -4,16 +4,52 @@ namespace App\Http\Controllers;
 
 use App\Models\Hashtag;
 use App\Models\Post;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
     // Menampilkan halaman Feed
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil semua postingan beserta nama pembuatnya, urutkan dari yang terbaru
-        // (Kode asli Anda tetap dipertahankan)
-        $posts = Post::with(['user', 'likes', 'comments.user', 'originalPost.user'])->latest()->get();
+        $viewerId = $request->user()->getKey();
+        $loadDisplayPost = function ($query) use ($viewerId): void {
+            $query
+                ->with(['user', 'comments.user', 'comments.replies.user'])
+                ->withCount([
+                    'likes',
+                    'comments',
+                    'comments as root_comments_count' => fn (Builder $query) => $query->whereNull('parent_id'),
+                    'reposts',
+                ])
+                ->withExists([
+                    'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                    'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                ]);
+        };
+
+        $posts = Post::query()
+            ->with([
+                'user',
+                'comments.user',
+                'comments.replies.user',
+                'originalPost' => $loadDisplayPost,
+            ])
+            ->withCount([
+                'likes',
+                'comments',
+                'comments as root_comments_count' => fn (Builder $query) => $query->whereNull('parent_id'),
+                'reposts',
+            ])
+            ->withExists([
+                'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+            ])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->simplePaginate(15);
+
+        $unreadNotificationCount = $request->user()->unreadNotifications()->count();
 
         // --- AWAL LOGIKA SEDANG HANGAT (TRENDING HASHTAGS) ---
         $trendingHashtags = Hashtag::query()
@@ -30,8 +66,7 @@ class PostController extends Controller
             ])
             ->all();
 
-        // Tambahkan variabel $trendingHashtags ke dalam compact() agar bisa dipakai di tampilan
-        return view('feed', compact('posts', 'trendingHashtags'));
+        return view('feed', compact('posts', 'trendingHashtags', 'unreadNotificationCount'));
     }
 
     // Menyimpan postingan baru ke database

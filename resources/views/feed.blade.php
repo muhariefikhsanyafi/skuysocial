@@ -31,9 +31,9 @@
     </div>
 
     <!-- LOGIKA DOT MERAH (BADGE) DI KANAN -->
-    @if(auth()->user()->unreadNotifications->count() > 0)
+    @if($unreadNotificationCount > 0)
         <span class="bg-red-500 text-white text-xs font-black px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            {{ auth()->user()->unreadNotifications->count() }}
+            {{ $unreadNotificationCount }}
         </span>
     @endif
 </a>
@@ -266,22 +266,22 @@
                                         <div class="flex items-center gap-2 sm:gap-3 mt-3 sm:mt-4 mb-2 flex-wrap">
                                             <form action="{{ route('posts.like', $displayPost->uid) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $displayPost->isLikedBy(auth()->user()) ? 'bg-pink-400 text-black' : 'bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-pink-300' }}">
-                                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 {{ $displayPost->isLikedBy(auth()->user()) ? 'fill-black' : 'fill-none' }}" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                                    <span class="text-xs sm:text-sm font-black">{{ $displayPost->likes->count() > 0 ? $displayPost->likes->count() : '' }}</span>
+                                                <button type="submit" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $displayPost->liked_by_me ? 'bg-pink-400 text-black' : 'bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-pink-300' }}">
+                                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 {{ $displayPost->liked_by_me ? 'fill-black' : 'fill-none' }}" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                                    <span class="text-xs sm:text-sm font-black">{{ $displayPost->likes_count > 0 ? $displayPost->likes_count : '' }}</span>
                                                 </button>
                                             </form>
                                             <button @click="showComments = !showComments" type="button" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] bg-white dark:bg-[#101010] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all hover:bg-cyan-300 text-black dark:text-white group">
                                                 <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                                                <span class="text-xs sm:text-sm font-black">{{ $displayPost->comments->count() > 0 ? $displayPost->comments->count() : '' }}</span>
+                                                <span class="text-xs sm:text-sm font-black">{{ $displayPost->comments_count > 0 ? $displayPost->comments_count : '' }}</span>
                                             </button>
                                             <!-- Tombol Repost (Berfungsi) -->
                                             <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $displayPost->isRepostedBy(auth()->user()) ? 'bg-emerald-400 text-black' : 'bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-emerald-300' }} group" title="Posting Ulang">
-                                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform {{ $displayPost->isRepostedBy(auth()->user()) ? 'fill-black' : 'fill-none' }}" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                                    @if($displayPost->reposts()->count() > 0)
-                                                        <span class="text-xs sm:text-sm font-black">{{ $displayPost->reposts()->count() }}</span>
+                                                <button type="submit" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $displayPost->reposted_by_me ? 'bg-emerald-400 text-black' : 'bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-emerald-300' }} group" title="Posting Ulang">
+                                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform {{ $displayPost->reposted_by_me ? 'fill-black' : 'fill-none' }}" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                    @if($displayPost->reposts_count > 0)
+                                                        <span class="text-xs sm:text-sm font-black">{{ $displayPost->reposts_count }}</span>
                                                     @endif
                                                 </button>
                                             </form>
@@ -324,10 +324,10 @@
                                                         <p class="text-black dark:text-white font-medium text-[12px] sm:text-sm leading-relaxed">{{ $topComment->content }}</p>
                                                         
                                                         <!-- Tampilkan tombol "Lihat balasan lainnya" jika komentar lebih dari 1 -->
-                                                        @if ($displayPost->comments->whereNull('parent_id')->count() > 1)
+                                                        @if ($displayPost->root_comments_count > 1)
                                                             <button @click="showComments = true" type="button" class="mt-1 sm:mt-1.5 text-[10px] sm:text-[11px] font-black text-gray-500 hover:text-black dark:hover:text-white transition-colors flex items-center gap-1">
                                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
-                                                                Lihat {{ $displayPost->comments->whereNull('parent_id')->count() - 1 }} komentar lainnya...
+                                                                Lihat {{ $displayPost->root_comments_count - 1 }} komentar lainnya...
                                                             </button>
                                                         @endif
                                                     </div>
@@ -434,6 +434,12 @@
                             </div>
                         @endforeach
                     </div>
+
+                    @if ($posts->hasPages())
+                        <div class="mt-6">
+                            {{ $posts->links() }}
+                        </div>
+                    @endif
                     
                 </div> <!-- PENUTUP WADAH KUNING RAKSASA -->
             </div>
