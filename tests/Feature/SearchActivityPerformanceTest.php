@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Post;
 use App\Models\User;
+use App\Notifications\CommentPosted;
 use App\Notifications\PostLiked;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -207,6 +208,135 @@ class SearchActivityPerformanceTest extends TestCase
         $response->assertSee(route('user.profile', $actor), false);
         $this->assertSame(0, $recipient->unreadNotifications()->count());
         $this->assertNotNull($readNotification->fresh()->read_at);
+    }
+
+    public function test_activity_links_post_like_notification_to_the_target_post_without_post_lookup(): void
+    {
+        $recipient = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($recipient, 'Post target like');
+
+        $recipient->notify(new PostLiked($actor, $post));
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $response = $this->actingAs($recipient)->get(route('activity.index'));
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $postQueries = collect($queries)->filter(function (array $query): bool {
+            return str_contains(strtolower($query['query']), ' from "posts"');
+        });
+
+        $response
+            ->assertOk()
+            ->assertSee(route('user.profile', $actor), false)
+            ->assertSee(route('posts.show', $post), false)
+            ->assertSee('Lihat postingan');
+        $this->assertCount(0, $postQueries);
+    }
+
+    public function test_activity_links_comment_notification_to_the_target_post(): void
+    {
+        $recipient = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($recipient, 'Post target comment');
+
+        $recipient->notify(new CommentPosted($actor, $post));
+
+        $response = $this->actingAs($recipient)->get(route('activity.index'));
+
+        $response
+            ->assertOk()
+            ->assertSee(route('user.profile', $actor), false)
+            ->assertSee(route('posts.show', $post), false)
+            ->assertSee('Lihat postingan');
+    }
+
+    public function test_activity_follow_notification_keeps_actor_navigation_without_post_target(): void
+    {
+        $recipient = User::factory()->create();
+        $actor = User::factory()->create();
+
+        $recipient->notify(new \App\Notifications\UserFollowed($actor));
+
+        $response = $this->actingAs($recipient)->get(route('activity.index'));
+
+        $response
+            ->assertOk()
+            ->assertSee(route('user.profile', $actor), false)
+            ->assertDontSee('Lihat postingan');
+    }
+
+    public function test_activity_handles_notification_with_missing_post_key(): void
+    {
+        $recipient = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($recipient, 'Legacy notification post');
+
+        $recipient->notify(new PostLiked($actor, $post));
+        $notification = $recipient->notifications()->latest('id')->first();
+        $data = $notification->data;
+        unset($data['post_slug']);
+        $notification->update(['data' => $data]);
+
+        $response = $this->actingAs($recipient)->get(route('activity.index'));
+
+        $response->assertOk()->assertDontSee('Lihat postingan');
+    }
+
+    public function test_activity_handles_notification_with_null_post_key(): void
+    {
+        $recipient = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($recipient, 'Null notification post');
+
+        $recipient->notify(new PostLiked($actor, $post));
+        $notification = $recipient->notifications()->latest('id')->first();
+        $data = $notification->data;
+        $data['post_slug'] = null;
+        $notification->update(['data' => $data]);
+
+        $response = $this->actingAs($recipient)->get(route('activity.index'));
+
+        $response->assertOk()->assertDontSee('Lihat postingan');
+    }
+
+    public function test_activity_handles_notification_with_empty_post_key(): void
+    {
+        $recipient = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($recipient, 'Empty notification post');
+
+        $recipient->notify(new PostLiked($actor, $post));
+        $notification = $recipient->notifications()->latest('id')->first();
+        $data = $notification->data;
+        $data['post_slug'] = '';
+        $notification->update(['data' => $data]);
+
+        $response = $this->actingAs($recipient)->get(route('activity.index'));
+
+        $response->assertOk()->assertDontSee('Lihat postingan');
+    }
+
+    public function test_activity_keeps_post_link_when_the_target_post_was_deleted(): void
+    {
+        $recipient = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($recipient, 'Deleted notification post');
+        $postUid = $post->uid;
+
+        $recipient->notify(new PostLiked($actor, $post));
+        $post->delete();
+
+        $response = $this->actingAs($recipient)->get(route('activity.index'));
+
+        $response
+            ->assertOk()
+            ->assertSee(route('posts.show', $postUid), false)
+            ->assertSee('Lihat postingan');
     }
 
     public function test_feed_badge_counts_only_unread_notifications(): void

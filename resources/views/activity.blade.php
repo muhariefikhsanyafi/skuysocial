@@ -28,6 +28,16 @@
                     @php
                         // Ambil data yang dikirim oleh kurir
                         $data = $notification->data;
+                        $postRouteKey = $data['post_slug'] ?? null;
+                        $postTargetUrl = null;
+
+                        if (
+                            in_array($data['type'] ?? null, ['like', 'comment'], true)
+                            && is_string($postRouteKey)
+                            && $postRouteKey !== ''
+                        ) {
+                            $postTargetUrl = route('posts.show', $postRouteKey);
+                        }
                     @endphp
 
                     <div class="p-4 border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-4">
@@ -50,6 +60,11 @@
                             <span class="text-xs text-gray-500 font-bold block mt-1">
                                 {{ $notification->created_at->diffForHumans() }}
                             </span>
+                            @if($postTargetUrl)
+                                <a href="{{ $postTargetUrl }}" class="inline-block mt-2 text-xs font-black uppercase underline hover:text-blue-600 transition-colors">
+                                    Lihat postingan
+                                </a>
+                            @endif
                         </div>
 
                         <!-- Ikon Penanda Jenis Aktivitas -->
