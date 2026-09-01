@@ -23,6 +23,7 @@ class ProfileUpdateRequest extends FormRequest
             // Tambahkan 2 baris ini:
             'bio' => ['nullable', 'string', 'max:255'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'cover' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ];
     }
 }

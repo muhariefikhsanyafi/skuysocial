@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -71,6 +73,81 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertNotNull($user->refresh()->email_verified_at);
+    }
+
+    public function test_valid_cover_and_avatar_images_are_accepted_and_stored(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'avatar' => UploadedFile::fake()->image('avatar.jpg'),
+                'cover' => UploadedFile::fake()->image('cover.jpg'),
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $user->refresh();
+
+        $this->assertNotNull($user->avatar);
+        $this->assertNotNull($user->cover);
+        Storage::disk('public')->assertExists($user->avatar);
+        Storage::disk('public')->assertExists($user->cover);
+    }
+
+    public function test_non_image_cover_is_rejected_and_existing_cover_is_preserved(): void
+    {
+        Storage::fake('public');
+        $existingCover = 'covers/existing.jpg';
+        Storage::disk('public')->put($existingCover, 'existing cover');
+
+        $user = User::factory()->create(['cover' => $existingCover]);
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->patch('/profile', [
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'cover' => UploadedFile::fake()->create('cover.txt', 10, 'text/plain'),
+            ]);
+
+        $response
+            ->assertSessionHasErrors('cover')
+            ->assertRedirect('/profile');
+
+        $this->assertSame($existingCover, $user->refresh()->cover);
+        Storage::disk('public')->assertExists($existingCover);
+    }
+
+    public function test_oversized_cover_is_rejected(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->patch('/profile', [
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'cover' => UploadedFile::fake()->image('cover.jpg')->size(2049),
+            ]);
+
+        $response
+            ->assertSessionHasErrors('cover')
+            ->assertRedirect('/profile');
+
+        $this->assertNull($user->refresh()->cover);
     }
 
     public function test_user_can_delete_their_account(): void
