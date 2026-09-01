@@ -56,6 +56,79 @@ class ProfileTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_mixed_case_unused_username_is_stored_in_lowercase(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'username' => 'NewProfileUser',
+                'email' => $user->email,
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertSame('newprofileuser', $user->refresh()->username);
+    }
+
+    public function test_changing_only_username_capitalization_keeps_own_canonical_username(): void
+    {
+        $user = User::factory()->create(['username' => 'arief']);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'username' => 'ArIeF',
+                'email' => $user->email,
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertSame('arief', $user->refresh()->username);
+    }
+
+    public function test_case_variant_of_another_users_username_is_rejected_by_validation(): void
+    {
+        $user = User::factory()->create(['username' => 'profile-owner']);
+        User::factory()->create(['username' => 'taken_user']);
+
+        $response = $this
+            ->actingAs($user)
+            ->from('/profile')
+            ->patch('/profile', [
+                'name' => $user->name,
+                'username' => 'Taken_User',
+                'email' => $user->email,
+            ]);
+
+        $response
+            ->assertSessionHasErrors('username')
+            ->assertRedirect('/profile');
+
+        $this->assertSame('profile-owner', $user->refresh()->username);
+    }
+
+    public function test_normalized_username_route_binding_continues_to_resolve_profile(): void
+    {
+        $user = User::factory()->create();
+
+        $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'username' => 'RouteProfileUser',
+                'email' => $user->email,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this
+            ->actingAs($user)
+            ->get('/user/routeprofileuser')
+            ->assertOk()
+            ->assertSee('routeprofileuser');
+    }
+
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();

@@ -64,4 +64,55 @@ class RegistrationTest extends TestCase
         $response->assertSessionHasErrors('username');
         $this->assertGuest();
     }
+
+    public function test_mixed_case_username_is_stored_in_lowercase(): void
+    {
+        $response = $this->post('/register', [
+            'name' => 'Mixed Case User',
+            'username' => 'MiXeD_User',
+            'email' => 'mixed@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertDatabaseHas('users', [
+            'username' => 'mixed_user',
+        ]);
+    }
+
+    public function test_case_variant_of_existing_username_is_rejected_by_validation(): void
+    {
+        User::factory()->create(['username' => 'taken_user']);
+
+        $response = $this->from('/register')->post('/register', [
+            'name' => 'Another User',
+            'username' => 'Taken_User',
+            'email' => 'another-case@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $response
+            ->assertSessionHasErrors('username')
+            ->assertRedirect('/register');
+
+        $this->assertGuest();
+    }
+
+    public function test_case_collision_does_not_surface_as_a_database_exception(): void
+    {
+        User::factory()->create(['username' => 'taken_user']);
+
+        $response = $this->from('/register')->post('/register', [
+            'name' => 'Another User',
+            'username' => 'TAKEN_USER',
+            'email' => 'another-exception@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors('username');
+        $this->assertGuest();
+    }
 }

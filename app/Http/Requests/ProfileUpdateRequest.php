@@ -9,6 +9,15 @@ use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('username'))) {
+            $this->merge([
+                'username' => strtolower($this->input('username')),
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
