@@ -21,7 +21,7 @@
                         Cari
                     </a>
 
-                    <a href="{{ route('activity.index') }}" class="flex items-center justify-between w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 transition-colors group">
+                    <a href="{{ route('activity.index') }}" class="flex items-center justify-between w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-yellow-300 transition-colors group">
     
     <!-- Pembungkus Ikon dan Teks agar tetap di kiri -->
     <div class="flex items-center gap-3">
@@ -32,7 +32,7 @@
 
     <!-- LOGIKA DOT MERAH (BADGE) DI KANAN -->
     @if($unreadNotificationCount > 0)
-        <span class="bg-red-500 text-white text-xs font-black px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+        <span class="bg-red-500 text-white text-xs font-black px-2 py-0.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             {{ $unreadNotificationCount }}
         </span>
     @endif
