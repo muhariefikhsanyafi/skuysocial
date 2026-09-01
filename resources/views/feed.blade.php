@@ -21,7 +21,7 @@
                         Cari
                     </a>
 
-                    <a href="{{ route('activity.index') }}" class="flex items-center justify-between w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 transition-colors group">
+                    <a href="{{ route('activity.index') }}" class="flex items-center justify-between w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 transition-colors group">
     
     <!-- Pembungkus Ikon dan Teks agar tetap di kiri -->
     <div class="flex items-center gap-3">
@@ -493,7 +493,7 @@
         </a>
 
         <!-- Pencarian -->
-        <a href="#" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('search') }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </a>
 
@@ -503,7 +503,7 @@
         </button>
 
         <!-- Aktivitas / Notifikasi -->
-        <a href="#" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('activity.index') }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
         </a>
 
