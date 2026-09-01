@@ -6,6 +6,7 @@ use App\Models\Hashtag;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -231,12 +232,40 @@ class PostController extends Controller
             $matches[1] ?? [],
         )));
 
-        $hashtagIds = [];
-        foreach ($hashtagNames as $name) {
-            $hashtagIds[] = Hashtag::firstOrCreate(['name' => $name])->id;
+        for ($attempt = 1; $attempt <= 2; $attempt++) {
+            try {
+                $post->getConnection()->transaction(function () use ($post, $hashtagNames): void {
+                    $hashtagIds = [];
+                    foreach ($hashtagNames as $name) {
+                        $hashtagIds[] = Hashtag::firstOrCreate(['name' => $name])->id;
+                    }
+
+                    $post->hashtags()->sync($hashtagIds);
+                });
+
+                return;
+            } catch (UniqueConstraintViolationException $exception) {
+                if ($attempt === 2 || ! $this->isDuplicateHashtagPivotConflict($exception)) {
+                    throw $exception;
+                }
+            }
+        }
+    }
+
+    private function isDuplicateHashtagPivotConflict(UniqueConstraintViolationException $exception): bool
+    {
+        if (strtolower((string) $exception->index) === 'hashtag_post_post_id_hashtag_id_unique') {
+            return true;
         }
 
-        $post->hashtags()->sync($hashtagIds);
+        $columns = array_map(
+            static fn ($column): string => strtolower(trim((string) $column)),
+            $exception->columns,
+        );
+        sort($columns);
+
+        return $columns === ['hashtag_id', 'post_id']
+            && str_contains(strtolower($exception->getSql()), 'hashtag_post');
     }
 	
 	// Fungsi untuk menampilkan postingan berdasarkan topik

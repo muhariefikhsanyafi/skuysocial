@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Hashtag;
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -171,5 +173,199 @@ class HashtagTrendingTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    public function test_duplicate_hashtag_pivot_conflict_is_retried_without_duplicate_rows(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::create([
+            'user_id' => $user->id,
+            'content' => 'Post awal',
+        ]);
+        $hashtag = Hashtag::create(['name' => 'race']);
+        $active = true;
+        $injected = false;
+
+        DB::listen(function (QueryExecuted $query) use (&$active, &$injected, $post, $hashtag): void {
+            if (! $active || $injected || ! $this->isHashtagPivotReadForPost($query, $post->id)) {
+                return;
+            }
+
+            $injected = true;
+            DB::table('hashtag_post')->insert([
+                'post_id' => $post->id,
+                'hashtag_id' => $hashtag->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        try {
+            $response = $this->actingAs($user)->patch(route('posts.update', $post), [
+                'content' => 'Post diperbarui #race',
+            ]);
+        } finally {
+            $active = false;
+        }
+
+        $response->assertRedirect(route('feed'));
+        $this->assertTrue($injected);
+        $this->assertSame(1, DB::table('hashtag_post')
+            ->where('post_id', $post->id)
+            ->where('hashtag_id', $hashtag->id)
+            ->count());
+    }
+
+    public function test_persistent_hashtag_pivot_conflict_stops_after_two_attempts(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::create([
+            'user_id' => $user->id,
+            'content' => 'Post awal',
+        ]);
+        $hashtag = Hashtag::create(['name' => 'persistent_race']);
+        $active = true;
+        $attempts = 0;
+
+        DB::listen(function (QueryExecuted $query) use (&$active, &$attempts, $post, $hashtag): void {
+            if (! $active || ! $this->isHashtagPivotReadForPost($query, $post->id)) {
+                return;
+            }
+
+            $attempts++;
+            DB::table('hashtag_post')->insert([
+                'post_id' => $post->id,
+                'hashtag_id' => $hashtag->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        $this->withoutExceptionHandling();
+        $caught = null;
+
+        try {
+            $this->actingAs($user)->patch(route('posts.update', $post), [
+                'content' => 'Post diperbarui #persistent_race',
+            ]);
+        } catch (UniqueConstraintViolationException $exception) {
+            $caught = $exception;
+        } finally {
+            $active = false;
+        }
+
+        $this->assertInstanceOf(UniqueConstraintViolationException::class, $caught);
+        $this->assertSame(2, $attempts);
+        $this->assertSame(0, DB::table('hashtag_post')
+            ->where('post_id', $post->id)
+            ->where('hashtag_id', $hashtag->id)
+            ->count());
+    }
+
+    public function test_unrelated_unique_conflict_during_hashtag_sync_is_not_swallowed(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::create([
+            'user_id' => $user->id,
+            'content' => 'Post awal',
+        ]);
+        $active = true;
+        $injected = false;
+
+        DB::listen(function (QueryExecuted $query) use (&$active, &$injected, $post, $user): void {
+            if (! $active || $injected || ! $this->isHashtagPivotReadForPost($query, $post->id)) {
+                return;
+            }
+
+            $injected = true;
+            DB::table('posts')->insert([
+                'uid' => $post->uid,
+                'user_id' => $user->id,
+                'content' => 'UID conflict',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        $this->withoutExceptionHandling();
+        $caught = null;
+
+        try {
+            $this->actingAs($user)->patch(route('posts.update', $post), [
+                'content' => 'Post diperbarui #unrelated',
+            ]);
+        } catch (UniqueConstraintViolationException $exception) {
+            $caught = $exception;
+        } finally {
+            $active = false;
+        }
+
+        $this->assertInstanceOf(UniqueConstraintViolationException::class, $caught);
+        $this->assertTrue($injected);
+        $this->assertStringContainsString('posts', strtolower($caught->getSql()));
+        $this->assertSame(0, DB::table('hashtag_post')->where('post_id', $post->id)->count());
+    }
+
+    public function test_foreign_key_failure_rolls_back_partial_hashtag_sync(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::create([
+            'user_id' => $user->id,
+            'content' => 'Post awal',
+        ]);
+        $active = true;
+        $insertCount = 0;
+        $invalidHashtagId = 999999;
+
+        DB::listen(function (QueryExecuted $query) use (&$active, &$insertCount, $post, $invalidHashtagId): void {
+            $sql = strtolower(ltrim($query->sql));
+            if (! $active || $insertCount > 0 || ! str_starts_with($sql, 'insert')
+                || ! str_contains($sql, 'hashtag_post')) {
+                return;
+            }
+
+            $insertCount++;
+            $active = false;
+            DB::table('hashtag_post')->insert([
+                'post_id' => $post->id,
+                'hashtag_id' => $invalidHashtagId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        $this->withoutExceptionHandling();
+        $caught = null;
+
+        try {
+            $this->actingAs($user)->patch(route('posts.update', $post), [
+                'content' => 'Post diperbarui #first #second',
+            ]);
+        } catch (QueryException $exception) {
+            $caught = $exception;
+        } finally {
+            $active = false;
+        }
+
+        $this->assertInstanceOf(QueryException::class, $caught);
+        $this->assertStringContainsString('foreign key', strtolower($caught->getMessage()));
+        $this->assertSame(1, $insertCount);
+        $this->assertSame(0, DB::table('hashtag_post')->where('post_id', $post->id)->count());
+    }
+
+    private function isHashtagPivotReadForPost(QueryExecuted $query, int $postId): bool
+    {
+        $sql = strtolower(ltrim($query->sql));
+
+        if (! str_starts_with($sql, 'select') || ! str_contains($sql, 'hashtag_post')
+            || ! str_contains($sql, 'post_id')) {
+            return false;
+        }
+
+        return in_array(
+            (string) $postId,
+            array_map(static fn ($binding): string => (string) $binding, $query->bindings),
+            true,
+        );
     }
 }
