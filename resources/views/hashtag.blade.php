@@ -71,9 +71,48 @@
                         <!-- Isi Konten Postingan -->
                         <p class="text-black font-bold text-lg leading-relaxed whitespace-pre-wrap">{!! preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="/tags/$1" class="text-blue-600 font-black hover:underline hover:bg-blue-100 px-1 transition-colors">#$1</a>', nl2br(e($post->content))) !!}</p>
 						<!-- Tampilkan Gambar Jika Ada -->
-                        @if ($post->image)
-                            <div class="mt-4 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                                <img src="{{ asset('storage/' . $post->image) }}" alt="Foto dari {{ $post->user->name }}" class="w-full h-auto object-cover border-b-4 border-transparent">
+                        @php
+                            $displayPost = $post->originalPost ?? $post;
+                            $modernMedia = is_array($displayPost?->images) ? $displayPost->images : [];
+                            $mediaPaths = [];
+
+                            foreach ($modernMedia as $mediaPath) {
+                                if (is_string($mediaPath) && trim($mediaPath) !== '' && ! in_array($mediaPath, $mediaPaths, true)) {
+                                    $mediaPaths[] = $mediaPath;
+                                }
+                            }
+
+                            if ($mediaPaths === [] && is_string($displayPost?->image) && trim($displayPost->image) !== '') {
+                                $mediaPaths[] = $displayPost->image;
+                            }
+                        @endphp
+                        @if (count($mediaPaths) === 1)
+                            <div class="mt-4 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                                <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="Foto dari {{ $displayPost->user->name }}" class="w-full h-auto object-cover">
+                            </div>
+                        @elseif (count($mediaPaths) > 1)
+                            <div x-data="{
+                                    activeSlide: 0,
+                                    updateDots(e) {
+                                        let maxIndex = {{ count($mediaPaths) - 1 }};
+                                        if (maxIndex === 0) return;
+                                        let maxScroll = e.target.scrollWidth - e.target.clientWidth;
+                                        if (maxScroll === 0) return;
+                                        this.activeSlide = Math.round((e.target.scrollLeft / maxScroll) * maxIndex);
+                                    }
+                                }" data-media-slider="true" class="mt-4">
+                                <div @scroll.passive="updateDots" data-media-slider-track="true" class="flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                    @foreach ($mediaPaths as $mediaPath)
+                                        <div data-media-slide="true" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden">
+                                            <img src="{{ asset('storage/' . $mediaPath) }}" alt="Foto dari {{ $displayPost->user->name }}" class="w-full h-full object-cover">
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div data-media-indicator="true" class="flex justify-center items-center gap-1.5 mt-1 sm:mt-2 mb-2">
+                                    @foreach ($mediaPaths as $index => $mediaPath)
+                                        <div data-media-indicator-dot="true" class="h-1.5 sm:h-2 rounded-full border border-black dark:border-[#333333] transition-all duration-300" :class="activeSlide === {{ $index }} ? 'w-4 sm:w-5 bg-black dark:bg-white' : 'w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]'"></div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
 						<!-- Tombol Interaksi -->

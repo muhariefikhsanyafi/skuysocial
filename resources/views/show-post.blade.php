@@ -50,16 +50,62 @@
                 <p class="text-black dark:text-white font-medium text-[15px] sm:text-base leading-relaxed whitespace-pre-wrap mb-4">{!! preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="'.url('/tags').'/$1" class="text-blue-600 dark:text-blue-400 font-bold hover:underline decoration-2">#$1</a>', e($displayPost->content)) !!}</p>
                 
                 <!-- Carousel Gambar (Sama seperti Feed) -->
-                @if ($displayPost->images && count($displayPost->images) > 0)
+                @php
+                    $modernMedia = is_array($displayPost?->images) ? $displayPost->images : [];
+                    $mediaPaths = [];
+
+                    foreach ($modernMedia as $mediaPath) {
+                        if (is_string($mediaPath) && trim($mediaPath) !== '' && ! in_array($mediaPath, $mediaPaths, true)) {
+                            $mediaPaths[] = $mediaPath;
+                        }
+                    }
+
+                    if ($mediaPaths === [] && is_string($displayPost?->image) && trim($displayPost->image) !== '') {
+                        $mediaPaths[] = $displayPost->image;
+                    }
+                @endphp
+                @if (count($mediaPaths) === 1)
                     <div x-data="{ openImage: false, activeImage: '' }" class="mb-4">
-                        <div class="flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                            @foreach ($displayPost->images as $imgUrl)
-                                <div @click="openImage = true; activeImage = '{{ asset('storage/' . $imgUrl) }}'" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] cursor-pointer border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-xl overflow-hidden group">
-                                    <img src="{{ asset('storage/' . $imgUrl) }}" class="w-full h-full object-cover group-hover:opacity-85 transition-opacity">
+                        <div @click="openImage = true; activeImage = '{{ asset('storage/' . $mediaPaths[0]) }}'" class="border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden group cursor-pointer">
+                            <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="Foto" class="w-full h-auto object-cover group-hover:opacity-85 transition-opacity">
+                        </div>
+
+                        <!-- Modal Gambar Layar Penuh -->
+                        <div x-show="openImage" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center p-2 bg-black/90 backdrop-blur-sm">
+                            <button @click="openImage = false" class="absolute top-4 right-4 text-white z-[110] bg-black/50 rounded-full p-1 border-2 border-white">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                            <img @click.away="openImage = false" :src="activeImage" class="max-w-full max-h-[90vh] object-contain border-2 border-white shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                        </div>
+                    </div>
+                @elseif (count($mediaPaths) > 1)
+                    <div x-data="{
+                            openImage: false,
+                            activeImage: '',
+                            activeSlide: 0,
+                            updateDots(e) {
+                                let maxIndex = {{ count($mediaPaths) - 1 }};
+                                if (maxIndex === 0) return;
+                                let maxScroll = e.target.scrollWidth - e.target.clientWidth;
+                                if (maxScroll === 0) return;
+                                this.activeSlide = Math.round((e.target.scrollLeft / maxScroll) * maxIndex);
+                            }
+                        }" data-media-slider="true" class="mb-4">
+                        <div @scroll.passive="updateDots" data-media-slider-track="true" class="flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                            @foreach ($mediaPaths as $mediaPath)
+                                <div @click="openImage = true; activeImage = '{{ asset('storage/' . $mediaPath) }}'" data-media-slide="true" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] cursor-pointer border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden group transition-all hover:translate-y-[-2px]">
+                                    <img src="{{ asset('storage/' . $mediaPath) }}" alt="Foto" class="w-full h-full object-cover group-hover:opacity-85 transition-opacity">
                                 </div>
                             @endforeach
                         </div>
-                        
+
+                        <!-- INDIKATOR TITIK-TITIK (DOTS) -->
+                        <div data-media-indicator="true" class="flex justify-center items-center gap-1.5 mt-1 sm:mt-2 mb-2">
+                            @foreach ($mediaPaths as $index => $mediaPath)
+                                <div data-media-indicator-dot="true" class="h-1.5 sm:h-2 rounded-full border border-black dark:border-[#333333] transition-all duration-300" :class="activeSlide === {{ $index }} ? 'w-4 sm:w-5 bg-black dark:bg-white' : 'w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]'"></div>
+                            @endforeach
+                        </div>
+
                         <!-- Modal Gambar Layar Penuh -->
                         <div x-show="openImage" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center p-2 bg-black/90 backdrop-blur-sm">
                             <button @click="openImage = false" class="absolute top-4 right-4 text-white z-[110] bg-black/50 rounded-full p-1 border-2 border-white">

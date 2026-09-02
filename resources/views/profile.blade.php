@@ -102,6 +102,18 @@
                         @php
                             $isRepost = $post->repost_id !== null;
                             $displayPost = $isRepost ? $post->originalPost : $post;
+                            $modernMedia = is_array($displayPost?->images) ? $displayPost->images : [];
+                            $mediaPaths = [];
+
+                            foreach ($modernMedia as $mediaPath) {
+                                if (is_string($mediaPath) && trim($mediaPath) !== '' && ! in_array($mediaPath, $mediaPaths, true)) {
+                                    $mediaPaths[] = $mediaPath;
+                                }
+                            }
+
+                            if ($mediaPaths === [] && is_string($displayPost?->image) && trim($displayPost->image) !== '') {
+                                $mediaPaths[] = $displayPost->image;
+                            }
                         @endphp
                         
                         <div class="cursor-pointer hover:bg-gray-50 dark:hover:bg-[#141414] bg-white dark:bg-[#101010] border-2 sm:border-4 border-black dark:border-[#333333] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-4 sm:p-5 transition-colors duration-300" @click="window.location='{{ route('posts.show', $displayPost->uid) }}'">
@@ -132,9 +144,33 @@
                                     
                                     <p class="text-black dark:text-white font-medium text-[15px] sm:text-base leading-relaxed whitespace-pre-wrap mb-3 mt-1.5">{{ $displayPost->content }}</p>
                                     
-                                    @if ($displayPost->images && count($displayPost->images) > 0)
-                                        <div class="mb-3 text-sm font-bold text-blue-500">
-                                            [Berisi {{ count($displayPost->images) }} Gambar - Klik untuk melihat]
+                                    @if (count($mediaPaths) === 1)
+                                        <div class="mb-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                                            <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="Foto dari {{ $displayPost->user->name }}" class="w-full h-auto object-cover">
+                                        </div>
+                                    @elseif (count($mediaPaths) > 1)
+                                        <div x-data="{
+                                                activeSlide: 0,
+                                                updateDots(e) {
+                                                    let maxIndex = {{ count($mediaPaths) - 1 }};
+                                                    if (maxIndex === 0) return;
+                                                    let maxScroll = e.target.scrollWidth - e.target.clientWidth;
+                                                    if (maxScroll === 0) return;
+                                                    this.activeSlide = Math.round((e.target.scrollLeft / maxScroll) * maxIndex);
+                                                }
+                                            }" data-media-slider="true" class="mb-3">
+                                            <div @scroll.passive="updateDots" data-media-slider-track="true" class="flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                                @foreach ($mediaPaths as $mediaPath)
+                                                    <div data-media-slide="true" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden">
+                                                        <img src="{{ asset('storage/' . $mediaPath) }}" alt="Foto dari {{ $displayPost->user->name }}" class="w-full h-full object-cover">
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <div data-media-indicator="true" class="flex justify-center items-center gap-1.5 mt-1 sm:mt-2 mb-2">
+                                                @foreach ($mediaPaths as $index => $mediaPath)
+                                                    <div data-media-indicator-dot="true" class="h-1.5 sm:h-2 rounded-full border border-black dark:border-[#333333] transition-all duration-300" :class="activeSlide === {{ $index }} ? 'w-4 sm:w-5 bg-black dark:bg-white' : 'w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]'"></div>
+                                                @endforeach
+                                            </div>
                                         </div>
                                     @endif
                                 </div>
