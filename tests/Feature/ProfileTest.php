@@ -56,6 +56,27 @@ class ProfileTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_standard_profile_update_accepts_bio_up_to_255_characters(): void
+    {
+        $user = User::factory()->create();
+        $bio = str_repeat('s', 255);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'bio' => $bio,
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->assertSame($bio, $user->refresh()->bio);
+    }
+
     public function test_mixed_case_unused_username_is_stored_in_lowercase(): void
     {
         $user = User::factory()->create();
@@ -221,6 +242,44 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertNull($user->refresh()->cover);
+    }
+
+    public function test_custom_profile_update_accepts_bio_up_to_255_characters(): void
+    {
+        $user = User::factory()->create();
+        $bio = str_repeat('b', 255);
+
+        $response = $this
+            ->actingAs($user)
+            ->post(route('user.update'), [
+                'name' => $user->name,
+                'bio' => $bio,
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('user.profile', $user));
+
+        $this->assertSame($bio, $user->refresh()->bio);
+    }
+
+    public function test_custom_profile_update_rejects_bio_longer_than_255_characters(): void
+    {
+        $user = User::factory()->create(['bio' => 'Existing bio']);
+
+        $response = $this
+            ->actingAs($user)
+            ->from(route('user.edit'))
+            ->post(route('user.update'), [
+                'name' => $user->name,
+                'bio' => str_repeat('b', 256),
+            ]);
+
+        $response
+            ->assertSessionHasErrors('bio')
+            ->assertRedirect(route('user.edit'));
+
+        $this->assertSame('Existing bio', $user->refresh()->bio);
     }
 
     public function test_user_can_delete_their_account(): void

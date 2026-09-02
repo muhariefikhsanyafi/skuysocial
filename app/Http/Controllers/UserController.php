@@ -98,7 +98,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:50',
-            'bio' => 'nullable|string|max:160',
+            'bio' => 'nullable|string|max:255',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);

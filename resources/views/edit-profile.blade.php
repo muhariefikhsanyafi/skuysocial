@@ -103,8 +103,8 @@
                     <!-- Input Bio -->
                     <div class="mb-8">
                         <label class="block text-black dark:text-white font-black uppercase text-xs sm:text-sm mb-2">Bio / Tentang Saya</label>
-                        <textarea name="bio" rows="4" class="w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-3 text-black dark:text-white font-bold focus:ring-0 focus:outline-none focus:border-cyan-500 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[6px_6px_0px_0px_rgba(51,51,51,1)] resize-none" placeholder="Tuliskan sesuatu tentang dirimu..." maxlength="160">{{ old('bio', $user->bio) }}</textarea>
-                        <p class="text-xs font-bold text-gray-500 mt-2">*Maksimal 160 karakter</p>
+                        <textarea name="bio" rows="4" class="w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-3 text-black dark:text-white font-bold focus:ring-0 focus:outline-none focus:border-cyan-500 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[6px_6px_0px_0px_rgba(51,51,51,1)] resize-none" placeholder="Tuliskan sesuatu tentang dirimu..." maxlength="255">{{ old('bio', $user->bio) }}</textarea>
+                        <p class="text-xs font-bold text-gray-500 mt-2">*Maksimal 255 karakter</p>
                     </div>
 
                     <!-- Tombol Simpan -->

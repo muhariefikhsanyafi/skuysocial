@@ -32,6 +32,44 @@ class ProfileHashtagTopicTest extends TestCase
         $this->assertSame($post->uid, $response->viewData('posts')->first()->uid);
     }
 
+    public function test_public_profile_renders_stored_bio_instead_of_static_placeholder(): void
+    {
+        $user = User::factory()->create(['bio' => 'Bio yang tampil di profil publik.']);
+        $placeholder = 'Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!';
+
+        $response = $this->actingAs($user)->get(route('user.profile', $user));
+
+        $response
+            ->assertOk()
+            ->assertSee($user->bio)
+            ->assertDontSee($placeholder);
+    }
+
+    public function test_public_profile_escapes_stored_bio(): void
+    {
+        $bio = '<script>alert("x")</script><strong>Unsafe bio</strong>';
+        $user = User::factory()->create(['bio' => $bio]);
+
+        $response = $this->actingAs($user)->get(route('user.profile', $user));
+
+        $response
+            ->assertOk()
+            ->assertSee(e($bio), false)
+            ->assertDontSee($bio, false);
+    }
+
+    public function test_public_profile_keeps_fallback_for_null_bio(): void
+    {
+        $user = User::factory()->create(['bio' => null]);
+        $placeholder = 'Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!';
+
+        $response = $this->actingAs($user)->get(route('user.profile', $user));
+
+        $response
+            ->assertOk()
+            ->assertSee($placeholder);
+    }
+
     public function test_other_profile_uses_username_and_post_uid_route_keys(): void
     {
         $owner = User::factory()->create(['username' => 'profile-owner']);

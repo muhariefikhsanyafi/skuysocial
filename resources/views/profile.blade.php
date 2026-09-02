@@ -67,8 +67,8 @@
                         <p class="font-bold text-gray-500 text-sm sm:text-base">{{ '@' }}{{ $user->username }}</p>
                     </div>
 
-                    <p class="font-medium text-black dark:text-white text-sm sm:text-base leading-relaxed mb-6">
-                        Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!
+                    <p class="font-medium text-black dark:text-white text-sm sm:text-base leading-relaxed whitespace-pre-wrap mb-6">
+                        {{ blank($user->bio) ? 'Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!' : $user->bio }}
                     </p>
 
                     <!-- Statistik Follower -->
