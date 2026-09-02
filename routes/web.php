@@ -26,6 +26,9 @@ Route::middleware('auth')->group(function () {
 
 	Route::get('/aktivitas', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activity.index');
 
+	Route::get('/user/{user}/followers', [\App\Http\Controllers\UserController::class, 'followers'])->name('user.followers');
+	Route::get('/user/{user}/following', [\App\Http\Controllers\UserController::class, 'following'])->name('user.following');
+
 	// Rute untuk Halaman Profil
 	Route::get('/user/{username}', [App\Http\Controllers\UserController::class, 'show'])->name('user.profile');
 });

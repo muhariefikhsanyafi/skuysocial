@@ -71,14 +71,14 @@
 
                     <!-- Statistik Follower -->
                     <div class="flex items-center gap-6 pt-4 border-t-2 border-dashed border-gray-300 dark:border-[#333333]">
-                        <div class="flex flex-col">
+                        <a href="{{ route('user.following', $user) }}" class="flex flex-col">
                             <span class="font-black text-2xl text-black dark:text-white">{{ $followingsCount }}</span>
                             <span class="font-bold text-xs uppercase text-gray-500 tracking-wider">Mengikuti</span>
-                        </div>
-                        <div class="flex flex-col">
+                        </a>
+                        <a href="{{ route('user.followers', $user) }}" class="flex flex-col">
                             <span class="font-black text-2xl text-black dark:text-white">{{ $followersCount }}</span>
                             <span class="font-bold text-xs uppercase text-gray-500 tracking-wider">Pengikut</span>
-                        </div>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -35,6 +36,49 @@ class UserController extends Controller
             'isFollowing',
             'followersCount',
             'followingsCount',
+        ));
+    }
+
+    public function followers(User $user)
+    {
+        $users = $user->followers()
+            ->orderByDesc('follows.created_at')
+            ->orderByDesc('follows.id')
+            ->simplePaginate(15);
+
+        return $this->followListView($user, $users, 'Pengikut', 'Belum ada pengikut');
+    }
+
+    public function following(User $user)
+    {
+        $users = $user->followings()
+            ->orderByDesc('follows.created_at')
+            ->orderByDesc('follows.id')
+            ->simplePaginate(15);
+
+        return $this->followListView($user, $users, 'Mengikuti', 'Belum mengikuti siapa pun');
+    }
+
+    private function followListView(User $profileUser, $users, string $title, string $emptyMessage)
+    {
+        $listedUserIds = $users->getCollection()
+            ->pluck('id')
+            ->reject(fn ($id): bool => (int) $id === (int) auth()->id())
+            ->values();
+
+        $followedUserIds = $listedUserIds->isEmpty()
+            ? collect()
+            : DB::table('follows')
+                ->where('follower_id', auth()->id())
+                ->whereIn('following_id', $listedUserIds)
+                ->pluck('following_id');
+
+        return view('follow-list', compact(
+            'profileUser',
+            'users',
+            'title',
+            'emptyMessage',
+            'followedUserIds',
         ));
     }
 
