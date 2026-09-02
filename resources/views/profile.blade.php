@@ -67,9 +67,7 @@
                         <p class="font-bold text-gray-500 text-sm sm:text-base">{{ '@' }}{{ $user->username }}</p>
                     </div>
 
-                    <p class="font-medium text-black dark:text-white text-sm sm:text-base leading-relaxed whitespace-pre-wrap mb-6">
-                        {{ blank($user->bio) ? 'Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!' : $user->bio }}
-                    </p>
+                    <p class="font-medium text-black dark:text-white text-sm sm:text-base leading-relaxed whitespace-pre-wrap mb-6">{{ filled(trim($user->bio ?? '')) ? $user->bio : 'Pengguna belum menulis bio' }}</p>
 
                     <!-- Statistik Follower -->
                     <div class="flex items-center gap-6 pt-4 border-t-2 border-dashed border-gray-300 dark:border-[#333333]">

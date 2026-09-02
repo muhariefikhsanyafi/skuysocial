@@ -34,15 +34,16 @@ class ProfileHashtagTopicTest extends TestCase
 
     public function test_public_profile_renders_stored_bio_instead_of_static_placeholder(): void
     {
-        $user = User::factory()->create(['bio' => 'Bio yang tampil di profil publik.']);
-        $placeholder = 'Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!';
+        $bio = 'Official Dev SkuySocial';
+        $user = User::factory()->create(['bio' => $bio]);
 
         $response = $this->actingAs($user)->get(route('user.profile', $user));
 
         $response
             ->assertOk()
-            ->assertSee($user->bio)
-            ->assertDontSee($placeholder);
+            ->assertSee($bio)
+            ->assertDontSee('Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!');
+        $this->assertStringContainsString('>'.$bio.'</p>', $response->getContent());
     }
 
     public function test_public_profile_escapes_stored_bio(): void
@@ -61,13 +62,49 @@ class ProfileHashtagTopicTest extends TestCase
     public function test_public_profile_keeps_fallback_for_null_bio(): void
     {
         $user = User::factory()->create(['bio' => null]);
-        $placeholder = 'Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!';
+        $fallback = 'Pengguna belum menulis bio';
 
         $response = $this->actingAs($user)->get(route('user.profile', $user));
 
         $response
             ->assertOk()
-            ->assertSee($placeholder);
+            ->assertSee($fallback)
+            ->assertDontSee('Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!');
+    }
+
+    public function test_public_profile_uses_fallback_for_empty_bio(): void
+    {
+        $user = User::factory()->create(['bio' => '']);
+
+        $response = $this->actingAs($user)->get(route('user.profile', $user));
+
+        $response
+            ->assertOk()
+            ->assertSee('Pengguna belum menulis bio')
+            ->assertDontSee('Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!');
+    }
+
+    public function test_public_profile_uses_fallback_for_whitespace_only_bio(): void
+    {
+        $user = User::factory()->create(['bio' => " \n\t "]);
+
+        $response = $this->actingAs($user)->get(route('user.profile', $user));
+
+        $response
+            ->assertOk()
+            ->assertSee('Pengguna belum menulis bio')
+            ->assertDontSee('Menjelajah dunia persosmedan dengan gaya Neo-Brutalisme. Selamat datang di profil saya!');
+    }
+
+    public function test_public_profile_preserves_multiline_bio(): void
+    {
+        $bio = "First line\nSecond line";
+        $user = User::factory()->create(['bio' => $bio]);
+
+        $response = $this->actingAs($user)->get(route('user.profile', $user));
+
+        $response->assertOk();
+        $this->assertStringContainsString($bio, $response->getContent());
     }
 
     public function test_other_profile_uses_username_and_post_uid_route_keys(): void
