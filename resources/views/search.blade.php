@@ -43,7 +43,41 @@
                 @endif
             </div>
 
-            <!-- 2. Blok Hasil Postingan -->
+            @if($hashtags->isNotEmpty())
+                <!-- 2. Blok Hasil Tagar -->
+                <div class="mb-10">
+                    <h2 class="text-lg font-black bg-yellow-300 border-4 border-black inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 uppercase">
+                        🏷️ Tagar
+                    </h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach($hashtags as $hashtag)
+                            <a href="{{ route('tags.show', $hashtag->name) }}" class="block p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 transition-colors cursor-pointer">
+                                <p class="font-black text-black">#{{ $hashtag->name }}</p>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            @if($topics->isNotEmpty())
+                <!-- 3. Blok Hasil Topik -->
+                <div class="mb-10">
+                    <h2 class="text-lg font-black bg-emerald-300 border-4 border-black inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 uppercase">
+                        🧵 Topik
+                    </h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach($topics as $topic)
+                            <a href="{{ route('topik.show', ['topic' => $topic]) }}" class="block p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 transition-colors cursor-pointer">
+                                <p class="font-black text-black">{{ $topic }}</p>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- 4. Blok Hasil Postingan -->
             <div>
                 <h2 class="text-lg font-black bg-pink-400 text-white border-4 border-black inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 uppercase">
                     📝 Postingan

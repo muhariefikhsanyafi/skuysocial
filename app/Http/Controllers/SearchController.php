@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Post;
+use App\Models\Hashtag;
 
 class SearchController extends Controller
 {
@@ -23,6 +24,8 @@ class SearchController extends Controller
 
         $users = collect();
         $posts = collect();
+        $hashtags = collect();
+        $topics = collect();
 
         // Jika user mengetik sesuatu, mulai pencarian ke database
         if ($query !== '') {
@@ -39,9 +42,34 @@ class SearchController extends Controller
                          ->orderByDesc('id')
                          ->simplePaginate(20)
                          ->withQueryString();
+
+            // Cari tagar berdasarkan nama yang sudah dinormalisasi (maksimal 5)
+            $hashtagQuery = str_starts_with($query, '#')
+                ? substr($query, 1)
+                : $query;
+            $hashtagQuery = strtolower($hashtagQuery);
+
+            if ($hashtagQuery !== '') {
+                $hashtags = Hashtag::query()
+                    ->where('name', 'like', "%{$hashtagQuery}%")
+                    ->orderBy('name')
+                    ->limit(5)
+                    ->get();
+            }
+
+            // Cari topik unik berdasarkan q asli (maksimal 5)
+            $topics = Post::query()
+                ->whereNotNull('topic')
+                ->where('topic', '<>', '')
+                ->where('topic', 'like', "%{$query}%")
+                ->select('topic')
+                ->distinct()
+                ->orderBy('topic')
+                ->limit(5)
+                ->pluck('topic');
         }
 
         // Kirim data ke tampilan halaman pencarian
-        return view('search', compact('query', 'users', 'posts'));
+        return view('search', compact('query', 'users', 'posts', 'hashtags', 'topics'));
     }
 }

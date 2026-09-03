@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Post;
 use App\Models\User;
+use App\Models\Hashtag;
 use App\Notifications\CommentPosted;
 use App\Notifications\PostLiked;
 use Carbon\Carbon;
@@ -142,6 +143,144 @@ class SearchActivityPerformanceTest extends TestCase
 
         $response->assertOk();
         $this->assertCount(5, $response->viewData('users'));
+    }
+
+    public function test_search_returns_matching_hashtags_without_hash_and_uses_the_existing_route(): void
+    {
+        $viewer = User::factory()->create();
+        $hashtag = Hashtag::create(['name' => 'laravel']);
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => 'larav']));
+
+        $response
+            ->assertOk()
+            ->assertSee('#laravel')
+            ->assertSee(route('tags.show', $hashtag->name), false);
+        $this->assertSame(['laravel'], $response->viewData('hashtags')->pluck('name')->all());
+    }
+
+    public function test_search_normalizes_one_leading_hash_for_hashtags(): void
+    {
+        $viewer = User::factory()->create();
+        Hashtag::create(['name' => 'laravel']);
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => '#LARAVEL']));
+
+        $response->assertOk();
+        $this->assertSame(['laravel'], $response->viewData('hashtags')->pluck('name')->all());
+    }
+
+    public function test_search_removes_only_one_leading_hash_for_hashtags(): void
+    {
+        $viewer = User::factory()->create();
+        Hashtag::create(['name' => 'laravel']);
+        Hashtag::create(['name' => '#laravel']);
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => '##laravel']));
+
+        $response->assertOk();
+        $this->assertSame(['#laravel'], $response->viewData('hashtags')->pluck('name')->all());
+    }
+
+    public function test_hashtag_search_is_unique_ordered_and_limited_to_five_results(): void
+    {
+        $viewer = User::factory()->create();
+        foreach (['tag-05', 'tag-01', 'tag-04', 'tag-02', 'tag-03', 'tag-06'] as $name) {
+            Hashtag::create(['name' => $name]);
+        }
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => 'tag-']));
+        $names = $response->viewData('hashtags')->pluck('name')->all();
+
+        $response->assertOk();
+        $this->assertSame(['tag-01', 'tag-02', 'tag-03', 'tag-04', 'tag-05'], $names);
+        $this->assertSame($names, array_values(array_unique($names)));
+    }
+
+    public function test_hash_only_search_does_not_run_a_broad_hashtag_query(): void
+    {
+        $viewer = User::factory()->create();
+        Hashtag::create(['name' => 'laravel']);
+        Hashtag::create(['name' => 'php']);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => '#']));
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $hashtagQueries = collect($queries)->filter(function (array $query): bool {
+            return str_contains(strtolower($query['query']), ' from "hashtags"');
+        });
+
+        $response->assertOk();
+        $this->assertTrue($response->viewData('hashtags')->isEmpty());
+        $this->assertCount(0, $hashtagQueries);
+    }
+
+    public function test_search_returns_distinct_non_empty_matching_topics_and_uses_the_existing_route(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+        $this->createPost($author, 'First backend post', ['topic' => 'backend']);
+        $this->createPost($author, 'Second backend post', ['topic' => 'backend']);
+        $this->createPost($author, 'Null topic post', ['topic' => null]);
+        $this->createPost($author, 'Empty topic post', ['topic' => '']);
+        $this->createPost($author, 'Frontend post', ['topic' => 'frontend']);
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => 'back']));
+
+        $response
+            ->assertOk()
+            ->assertSee('backend')
+            ->assertSee(route('topik.show', ['topic' => 'backend']), false);
+        $this->assertSame(['backend'], $response->viewData('topics')->all());
+    }
+
+    public function test_topic_search_uses_the_original_query_without_hashtag_normalization(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+        $this->createPost($author, 'Hash topic', ['topic' => '#backend']);
+        $this->createPost($author, 'Plain topic', ['topic' => 'backend']);
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => '#backend']));
+
+        $response->assertOk();
+        $this->assertSame(['#backend'], $response->viewData('topics')->all());
+    }
+
+    public function test_topic_search_is_ordered_and_limited_to_five_distinct_values(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+        foreach (['topic-05', 'topic-01', 'topic-04', 'topic-02', 'topic-03', 'topic-06'] as $topic) {
+            $this->createPost($author, "Post for {$topic}", ['topic' => $topic]);
+        }
+        $this->createPost($author, 'Duplicate topic', ['topic' => 'topic-01']);
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => 'topic-']));
+        $topics = $response->viewData('topics')->all();
+
+        $response->assertOk();
+        $this->assertSame(['topic-01', 'topic-02', 'topic-03', 'topic-04', 'topic-05'], $topics);
+        $this->assertSame($topics, array_values(array_unique($topics)));
+    }
+
+    public function test_search_omits_empty_hashtag_and_topic_sections_when_there_are_no_matches(): void
+    {
+        $viewer = User::factory()->create();
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => 'no-such-discovery-result']));
+
+        $response
+            ->assertOk()
+            ->assertDontSee('🏷️ Tagar', false)
+            ->assertDontSee('🧵 Topik', false);
+        $this->assertTrue($response->viewData('hashtags')->isEmpty());
+        $this->assertTrue($response->viewData('topics')->isEmpty());
     }
 
     public function test_activity_is_paginated_and_marks_all_unread_as_read(): void
@@ -359,11 +498,11 @@ class SearchActivityPerformanceTest extends TestCase
         $response->assertSee('2', false);
     }
 
-    private function createPost(User $user, string $content): Post
+    private function createPost(User $user, string $content, array $attributes = []): Post
     {
-        return Post::create([
+        return Post::create(array_merge([
             'user_id' => $user->id,
             'content' => $content,
-        ]);
+        ], $attributes));
     }
 }
