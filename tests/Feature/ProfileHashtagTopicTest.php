@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bookmark;
 use App\Models\Comment;
 use App\Models\Hashtag;
 use App\Models\Like;
@@ -364,6 +365,98 @@ class ProfileHashtagTopicTest extends TestCase
         $this->assertFalse($listedPost->reposted_by_me);
         $this->assertTrue($listedPost->feedComments->first()->feedReplies->first()->relationLoaded('user'));
         $response->assertSee(route('posts.show', $post), false);
+    }
+
+    public function test_hashtag_listing_renders_bookmark_state_for_the_current_viewer(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $otherViewer = User::factory()->create();
+        $hashtag = Hashtag::create(['name' => 'bookmark-hashtag']);
+        $post = $this->createPost($owner, 'Hashtag bookmark post');
+        $post->hashtags()->attach($hashtag->id);
+        Bookmark::create(['user_id' => $otherViewer->id, 'post_id' => $post->id]);
+
+        $unsavedResponse = $this->actingAs($viewer)->get(route('tags.show', $hashtag->name));
+        $unsavedPost = $unsavedResponse->viewData('posts')->first();
+
+        $this->assertFalse((bool) $unsavedPost->bookmarked_by_me);
+        $this->assertFalse($unsavedPost->relationLoaded('bookmarks'));
+        $unsavedResponse->assertSee('aria-label="Simpan"', false)
+            ->assertSee(route('bookmarks.store', $post), false);
+
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $post->id]);
+        $savedResponse = $this->actingAs($viewer)->get(route('tags.show', $hashtag->name));
+        $savedPost = $savedResponse->viewData('posts')->first();
+
+        $this->assertTrue((bool) $savedPost->bookmarked_by_me);
+        $savedResponse->assertSee('aria-label="Hapus dari tersimpan"', false)
+            ->assertSee(route('bookmarks.destroy', $post), false);
+    }
+
+    public function test_topic_listing_renders_bookmark_state_for_the_current_viewer(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $otherViewer = User::factory()->create();
+        $post = $this->createPost($owner, 'Topic bookmark post', 'bookmark-topic');
+        Bookmark::create(['user_id' => $otherViewer->id, 'post_id' => $post->id]);
+
+        $unsavedResponse = $this->actingAs($viewer)->get(route('topik.show', 'bookmark-topic'));
+        $unsavedPost = $unsavedResponse->viewData('posts')->first();
+
+        $this->assertFalse((bool) $unsavedPost->bookmarked_by_me);
+        $this->assertFalse($unsavedPost->relationLoaded('bookmarks'));
+        $unsavedResponse->assertSee('aria-label="Simpan"', false)
+            ->assertSee(route('bookmarks.store', $post), false);
+
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $post->id]);
+        $savedResponse = $this->actingAs($viewer)->get(route('topik.show', 'bookmark-topic'));
+        $savedPost = $savedResponse->viewData('posts')->first();
+
+        $this->assertTrue((bool) $savedPost->bookmarked_by_me);
+        $savedResponse->assertSee('aria-label="Hapus dari tersimpan"', false)
+            ->assertSee(route('bookmarks.destroy', $post), false);
+    }
+
+    public function test_hashtag_repost_bookmark_state_targets_the_original_post(): void
+    {
+        $originalOwner = User::factory()->create();
+        $reposter = User::factory()->create();
+        $viewer = User::factory()->create();
+        $hashtag = Hashtag::create(['name' => 'bookmark-repost-hashtag']);
+        $original = $this->createPost($originalOwner, 'Original hashtag bookmark post');
+        $repost = $this->createPost($reposter, null, null, $original->id);
+        $repost->hashtags()->attach($hashtag->id);
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $original->id]);
+
+        $response = $this->actingAs($viewer)->get(route('tags.show', $hashtag->name));
+        $listedPost = $response->viewData('posts')->first();
+
+        $this->assertSame($repost->id, $listedPost->id);
+        $this->assertTrue((bool) $listedPost->originalPost->bookmarked_by_me);
+        $response->assertSee('aria-label="Hapus dari tersimpan"', false)
+            ->assertSee(route('bookmarks.destroy', $original), false)
+            ->assertDontSee(route('bookmarks.store', $repost), false);
+    }
+
+    public function test_topic_repost_bookmark_state_targets_the_original_post(): void
+    {
+        $originalOwner = User::factory()->create();
+        $reposter = User::factory()->create();
+        $viewer = User::factory()->create();
+        $original = $this->createPost($originalOwner, 'Original topic bookmark post', 'bookmark-repost-topic');
+        $repost = $this->createPost($reposter, null, 'bookmark-repost-topic', $original->id);
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $original->id]);
+
+        $response = $this->actingAs($viewer)->get(route('topik.show', 'bookmark-repost-topic'));
+        $listedPost = $response->viewData('posts')->first();
+
+        $this->assertSame($repost->id, $listedPost->id);
+        $this->assertTrue((bool) $listedPost->originalPost->bookmarked_by_me);
+        $response->assertSee('aria-label="Hapus dari tersimpan"', false)
+            ->assertSee(route('bookmarks.destroy', $original), false)
+            ->assertDontSee(route('bookmarks.store', $repost), false);
     }
 
     public function test_topic_listing_bounds_root_comments_and_replies_per_root(): void

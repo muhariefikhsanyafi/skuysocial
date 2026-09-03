@@ -6,11 +6,17 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Post;
 use App\Models\Hashtag;
+use Illuminate\Database\Eloquent\Builder;
 
 class SearchController extends Controller
 {
     public function index(Request $request)
     {
+        $viewerId = $request->user()->getKey();
+        $bookmarkState = [
+            'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+        ];
+
         // Normalize and validate the search input before using it in a query.
         $rawQuery = $request->input('q');
 
@@ -37,6 +43,7 @@ class SearchController extends Controller
 
             // 2. Cari di dalam teks konten postingan (Maksimal ambil 20)
             $posts = Post::with('user')
+                         ->withExists($bookmarkState)
                          ->where('content', 'like', "%{$query}%")
                          ->orderByDesc('created_at')
                          ->orderByDesc('id')

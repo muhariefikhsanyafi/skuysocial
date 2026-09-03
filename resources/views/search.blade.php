@@ -88,14 +88,34 @@
                 @else
                     <div class="space-y-4">
                         @foreach($posts as $post)
-                            <!-- DIBUNGKUS LINK AGAR BISA DIKLIK -->
-                            <a href="{{ route('posts.show', $post) }}" class="block p-4 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 hover:translate-x-1 transition-all cursor-pointer">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="font-black text-black hover:underline">{{ $post->user->name }}</span>
-                                    <span class="text-xs text-gray-500 font-bold">&bull; {{ $post->created_at->diffForHumans() }}</span>
+                            <div class="block p-4 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 hover:translate-x-1 transition-all cursor-pointer">
+                                <a href="{{ route('posts.show', $post) }}" class="block">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="font-black text-black hover:underline">{{ $post->user->name }}</span>
+                                        <span class="text-xs text-gray-500 font-bold">&bull; {{ $post->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <p class="text-black font-medium">{{ $post->content }}</p>
+                                </a>
+
+                                <div class="mt-3 pt-3 border-t-2 border-black flex justify-end">
+                                    @if ($post->bookmarked_by_me)
+                                        <form action="{{ route('bookmarks.destroy', $post->uid) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" aria-label="Hapus dari tersimpan" title="Hapus dari tersimpan" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-yellow-300 text-black group">
+                                                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('bookmarks.store', $post->uid) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" aria-label="Simpan" title="Simpan" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white text-black hover:bg-yellow-300 group">
+                                                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
-                                <p class="text-black font-medium">{{ $post->content }}</p>
-                            </a>
+                            </div>
                         @endforeach
                     </div>
 

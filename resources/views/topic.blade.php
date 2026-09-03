@@ -158,6 +158,22 @@
                                                     <span class="text-xs sm:text-sm font-bold {{ $post->liked_by_me ? 'text-red-500' : 'text-black dark:text-white' }}">{{ $post->likes_count > 0 ? $post->likes_count : '' }}</span>
                                                 </button>
                                             </form>
+                                            @if ($displayPost->bookmarked_by_me)
+                                                <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" aria-label="Hapus dari tersimpan" title="Hapus dari tersimpan" class="flex items-center gap-1.5 group transition-all text-yellow-600 dark:text-yellow-300">
+                                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" aria-label="Simpan" title="Simpan" class="flex items-center gap-1.5 group transition-all text-black dark:text-white hover:text-yellow-600 dark:hover:text-yellow-300">
+                                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                                                    </button>
+                                                </form>
+                                            @endif
                                             
                                             <!-- Tombol Komentar (@click showComments) -->
                                             <button @click="showComments = !showComments" type="button" class="flex items-center gap-1.5 group transition-all hover:text-gray-500 dark:hover:text-gray-400">

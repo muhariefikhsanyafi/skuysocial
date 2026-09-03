@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bookmark;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\Hashtag;
@@ -39,6 +40,38 @@ class SearchActivityPerformanceTest extends TestCase
         $response->assertSee(route('posts.show', $matchingPosts[20]), false);
         $response->assertSee(route('user.profile', $author), false);
         $response->assertSee('q=bounded&amp;page=2', false);
+    }
+
+    public function test_search_post_results_render_bookmark_state_for_the_current_viewer(): void
+    {
+        $viewer = User::factory()->create();
+        $otherViewer = User::factory()->create();
+        $author = User::factory()->create();
+        $savedPost = $this->createPost($author, 'Search bookmark saved result');
+        $unsavedPost = $this->createPost($author, 'Search bookmark unsaved result');
+        Bookmark::create(['user_id' => $savedPost->user_id, 'post_id' => $unsavedPost->id]);
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $savedPost->id]);
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => 'Search bookmark']));
+        $posts = $response->viewData('posts');
+        $saved = $posts->getCollection()->firstWhere('id', $savedPost->id);
+        $unsaved = $posts->getCollection()->firstWhere('id', $unsavedPost->id);
+
+        $response->assertOk();
+        $this->assertTrue((bool) $saved->bookmarked_by_me);
+        $this->assertFalse((bool) $unsaved->bookmarked_by_me);
+        $this->assertFalse($saved->relationLoaded('bookmarks'));
+        $response->assertSee('aria-label="Hapus dari tersimpan"', false)
+            ->assertSee(route('bookmarks.destroy', $savedPost), false)
+            ->assertSee('aria-label="Simpan"', false)
+            ->assertSee(route('bookmarks.store', $unsavedPost), false);
+
+        $otherResponse = $this->actingAs($otherViewer)->get(route('search', ['q' => 'Search bookmark']));
+        $otherSaved = $otherResponse->viewData('posts')->getCollection()->firstWhere('id', $savedPost->id);
+
+        $this->assertFalse((bool) $otherSaved->bookmarked_by_me);
+        $otherResponse->assertSee('aria-label="Simpan"', false)
+            ->assertSee(route('bookmarks.store', $savedPost), false);
     }
 
     public function test_empty_search_query_renders_without_search_results(): void

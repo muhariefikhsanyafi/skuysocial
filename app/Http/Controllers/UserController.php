@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,14 @@ class UserController extends Controller
             ->where('username', $username)
             ->firstOrFail();
 
+        $viewerId = $request->user()->getKey();
+        $bookmarkState = [
+            'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+        ];
+        $loadDisplayPost = fn ($query) => $query
+            ->with('user')
+            ->withExists($bookmarkState);
+
         $isFollowing = auth()->id() !== $user->id
             && auth()->user()->isFollowing($user);
         $followersCount = (int) $user->followers_count;
@@ -31,7 +40,11 @@ class UserController extends Controller
                 ->select('posts.*')
                 ->join('likes', 'likes.post_id', '=', 'posts.id')
                 ->where('likes.user_id', $user->id)
-                ->with(['user', 'originalPost.user'])
+                ->with([
+                    'user',
+                    'originalPost' => $loadDisplayPost,
+                ])
+                ->withExists($bookmarkState)
                 ->orderByDesc('likes.created_at')
                 ->orderByDesc('likes.id')
                 ->simplePaginate(15)
@@ -39,7 +52,11 @@ class UserController extends Controller
         } else {
             // Ambil postingan miliknya (termasuk hasil repost)
             $posts = $user->posts()
-                ->with(['user', 'originalPost.user'])
+                ->with([
+                    'user',
+                    'originalPost' => $loadDisplayPost,
+                ])
+                ->withExists($bookmarkState)
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->simplePaginate(15);

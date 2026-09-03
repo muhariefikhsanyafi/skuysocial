@@ -76,10 +76,18 @@ class Post extends Model
      */
     public function scopeWithInteractiveListing(Builder $query, int $viewerId): Builder
     {
+        $bookmarkState = [
+            'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+        ];
+
+        $loadDisplayPost = fn ($query) => $query
+            ->with('user')
+            ->withExists($bookmarkState);
+
         return $query
             ->with([
                 'user',
-                'originalPost.user',
+                'originalPost' => $loadDisplayPost,
                 'feedComments.user',
                 'feedComments.feedReplies.user',
             ])
@@ -92,6 +100,7 @@ class Post extends Model
             ->withExists([
                 'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
                 'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
             ]);
     }
 	

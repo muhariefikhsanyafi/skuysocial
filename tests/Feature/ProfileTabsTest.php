@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bookmark;
 use App\Models\Like;
 use App\Models\Post;
 use App\Models\User;
@@ -219,6 +220,66 @@ class ProfileTabsTest extends TestCase
             ->assertSee('data-media-slider="true"', false)
             ->assertSee('media/one.jpg', false)
             ->assertSee('media/two.jpg', false);
+    }
+
+    public function test_profile_threads_and_likes_render_viewer_bookmark_state(): void
+    {
+        $profile = User::factory()->create(['username' => 'bookmark-profile']);
+        $viewer = User::factory()->create();
+        $threadPost = $this->createPost($profile, 'Bookmarked profile thread');
+        $likedPost = $this->createPost(User::factory()->create(), 'Bookmarked profile like');
+        $this->like($profile, $likedPost);
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $threadPost->id]);
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $likedPost->id]);
+
+        $threadsResponse = $this->actingAs($viewer)->get(route('user.profile', $profile));
+        $likesResponse = $this->actingAs($viewer)->get(route('user.profile', $profile).'?tab=likes');
+
+        $thread = $threadsResponse->viewData('posts')->getCollection()->first();
+        $liked = $likesResponse->viewData('posts')->getCollection()->first();
+
+        $this->assertTrue((bool) $thread->bookmarked_by_me);
+        $this->assertTrue((bool) $liked->bookmarked_by_me);
+        $this->assertFalse($thread->relationLoaded('bookmarks'));
+        $this->assertFalse($liked->relationLoaded('bookmarks'));
+        $threadsResponse->assertSee('aria-label="Hapus dari tersimpan"', false)
+            ->assertSee(route('bookmarks.destroy', $threadPost), false);
+        $likesResponse->assertSee('aria-label="Hapus dari tersimpan"', false)
+            ->assertSee(route('bookmarks.destroy', $likedPost), false);
+    }
+
+    public function test_profile_bookmark_state_is_isolated_to_current_viewer(): void
+    {
+        $profile = User::factory()->create(['username' => 'isolated-profile']);
+        $savedByOther = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($profile, 'Profile isolation post');
+        Bookmark::create(['user_id' => $savedByOther->id, 'post_id' => $post->id]);
+
+        $response = $this->actingAs($viewer)->get(route('user.profile', $profile));
+        $listedPost = $response->viewData('posts')->getCollection()->first();
+
+        $this->assertFalse((bool) $listedPost->bookmarked_by_me);
+        $response->assertSee('aria-label="Simpan"', false)
+            ->assertSee(route('bookmarks.store', $post), false);
+    }
+
+    public function test_profile_repost_bookmark_state_targets_the_original_post(): void
+    {
+        $profile = User::factory()->create(['username' => 'repost-profile']);
+        $viewer = User::factory()->create();
+        $original = $this->createPost(User::factory()->create(), 'Profile original bookmark target');
+        $repost = $this->createPost($profile, null, null, $original->id);
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $original->id]);
+
+        $response = $this->actingAs($viewer)->get(route('user.profile', $profile));
+        $listedPost = $response->viewData('posts')->getCollection()->first();
+
+        $this->assertSame($repost->id, $listedPost->id);
+        $this->assertTrue((bool) $listedPost->originalPost->bookmarked_by_me);
+        $response->assertSee('aria-label="Hapus dari tersimpan"', false)
+            ->assertSee(route('bookmarks.destroy', $original), false)
+            ->assertDontSee(route('bookmarks.store', $repost), false);
     }
 
     public function test_profile_tabs_keep_bio_visible_and_follow_links(): void

@@ -128,6 +128,22 @@
                                     <span>{{ $post->likes_count }} Suka</span>
                                 </button>
                             </form>
+                            @if ($displayPost->bookmarked_by_me)
+                                <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" aria-label="Hapus dari tersimpan" title="Hapus dari tersimpan" class="flex items-center gap-1.5 px-4 py-2 border-4 border-black font-black uppercase text-yellow-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
+                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                                    </button>
+                                </form>
+                            @else
+                                <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" aria-label="Simpan" title="Simpan" class="flex items-center gap-1.5 px-4 py-2 border-4 border-black font-black uppercase text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                                    </button>
+                                </form>
+                            @endif
                         </div>
 						<!-- Area Komentar -->
                         <div class="mt-4 pt-4 border-t-4 border-black">

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Bookmark;
+use App\Models\Hashtag;
 use App\Models\Post;
 use App\Models\User;
 use Carbon\Carbon;
@@ -259,6 +260,55 @@ class BookmarkTest extends TestCase
 
         $this->assertTrue((bool) $savedPost->bookmarked_by_current_user);
         $savedResponse->assertSee('aria-label="Hapus dari tersimpan"', false);
+    }
+
+    public function test_saved_state_is_consistent_across_all_post_listing_surfaces(): void
+    {
+        $owner = User::factory()->create(['username' => 'parity-owner']);
+        $viewer = User::factory()->create(['username' => 'parity-viewer']);
+        $hashtag = Hashtag::create(['name' => 'bookmark-parity']);
+        $post = $this->createPost($owner, [
+            'content' => 'Cross surface bookmark parity',
+            'topic' => 'bookmark-parity-topic',
+        ]);
+        $post->hashtags()->attach($hashtag->id);
+        $this->createBookmark($viewer, $post);
+
+        $feedPost = $this->actingAs($viewer)
+            ->get(route('feed'))
+            ->viewData('posts')
+            ->getCollection()
+            ->firstWhere('id', $post->id);
+        $detailPost = $this->actingAs($viewer)
+            ->get(route('posts.show', $post))
+            ->viewData('displayPost');
+        $profilePost = $this->actingAs($viewer)
+            ->get(route('user.profile', $owner))
+            ->viewData('posts')
+            ->getCollection()
+            ->firstWhere('id', $post->id);
+        $hashtagPost = $this->actingAs($viewer)
+            ->get(route('tags.show', $hashtag->name))
+            ->viewData('posts')
+            ->getCollection()
+            ->firstWhere('id', $post->id);
+        $topicPost = $this->actingAs($viewer)
+            ->get(route('topik.show', 'bookmark-parity-topic'))
+            ->viewData('posts')
+            ->getCollection()
+            ->firstWhere('id', $post->id);
+        $searchPost = $this->actingAs($viewer)
+            ->get(route('search', ['q' => 'Cross surface bookmark']))
+            ->viewData('posts')
+            ->getCollection()
+            ->firstWhere('id', $post->id);
+
+        $this->assertTrue((bool) $feedPost->bookmarked_by_me);
+        $this->assertTrue((bool) $detailPost->bookmarked_by_current_user);
+        $this->assertTrue((bool) $profilePost->bookmarked_by_me);
+        $this->assertTrue((bool) $hashtagPost->bookmarked_by_me);
+        $this->assertTrue((bool) $topicPost->bookmarked_by_me);
+        $this->assertTrue((bool) $searchPost->bookmarked_by_me);
     }
 
     public function test_bookmarking_a_repost_saves_the_effective_original_post(): void
