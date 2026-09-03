@@ -83,14 +83,14 @@
                 </div>
             </div>
 
-            <!-- TAB MENU (Utas / Balasan) -->
+            <!-- TAB MENU (Utas / Suka) -->
             <div class="flex w-full border-b-4 border-black dark:border-[#333333] mb-6">
-                <div class="flex-1 text-center pb-3 border-b-4 border-black dark:border-white -mb-1 relative z-10 cursor-pointer">
-                    <span class="font-black uppercase text-black dark:text-white tracking-wider">Utas</span>
-                </div>
-                <div class="flex-1 text-center pb-3 text-gray-400 hover:text-black dark:hover:text-white cursor-pointer transition-colors">
-                    <span class="font-black uppercase tracking-wider">Suka</span>
-                </div>
+                <a href="{{ route('user.profile', $user) }}" class="{{ $activeTab === 'threads' ? 'flex-1 text-center pb-3 border-b-4 border-black dark:border-white -mb-1 relative z-10 cursor-pointer' : 'flex-1 text-center pb-3 text-gray-400 hover:text-black dark:hover:text-white cursor-pointer transition-colors' }}">
+                    <span class="font-black uppercase {{ $activeTab === 'threads' ? 'text-black dark:text-white tracking-wider' : 'tracking-wider' }}">Utas</span>
+                </a>
+                <a href="{{ route('user.profile', ['username' => $user->username, 'tab' => 'likes']) }}" class="{{ $activeTab === 'likes' ? 'flex-1 text-center pb-3 border-b-4 border-black dark:border-white -mb-1 relative z-10 cursor-pointer' : 'flex-1 text-center pb-3 text-gray-400 hover:text-black dark:hover:text-white cursor-pointer transition-colors' }}">
+                    <span class="font-black uppercase {{ $activeTab === 'likes' ? 'text-black dark:text-white tracking-wider' : 'tracking-wider' }}">Suka</span>
+                </a>
             </div>
 
             <!-- AREA DAFTAR UTAS (Menggunakan gaya yang sama dengan Feed) -->
@@ -178,8 +178,12 @@
                 @else
                     <div class="text-center py-12 border-4 border-dashed border-gray-300 dark:border-[#333333] bg-white dark:bg-[#101010]">
                         <div class="text-6xl mb-4 opacity-50">👻</div>
-                        <h3 class="font-black text-xl uppercase text-gray-500">Belum ada utas</h3>
-                        <p class="font-bold text-gray-400 text-sm mt-2">Pengguna ini belum memposting apapun.</p>
+                        <h3 class="font-black text-xl uppercase text-gray-500">
+                            {{ $activeTab === 'likes' ? 'Belum ada postingan yang disukai' : 'Belum ada utas' }}
+                        </h3>
+                        <p class="font-bold text-gray-400 text-sm mt-2">
+                            {{ $activeTab === 'likes' ? 'Pengguna ini belum menyukai postingan apapun.' : 'Pengguna ini belum memposting apapun.' }}
+                        </p>
                     </div>
                 @endif
             </div>

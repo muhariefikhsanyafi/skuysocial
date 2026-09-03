@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class UserController extends Controller
 {
     // 1. Menampilkan Halaman Profil
-    public function show($username)
+    public function show(Request $request, $username)
     {
         // Cari user berdasarkan username, jika tidak ada, tampilkan 404
         $user = User::query()
@@ -23,16 +24,31 @@ class UserController extends Controller
         $followersCount = (int) $user->followers_count;
         $followingsCount = (int) $user->followings_count;
         
-        // Ambil postingan miliknya (termasuk hasil repost)
-        $posts = $user->posts()
-            ->with(['user', 'originalPost.user'])
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->simplePaginate(15);
+        $activeTab = $request->query('tab') === 'likes' ? 'likes' : 'threads';
+
+        if ($activeTab === 'likes') {
+            $posts = Post::query()
+                ->select('posts.*')
+                ->join('likes', 'likes.post_id', '=', 'posts.id')
+                ->where('likes.user_id', $user->id)
+                ->with(['user', 'originalPost.user'])
+                ->orderByDesc('likes.created_at')
+                ->orderByDesc('likes.id')
+                ->simplePaginate(15)
+                ->withQueryString();
+        } else {
+            // Ambil postingan miliknya (termasuk hasil repost)
+            $posts = $user->posts()
+                ->with(['user', 'originalPost.user'])
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->simplePaginate(15);
+        }
 
         return view('profile', compact(
             'user',
             'posts',
+            'activeTab',
             'isFollowing',
             'followersCount',
             'followingsCount',
