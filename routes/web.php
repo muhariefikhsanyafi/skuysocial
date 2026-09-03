@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\BookmarkController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -55,6 +56,9 @@ use App\Http\Controllers\HashtagController;
     
 	// Rute Fitur Like & Komentar
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
+    Route::get('/tersimpan', [BookmarkController::class, 'index'])->name('bookmarks.index');
+    Route::post('/posts/{post}/bookmark', [BookmarkController::class, 'store'])->name('bookmarks.store');
+    Route::delete('/posts/{post}/bookmark', [BookmarkController::class, 'destroy'])->name('bookmarks.destroy');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store')->middleware('throttle:10,1');
     Route::post('/comments/{comment}/like', [App\Http\Controllers\CommentController::class, 'like'])->name('comments.like');
 	

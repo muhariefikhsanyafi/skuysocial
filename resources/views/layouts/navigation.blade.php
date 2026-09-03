@@ -81,6 +81,12 @@
                 <x-responsive-nav-link :href="route('user.profile', auth()->user()->username)" class="font-black text-black dark:text-white border-t-2 border-black dark:border-[#333333] uppercase text-sm hover:bg-emerald-400 dark:hover:bg-emerald-500 hover:text-black">
                     Profil Saya
                 </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('bookmarks.index')" class="font-black text-black dark:text-white border-t-2 border-black dark:border-[#333333] uppercase text-sm hover:bg-yellow-300 dark:hover:bg-yellow-400 hover:text-black {{ request()->routeIs('bookmarks.index') ? 'bg-yellow-300 dark:bg-yellow-400' : '' }}" aria-current="{{ request()->routeIs('bookmarks.index') ? 'page' : 'false' }}">
+                    <span class="inline-flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                        Tersimpan
+                    </span>
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('profile.edit')" class="font-black text-black dark:text-white border-t-2 border-black dark:border-[#333333] uppercase text-sm hover:bg-cyan-400 dark:hover:bg-cyan-500 hover:text-black">
                     Pengaturan
                 </x-responsive-nav-link>

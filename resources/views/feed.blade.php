@@ -38,6 +38,11 @@
     @endif
 </a>
 
+                    <a href="{{ route('bookmarks.index') }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-yellow-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
+                        <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                        Tersimpan
+                    </a>
+
                     <a href="{{ route('user.profile', auth()->user()->username) }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-emerald-400 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         Profil
@@ -285,6 +290,23 @@
                                                     @endif
                                                 </button>
                                             </form>
+
+                                            @if ($displayPost->bookmarked_by_me)
+                                                <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" aria-label="Hapus dari tersimpan" title="Hapus dari tersimpan" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-yellow-300 text-black group">
+                                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" aria-label="Simpan" title="Simpan" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-yellow-300 group">
+                                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
+                                                    </button>
+                                                </form>
+                                            @endif
 
                                             <!-- Tombol Share (URL Spesifik) -->
                                             <button @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', 'Tautan utas berhasil disalin!')" type="button" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-yellow-300 group" title="Bagikan">

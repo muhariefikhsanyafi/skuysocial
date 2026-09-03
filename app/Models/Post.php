@@ -31,6 +31,11 @@ class Post extends Model
         return $this->hasMany(Like::class);
     }
 
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
     // Fungsi untuk mengecek apakah user tertentu sudah menyukai status ini
     public function isLikedBy(User $user): bool
     {

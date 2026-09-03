@@ -27,6 +27,7 @@ class PostController extends Controller
                 ->withExists([
                     'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
                     'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                    'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
                 ]);
         };
 
@@ -46,6 +47,7 @@ class PostController extends Controller
             ->withExists([
                 'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
                 'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
             ])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
@@ -127,6 +129,7 @@ class PostController extends Controller
             ->loadExists([
                 'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
                 'reposts as reposted_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                'bookmarks as bookmarked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
             ]);
 
         $comments = $displayPost->detailComments()
