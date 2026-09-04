@@ -154,10 +154,12 @@ class PostController extends Controller
 	// Logika Repost (Posting Ulang)
     public function repost(Post $post)
     {
+        $targetPost = $post->originalPost ?? $post;
+
         // Cari apakah user sudah merepost postingan ini sebelumnya
         $actorId = auth()->id();
         $existingRepost = Post::where('user_id', $actorId)
-                              ->where('repost_id', $post->id)
+                              ->where('repost_id', $targetPost->id)
                               ->first();
 
         if ($existingRepost) {
@@ -167,7 +169,7 @@ class PostController extends Controller
             // Jika belum, ciptakan postingan baru sebagai repost
             try {
                 auth()->user()->posts()->create([
-                    'repost_id' => $post->id,
+                    'repost_id' => $targetPost->id,
                     'content' => null, // Teks dikosongkan karena ini murni repost
                 ]);
             } catch (QueryException $exception) {
@@ -185,7 +187,7 @@ class PostController extends Controller
         $sqlState = $exception->errorInfo[0] ?? $exception->getCode();
         $message = strtolower($exception->getMessage());
 
-        if ((string) $sqlState !== '23000') {
+        if (! in_array((string) $sqlState, ['23000', '23505'], true)) {
             return false;
         }
 

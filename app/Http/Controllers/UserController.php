@@ -130,17 +130,17 @@ class UserController extends Controller
             $currentUser->followings()->detach($user->id);
         } else {
             try {
-                $currentUser->followings()->attach($user->id);
+                DB::transaction(function () use ($currentUser, $user): void {
+                    $currentUser->followings()->attach($user->id);
+
+                    // --- PELATUK NOTIFIKASI FOLLOW ---
+                    $user->notify(new \App\Notifications\UserFollowed($currentUser));
+                });
             } catch (QueryException $exception) {
                 if (! $this->isDuplicateFollowConflict($exception)) {
                     throw $exception;
                 }
-
-                return back();
             }
-
-			// --- PELATUK NOTIFIKASI FOLLOW ---
-            $user->notify(new \App\Notifications\UserFollowed($currentUser));
         }
 
         return back();
@@ -151,7 +151,7 @@ class UserController extends Controller
         $sqlState = $exception->errorInfo[0] ?? $exception->getCode();
         $message = strtolower($exception->getMessage());
 
-        if ((string) $sqlState !== '23000') {
+        if (! in_array((string) $sqlState, ['23000', '23505'], true)) {
             return false;
         }
 

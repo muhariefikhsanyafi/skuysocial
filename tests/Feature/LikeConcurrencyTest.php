@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\User;
 use App\Notifications\PostLiked;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -134,17 +135,20 @@ class LikeConcurrencyTest extends TestCase
         $owner = User::factory()->create();
         $actor = User::factory()->create();
         $post = $this->createPost($owner);
-        $injected = false;
+        $active = true;
+        $matched = false;
 
-        Like::creating(function (Like $like) use (&$injected): void {
-            if ($injected) {
+        DB::listen(function (QueryExecuted $query) use (&$active, &$matched, $actor, $post): void {
+            $sql = strtolower(ltrim($query->sql));
+
+            if (! $active || $matched || ! str_starts_with($sql, 'select ') || ! str_contains($sql, 'likes')) {
                 return;
             }
 
-            $injected = true;
+            $matched = true;
             DB::table('likes')->insert([
-                'user_id' => $like->user_id,
-                'post_id' => $like->post_id,
+                'user_id' => $actor->id,
+                'post_id' => $post->id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -153,10 +157,10 @@ class LikeConcurrencyTest extends TestCase
         try {
             $response = $this->actingAs($actor)->post(route('posts.like', $post));
         } finally {
-            Like::flushEventListeners();
+            $active = false;
         }
 
-        $this->assertTrue($injected);
+        $this->assertTrue($matched);
         $response->assertRedirect();
         $this->assertDatabaseCount('likes', 1);
         Notification::assertNothingSent();

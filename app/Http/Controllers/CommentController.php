@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CommentController extends Controller
@@ -16,22 +17,26 @@ class CommentController extends Controller
             'parent_id' => [
                 'nullable',
                 Rule::exists('comments', 'id')->where(function ($query) use ($post) {
-                    $query->where('post_id', $post->getKey());
+                    $query
+                        ->where('post_id', $post->getKey())
+                        ->whereNull('parent_id');
                 }),
             ],
         ]);
 
-        $post->comments()->create([
-            'user_id' => $request->user()->id,
-            'content' => $validated['content'],
-            'parent_id' => $validated['parent_id'] ?? null,
-        ]);
+        DB::transaction(function () use ($post, $request, $validated): void {
+            $post->comments()->create([
+                'user_id' => $request->user()->id,
+                'content' => $validated['content'],
+                'parent_id' => $validated['parent_id'] ?? null,
+            ]);
 
-		// --- PELATUK NOTIFIKASI BALASAN ---
-        // Cegah kirim notifikasi jika user membalas postingannya sendiri
-        if ($post->user_id !== auth()->id()) {
-            $post->user->notify(new \App\Notifications\CommentPosted(auth()->user(), $post));
-        }
+            // --- PELATUK NOTIFIKASI BALASAN ---
+            // Cegah kirim notifikasi jika user membalas postingannya sendiri
+            if ($post->user_id !== $request->user()->id) {
+                $post->user->notify(new \App\Notifications\CommentPosted($request->user(), $post));
+            }
+        });
 
         return back();
     }
@@ -56,7 +61,7 @@ class CommentController extends Controller
         $sqlState = $exception->errorInfo[0] ?? $exception->getCode();
         $message = strtolower($exception->getMessage());
 
-        if ((string) $sqlState !== '23000') {
+        if (! in_array((string) $sqlState, ['23000', '23505'], true)) {
             return false;
         }
 
