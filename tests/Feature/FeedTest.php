@@ -9,7 +9,9 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class FeedTest extends TestCase
@@ -26,6 +28,140 @@ class FeedTest extends TestCase
         $response->assertViewHas('posts', function ($posts): bool {
             return $posts instanceof Paginator;
         });
+    }
+
+    public function test_feed_composer_exposes_native_media_preview_hooks(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('feed'));
+
+        $response->assertOk()
+            ->assertSee('name="images[]"', false)
+            ->assertSee('multiple', false)
+            ->assertSee('accept="image/*"', false)
+            ->assertSee('selectedImages', false)
+            ->assertSee('x-ref="imagesInput"', false)
+            ->assertSee('@change="handleImageSelection($event)"', false)
+            ->assertSee('new DataTransfer()', false)
+            ->assertSee('URL.createObjectURL(file)', false)
+            ->assertSee('@click="openLightbox(selectedImages.map(item => item.previewUrl), index)"', false)
+            ->assertSee(':aria-label="\'Lihat pratinjau gambar \' + (index + 1)"', false)
+            ->assertSee('@click="closeImageIfActive(image.previewUrl); removeImage(index)"', false)
+            ->assertSee('openLightbox(images, index = 0)', false)
+            ->assertSee('lightboxImages.length > 1', false)
+            ->assertSee('@click.stop="previousImage()"', false)
+            ->assertSee('@click.stop="nextImage()"', false)
+            ->assertSee('$event.key === \'ArrowLeft\'', false)
+            ->assertSee('$event.key === \'ArrowRight\'', false)
+            ->assertSee('aria-label="Gambar sebelumnya"', false)
+            ->assertSee('aria-label="Gambar selanjutnya"', false)
+            ->assertSee('@keydown.escape.window="closeImage()"', false)
+            ->assertSee(':aria-label="\'Hapus gambar \'', false)
+            ->assertSee('Maksimal 4 gambar', false);
+    }
+
+    public function test_text_only_post_creation_still_succeeds(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('posts.store'), [
+            'content' => 'Text-only composer post',
+            'topic' => 'composer-topic',
+        ]);
+
+        $response->assertRedirect(route('feed'));
+        $this->assertDatabaseHas('posts', [
+            'user_id' => $user->id,
+            'content' => 'Text-only composer post',
+            'topic' => 'composer-topic',
+        ]);
+    }
+
+    public function test_one_valid_image_post_is_stored(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('posts.store'), [
+            'content' => 'One image composer post',
+            'images' => [UploadedFile::fake()->image('one.jpg')],
+        ]);
+
+        $response->assertRedirect(route('feed'));
+        $post = Post::query()->where('content', 'One image composer post')->firstOrFail();
+
+        $this->assertCount(1, $post->images);
+        Storage::disk('public')->assertExists($post->images[0]);
+    }
+
+    public function test_four_valid_images_are_stored(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $images = [];
+
+        for ($number = 1; $number <= 4; $number++) {
+            $images[] = UploadedFile::fake()->image("image-{$number}.jpg");
+        }
+
+        $response = $this->actingAs($user)->post(route('posts.store'), [
+            'content' => 'Four image composer post',
+            'images' => $images,
+        ]);
+
+        $response->assertRedirect(route('feed'));
+        $post = Post::query()->where('content', 'Four image composer post')->firstOrFail();
+
+        $this->assertCount(4, $post->images);
+        foreach ($post->images as $imagePath) {
+            Storage::disk('public')->assertExists($imagePath);
+        }
+    }
+
+    public function test_more_than_four_images_are_rejected(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $images = [];
+
+        for ($number = 1; $number <= 5; $number++) {
+            $images[] = UploadedFile::fake()->image("too-many-{$number}.jpg");
+        }
+
+        $response = $this->actingAs($user)->post(route('posts.store'), [
+            'content' => 'Too many images composer post',
+            'images' => $images,
+        ]);
+
+        $response->assertSessionHasErrors('images');
+        $this->assertDatabaseMissing('posts', ['content' => 'Too many images composer post']);
+    }
+
+    public function test_invalid_image_mime_is_rejected(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('posts.store'), [
+            'content' => 'Invalid image mime post',
+            'images' => [UploadedFile::fake()->create('notes.txt', 10, 'text/plain')],
+        ]);
+
+        $response->assertSessionHasErrors('images.0');
+        $this->assertDatabaseMissing('posts', ['content' => 'Invalid image mime post']);
+    }
+
+    public function test_oversized_image_is_rejected(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('posts.store'), [
+            'content' => 'Oversized image post',
+            'images' => [UploadedFile::fake()->image('large.jpg')->size(5121)],
+        ]);
+
+        $response->assertSessionHasErrors('images.0');
+        $this->assertDatabaseMissing('posts', ['content' => 'Oversized image post']);
     }
 
     public function test_feed_exposes_bounded_unique_ordered_topic_suggestions(): void

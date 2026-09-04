@@ -55,14 +55,99 @@
             <!-- ========================================== -->
             <!-- 2. AREA KONTEN TENGAH (Feed) -->
             <!-- ========================================== -->
-            <div class="flex-1 w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto">
+            <div class="flex-1 w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto" x-data="{
+                openImage: false,
+                activeImage: '',
+                lightboxImages: [],
+                lightboxIndex: 0,
+                openLightbox(images, index = 0) {
+                    const normalizedImages = images.filter(image => typeof image === 'string' && image.length > 0);
+                    if (normalizedImages.length === 0) return;
+
+                    this.lightboxImages = normalizedImages;
+                    this.lightboxIndex = Math.min(Math.max(index, 0), normalizedImages.length - 1);
+                    this.activeImage = this.lightboxImages[this.lightboxIndex];
+                    this.openImage = true;
+                },
+                previousImage() {
+                    if (this.lightboxImages.length <= 1) return;
+
+                    this.lightboxIndex = (this.lightboxIndex - 1 + this.lightboxImages.length) % this.lightboxImages.length;
+                    this.activeImage = this.lightboxImages[this.lightboxIndex];
+                },
+                nextImage() {
+                    if (this.lightboxImages.length <= 1) return;
+
+                    this.lightboxIndex = (this.lightboxIndex + 1) % this.lightboxImages.length;
+                    this.activeImage = this.lightboxImages[this.lightboxIndex];
+                },
+                closeImage() {
+                    this.openImage = false;
+                    this.activeImage = '';
+                    this.lightboxIndex = 0;
+                    this.lightboxImages = [];
+                },
+                closeImageIfActive(imageUrl) {
+                    if (this.lightboxImages.includes(imageUrl)) this.closeImage();
+                }
+            }">
                 
                 <!-- WADAH KUNING RAKSASA (Transparan khusus di HP agar postingan melebar) -->
                 <div class="bg-transparent sm:bg-yellow-300 dark:bg-transparent sm:dark:bg-[#181818] border-0 sm:border-4 border-black dark:border-[#333333] shadow-none sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-0 sm:p-6 lg:p-8 transition-colors duration-300">
                     
                     <!-- Form Input Utas -->
                     <div class="bg-white dark:bg-[#101010] border-2 sm:border-4 border-black dark:border-[#333333] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-4 sm:p-5 mb-6 sm:mb-8 transition-colors duration-300">
-                        <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" x-data="{ isSubmitting: false, content: '' }" @submit="isSubmitting = true">
+                        <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" x-data="{
+                            isSubmitting: false,
+                            content: '',
+                            selectedImages: [],
+                            mediaMessage: '',
+                            imageIdentity(file) {
+                                return [file.name, file.size, file.type, file.lastModified].join('|');
+                            },
+                            syncImageInput() {
+                                const transfer = new DataTransfer();
+                                this.selectedImages.forEach(image => transfer.items.add(image.file));
+                                this.$refs.imagesInput.files = transfer.files;
+                            },
+                            handleImageSelection(event) {
+                                const newFiles = Array.from(event.target.files || []);
+                                let skippedForLimit = false;
+
+                                newFiles.forEach(file => {
+                                    const identity = this.imageIdentity(file);
+
+                                    if (this.selectedImages.some(image => image.identity === identity)) return;
+
+                                    if (this.selectedImages.length >= 4) {
+                                        skippedForLimit = true;
+                                        return;
+                                    }
+
+                                    this.selectedImages.push({
+                                        file,
+                                        identity,
+                                        previewUrl: URL.createObjectURL(file),
+                                    });
+                                });
+
+                                this.syncImageInput();
+                                this.mediaMessage = skippedForLimit ? 'Maksimal 4 gambar' : '';
+                            },
+                            removeImage(index) {
+                                const image = this.selectedImages[index];
+                                if (!image) return;
+
+                                URL.revokeObjectURL(image.previewUrl);
+                                this.selectedImages.splice(index, 1);
+                                this.syncImageInput();
+
+                                if (this.selectedImages.length < 4) this.mediaMessage = '';
+                            },
+                            cleanupImagePreviews() {
+                                this.selectedImages.forEach(image => URL.revokeObjectURL(image.previewUrl));
+                            }
+                        }" @submit="isSubmitting = true" @beforeunload.window="cleanupImagePreviews()">
                             @csrf
                             <div class="flex gap-3 sm:gap-4">
                                 <div class="flex-shrink-0">
@@ -120,14 +205,29 @@
                                             </ul>
                                         </div>
                                     @endif
-									<div class="flex flex-col sm:flex-row sm:items-center justify-between mt-3 pt-3 border-t-2 border-black dark:border-[#333333] border-dashed gap-3">
-                                        <div class="flex-1 overflow-hidden">
-                                            <input type="file" name="images[]" multiple accept="image/*" class="text-xs w-full file:mr-2 file:py-1 file:px-2 file:border-2 file:border-black dark:file:border-[#333333] file:bg-yellow-300 file:text-black file:font-black file:uppercase file:cursor-pointer file:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:file:shadow-none hover:file:translate-y-[2px] transition-all">
+									<div class="flex flex-col mt-3 pt-3 border-t-2 border-black dark:border-[#333333] border-dashed gap-3">
+										<div class="w-full overflow-hidden">
+                                            <input type="file" name="images[]" multiple accept="image/*" x-ref="imagesInput" @change="handleImageSelection($event)" class="text-xs w-full file:mr-2 file:py-1 file:px-2 file:border-2 file:border-black dark:file:border-[#333333] file:bg-yellow-300 file:text-black file:font-black file:uppercase file:cursor-pointer file:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:file:shadow-none hover:file:translate-y-[2px] transition-all">
+                                            <div x-show="selectedImages.length > 0" style="display: none;" class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label="Pratinjau gambar">
+                                                <template x-for="(image, index) in selectedImages" :key="image.identity">
+                                                    <div class="relative aspect-square overflow-hidden border-2 border-black dark:border-[#333333] bg-gray-100 dark:bg-[#181818] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)]">
+                                                        <button type="button" @click="openLightbox(selectedImages.map(item => item.previewUrl), index)" :aria-label="'Lihat pratinjau gambar ' + (index + 1)" class="block w-full h-full p-0 border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                                            <img :src="image.previewUrl" :alt="'Pratinjau gambar ' + (index + 1)" class="w-full h-full object-cover">
+                                                        </button>
+                                                        <button type="button" @click="closeImageIfActive(image.previewUrl); removeImage(index)" :disabled="isSubmitting" :aria-label="'Hapus gambar ' + (index + 1)" :title="'Hapus gambar ' + (index + 1)" class="absolute top-1 right-1 w-7 h-7 flex items-center justify-center bg-red-500 text-white border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all font-black text-lg leading-none focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <div x-show="mediaMessage" x-text="mediaMessage" style="display: none;" role="status" aria-live="polite" class="mt-2 text-red-600 dark:text-red-400 text-xs font-black uppercase"></div>
                                         </div>
-                                        <button type="submit" :disabled="isSubmitting || content.trim() === ''" :class="(isSubmitting || content.trim() === '') ? 'bg-gray-200 dark:bg-[#242424] text-gray-500 shadow-none cursor-not-allowed' : 'bg-cyan-400 text-black hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'" class="border-2 border-black dark:border-[#333333] transition-all font-black uppercase px-5 sm:px-6 py-1.5 flex-shrink-0 text-sm">
-                                            <span x-show="!isSubmitting">Posting</span>
-                                            <span x-show="isSubmitting">...</span>
-                                        </button>
+										<div class="flex justify-end w-full">
+											<button type="submit" :disabled="isSubmitting || content.trim() === ''" :class="(isSubmitting || content.trim() === '') ? 'bg-gray-200 dark:bg-[#242424] text-gray-500 shadow-none cursor-not-allowed' : 'bg-cyan-400 text-black hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'" class="border-2 border-black dark:border-[#333333] transition-all font-black uppercase px-5 sm:px-6 py-1.5 flex-shrink-0 text-sm">
+												<span x-show="!isSubmitting">Posting</span>
+												<span x-show="isSubmitting">...</span>
+											</button>
+										</div>
                                     </div>
                                 </div>
                             </div>
@@ -223,9 +323,12 @@
                                         <p class="text-black dark:text-white font-medium text-[15px] sm:text-base leading-relaxed whitespace-pre-wrap mb-3 mt-1.5">{!! preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="'.url('/tags').'/$1" class="text-blue-600 dark:text-blue-400 font-bold hover:underline decoration-2">#$1</a>', e($displayPost->content)) !!}</p>
                                         
                                         @if ($displayPost->images && count($displayPost->images) > 0)
-                                            <div x-data="{ 
-                                                    openImage: false, 
-                                                    activeImage: '',
+                                                    @php
+                                                        $postImageUrls = collect($displayPost->images)
+                                                            ->map(fn ($image) => asset('storage/' . $image))
+                                                            ->values();
+                                                    @endphp
+                                                    <div x-data="{
                                                     activeSlide: 0,
                                                     updateDots(e) {
                                                         let maxIndex = {{ count($displayPost->images) - 1 }};
@@ -240,7 +343,7 @@
                                                 <div @scroll.passive="updateDots" class="flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                                     @foreach ($displayPost->images as $imgUrl)
                                                         <!-- Ukuran dipaksa seragam dengan 'aspect-[4/5]' & bisa berdampingan pas di desktop dengan 'sm:w-[48%]' -->
-                                                        <div @click="openImage = true; activeImage = '{{ asset('storage/' . $imgUrl) }}'" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] cursor-pointer border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden group transition-all hover:translate-y-[-2px]">
+                                                        <div @click="openLightbox(@js($postImageUrls), {{ $loop->index }})" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] cursor-pointer border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden group transition-all hover:translate-y-[-2px]">
                                                             <!-- h-full & object-cover akan memastikan gambar mengisi seluruh kotak seragam tanpa merusak rasio aslinya -->
                                                             <img src="{{ asset('storage/' . $imgUrl) }}" alt="Foto" class="w-full h-full object-cover group-hover:opacity-85 transition-opacity">
                                                         </div>
@@ -258,12 +361,6 @@
                                                     </div>
                                                 @endif
 
-                                                <div x-show="openImage" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-8 bg-black/90 backdrop-blur-sm" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
-                                                    <button @click="openImage = false" class="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-yellow-400 transition-colors z-[110] bg-black/50 rounded-full p-1 border-2 border-transparent hover:border-white">
-                                                        <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                                    </button>
-                                                    <img @click.away="openImage = false" :src="activeImage" alt="Foto Penuh" class="max-w-full max-h-[90vh] object-contain border-2 sm:border-4 border-white shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] sm:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
-                                                </div>
                                             </div>
                                         @endif
                                         
@@ -455,6 +552,21 @@
                                 </div>
                             </div>
                         @endforeach
+
+                    </div>
+
+                    <div x-show="openImage" @click.self="closeImage()" @keydown.window="if (openImage && $event.key === 'ArrowLeft') previousImage(); if (openImage && $event.key === 'ArrowRight') nextImage()" @keydown.escape.window="closeImage()" style="display: none;" role="dialog" aria-modal="true" aria-label="Pratinjau foto" class="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-8 bg-black/90 backdrop-blur-sm" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+                        <div x-show="lightboxImages.length > 1" x-text="(lightboxIndex + 1) + ' / ' + lightboxImages.length" class="absolute top-4 left-4 sm:top-8 sm:left-8 z-[110] bg-black/70 text-white border-2 border-white px-2 py-1 font-black text-xs sm:text-sm"></div>
+                        <button type="button" x-show="lightboxImages.length > 1" @click.stop="previousImage()" aria-label="Gambar sebelumnya" class="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 z-[110] bg-black/70 text-white border-2 border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:text-black p-2 sm:p-3 transition-all">
+                            <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M15 18l-6-6 6-6"></path></svg>
+                        </button>
+                        <button type="button" x-show="lightboxImages.length > 1" @click.stop="nextImage()" aria-label="Gambar selanjutnya" class="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 z-[110] bg-black/70 text-white border-2 border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:text-black p-2 sm:p-3 transition-all">
+                            <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M9 18l6-6-6-6"></path></svg>
+                        </button>
+                        <button type="button" @click="closeImage()" aria-label="Tutup pratinjau" class="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-yellow-400 transition-colors z-[110] bg-black/50 rounded-full p-1 border-2 border-transparent hover:border-white">
+                            <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        <img :src="activeImage" alt="Foto Penuh" class="max-w-full max-h-[90vh] object-contain border-2 sm:border-4 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     </div>
 
                     @if ($posts->hasPages())
