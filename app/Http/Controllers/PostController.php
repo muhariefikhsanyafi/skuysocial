@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+use Throwable;
 
 class PostController extends Controller
 {
@@ -97,21 +101,35 @@ class PostController extends Controller
             'topic'    => 'nullable|string|max:50',
         ]);
 
-        // Jika user mengunggah file gambar (multi)
-        if ($request->hasFile('images')) {
-            $imagePaths = [];
-            // Looping untuk menyimpan setiap gambar yang dipilih
-            foreach ($request->file('images') as $image) {
-                $imagePaths[] = $image->store('posts', 'public');
+        $imagePaths = [];
+
+        try {
+            // Jika user mengunggah file gambar (multi)
+            if ($request->hasFile('images')) {
+                // Looping untuk menyimpan setiap gambar yang dipilih
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('posts', 'public');
+                    if (! is_string($path)) {
+                        throw new RuntimeException('Failed to store a post image.');
+                    }
+
+                    $imagePaths[] = $path;
+                }
+                // Masukkan array lokasi gambar ke data validasi kolom 'images'
+                $validated['images'] = $imagePaths;
             }
-            // Masukkan array lokasi gambar ke data validasi kolom 'images'
-            $validated['images'] = $imagePaths;
+
+            DB::transaction(function () use ($request, $validated): void {
+                // Simpan postingan atas nama user yang sedang login
+                $post = $request->user()->posts()->create($validated);
+
+                $this->syncHashtags($post);
+            });
+        } catch (Throwable $exception) {
+            Storage::disk('public')->delete($imagePaths);
+
+            throw $exception;
         }
-
-        // Simpan postingan atas nama user yang sedang login dan tampung ke variabel $post
-        $post = $request->user()->posts()->create($validated);
-
-        $this->syncHashtags($post);
 
         return redirect()->route('feed');
     }

@@ -6,9 +6,12 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -27,6 +30,10 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        $user = $request->user();
+        $oldAvatar = $user->avatar;
+        $oldCover = $user->cover;
+
 		// 1. Validasi input termasuk username dengan regex anti-spasi & izinkan titik (.)
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -50,31 +57,51 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
-        // Logika Khusus untuk Upload Avatar
-        if ($request->hasFile('avatar')) {
-            // Jika user sebelumnya sudah punya foto, hapus foto lama agar server tidak penuh
-            if ($request->user()->avatar) {
-                Storage::disk('public')->delete($request->user()->avatar);
+        $disk = Storage::disk('public');
+        $newAvatar = null;
+        $newCover = null;
+        $newPaths = [];
+
+        try {
+            // Logika Khusus untuk Upload Avatar
+            if ($request->hasFile('avatar')) {
+                // Simpan foto baru sebelum referensi lama dihapus
+                $newAvatar = $request->file('avatar')->store('avatars', 'public');
+                if (! is_string($newAvatar)) {
+                    throw new RuntimeException('Failed to store the profile avatar.');
+                }
+
+                $newPaths[] = $newAvatar;
+                $user->avatar = $newAvatar;
             }
-            
-            // Simpan foto baru ke folder 'avatars' di storage/app/public
-            $path = $request->file('avatar')->store('avatars', 'public');
-            
-            // Masukkan path foto tersebut ke database
-            $request->user()->avatar = $path;
-        }
-		
-		if ($request->hasFile('cover')) {
-            if ($request->user()->cover) {
-                Storage::disk('public')->delete($request->user()->cover);
+
+            if ($request->hasFile('cover')) {
+                $newCover = $request->file('cover')->store('covers', 'public');
+                if (! is_string($newCover)) {
+                    throw new RuntimeException('Failed to store the profile cover.');
+                }
+
+                $newPaths[] = $newCover;
+                $user->cover = $newCover;
             }
-            
-            $coverPath = $request->file('cover')->store('covers', 'public');
-            $request->user()->cover = $coverPath;
+
+            // Simpan semua perubahan ke database dalam transaksi singkat
+            DB::transaction(function () use ($user): void {
+                if (! $user->save()) {
+                    throw new RuntimeException('Failed to save profile changes.');
+                }
+            });
+        } catch (Throwable $exception) {
+            $disk->delete($newPaths);
+
+            throw $exception;
         }
 
-        // Simpan semua perubahan ke database
-        $request->user()->save();
+        $obsoletePaths = array_filter([
+            $newAvatar !== null && $newAvatar !== $oldAvatar ? $oldAvatar : null,
+            $newCover !== null && $newCover !== $oldCover ? $oldCover : null,
+        ]);
+        $disk->delete(array_values(array_unique($obsoletePaths)));
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

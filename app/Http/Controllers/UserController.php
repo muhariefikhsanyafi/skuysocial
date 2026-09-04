@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+use Throwable;
 
 class UserController extends Controller
 {
@@ -181,23 +184,54 @@ class UserController extends Controller
         ]);
 
         $user->name = $validated['name'];
-        $user->bio = $validated['bio'];
-
-        if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
-            }
-            $user->avatar = $request->file('avatar')->store('avatars', 'public');
-        }
-        
-        if ($request->hasFile('cover')) {
-            if ($user->cover) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->cover);
-            }
-            $user->cover = $request->file('cover')->store('covers', 'public');
+        if (array_key_exists('bio', $validated)) {
+            $user->bio = $validated['bio'];
         }
 
-        $user->save();
+        $disk = Storage::disk('public');
+        $oldAvatar = $user->avatar;
+        $oldCover = $user->cover;
+        $newAvatar = null;
+        $newCover = null;
+        $newPaths = [];
+
+        try {
+            if ($request->hasFile('avatar')) {
+                $newAvatar = $request->file('avatar')->store('avatars', 'public');
+                if (! is_string($newAvatar)) {
+                    throw new RuntimeException('Failed to store the profile avatar.');
+                }
+
+                $newPaths[] = $newAvatar;
+                $user->avatar = $newAvatar;
+            }
+
+            if ($request->hasFile('cover')) {
+                $newCover = $request->file('cover')->store('covers', 'public');
+                if (! is_string($newCover)) {
+                    throw new RuntimeException('Failed to store the profile cover.');
+                }
+
+                $newPaths[] = $newCover;
+                $user->cover = $newCover;
+            }
+
+            DB::transaction(function () use ($user): void {
+                if (! $user->save()) {
+                    throw new RuntimeException('Failed to save profile changes.');
+                }
+            });
+        } catch (Throwable $exception) {
+            $disk->delete($newPaths);
+
+            throw $exception;
+        }
+
+        $obsoletePaths = array_filter([
+            $newAvatar !== null && $newAvatar !== $oldAvatar ? $oldAvatar : null,
+            $newCover !== null && $newCover !== $oldCover ? $oldCover : null,
+        ]);
+        $disk->delete(array_values(array_unique($obsoletePaths)));
 
         return redirect()->route('user.profile', $user->username);
     }
