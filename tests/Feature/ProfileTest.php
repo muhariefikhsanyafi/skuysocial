@@ -23,6 +23,44 @@ class ProfileTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_custom_profile_settings_have_associated_fields_and_keyboard_accessible_upload_controls(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->get(route('user.edit'));
+
+        $html = $response->getContent();
+        $customFormStart = strpos($html, '<form action="'.route('user.update').'"');
+        $customFormEnd = strpos($html, '</form>', $customFormStart);
+
+        $response
+            ->assertOk()
+            ->assertSee('<form action="'.route('user.update').'" method="POST" enctype="multipart/form-data"', false)
+            ->assertSee('<label for="name"', false)
+            ->assertSee('id="name"', false)
+            ->assertSee('<label for="username"', false)
+            ->assertSee('id="username"', false)
+            ->assertSee('<label for="bio"', false)
+            ->assertSee('id="bio"', false)
+            ->assertSee('id="avatar"', false)
+            ->assertSee('id="cover"', false)
+            ->assertSee('aria-label="Ubah avatar"', false)
+            ->assertSee('aria-label="Ubah sampul"', false)
+            ->assertSee('@click="$refs.avatarInput.click()"', false)
+            ->assertSee('@click="$refs.coverInput.click()"', false)
+            ->assertSee('type="button"', false);
+
+        $this->assertNotFalse($customFormStart);
+        $this->assertNotFalse($customFormEnd);
+        $customForm = substr($html, $customFormStart, $customFormEnd - $customFormStart);
+
+        $this->assertSame(1, substr_count($customForm, '<form '));
+        $this->assertDoesNotMatchRegularExpression('/<\/form(?!>)/', $html);
+        $this->assertStringNotContainsString('</div>>', $html);
+    }
+
     public function test_user_factory_generates_valid_unique_usernames(): void
     {
         $users = User::factory()->count(2)->create();

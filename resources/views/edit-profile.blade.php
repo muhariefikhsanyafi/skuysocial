@@ -45,11 +45,11 @@
                     
                     <!-- Overlay Upload Hover -->
                     <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                        <label class="cursor-pointer flex items-center gap-2 bg-white text-black font-black uppercase text-xs px-4 py-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+                        <button type="button" @click="$refs.coverInput.click()" aria-label="Ubah sampul" class="cursor-pointer flex items-center gap-2 bg-white text-black font-black uppercase text-xs px-4 py-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             Ubah Sampul
-                            <input type="file" name="cover" class="hidden" accept="image/*" @change="updateCover">
-                        </label>
+                        </button>
+                        <input id="cover" x-ref="coverInput" type="file" name="cover" class="hidden" accept="image/*" @change="updateCover">
                     </div>
                 </div>
 
@@ -70,10 +70,10 @@
                                 </template>
                             </div>
                             <!-- Overlay Upload Hover -->
-                            <label class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 rounded-full z-20 flex items-center justify-center cursor-pointer transition-opacity border-4 border-transparent">
+                            <button type="button" @click="$refs.avatarInput.click()" aria-label="Ubah avatar" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 rounded-full z-20 flex items-center justify-center cursor-pointer transition-opacity border-4 border-transparent">
                                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <input type="file" name="avatar" class="hidden" accept="image/*" @change="updateAvatar">
-                            </label>
+                            </button>
+                            <input id="avatar" x-ref="avatarInput" type="file" name="avatar" class="hidden" accept="image/*" @change="updateAvatar">
                         </div>
                     </div>
 
@@ -90,20 +90,20 @@
 
                     <!-- Input Nama Tampilan -->
                     <div class="mb-5">
-                        <label class="block text-black dark:text-white font-black uppercase text-xs sm:text-sm mb-2">Nama Tampilan</label>
-                        <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-3 text-black dark:text-white font-bold focus:ring-0 focus:outline-none focus:border-pink-500 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[6px_6px_0px_0px_rgba(51,51,51,1)]" required maxlength="50">
+                        <label for="name" class="block text-black dark:text-white font-black uppercase text-xs sm:text-sm mb-2">Nama Tampilan</label>
+                        <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-3 text-black dark:text-white font-bold focus:ring-0 focus:outline-none focus:border-pink-500 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[6px_6px_0px_0px_rgba(51,51,51,1)]" required maxlength="50">
                     </div>
 
                     <!-- Input Username (Hanya Baca / Disabled) -->
                     <div class="mb-5">
-                        <label class="block text-gray-500 font-black uppercase text-xs sm:text-sm mb-2">Username (Tidak bisa diubah)</label>
-                        <input type="text" value="{{ '@' . $user->username }}" class="w-full bg-gray-200 dark:bg-[#242424] border-2 border-black dark:border-[#333333] px-4 py-3 text-gray-500 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[6px_6px_0px_0px_rgba(51,51,51,1)] cursor-not-allowed" disabled>
+                        <label for="username" class="block text-gray-500 font-black uppercase text-xs sm:text-sm mb-2">Username (Tidak bisa diubah)</label>
+                        <input id="username" type="text" value="{{ '@' . $user->username }}" class="w-full bg-gray-200 dark:bg-[#242424] border-2 border-black dark:border-[#333333] px-4 py-3 text-gray-500 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[6px_6px_0px_0px_rgba(51,51,51,1)] cursor-not-allowed" disabled>
                     </div>
 
                     <!-- Input Bio -->
                     <div class="mb-8">
-                        <label class="block text-black dark:text-white font-black uppercase text-xs sm:text-sm mb-2">Bio / Tentang Saya</label>
-                        <textarea name="bio" rows="4" class="w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-3 text-black dark:text-white font-bold focus:ring-0 focus:outline-none focus:border-cyan-500 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[6px_6px_0px_0px_rgba(51,51,51,1)] resize-none" placeholder="Tuliskan sesuatu tentang dirimu..." maxlength="255">{{ old('bio', $user->bio) }}</textarea>
+                        <label for="bio" class="block text-black dark:text-white font-black uppercase text-xs sm:text-sm mb-2">Bio / Tentang Saya</label>
+                        <textarea id="bio" name="bio" rows="4" class="w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-4 py-3 text-black dark:text-white font-bold focus:ring-0 focus:outline-none focus:border-cyan-500 transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:dark:shadow-[6px_6px_0px_0px_rgba(51,51,51,1)] resize-none" placeholder="Tuliskan sesuatu tentang dirimu..." maxlength="255">{{ old('bio', $user->bio) }}</textarea>
                         <p class="text-xs font-bold text-gray-500 mt-2">*Maksimal 255 karakter</p>
                     </div>
 
@@ -119,7 +119,7 @@
                     </div>
 
                 </div>
-            </form
+            </form>
 			
 			<!-- ========================================== -->
             <!-- BLOK UBAH PASSWORD (CYAN) -->
@@ -184,7 +184,7 @@
                         Hapus Akun Ini
                     </button>
                 </form>
-            </div>>
+            </div>
 
         </div>
     </div>
