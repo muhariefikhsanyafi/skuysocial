@@ -23,6 +23,36 @@ class NavigationTest extends TestCase
 
         $this->assertSame(2, substr_count($html, 'href="'.route('search').'"'));
         $this->assertSame(2, substr_count($html, 'href="'.route('activity.index').'"'));
+        $this->assertStringContainsString('aria-controls="mobile-navigation"', $html);
+        $this->assertStringContainsString(':aria-expanded="sidebarOpen"', $html);
+        $this->assertStringContainsString(":aria-label=\"sidebarOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
+        $this->assertStringContainsString('id="mobile-navigation"', $html);
+        $this->assertStringContainsString('aria-controls="mobile-profile-menu"', $html);
+        $this->assertStringContainsString(':aria-expanded="open"', $html);
+        $this->assertStringContainsString(":aria-label=\"open ? 'Tutup menu profil' : 'Buka menu profil'\"", $html);
+        $this->assertStringContainsString('aria-label="Cari"', $html);
+        $this->assertStringContainsString('aria-label="Aktivitas"', $html);
+        $this->assertStringContainsString('aria-label="Profil"', $html);
+        $this->assertStringContainsString('aria-label="Buat utas"', $html);
+        $this->assertStringContainsString(':aria-pressed="darkMode"', $html);
+        $this->assertStringContainsString(":aria-label=\"darkMode ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'\"", $html);
+        $this->assertMatchesRegularExpression('/href="'.preg_quote(route('feed'), '/').'"[^>]*aria-current="page"/', $html);
+        $this->assertDoesNotMatchRegularExpression('/href="'.preg_quote(route('search'), '/').'"[^>]*aria-current="page"/', $html);
+        $this->assertDoesNotMatchRegularExpression('/href="'.preg_quote(route('activity.index'), '/').'"[^>]*aria-current="page"/', $html);
+
+        $bottomNavStart = strpos($html, '<!-- BOTTOM NAVIGATION BAR');
+        $this->assertNotFalse($bottomNavStart);
+        $this->assertStringNotContainsString(route('bookmarks.index'), substr($html, $bottomNavStart));
+
+        $mobileNavigationStart = strpos($html, 'id="mobile-navigation"');
+        $this->assertNotFalse($mobileNavigationStart);
+        $this->assertStringContainsString(route('bookmarks.index'), substr($html, $mobileNavigationStart));
+
+        $desktopDropdownStart = strpos($html, '<!-- Tombol Dropdown Profil (Desktop) -->');
+        $mobileProfileStart = strpos($html, '<!-- Hamburger Menu Profil (HP) -->');
+        $this->assertNotFalse($desktopDropdownStart);
+        $this->assertNotFalse($mobileProfileStart);
+        $this->assertStringNotContainsString(route('bookmarks.index'), substr($html, $desktopDropdownStart, $mobileProfileStart - $desktopDropdownStart));
     }
 
     public function test_authenticated_topic_uses_functional_navigation_routes(): void

@@ -6,22 +6,22 @@
         <div class="w-full max-w-[1600px] mx-auto px-2 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between gap-0 md:gap-6 lg:gap-8 items-start min-h-screen">
             
             <!-- 3. SIDEBAR KIRI (mb-6 dihapus dari pembungkus utama) -->
-            <div x-data="{ sidebarOpen: false }" @toggle-sidebar.window="sidebarOpen = !sidebarOpen" class="w-full md:w-52 lg:w-[250px] xl:w-[280px] flex-shrink-0 md:sticky md:top-28 z-20 md:mb-0">
+            <div x-data="{ sidebarOpen: false }" @toggle-sidebar.window="sidebarOpen = $event.detail" class="w-full md:w-52 lg:w-[250px] xl:w-[280px] flex-shrink-0 md:sticky md:top-28 z-20 md:mb-0">
                 
                 <!-- Menu Items (mb-5 dipindahkan ke dalam agar hanya memakan ruang SAAT menu dibuka) -->
-                <div x-show="sidebarOpen" x-transition class="md:!flex flex-col gap-3 mb-5 md:mb-0" style="display: none;">
+                <div id="mobile-navigation" x-show="sidebarOpen" x-transition class="md:!flex flex-col gap-3 mb-5 md:mb-0" style="display: none;">
                     
-                    <a href="{{ route('feed') }}" class="flex items-center gap-3 bg-yellow-300 border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black font-black uppercase text-sm lg:text-base group">
+                    <a href="{{ route('feed') }}" aria-current="{{ request()->routeIs('feed') ? 'page' : 'false' }}" class="flex items-center gap-3 bg-yellow-300 border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                         Beranda
                     </a>
 
-                    <a href="{{ route('search') }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-pink-400 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
+                    <a href="{{ route('search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-pink-400 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         Cari
                     </a>
 
-                    <a href="{{ route('activity.index') }}" class="flex items-center justify-between w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-yellow-300 transition-colors group">
+                    <a href="{{ route('activity.index') }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="flex items-center justify-between w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-yellow-300 transition-colors group">
     
     <!-- Pembungkus Ikon dan Teks agar tetap di kiri -->
     <div class="flex items-center gap-3">
@@ -38,12 +38,12 @@
     @endif
 </a>
 
-                    <a href="{{ route('bookmarks.index') }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-yellow-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
+                    <a href="{{ route('bookmarks.index') }}" aria-current="{{ request()->routeIs('bookmarks.index') ? 'page' : 'false' }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-yellow-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
                         Tersimpan
                     </a>
 
-                    <a href="{{ route('user.profile', auth()->user()->username) }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-emerald-400 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
+                    <a href="{{ route('user.profile', auth()->user()->username) }}" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === auth()->user()->username ? 'page' : 'false' }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-emerald-400 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         Profil
                     </a>
@@ -622,27 +622,27 @@
     <div class="md:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-[#101010] border-t-4 border-black dark:border-[#333333] flex justify-around items-center p-3 z-50 pb-safe">
         
         <!-- Beranda -->
-        <a href="{{ route('feed') }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('feed') }}" aria-label="Beranda" aria-current="{{ request()->routeIs('feed') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3l8 6v12h-5v-7h-6v7H4V9l8-6z"></path></svg>
         </a>
 
         <!-- Pencarian -->
-        <a href="{{ route('search') }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('search') }}" aria-label="Cari" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </a>
 
         <!-- Buat Thread / Postingan (Tombol Tengah Mencolok) -->
-        <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" class="bg-yellow-300 border-2 border-black p-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black">
+        <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Buat utas" type="button" class="bg-yellow-300 border-2 border-black p-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
         </button>
 
         <!-- Aktivitas / Notifikasi -->
-        <a href="{{ route('activity.index') }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('activity.index') }}" aria-label="Aktivitas" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
         </a>
 
         <!-- Profil (BUGS FIXED DI SINI) -->
-        <a href="{{ route('user.profile', auth()->user()->username) }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('user.profile', auth()->user()->username) }}" aria-label="Profil" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === auth()->user()->username ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
         </a>
 
