@@ -115,4 +115,19 @@ class RegistrationTest extends TestCase
         $response->assertSessionHasErrors('username');
         $this->assertGuest();
     }
+
+    public function test_registration_submissions_are_rate_limited(): void
+    {
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $this->post('/register', [
+                'name' => 'Rate Limited User',
+                'email' => "rate-limit-{$attempt}@example.com",
+            ])->assertRedirect();
+        }
+
+        $this->post('/register', [
+            'name' => 'Rate Limited User',
+            'email' => 'rate-limit-6@example.com',
+        ])->assertStatus(429);
+    }
 }
