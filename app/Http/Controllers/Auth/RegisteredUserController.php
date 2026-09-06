@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\TurnstileVerifier;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, TurnstileVerifier $turnstile): RedirectResponse
     {
 		if (is_string($request->input('username'))) {
 			$request->merge([
@@ -42,6 +43,8 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        $turnstile->validate($request->input('cf-turnstile-response'), 'register');
 
         $user = User::create([
             'name' => $request->name,

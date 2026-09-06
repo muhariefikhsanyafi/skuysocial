@@ -19,6 +19,8 @@
             <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-600 font-bold" />
         </div>
 
+        <x-turnstile action="login" />
+
         <!-- Tombol Aksi -->
         <div class="flex items-center justify-between mt-6">
             @if (Route::has('password.request'))

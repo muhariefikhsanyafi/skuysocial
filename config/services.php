@@ -14,6 +14,14 @@ return [
     |
     */
 
+    'turnstile' => [
+        'enabled' => env('TURNSTILE_ENABLED', false),
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+        'hostname' => env('TURNSTILE_HOSTNAME', 'skuysocial.com'),
+        'verify_url' => 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

@@ -41,6 +41,8 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2 text-red-600 font-bold" />
         </div>
 
+        <x-turnstile action="register" />
+
         <!-- Tombol Aksi -->
         <div class="flex items-center justify-between mt-8 pt-4 border-t-4 border-black">
             <a class="text-sm font-bold text-black hover:underline hover:decoration-4 hover:decoration-emerald-400 transition-all" href="{{ route('login') }}">

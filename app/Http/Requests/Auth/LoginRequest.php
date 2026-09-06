@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Services\TurnstileVerifier;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -41,6 +42,8 @@ class LoginRequest extends FormRequest
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
+
+        app(TurnstileVerifier::class)->validate($this->input('cf-turnstile-response'), 'login');
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());

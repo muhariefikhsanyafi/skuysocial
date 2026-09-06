@@ -17,6 +17,8 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-600 font-bold" />
         </div>
 
+        <x-turnstile action="forgot_password" />
+
         <!-- Tombol Aksi -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-2">
             <!-- Link Kembali ke Login -->
