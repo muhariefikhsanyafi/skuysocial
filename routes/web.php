@@ -5,10 +5,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\BookmarkController;
+use App\Http\Controllers\LocaleController;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/locale', LocaleController::class)->name('locale.update');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
