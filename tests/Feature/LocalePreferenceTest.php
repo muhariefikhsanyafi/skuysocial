@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
@@ -18,6 +21,71 @@ class LocalePreferenceTest extends TestCase
         $this->assertSame(['id', 'en'], array_keys(config('localization.supported')));
         $this->assertSame('id', config('app.locale'));
         $this->assertSame('en', config('app.fallback_locale'));
+    }
+
+    public function test_locale_migration_adds_a_nullable_column_without_rewriting_existing_users(): void
+    {
+        $migration = require database_path(
+            'migrations/2026_09_08_000000_add_locale_to_users_table.php'
+        );
+
+        $migration->down();
+        $this->assertFalse(Schema::hasColumn('users', 'locale'));
+
+        $createdAt = now()->startOfSecond();
+        $userId = DB::table('users')->insertGetId([
+            'name' => 'Legacy User',
+            'username' => 'legacy_user',
+            'email' => 'legacy@example.com',
+            'password' => 'legacy-password-hash',
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
+        ]);
+
+        $migration->up();
+
+        $this->assertTrue(Schema::hasColumn('users', 'locale'));
+
+        $user = DB::table('users')->find($userId);
+
+        $this->assertNotNull($user);
+        $this->assertSame('Legacy User', $user->name);
+        $this->assertSame('legacy_user', $user->username);
+        $this->assertSame('legacy@example.com', $user->email);
+        $this->assertSame('legacy-password-hash', $user->password);
+        $this->assertNull($user->locale);
+
+        $column = collect(DB::select('PRAGMA table_info(users)'))
+            ->first(fn (object $column): bool => $column->name === 'locale');
+
+        $this->assertNotNull($column);
+        $this->assertSame(0, $column->notnull);
+        $this->assertNull($column->dflt_value);
+    }
+
+    public function test_user_exposes_only_supported_framework_locale_preferences(): void
+    {
+        $user = new User();
+
+        $this->assertInstanceOf(HasLocalePreference::class, $user);
+        $this->assertNotContains('locale', $user->getFillable());
+
+        $user->locale = 'id';
+        $this->assertSame('id', $user->preferredLocale());
+
+        $user->fill(['locale' => 'en']);
+        $this->assertSame('id', $user->locale);
+
+        $user->locale = 'en';
+        $this->assertSame('en', $user->preferredLocale());
+
+        app()->setLocale('en');
+        $user->locale = null;
+        $this->assertSame('en', $user->preferredLocale());
+
+        app()->setLocale('fr');
+        $user->locale = '../../';
+        $this->assertSame('id', $user->preferredLocale());
     }
 
     public function test_first_guest_request_uses_indonesian_default(): void
@@ -179,16 +247,134 @@ class LocalePreferenceTest extends TestCase
         }
     }
 
-    public function test_authenticated_locale_switch_does_not_modify_user_account_fields(): void
+    public function test_authenticated_account_locale_overrides_conflicting_session_and_cookie(): void
     {
-        $user = User::factory()->create();
-        $before = $user->fresh()->getAttributes();
+        $cookie = $this->localeCookieFromSelection('id');
+        $this->flushSession();
+
+        $user = User::factory()->create(['locale' => 'en']);
 
         $this->actingAs($user)
-            ->post('/locale', ['locale' => 'en'])
+            ->withSession(['locale' => 'id'])
+            ->withUnencryptedCookie($cookie->getName(), $cookie->getValue())
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertSee('<html lang="en"', false);
+
+        $this->assertSame('en', app()->getLocale());
+        $this->assertSame('en', $user->fresh()->locale);
+    }
+
+    public function test_invalid_authenticated_account_locale_falls_through_without_middleware_rewrite(): void
+    {
+        $user = User::factory()->create(['locale' => 'fr']);
+
+        $this->actingAs($user)
+            ->withSession(['locale' => 'en'])
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertSee('<html lang="en"', false);
+
+        $this->assertSame('en', app()->getLocale());
+        $this->assertSame('fr', $user->fresh()->locale);
+    }
+
+    public function test_authenticated_locale_resolution_does_not_leak_between_users(): void
+    {
+        $englishUser = User::factory()->create(['locale' => 'en']);
+        $indonesianUser = User::factory()->create(['locale' => 'id']);
+
+        $this->actingAs($englishUser)
+            ->get('/dashboard')
+            ->assertSee('<html lang="en"', false);
+
+        $this->actingAs($indonesianUser)
+            ->get('/dashboard')
+            ->assertSee('<html lang="id"', false);
+
+        $this->assertSame('id', app()->getLocale());
+    }
+
+    public function test_authenticated_locale_switch_updates_only_the_current_users_preference(): void
+    {
+        $user = User::factory()->create(['locale' => 'id']);
+        $otherUser = User::factory()->create(['locale' => 'id']);
+        $before = $user->fresh()->only([
+            'name',
+            'username',
+            'email',
+            'password',
+            'avatar',
+            'cover',
+            'bio',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->post('/locale', [
+                'locale' => 'en',
+                'user_id' => $otherUser->id,
+            ])
             ->assertRedirect('/');
 
-        $this->assertSame($before, $user->fresh()->getAttributes());
+        $response->assertSessionHas('locale', 'en');
+        $this->assertSame('en', app()->getLocale());
+        $this->assertSame('en', $user->fresh()->locale);
+        $this->assertSame('id', $otherUser->fresh()->locale);
+        $this->assertSame($before, $user->fresh()->only(array_keys($before)));
+
+        $this->assertLocaleCookieValue($response, 'en');
+    }
+
+    public function test_authenticated_locale_switch_can_restore_indonesian(): void
+    {
+        $user = User::factory()->create(['locale' => 'en']);
+
+        $response = $this->actingAs($user)
+            ->post('/locale', ['locale' => 'id'])
+            ->assertRedirect('/');
+
+        $response->assertSessionHas('locale', 'id');
+        $this->assertSame('id', app()->getLocale());
+        $this->assertSame('id', $user->fresh()->locale);
+        $this->assertLocaleCookieValue($response, 'id');
+    }
+
+    public function test_invalid_authenticated_locale_switch_does_not_change_the_account(): void
+    {
+        $user = User::factory()->create(['locale' => 'id']);
+
+        $this->actingAs($user)
+            ->from('/dashboard')
+            ->post('/locale', ['locale' => 'fr'])
+            ->assertRedirect('/')
+            ->assertSessionHasErrors('locale');
+
+        $this->assertSame('id', $user->fresh()->locale);
+    }
+
+    public function test_logout_preserves_account_locale_and_the_dedicated_locale_cookie(): void
+    {
+        $user = User::factory()->create(['locale' => 'en']);
+
+        $loginResponse = $this->withSession(['locale' => 'id'])->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+        $cookie = $this->localeCookie($loginResponse);
+
+        $this->withUnencryptedCookie($cookie->getName(), $cookie->getValue())
+            ->post('/logout')
+            ->assertRedirect('/');
+
+        $this->assertGuest();
+        $this->assertSame('en', $user->fresh()->locale);
+
+        $this->flushSession();
+
+        $this->withUnencryptedCookie($cookie->getName(), $cookie->getValue())
+            ->get('/login')
+            ->assertOk()
+            ->assertSee('<html lang="en">', false);
     }
 
     public function test_locale_is_resolved_again_on_each_request_without_state_bleed(): void
@@ -218,5 +404,18 @@ class LocalePreferenceTest extends TestCase
         $this->assertInstanceOf(Cookie::class, $cookie);
 
         return $cookie;
+    }
+
+    private function assertLocaleCookieValue($response, string $locale): void
+    {
+        $cookie = $this->localeCookie($response);
+
+        $this->assertSame(
+            CookieValuePrefix::create(
+                config('localization.cookie_name'),
+                app('encrypter')->getKey(),
+            ).$locale,
+            Crypt::decrypt($cookie->getValue(), false),
+        );
     }
 }

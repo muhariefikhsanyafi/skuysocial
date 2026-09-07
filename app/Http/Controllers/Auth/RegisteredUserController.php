@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\LocalePreference;
 use App\Services\TurnstileVerifier;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +30,11 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request, TurnstileVerifier $turnstile): RedirectResponse
+    public function store(
+        Request $request,
+        TurnstileVerifier $turnstile,
+        LocalePreference $locales,
+    ): RedirectResponse
     {
 		if (is_string($request->input('username'))) {
 			$request->merge([
@@ -46,17 +51,22 @@ class RegisteredUserController extends Controller
 
         $turnstile->validate($request->input('cf-turnstile-response'), 'register');
 
-        $user = User::create([
+        $user = new User([
             'name' => $request->name,
 			'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+        $locale = $locales->currentLocale();
+        $user->locale = $locale;
+        $user->save();
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        $cookie = $locales->synchronize($request, $locale);
+
+        return redirect(route('dashboard', absolute: false))->withCookie($cookie);
     }
 }

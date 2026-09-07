@@ -2,12 +2,17 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\LocalePreference;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetLocale
 {
+    public function __construct(private LocalePreference $locales)
+    {
+    }
+
     /**
      * Resolve and apply the locale for every web request.
      */
@@ -15,24 +20,10 @@ class SetLocale
     {
         // app()->setLocale() also updates app.locale, so restore the configured
         // request baseline before resolving this request's preference.
-        $configuredLocale = config('localization.default', config('app.locale'));
+        $configuredLocale = $this->locales->configuredLocale();
         config(['app.locale' => $configuredLocale]);
 
-        $supported = array_keys(config('localization.supported', []));
-        $fallback = $configuredLocale;
-
-        if (! in_array($fallback, $supported, true)) {
-            $fallback = $supported[0] ?? 'id';
-        }
-
-        $sessionLocale = $request->session()->get(config('localization.session_key', 'locale'));
-        $cookieLocale = $request->cookie(config('localization.cookie_name', 'skuysocial_locale'));
-
-        $locale = collect([$sessionLocale, $cookieLocale, config('app.locale')])
-            ->first(fn (mixed $candidate): bool => is_string($candidate)
-                && in_array($candidate, $supported, true));
-
-        app()->setLocale($locale ?? $fallback);
+        app()->setLocale($this->locales->resolve($request));
 
         return $next($request);
     }

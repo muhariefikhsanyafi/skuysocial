@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\LocalePreference;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,13 +23,19 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, LocalePreference $locales): RedirectResponse
     {
+        $effectiveGuestLocale = $locales->currentLocale();
+
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = $request->user();
+        $locale = $locales->supported($user->locale) ?? $effectiveGuestLocale;
+        $cookie = $locales->synchronize($request, $locale, $user);
+
+        return redirect()->intended(route('dashboard', absolute: false))->withCookie($cookie);
     }
 
     /**

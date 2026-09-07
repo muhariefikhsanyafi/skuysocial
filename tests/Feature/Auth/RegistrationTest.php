@@ -3,7 +3,10 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
+use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -33,7 +36,30 @@ class RegistrationTest extends TestCase
             'name' => 'Test User',
             'username' => 'test_user',
             'email' => 'test@example.com',
+            'locale' => 'id',
         ]);
+        $response->assertSessionHas('locale', 'id');
+        $this->assertLocaleCookieValue($response, 'id');
+    }
+
+    public function test_registration_persists_the_active_supported_locale(): void
+    {
+        $response = $this->withSession(['locale' => 'en'])->post('/register', [
+            'name' => 'English User',
+            'username' => 'english_user',
+            'email' => 'english@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertSessionHas('locale', 'en');
+        $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', [
+            'email' => 'english@example.com',
+            'locale' => 'en',
+        ]);
+        $this->assertLocaleCookieValue($response, 'en');
     }
 
     public function test_username_is_required_during_registration(): void
@@ -129,5 +155,20 @@ class RegistrationTest extends TestCase
             'name' => 'Rate Limited User',
             'email' => 'rate-limit-6@example.com',
         ])->assertStatus(429);
+    }
+
+    private function assertLocaleCookieValue($response, string $locale): void
+    {
+        $cookie = collect($response->headers->getCookies())
+            ->first(fn (Cookie $cookie): bool => $cookie->getName() === config('localization.cookie_name'));
+
+        $this->assertInstanceOf(Cookie::class, $cookie);
+        $this->assertSame(
+            CookieValuePrefix::create(
+                config('localization.cookie_name'),
+                app('encrypter')->getKey(),
+            ).$locale,
+            Crypt::decrypt($cookie->getValue(), false),
+        );
     }
 }
