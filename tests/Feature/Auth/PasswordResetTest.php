@@ -47,7 +47,7 @@ class PasswordResetTest extends TestCase
             $response
                 ->assertRedirect('/forgot-password')
                 ->assertSessionHasNoErrors()
-                ->assertSessionHas('status', __(Password::RESET_LINK_SENT));
+                ->assertSessionHas('status', __(Password::RESET_LINK_SENT, [], 'id'));
         }
 
         Notification::assertSentTo($user, ResetPassword::class);

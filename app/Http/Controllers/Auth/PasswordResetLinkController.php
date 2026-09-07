@@ -38,6 +38,6 @@ class PasswordResetLinkController extends Controller
         );
 
         // Do not reveal whether the submitted address belongs to an account.
-        return back()->with('status', __(Password::RESET_LINK_SENT));
+        return back()->with('status', __(Password::RESET_LINK_SENT, [], 'id'));
     }
 }
