@@ -77,3 +77,74 @@ For meaningful changes:
 - Before editing, inspect the relevant model, migration, controller, route, view, and tests.
 - Keep changes scoped to the requested feature unless a directly related correctness/security issue must be fixed.
 - Explain migrations and backward-compatibility implications in the change summary.
+
+# SkuySocial Project Instructions
+
+## Design Authority
+
+For any work involving:
+
+- UI
+- UX
+- Blade presentation
+- styling
+- responsive behavior
+- accessibility
+- copywriting
+- localization
+- email presentation
+
+Codex MUST:
+
+1. Read DESIGN.md before making relevant changes.
+2. Treat DESIGN.md as authoritative for SkuySocial design.
+3. Treat Anti-Slop as a quality filter, not a replacement design system.
+4. Preserve intentional existing SkuySocial patterns.
+5. Never expand approved scope because Anti-Slop finds unrelated issues.
+6. Report out-of-scope findings instead of modifying them.
+7. Do not redesign established surfaces unless explicitly requested.
+8. Preserve responsive and accessibility correctness.
+9. Respect the active id/en localization architecture.
+10. Stop and report if a generic Anti-Slop rule materially conflicts with an
+    intentional SkuySocial design decision and cannot be reconciled safely.
+
+## Backend Scope Guard
+
+For backend-focused tasks including:
+
+- migrations
+- database
+- models
+- services
+- middleware
+- security
+- infrastructure
+- authentication logic
+
+Anti-Slop MUST NOT trigger unrelated:
+
+- UI cleanup
+- Blade changes
+- CSS changes
+- copy edits
+- design changes
+- unrelated refactors
+
+Out-of-scope findings are report-only.
+
+## Git / Production Safety
+
+Preserve the project's existing disciplined workflow.
+
+Do not:
+
+- force push
+- use broad staging when selective staging is required
+- touch unrelated files
+- destructively reset production data
+- use migrate:fresh against persistent/project/production data
+- expose secrets
+- modify production infrastructure unless explicitly requested
+
+skuysocial-app.zip is intentionally excluded from project work and must remain
+unopened, unread, untouched, unstaged, and not deleted.
