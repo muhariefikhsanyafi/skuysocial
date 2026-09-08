@@ -16,7 +16,7 @@ class TurnstileVerifier
 
         if (! $this->verify($token, $expectedAction)) {
             throw ValidationException::withMessages([
-                'cf-turnstile-response' => 'Verifikasi keamanan gagal. Silakan coba lagi.',
+                'cf-turnstile-response' => __('auth.security.verification_failed'),
             ]);
         }
     }

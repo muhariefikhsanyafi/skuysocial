@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>Autentikasi - {{ config('app.name', 'SkuySocial') }}</title>
+        <title>{{ __('auth.common.page_title') }} - {{ config('app.name', 'SkuySocial') }}</title>
         
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

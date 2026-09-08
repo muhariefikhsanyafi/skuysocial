@@ -7,21 +7,21 @@
 
         <!-- Email Address -->
         <div>
-            <x-input-label for="email" :value="__('ALAMAT EMAIL')" />
+            <x-input-label for="email" :value="__('auth.common.email_address')" />
             <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
         <div class="mt-4">
-            <x-input-label for="password" :value="__('KATA SANDI BARU')" />
+            <x-input-label for="password" :value="__('auth.reset_password.new_password')" />
             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
         <!-- Confirm Password -->
         <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('KONFIRMASI KATA SANDI')" />
+            <x-input-label for="password_confirmation" :value="__('auth.common.password_confirmation')" />
 
             <x-text-input id="password_confirmation" class="block mt-1 w-full"
                                 type="password"
@@ -34,7 +34,7 @@
 
         <div class="flex items-center justify-end mt-4">
             <x-primary-button>
-                {{ __('ATUR ULANG KATA SANDI') }}
+                {{ __('auth.reset_password.submit') }}
             </x-primary-button>
         </div>
     </form>

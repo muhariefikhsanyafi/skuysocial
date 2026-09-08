@@ -1,7 +1,63 @@
 <?php
 
 return [
-    'failed' => 'Email atau kata sandi tidak sesuai dengan data kami.',
+    'failed' => 'Kredensial yang diberikan tidak cocok dengan data kami.',
     'password' => 'Kata sandi yang diberikan tidak benar.',
     'throttle' => 'Terlalu banyak percobaan masuk. Silakan coba lagi dalam :seconds detik.',
+
+    'common' => [
+        'page_title' => 'Autentikasi',
+        'name' => 'NAMA',
+        'username' => 'NAMA PENGGUNA',
+        'email_address' => 'ALAMAT EMAIL',
+        'password' => 'KATA SANDI',
+        'password_confirmation' => 'KONFIRMASI KATA SANDI',
+        'log_out' => 'KELUAR',
+    ],
+
+    'login' => [
+        'title' => 'Masuk',
+        'forgot_password' => 'Lupa kata sandi?',
+        'no_account' => 'Belum memiliki akun?',
+        'submit' => 'MASUK',
+        'register' => 'DAFTAR',
+    ],
+
+    'register' => [
+        'title' => 'Daftar',
+        'username_hint' => '(tanpa spasi)',
+        'username_format_hint' => 'Nama pengguna tidak boleh menggunakan spasi.',
+        'has_account' => 'Sudah memiliki akun?',
+        'submit' => 'DAFTAR',
+    ],
+
+    'forgot_password' => [
+        'title' => 'Lupa Kata Sandi',
+        'intro' => 'Masukkan alamat email Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.',
+        'back_to_login' => 'Kembali ke Halaman Masuk',
+        'submit' => 'KIRIM TAUTAN ATUR ULANG',
+    ],
+
+    'reset_password' => [
+        'title' => 'Atur Ulang Kata Sandi',
+        'new_password' => 'KATA SANDI BARU',
+        'submit' => 'ATUR ULANG KATA SANDI',
+    ],
+
+    'confirm_password' => [
+        'title' => 'Konfirmasi Kata Sandi',
+        'intro' => 'Ini adalah area aman. Konfirmasikan kata sandi Anda sebelum melanjutkan.',
+        'submit' => 'KONFIRMASI',
+    ],
+
+    'verify_email' => [
+        'title' => 'Verifikasi Alamat Email',
+        'intro' => 'Sebelum melanjutkan, silakan verifikasi alamat email Anda melalui tautan yang telah kami kirimkan. Jika email tersebut belum Anda terima, kami dapat mengirimkannya kembali.',
+        'sent' => 'Tautan verifikasi baru telah dikirim ke alamat email Anda.',
+        'resend' => 'KIRIM ULANG EMAIL VERIFIKASI',
+    ],
+
+    'security' => [
+        'verification_failed' => 'Verifikasi keamanan gagal. Silakan coba lagi.',
+    ],
 ];
