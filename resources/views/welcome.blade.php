@@ -13,12 +13,15 @@
     <body class="antialiased bg-yellow-300 min-h-screen flex flex-col selection:bg-pink-400 selection:text-black font-sans">
         
         <!-- Navbar -->
-        <nav class="border-b-4 border-black bg-white py-4 px-6 sm:px-12 flex justify-between items-center z-10 relative">
+        <nav class="border-b-4 border-black bg-white py-4 px-4 sm:px-12 flex justify-between items-center gap-2 z-10 relative">
             <div class="font-black text-xl sm:text-2xl tracking-widest uppercase border-4 border-black px-4 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-pink-400">
                 SkuySocial
             </div>
             
-            <div class="space-x-2 sm:space-x-4">
+            <div class="flex items-center gap-2 sm:gap-4">
+                <x-language-switcher />
+
+                <div class="flex items-center gap-2 sm:gap-4">
                 @if (Route::has('login'))
                     @auth
                         <a href="{{ url('/feed') }}" class="font-black uppercase border-4 border-black px-4 py-2 sm:px-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] transition-all bg-emerald-400 inline-block text-sm sm:text-base">
@@ -35,6 +38,7 @@
                         @endif
                     @endauth
                 @endif
+                </div>
             </div>
         </nav>
 

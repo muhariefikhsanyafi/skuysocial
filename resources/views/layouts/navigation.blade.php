@@ -1,10 +1,10 @@
 <nav x-data="{ open: false, sidebarOpen: false }" class="bg-white dark:bg-[#101010] border-b-4 border-black dark:border-[#333333] sticky top-0 z-50 transition-colors duration-300">
-    <div class="w-full 2xl:max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12">
+    <div class="w-full 2xl:max-w-[1600px] mx-auto px-2 sm:px-8 lg:px-12">
         <div class="flex justify-between h-16 sm:h-20">
             <!-- ========================================== -->
             <!-- BAGIAN KIRI: Tombol Sidebar & Logo SkuySocial -->
             <!-- ========================================== -->
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1 sm:gap-3">
                 <!-- Tombol Hamburger Sidebar (Dipindah ke Sisi Kiri) -->
                 <button @click="sidebarOpen = !sidebarOpen; $dispatch('toggle-sidebar', sidebarOpen)" :aria-label="sidebarOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'" :aria-expanded="sidebarOpen" aria-controls="mobile-navigation" type="button" class="md:hidden bg-white dark:bg-[#181818] text-black dark:text-white border-2 border-black dark:border-[#333333] p-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
@@ -21,7 +21,9 @@
             <!-- ========================================== -->
             <!-- BAGIAN KANAN: Dark Mode & Menu Profil -->
             <!-- ========================================== -->
-            <div class="flex items-center gap-2 sm:gap-4">
+            <div class="flex items-center gap-1 sm:gap-4">
+
+                <x-language-switcher />
                 
                 <!-- Tombol Dark Mode -->
                 <button @click="darkMode = !darkMode" :aria-label="darkMode ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'" :aria-pressed="darkMode" type="button" class="bg-black dark:bg-[#242424] text-yellow-300 border-2 border-black dark:border-[#333333] p-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">

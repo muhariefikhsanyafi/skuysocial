@@ -90,6 +90,10 @@ class LocalePreferenceTest extends TestCase
 
     public function test_first_guest_request_uses_indonesian_default(): void
     {
+        $this->flushSession()->withCookies([]);
+
+        $this->assertSame('id', config('localization.default'));
+
         $this->get('/login')
             ->assertOk()
             ->assertSee('<html lang="id">', false);
