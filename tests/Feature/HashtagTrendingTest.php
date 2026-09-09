@@ -69,6 +69,78 @@ class HashtagTrendingTest extends TestCase
         ]);
     }
 
+    public function test_hashtag_sync_failure_rolls_back_post_content_update(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::query()->create([
+            'user_id' => $user->id,
+            'content' => 'Original content',
+        ]);
+
+        DB::unprepared(<<<'SQL'
+            CREATE TRIGGER fail_updated_post_hashtag_sync
+            BEFORE INSERT ON hashtag_post
+            BEGIN
+                SELECT RAISE(ABORT, 'forced hashtag sync failure');
+            END
+            SQL);
+
+        $this->actingAs($user)
+            ->patch(route('posts.update', $post), [
+                'content' => 'Changed content #failure',
+            ])
+            ->assertServerError();
+
+        $this->assertSame('Original content', $post->fresh()->content);
+        $this->assertDatabaseCount('hashtags', 0);
+        $this->assertDatabaseCount('hashtag_post', 0);
+    }
+
+    public function test_duplicate_hashtag_create_conflict_reuses_the_canonical_row(): void
+    {
+        $user = User::factory()->create();
+        $post = Post::query()->create([
+            'user_id' => $user->id,
+            'content' => 'Post before hashtag race',
+        ]);
+        $active = true;
+        $injected = false;
+
+        DB::listen(function (QueryExecuted $query) use (&$active, &$injected): void {
+            $sql = strtolower(ltrim($query->sql));
+            $bindings = array_map(static fn ($binding): string => (string) $binding, $query->bindings);
+
+            if (! $active || ! str_starts_with($sql, 'select')
+                || ! str_contains($sql, 'from "hashtags"')
+                || ! in_array('race', $bindings, true)) {
+                return;
+            }
+
+            $active = false;
+            $injected = true;
+            Hashtag::query()->create(['name' => 'race']);
+        });
+
+        try {
+            $response = $this->actingAs($user)->patch(route('posts.update', $post), [
+                'content' => 'Post after hashtag race #race',
+            ]);
+        } finally {
+            $active = false;
+        }
+
+        $response->assertRedirect(route('feed'));
+        $this->assertTrue($injected);
+        $this->assertSame(1, Hashtag::query()->where('name', 'race')->count());
+
+        $hashtag = Hashtag::query()->where('name', 'race')->firstOrFail();
+        $this->assertDatabaseHas('hashtag_post', [
+            'post_id' => $post->id,
+            'hashtag_id' => $hashtag->id,
+        ]);
+        $this->assertSame('Post after hashtag race #race', $post->fresh()->content);
+    }
+
     public function test_trending_counts_distinct_posts_not_hashtag_occurrences(): void
     {
         $user = User::factory()->create();

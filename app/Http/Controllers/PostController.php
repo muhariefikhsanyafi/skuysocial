@@ -141,7 +141,7 @@ class PostController extends Controller
 
         $post->load(['user', 'originalPost.user']);
 
-        $displayPost = $post->originalPost ?? $post;
+        $displayPost = $post->interactionTarget();
         $displayPost
             ->loadCount(['likes', 'comments', 'reposts'])
             ->loadExists([
@@ -172,7 +172,7 @@ class PostController extends Controller
 	// Logika Repost (Posting Ulang)
     public function repost(Post $post)
     {
-        $targetPost = $post->originalPost ?? $post;
+        $targetPost = $post->interactionTarget();
 
         // Cari apakah user sudah merepost postingan ini sebelumnya
         $actorId = auth()->id();
@@ -221,6 +221,8 @@ class PostController extends Controller
     {
         // Tolak jika yang mencoba mengedit bukan pemiliknya
         abort_if($post->user_id !== auth()->id(), 403);
+        abort_if($post->repost_id !== null, 403);
+
         return view('edit-post', compact('post'));
     }
 
@@ -228,13 +230,17 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         abort_if($post->user_id !== auth()->id(), 403);
+        abort_if($post->repost_id !== null, 403);
         
         $validated = $request->validate([
             'content' => 'required|string|max:1000',
         ]);
 
-        $post->update($validated);
-        $this->syncHashtags($post);
+        DB::transaction(function () use ($post, $validated): void {
+            $post->update($validated);
+            $this->syncHashtags($post);
+        });
+
         return redirect()->route('feed');
     }
 

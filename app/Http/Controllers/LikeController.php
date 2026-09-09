@@ -12,24 +12,26 @@ class LikeController extends Controller
 {
     public function toggle(Post $post, Request $request)
     {
+        $targetPost = $post->interactionTarget();
+
         // Cari apakah user ini sudah menyukai postingan ini
-        $like = $post->likes()->where('user_id', $request->user()->id)->first();
+        $like = $targetPost->likes()->where('user_id', $request->user()->id)->first();
 
         if ($like) {
             // Jika sudah like, hapus (Unlike)
             $like->delete(); 
         } else {
             try {
-                DB::transaction(function () use ($post, $request): void {
+                DB::transaction(function () use ($targetPost, $request): void {
                     // Jika belum, buat Like baru
-                    $post->likes()->create([
+                    $targetPost->likes()->create([
                         'user_id' => $request->user()->id
                     ]);
 
                     // --- PELATUK NOTIFIKASI LIKE ---
                     // Cegah kirim notifikasi jika user menyukai postingannya sendiri
-                    if ($post->user_id !== $request->user()->id) {
-                        $post->user->notify(new PostLiked($request->user(), $post));
+                    if ($targetPost->user_id !== $request->user()->id) {
+                        $targetPost->user->notify(new PostLiked($request->user(), $targetPost));
                     }
                 });
             } catch (QueryException $exception) {

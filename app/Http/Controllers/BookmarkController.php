@@ -27,7 +27,7 @@ class BookmarkController extends Controller
 
     public function store(Post $post, Request $request)
     {
-        $targetPost = $post->originalPost ?? $post;
+        $targetPost = $post->interactionTarget();
 
         try {
             Bookmark::query()->create([
@@ -45,7 +45,7 @@ class BookmarkController extends Controller
 
     public function destroy(Post $post, Request $request)
     {
-        $targetPost = $post->originalPost ?? $post;
+        $targetPost = $post->interactionTarget();
 
         Bookmark::query()
             ->where('user_id', $request->user()->getKey())

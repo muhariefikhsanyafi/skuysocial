@@ -142,6 +142,11 @@ class Post extends Model
         return $this->belongsTo(Post::class, 'repost_id');
     }
 
+    public function interactionTarget(): self
+    {
+        return $this->originalPost ?? $this;
+    }
+
     // Menghitung berapa kali postingan ini di-repost orang lain
     public function reposts()
     {

@@ -12,20 +12,22 @@ class CommentController extends Controller
 {
     public function store(Request $request, Post $post)
     {
+        $targetPost = $post->interactionTarget();
+
         $validated = $request->validate([
             'content' => 'required|string|max:500',
             'parent_id' => [
                 'nullable',
-                Rule::exists('comments', 'id')->where(function ($query) use ($post) {
+                Rule::exists('comments', 'id')->where(function ($query) use ($targetPost) {
                     $query
-                        ->where('post_id', $post->getKey())
+                        ->where('post_id', $targetPost->getKey())
                         ->whereNull('parent_id');
                 }),
             ],
         ]);
 
-        DB::transaction(function () use ($post, $request, $validated): void {
-            $post->comments()->create([
+        DB::transaction(function () use ($targetPost, $request, $validated): void {
+            $targetPost->comments()->create([
                 'user_id' => $request->user()->id,
                 'content' => $validated['content'],
                 'parent_id' => $validated['parent_id'] ?? null,
@@ -33,8 +35,8 @@ class CommentController extends Controller
 
             // --- PELATUK NOTIFIKASI BALASAN ---
             // Cegah kirim notifikasi jika user membalas postingannya sendiri
-            if ($post->user_id !== $request->user()->id) {
-                $post->user->notify(new \App\Notifications\CommentPosted($request->user(), $post));
+            if ($targetPost->user_id !== $request->user()->id) {
+                $targetPost->user->notify(new \App\Notifications\CommentPosted($request->user(), $targetPost));
             }
         });
 
