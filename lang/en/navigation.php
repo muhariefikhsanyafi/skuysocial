@@ -1,0 +1,24 @@
+<?php
+
+return [
+    'home' => 'Home',
+    'search' => 'Search',
+    'activity' => 'Activity',
+    'saved' => 'Saved',
+    'profile' => 'Profile',
+    'my_profile' => 'My Profile',
+    'settings' => 'Settings',
+    'sign_out' => 'Sign Out',
+    'theme' => 'Theme',
+    'light' => 'LIGHT',
+    'dark' => 'DARK',
+    'create_thread' => 'Create Thread',
+    'back_to_feed' => 'Back to Home',
+    'back_to_profile' => 'Back to Profile',
+    'open_navigation_menu' => 'Open navigation menu',
+    'close_navigation_menu' => 'Close navigation menu',
+    'open_profile_menu' => 'Open profile menu',
+    'close_profile_menu' => 'Close profile menu',
+    'enable_light_mode' => 'Enable light mode',
+    'enable_dark_mode' => 'Enable dark mode',
+];

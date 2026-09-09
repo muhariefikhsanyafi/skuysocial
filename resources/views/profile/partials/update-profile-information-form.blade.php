@@ -1,11 +1,11 @@
 <section>
     <header>
         <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
+            {{ __('settings.profile.heading') }}
         </h2>
 
         <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
+            {{ __('settings.profile.description') }}
         </p>
     </header>
 
@@ -18,14 +18,14 @@
         @method('patch')
 
         <div>
-            <x-input-label for="name" :value="__('Name')" />
+            <x-input-label for="name" :value="__('settings.profile.name')" />
             <x-text-input id="name" name="name" type="text" class="mt-1 block w-full border-4 border-black p-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none" :value="old('name', $user->name)" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
 		
 		<!-- Username -->
     <div>
-        <label for="username" class="block font-black text-black dark:text-white uppercase text-sm mb-1">Username</label>
+        <label for="username" class="block font-black text-black dark:text-white uppercase text-sm mb-1">{{ __('settings.profile.username') }}</label>
         <input id="username" 
                name="username" 
                type="text" 
@@ -35,28 +35,28 @@
                autocomplete="username" 
                oninput="this.value = this.value.replace(/\s/g, '').toLowerCase()" 
                pattern="^[a-zA-Z0-9_.]+$" 
-               title="Hanya boleh huruf, angka, titik, dan garis bawah tanpa spasi" />
+               title="{{ __('settings.profile.username_format') }}" />
         <x-input-error class="mt-2 text-red-600 font-bold" :messages="$errors->get('username')" />
     </div>
 	
         <div>
-            <x-input-label for="email" :value="__('Email')" />
+            <x-input-label for="email" :value="__('settings.profile.email')" />
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full border-4 border-black p-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none" :value="old('email', $user->email)" required autocomplete="username" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div>
                     <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
+                        {{ __('settings.profile.email_unverified') }}
 
                         <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
+                            {{ __('settings.profile.resend_verification') }}
                         </button>
                     </p>
 
                     @if (session('status') === 'verification-link-sent')
                         <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
+                            {{ __('settings.profile.verification_sent') }}
                         </p>
                     @endif
                 </div>
@@ -65,19 +65,19 @@
 		
 		<!-- Input Bio Singkat -->
         <div>
-            <x-input-label for="bio" :value="__('Bio Singkat')" class="font-black uppercase" />
-            <textarea id="bio" name="bio" rows="3" class="mt-1 block w-full border-4 border-black p-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none focus:bg-yellow-50 resize-none" placeholder="Tulis sesuatu tentang dirimu...">{{ old('bio', $user->bio) }}</textarea>
+            <x-input-label for="bio" :value="__('settings.profile.bio_short')" class="font-black uppercase" />
+            <textarea id="bio" name="bio" rows="3" class="mt-1 block w-full border-4 border-black p-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none focus:bg-yellow-50 resize-none" placeholder="{{ __('settings.profile.bio_placeholder') }}">{{ old('bio', $user->bio) }}</textarea>
             <x-input-error class="mt-2" :messages="$errors->get('bio')" />
         </div>
 
         <!-- Input Avatar (Foto Profil) -->
         <div>
-            <x-input-label for="avatar" :value="__('Foto Profil (Avatar)')" class="font-black uppercase mb-2" />
+            <x-input-label for="avatar" :value="__('settings.profile.avatar')" class="font-black uppercase mb-2" />
             
             <!-- Tampilkan foto lama jika ada -->
             @if ($user->avatar)
                 <div class="mb-3">
-                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar" class="h-24 w-24 object-cover border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar') }}" class="h-24 w-24 object-cover border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 </div>
             @endif
 
@@ -87,7 +87,7 @@
 		
         <div class="flex items-center gap-4">
             <x-primary-button class="bg-blue-400 border-4 border-black font-black uppercase px-6 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] transition-all">
-    {{ __('Simpan') }}</x-primary-button>
+    {{ __('settings.profile.save') }}</x-primary-button>
 
             @if (session('status') === 'profile-updated')
                 <p
@@ -96,7 +96,7 @@
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
                     class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
+                >{{ __('settings.profile.saved') }}</p>
             @endif
         </div>
     </form>

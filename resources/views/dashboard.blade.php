@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="border-b-4 border-black pb-2">
             <h2 class="font-black text-2xl text-black uppercase tracking-widest">
-                {{ __('Dashboard') }}
+                {{ __('home.dashboard.title') }}
             </h2>
         </div>
     </x-slot>
@@ -14,11 +14,11 @@
             <div class="bg-yellow-300 border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 sm:p-16 text-center">
                 
                 <h3 class="text-4xl sm:text-6xl font-black text-black uppercase tracking-tighter mb-6 drop-shadow-[4px_4px_0px_rgba(255,255,255,1)]">
-                    Halo, {{ auth()->user()->name }}!
+                    {{ __('home.dashboard.greeting', ['name' => auth()->user()->name]) }}
                 </h3>
                 
                 <p class="text-lg sm:text-2xl font-bold text-gray-900 mb-12 border-4 border-black bg-white inline-block px-6 py-3 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                    Selamat datang di markas besar SkuySocial.
+                    {{ __('home.dashboard.welcome') }}
                 </p>
 
                 <!-- Tombol Pintasan Cepat -->
@@ -26,12 +26,12 @@
                     
                     <!-- Pintasan ke Beranda -->
                     <a href="{{ route('feed') }}" class="bg-pink-400 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[6px] hover:translate-x-[6px] font-black uppercase px-8 py-4 text-black transition-all text-xl flex items-center justify-center gap-2">
-                        <span>➔</span> Selami Beranda
+                        <span>➔</span> {{ __('home.dashboard.open_feed') }}
                     </a>
 
                     <!-- Pintasan ke Profil -->
                     <a href="{{ route('user.profile', auth()->user()->username) }}" class="bg-cyan-400 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[6px] hover:translate-x-[6px] font-black uppercase px-8 py-4 text-black transition-all text-xl flex items-center justify-center gap-2">
-                        <span>👤</span> Lihat Profilku
+                        <span>👤</span> {{ __('home.dashboard.view_profile') }}
                     </a>
                     
                 </div>

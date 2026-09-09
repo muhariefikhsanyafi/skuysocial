@@ -82,7 +82,12 @@ class UserController extends Controller
             ->orderByDesc('follows.id')
             ->simplePaginate(15);
 
-        return $this->followListView($user, $users, 'Pengikut', 'Belum ada pengikut');
+        return $this->followListView(
+            $user,
+            $users,
+            __('profile.followers'),
+            __('profile.empty.followers'),
+        );
     }
 
     public function following(User $user)
@@ -92,7 +97,12 @@ class UserController extends Controller
             ->orderByDesc('follows.id')
             ->simplePaginate(15);
 
-        return $this->followListView($user, $users, 'Mengikuti', 'Belum mengikuti siapa pun');
+        return $this->followListView(
+            $user,
+            $users,
+            __('profile.following'),
+            __('profile.empty.following'),
+        );
     }
 
     private function followListView(User $profileUser, $users, string $title, string $emptyMessage)

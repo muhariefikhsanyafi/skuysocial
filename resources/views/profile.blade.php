@@ -4,7 +4,7 @@
             
             <!-- Header Kembali -->
             <div class="flex items-center gap-4 mb-4 px-2">
-                <a href="{{ route('feed') }}" class="p-2 hover:bg-gray-200 dark:hover:bg-[#242424] rounded-full transition-colors text-black dark:text-white">
+                <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="p-2 hover:bg-gray-200 dark:hover:bg-[#242424] rounded-full transition-colors text-black dark:text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 </a>
                 <h1 class="font-black text-xl text-black dark:text-white uppercase">{{ $user->username }}</h1>
@@ -16,7 +16,7 @@
                 <!-- Sampul (Cover) Dinamis -->
 <div class="h-32 sm:h-48 bg-pink-400 border-b-2 sm:border-b-4 border-black dark:border-[#333333] relative overflow-hidden flex items-center justify-center">
     @if ($user->cover)
-        <img src="{{ asset('storage/' . $user->cover) }}" class="absolute inset-0 w-full h-full object-cover">
+        <img src="{{ asset('storage/' . $user->cover) }}" alt="{{ __('profile.media.cover_of', ['name' => $user->name]) }}" class="absolute inset-0 w-full h-full object-cover">
     @else
         <div class="absolute -right-10 -top-10 text-9xl opacity-20 transform rotate-12">🚀</div>
         <div class="absolute -left-10 -bottom-10 text-9xl opacity-20 transform -rotate-12">👾</div>
@@ -29,7 +29,7 @@
                         <!-- Avatar -->
                         <div class="flex-shrink-0">
                             @if ($user->avatar)
-                                <img src="{{ asset('storage/' . $user->avatar) }}" class="h-24 w-24 sm:h-32 sm:w-32 object-cover border-4 border-black bg-white rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}" class="h-24 w-24 sm:h-32 sm:w-32 object-cover border-4 border-black bg-white rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             @else
                                 <div class="h-24 w-24 sm:h-32 sm:w-32 border-4 border-black bg-cyan-400 rounded-full flex items-center justify-center text-black font-black uppercase text-4xl sm:text-6xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                                     {{ substr($user->name, 0, 1) }}
@@ -41,13 +41,13 @@
                         <div class="mb-2 sm:mb-4">
                             @if(auth()->id() === $user->id)
                                 <a href="{{ route('user.edit') }}" class="inline-block px-4 py-2 sm:px-6 sm:py-2.5 bg-yellow-300 border-2 border-black font-black uppercase text-xs sm:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black">
-                                    Edit Profil
+                                    {{ __('profile.edit') }}
                                 </a>
                             @else
                                 <form action="{{ route('user.follow', $user->username) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="px-4 py-2 sm:px-6 sm:py-2.5 border-2 border-black font-black uppercase text-xs sm:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $isFollowing ? 'bg-white text-black' : 'bg-black text-white hover:bg-gray-800' }}">
-                                        {{ $isFollowing ? 'Mengikuti' : 'Ikuti' }}
+                                        {{ $isFollowing ? __('profile.following') : __('profile.follow') }}
                                     </button>
                                 </form>
                             @endif
@@ -59,7 +59,7 @@
                         <h2 class="font-black text-2xl sm:text-3xl uppercase text-black dark:text-white tracking-tight flex items-center gap-2">
                             {{ $user->name }}
                             @if($user->is_verified)
-                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" title="Terverifikasi">
+                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" title="{{ __('threads.verified') }}">
                                     <svg class="w-3 h-3 text-white stroke-[4px]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                                 </span>
                             @endif
@@ -67,17 +67,17 @@
                         <p class="font-bold text-gray-500 text-sm sm:text-base">{{ '@' }}{{ $user->username }}</p>
                     </div>
 
-                    <p class="font-medium text-black dark:text-white text-sm sm:text-base leading-relaxed whitespace-pre-wrap mb-6">{{ filled(trim($user->bio ?? '')) ? $user->bio : 'Pengguna belum menulis bio' }}</p>
+                    <p class="font-medium text-black dark:text-white text-sm sm:text-base leading-relaxed whitespace-pre-wrap mb-6">{{ filled(trim($user->bio ?? '')) ? $user->bio : __('profile.no_bio') }}</p>
 
                     <!-- Statistik Follower -->
                     <div class="flex items-center gap-6 pt-4 border-t-2 border-dashed border-gray-300 dark:border-[#333333]">
                         <a href="{{ route('user.following', $user) }}" class="flex flex-col">
                             <span class="font-black text-2xl text-black dark:text-white">{{ $followingsCount }}</span>
-                            <span class="font-bold text-xs uppercase text-gray-500 tracking-wider">Mengikuti</span>
+                            <span class="font-bold text-xs uppercase text-gray-500 tracking-wider">{{ __('profile.following') }}</span>
                         </a>
                         <a href="{{ route('user.followers', $user) }}" class="flex flex-col">
                             <span class="font-black text-2xl text-black dark:text-white">{{ $followersCount }}</span>
-                            <span class="font-bold text-xs uppercase text-gray-500 tracking-wider">Pengikut</span>
+                            <span class="font-bold text-xs uppercase text-gray-500 tracking-wider">{{ __('profile.followers') }}</span>
                         </a>
                     </div>
                 </div>
@@ -86,10 +86,10 @@
             <!-- TAB MENU (Utas / Suka) -->
             <div class="flex w-full border-b-4 border-black dark:border-[#333333] mb-6">
                 <a href="{{ route('user.profile', $user) }}" class="{{ $activeTab === 'threads' ? 'flex-1 text-center pb-3 border-b-4 border-black dark:border-white -mb-1 relative z-10 cursor-pointer' : 'flex-1 text-center pb-3 text-gray-400 hover:text-black dark:hover:text-white cursor-pointer transition-colors' }}">
-                    <span class="font-black uppercase {{ $activeTab === 'threads' ? 'text-black dark:text-white tracking-wider' : 'tracking-wider' }}">Utas</span>
+                    <span class="font-black uppercase {{ $activeTab === 'threads' ? 'text-black dark:text-white tracking-wider' : 'tracking-wider' }}">{{ __('profile.threads') }}</span>
                 </a>
                 <a href="{{ route('user.profile', ['username' => $user->username, 'tab' => 'likes']) }}" class="{{ $activeTab === 'likes' ? 'flex-1 text-center pb-3 border-b-4 border-black dark:border-white -mb-1 relative z-10 cursor-pointer' : 'flex-1 text-center pb-3 text-gray-400 hover:text-black dark:hover:text-white cursor-pointer transition-colors' }}">
-                    <span class="font-black uppercase {{ $activeTab === 'likes' ? 'text-black dark:text-white tracking-wider' : 'tracking-wider' }}">Suka</span>
+                    <span class="font-black uppercase {{ $activeTab === 'likes' ? 'text-black dark:text-white tracking-wider' : 'tracking-wider' }}">{{ __('profile.likes') }}</span>
                 </a>
             </div>
 
@@ -119,14 +119,14 @@
                             @if($isRepost)
                                 <div class="flex items-center gap-2 mb-3 text-gray-500 dark:text-gray-400 font-black text-[11px] uppercase tracking-wider">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                    <span>{{ $post->user->username }} memposting ulang</span>
+                                    <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
                                 </div>
                             @endif
 
                             <div class="flex gap-3 sm:gap-4">
                                 <div class="flex flex-col items-center flex-shrink-0">
                                     @if ($displayPost->user->avatar)
-                                        <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                        <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                     @else
                                         <div class="h-10 w-10 sm:h-12 sm:w-12 border-2 border-black bg-pink-400 rounded-full flex items-center justify-center text-black font-black uppercase text-base sm:text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                             {{ substr($displayPost->user->name, 0, 1) }}
@@ -144,7 +144,7 @@
                                     
                                     @if (count($mediaPaths) === 1)
                                         <div class="mb-3 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-                                            <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="Foto dari {{ $displayPost->user->name }}" class="w-full h-auto object-cover">
+                                            <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}" class="w-full h-auto object-cover">
                                         </div>
                                     @elseif (count($mediaPaths) > 1)
                                         <div x-data="{
@@ -160,7 +160,7 @@
                                             <div @scroll.passive="updateDots" data-media-slider-track="true" class="flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                                 @foreach ($mediaPaths as $mediaPath)
                                                     <div data-media-slide="true" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden">
-                                                        <img src="{{ asset('storage/' . $mediaPath) }}" alt="Foto dari {{ $displayPost->user->name }}" class="w-full h-full object-cover">
+                                                        <img src="{{ asset('storage/' . $mediaPath) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}" class="w-full h-full object-cover">
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -179,14 +179,14 @@
                                     <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" aria-label="Hapus dari tersimpan" title="Hapus dari tersimpan" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-yellow-300 text-black group">
+                                        <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-yellow-300 text-black group">
                                             <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
                                         </button>
                                     </form>
                                 @else
                                     <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
                                         @csrf
-                                        <button type="submit" aria-label="Simpan" title="Simpan" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-yellow-300 group">
+                                        <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-yellow-300 group">
                                             <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
                                         </button>
                                     </form>
@@ -198,10 +198,10 @@
                     <div class="text-center py-12 border-4 border-dashed border-gray-300 dark:border-[#333333] bg-white dark:bg-[#101010]">
                         <div class="text-6xl mb-4 opacity-50">👻</div>
                         <h3 class="font-black text-xl uppercase text-gray-500">
-                            {{ $activeTab === 'likes' ? 'Belum ada postingan yang disukai' : 'Belum ada utas' }}
+                            {{ $activeTab === 'likes' ? __('profile.empty.liked_threads_title') : __('profile.empty.threads_title') }}
                         </h3>
                         <p class="font-bold text-gray-400 text-sm mt-2">
-                            {{ $activeTab === 'likes' ? 'Pengguna ini belum menyukai postingan apapun.' : 'Pengguna ini belum memposting apapun.' }}
+                            {{ $activeTab === 'likes' ? __('profile.empty.liked_threads_description') : __('profile.empty.threads_description') }}
                         </p>
                     </div>
                 @endif

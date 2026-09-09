@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="border-b-4 border-black pb-2">
             <h2 class="font-black text-2xl text-black uppercase tracking-widest">
-                {{ __('Edit Status') }}
+                {{ __('threads.edit.title') }}
             </h2>
         </div>
     </x-slot>
@@ -24,11 +24,11 @@
                         <div class="flex justify-between mt-4">
                             <!-- Tombol Batal -->
                             <a href="{{ route('feed') }}" class="bg-gray-300 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] text-black font-black uppercase tracking-wider py-2 px-8 transition-all">
-                                Batal
+                                {{ __('threads.actions.cancel') }}
                             </a>
                             <!-- Tombol Simpan -->
                             <button type="submit" class="bg-blue-400 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] text-black font-black uppercase tracking-wider py-2 px-8 transition-all">
-                                Simpan Perubahan
+                                {{ __('threads.actions.save_changes') }}
                             </button>
                         </div>
                     </form>

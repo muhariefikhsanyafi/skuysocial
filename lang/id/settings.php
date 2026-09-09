@@ -1,0 +1,55 @@
+<?php
+
+return [
+    'title' => 'Pengaturan Akun',
+
+    'profile' => [
+        'heading' => 'Informasi Profil',
+        'description' => 'Perbarui informasi profil dan alamat email akun Anda.',
+        'name' => 'Nama',
+        'display_name' => 'Nama Tampilan',
+        'username' => 'Nama pengguna',
+        'username_read_only' => 'Nama pengguna (tidak dapat diubah)',
+        'username_format' => 'Hanya huruf, angka, titik, dan garis bawah tanpa spasi.',
+        'email' => 'Email',
+        'email_unverified' => 'Alamat email Anda belum diverifikasi.',
+        'resend_verification' => 'Klik di sini untuk mengirim ulang email verifikasi.',
+        'verification_sent' => 'Tautan verifikasi baru telah dikirim ke alamat email Anda.',
+        'bio_short' => 'Bio Singkat',
+        'bio_about' => 'Bio / Tentang Saya',
+        'bio_placeholder' => 'Tulis sesuatu tentang diri Anda...',
+        'avatar' => 'Foto Profil (Avatar)',
+        'change_cover' => 'Ubah sampul',
+        'change_avatar' => 'Ubah avatar',
+        'bio_limit' => 'Maksimal 255 karakter',
+        'save' => 'Simpan',
+        'save_changes' => 'Simpan Perubahan',
+        'saving' => 'Menyimpan...',
+        'saved' => 'Tersimpan!',
+        'cancel' => 'Batal',
+    ],
+
+    'password' => [
+        'heading' => 'Perbarui Kata Sandi',
+        'description' => 'Pastikan akun Anda menggunakan kata sandi acak yang panjang agar tetap aman.',
+        'current' => 'Kata Sandi Saat Ini',
+        'new' => 'Kata Sandi Baru',
+        'confirmation' => 'Konfirmasi Kata Sandi',
+        'save' => 'Simpan Kata Sandi',
+        'saved' => 'Tersimpan!',
+    ],
+
+    'delete' => [
+        'heading' => 'Hapus Akun',
+        'description' => 'Setelah akun dihapus, semua sumber daya dan datanya akan dihapus secara permanen. Sebelum menghapus akun, unduh data atau informasi yang ingin Anda simpan.',
+        'short_description' => 'Setelah akun dihapus, semua sumber daya dan datanya akan dihapus secara permanen. Masukkan kata sandi Anda untuk mengonfirmasi.',
+        'confirmation_heading' => 'Anda yakin ingin menghapus akun?',
+        'confirmation_description' => 'Setelah akun dihapus, semua sumber daya dan datanya akan dihapus secara permanen. Masukkan kata sandi untuk mengonfirmasi penghapusan akun.',
+        'password' => 'Kata Sandi Anda',
+        'password_placeholder' => 'Masukkan kata sandi untuk melanjutkan...',
+        'button' => 'Hapus Akun Ini',
+        'cancel' => 'Batal',
+        'confirm' => 'Hapus Akun',
+        'browser_confirmation' => 'Anda yakin ingin menghapus akun ini secara permanen?',
+    ],
+];

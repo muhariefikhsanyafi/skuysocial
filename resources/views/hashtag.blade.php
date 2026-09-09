@@ -11,9 +11,9 @@
     <div class="bg-blue-300 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-12 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl sm:text-4xl font-black uppercase text-black">
-                Menjelajahi Tagar
+                {{ __('search.hashtag.heading') }}
             </h1>
-            <p class="font-bold text-gray-900 mt-1">Ditemukan {{ $posts->total() }} postingan mantul.</p>
+            <p class="font-bold text-gray-900 mt-1">{{ trans_choice('search.hashtag.found', $posts->total(), ['count' => $posts->total()]) }}</p>
         </div>
         <div class="bg-black text-white border-4 border-white px-4 py-2 font-black text-2xl sm:text-3xl shadow-[4px_4px_0px_0px_rgba(255,255,0,1)] rotate-[-2deg]">
             #{{ $hashtag->name }}
@@ -32,7 +32,7 @@
                                 <!-- Avatar Kotak Pada Postingan -->
             @if ($post->user->avatar)
                 <!-- Munculkan foto jika user tersebut punya foto -->
-                <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="{{ $post->user->name }}" class="h-14 w-14 object-cover border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white">
+                <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $post->user->name]) }}" class="h-14 w-14 object-cover border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white">
             @else
                 <!-- Munculkan inisial jika user tersebut belum punya foto -->
                 <div class="h-14 w-14 border-4 border-black bg-pink-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center text-black font-black uppercase text-2xl">
@@ -54,14 +54,14 @@
                                 <div class="flex gap-2">
                                     <!-- Tombol Edit -->
                                     <a href="{{ route('posts.edit', $post->uid) }}" class="bg-yellow-300 border-2 border-black font-bold uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                                        Edit
+                                        {{ __('threads.actions.edit') }}
                                     </a>
                                     <!-- Tombol Hapus -->
-                                    <form action="{{ route('posts.destroy', $post->uid) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus status ini?');">
+                                    <form action="{{ route('posts.destroy', $post->uid) }}" method="POST" data-confirm="{{ __('threads.confirm_delete') }}" onsubmit="return confirm(this.dataset.confirm);">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="bg-red-400 text-black border-2 border-black font-black uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                                            Hapus
+                                            {{ __('threads.actions.delete') }}
                                         </button>
                                     </form>
                                 </div>
@@ -88,7 +88,7 @@
                         @endphp
                         @if (count($mediaPaths) === 1)
                             <div class="mt-4 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-                                <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="Foto dari {{ $displayPost->user->name }}" class="w-full h-auto object-cover">
+                                <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}" class="w-full h-auto object-cover">
                             </div>
                         @elseif (count($mediaPaths) > 1)
                             <div x-data="{
@@ -104,7 +104,7 @@
                                 <div @scroll.passive="updateDots" data-media-slider-track="true" class="flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                     @foreach ($mediaPaths as $mediaPath)
                                         <div data-media-slide="true" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden">
-                                            <img src="{{ asset('storage/' . $mediaPath) }}" alt="Foto dari {{ $displayPost->user->name }}" class="w-full h-full object-cover">
+                                            <img src="{{ asset('storage/' . $mediaPath) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}" class="w-full h-full object-cover">
                                         </div>
                                     @endforeach
                                 </div>
@@ -119,27 +119,27 @@
                         <div class="mt-6 pt-4 border-t-4 border-black flex items-center">
                             <form action="{{ route('posts.like', $post->uid) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="flex items-center gap-2 px-4 py-2 border-4 border-black font-black uppercase transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] {{ $post->liked_by_me ? 'bg-pink-400 text-black' : 'bg-white text-black' }}">
+                                <button type="submit" class="flex items-center gap-2 px-4 py-2 border-4 border-black font-black uppercase transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] {{ $post->liked_by_me ? 'bg-pink-400 text-black' : 'bg-white text-black' }}" title="{{ __('threads.labels.like') }}">
                                     <!-- Ikon Hati -->
                                     <svg class="w-6 h-6" fill="{{ $post->liked_by_me ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                         <path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                     </svg>
                                     <!-- Jumlah Suka -->
-                                    <span>{{ $post->likes_count }} Suka</span>
+                                    <span>{{ trans_choice('threads.counts.likes', $post->likes_count, ['count' => $post->likes_count]) }}</span>
                                 </button>
                             </form>
                             @if ($displayPost->bookmarked_by_me)
                                 <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" aria-label="Hapus dari tersimpan" title="Hapus dari tersimpan" class="flex items-center gap-1.5 px-4 py-2 border-4 border-black font-black uppercase text-yellow-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
+                                    <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" class="flex items-center gap-1.5 px-4 py-2 border-4 border-black font-black uppercase text-yellow-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
                                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
                                     </button>
                                 </form>
                             @else
                                 <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
                                     @csrf
-                                    <button type="submit" aria-label="Simpan" title="Simpan" class="flex items-center gap-1.5 px-4 py-2 border-4 border-black font-black uppercase text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
+                                    <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" class="flex items-center gap-1.5 px-4 py-2 border-4 border-black font-black uppercase text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
                                     </button>
                                 </form>
@@ -153,7 +153,7 @@
 <div class="space-y-4 mb-4">
     <!-- Hanya ambil komentar utama (yang tidak punya parent_id) -->
     <a href="{{ route('posts.show', $post->uid) }}" class="inline-block mb-3 text-xs font-black uppercase text-blue-600 hover:underline">
-        Lihat utas lengkap
+        {{ __('threads.actions.view_full_thread') }}
     </a>
     @foreach ($post->feedComments as $comment)
         
@@ -171,7 +171,7 @@
                 <!-- Tombol Balas -->
                 <div class="mt-2 text-right">
                     <button @click="openReply = !openReply" type="button" class="text-[10px] font-black uppercase bg-yellow-300 border-2 border-black px-2 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                        Balas
+                        {{ __('threads.actions.reply') }}
                     </button>
                 </div>
             </div>
@@ -183,9 +183,9 @@
                     <!-- Input rahasia untuk mengirimkan ID komentar yang dibalas -->
                     <input type="hidden" name="parent_id" value="{{ $comment->id }}">
                     
-                    <input type="text" name="content" class="flex-1 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none focus:bg-yellow-50 text-black font-bold text-xs p-2" placeholder="Balas {{ $comment->user->name }}..." required>
+                    <input type="text" name="content" class="flex-1 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none focus:bg-yellow-50 text-black font-bold text-xs p-2" placeholder="{{ __('threads.comments.reply_to', ['name' => $comment->user->name]) }}" required>
                     <button type="submit" class="bg-emerald-400 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] transition-all font-black uppercase text-xs px-3 py-1 text-black">
-                        Kirim
+                        {{ __('threads.actions.send') }}
                     </button>
                 </form>
             </div>
@@ -212,9 +212,9 @@
                             <!-- Form Input Komentar Baru -->
                             <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="flex gap-2">
                                 @csrf
-                                <input type="text" name="content" class="flex-1 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none p-2 font-bold text-black text-sm" placeholder="Balas postingan ini..." required autocomplete="off">
+                                <input type="text" name="content" class="flex-1 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none p-2 font-bold text-black text-sm" placeholder="{{ __('threads.comments.add') }}" required autocomplete="off">
                                 <button type="submit" class="bg-emerald-400 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] font-black uppercase px-4 py-2 text-black transition-all text-sm">
-                                    Kirim
+                                    {{ __('threads.actions.send') }}
                                 </button>
                             </form>
                         </div>

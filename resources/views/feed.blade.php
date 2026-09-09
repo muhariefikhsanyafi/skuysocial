@@ -13,12 +13,12 @@
                     
                     <a href="{{ route('feed') }}" aria-current="{{ request()->routeIs('feed') ? 'page' : 'false' }}" class="flex items-center gap-3 bg-yellow-300 border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                        Beranda
+                        {{ __('navigation.home') }}
                     </a>
 
                     <a href="{{ route('search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-pink-400 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        Cari
+                        {{ __('navigation.search') }}
                     </a>
 
                     <a href="{{ route('activity.index') }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="flex items-center justify-between w-full bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-yellow-300 transition-colors group">
@@ -27,7 +27,7 @@
     <div class="flex items-center gap-3">
         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-        <span class="font-bold">Aktivitas</span>
+        <span class="font-bold">{{ __('navigation.activity') }}</span>
     </div>
 
     <!-- LOGIKA DOT MERAH (BADGE) DI KANAN -->
@@ -40,12 +40,12 @@
 
                     <a href="{{ route('bookmarks.index') }}" aria-current="{{ request()->routeIs('bookmarks.index') ? 'page' : 'false' }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-yellow-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
-                        Tersimpan
+                        {{ __('navigation.saved') }}
                     </a>
 
                     <a href="{{ route('user.profile', auth()->user()->username) }}" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === auth()->user()->username ? 'page' : 'false' }}" class="flex items-center gap-3 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] px-3 py-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(51,51,51,1)] hover:bg-emerald-400 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black dark:text-white font-black uppercase text-sm lg:text-base group">
                         <svg class="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        Profil
+                        {{ __('navigation.profile') }}
                     </a>
                     
                 </div>
@@ -132,7 +132,7 @@
                                 });
 
                                 this.syncImageInput();
-                                this.mediaMessage = skippedForLimit ? 'Maksimal 4 gambar' : '';
+                                this.mediaMessage = skippedForLimit ? '{{ __('threads.composer.max_images') }}' : '';
                             },
                             removeImage(index) {
                                 const image = this.selectedImages[index];
@@ -152,7 +152,7 @@
                             <div class="flex gap-3 sm:gap-4">
                                 <div class="flex-shrink-0">
                                     @if (Auth::user()->avatar)
-                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar') }}" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                     @else
                                         <div class="h-10 w-10 sm:h-12 sm:w-12 border-2 border-black dark:border-[#333333] bg-pink-400 dark:bg-pink-500 rounded-full flex items-center justify-center text-black font-black uppercase text-base sm:text-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                             {{ substr(Auth::user()->name, 0, 1) }}
@@ -178,7 +178,7 @@
                                         
                                         {{ Auth::user()->username }}
                                         @if(Auth::user()->is_verified)
-                                            <span class="inline-flex items-center justify-center w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-blue-500 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] cursor-help" title="Terverifikasi">
+                                            <span class="inline-flex items-center justify-center w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-blue-500 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] cursor-help" title="{{ __('threads.verified') }}">
                                                 <svg class="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white stroke-[4px]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                                             </span>
                                         @endif
@@ -186,7 +186,7 @@
                                         <span class="text-gray-400 dark:text-gray-500 font-bold mx-0.5">›</span>
                                         
                                         <div class="relative">
-                                            <input type="text" name="topic" x-model="topicQuery" @focus="showSuggestions = true" @click.away="showSuggestions = false" class="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-black dark:text-white font-bold text-sm placeholder-gray-500 w-28 sm:w-48" placeholder="Topik Utas" maxlength="30" autocomplete="off">
+                                            <input type="text" name="topic" x-model="topicQuery" @focus="showSuggestions = true" @click.away="showSuggestions = false" class="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-black dark:text-white font-bold text-sm placeholder-gray-500 w-28 sm:w-48" placeholder="{{ __('threads.composer.topic_placeholder') }}" maxlength="30" autocomplete="off">
                                             <div x-show="showSuggestions && filteredTopics.length > 0" style="display: none;" class="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-[#181818] border-2 border-black dark:border-[#333333] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-50">
                                                 <template x-for="t in filteredTopics" :key="t">
                                                     <div @click="selectTopic(t)" class="px-3 py-2 border-b-2 last:border-b-0 border-black dark:border-[#333333] hover:bg-yellow-300 dark:hover:bg-[#242424] cursor-pointer font-bold text-sm text-black dark:text-white transition-colors" x-text="t"></div>
@@ -194,7 +194,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <textarea name="content" rows="2" x-model="content" class="w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-black dark:text-white font-medium text-base sm:text-lg placeholder-gray-500 resize-none" placeholder="Mulai utas baru..." required></textarea>
+                                    <textarea name="content" rows="2" x-model="content" class="w-full bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-black dark:text-white font-medium text-base sm:text-lg placeholder-gray-500 resize-none" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
                                     <!-- KEMBALIKAN PESAN ERROR DI SINI -->
                                     @if ($errors->any())
                                         <div class="mt-2 p-2 bg-red-100 border-2 border-red-500 shadow-[2px_2px_0px_0px_rgba(239,68,68,1)]">
@@ -208,13 +208,13 @@
 									<div class="flex flex-col mt-3 pt-3 border-t-2 border-black dark:border-[#333333] border-dashed gap-3">
 										<div class="w-full overflow-hidden">
                                             <input type="file" name="images[]" multiple accept="image/*" x-ref="imagesInput" @change="handleImageSelection($event)" class="text-xs w-full file:mr-2 file:py-1 file:px-2 file:border-2 file:border-black dark:file:border-[#333333] file:bg-yellow-300 file:text-black file:font-black file:uppercase file:cursor-pointer file:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:file:shadow-none hover:file:translate-y-[2px] transition-all">
-                                            <div x-show="selectedImages.length > 0" style="display: none;" class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label="Pratinjau gambar">
+                                            <div x-show="selectedImages.length > 0" style="display: none;" class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2" aria-label="{{ __('threads.media.preview') }}">
                                                 <template x-for="(image, index) in selectedImages" :key="image.identity">
                                                     <div class="relative aspect-square overflow-hidden border-2 border-black dark:border-[#333333] bg-gray-100 dark:bg-[#181818] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)]">
-                                                        <button type="button" @click="openLightbox(selectedImages.map(item => item.previewUrl), index)" :aria-label="'Lihat pratinjau gambar ' + (index + 1)" class="block w-full h-full p-0 border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400">
-                                                            <img :src="image.previewUrl" :alt="'Pratinjau gambar ' + (index + 1)" class="w-full h-full object-cover">
+                                                        <button type="button" @click="openLightbox(selectedImages.map(item => item.previewUrl), index)" :aria-label="'{{ __('threads.media.view_preview') }} ' + (index + 1)" class="block w-full h-full p-0 border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                                            <img :src="image.previewUrl" :alt="'{{ __('threads.media.preview') }} ' + (index + 1)" class="w-full h-full object-cover">
                                                         </button>
-                                                        <button type="button" @click="closeImageIfActive(image.previewUrl); removeImage(index)" :disabled="isSubmitting" :aria-label="'Hapus gambar ' + (index + 1)" :title="'Hapus gambar ' + (index + 1)" class="absolute top-1 right-1 w-7 h-7 flex items-center justify-center bg-red-500 text-white border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all font-black text-lg leading-none focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                                        <button type="button" @click="closeImageIfActive(image.previewUrl); removeImage(index)" :disabled="isSubmitting" :aria-label="'{{ __('threads.media.remove_image') }} ' + (index + 1)" :title="'{{ __('threads.media.remove_image') }} ' + (index + 1)" class="absolute top-1 right-1 w-7 h-7 flex items-center justify-center bg-red-500 text-white border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(51,51,51,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all font-black text-lg leading-none focus:outline-none focus:ring-2 focus:ring-cyan-400">
                                                             <span aria-hidden="true">&times;</span>
                                                         </button>
                                                     </div>
@@ -224,7 +224,7 @@
                                         </div>
 										<div class="flex justify-end w-full">
 											<button type="submit" :disabled="isSubmitting || content.trim() === ''" :class="(isSubmitting || content.trim() === '') ? 'bg-gray-200 dark:bg-[#242424] text-gray-500 shadow-none cursor-not-allowed' : 'bg-cyan-400 text-black hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'" class="border-2 border-black dark:border-[#333333] transition-all font-black uppercase px-5 sm:px-6 py-1.5 flex-shrink-0 text-sm">
-												<span x-show="!isSubmitting">Posting</span>
+												<span x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
 												<span x-show="isSubmitting">...</span>
 											</button>
 										</div>
@@ -251,7 +251,7 @@
         @if($isRepost)
             <div class="flex items-center gap-1.5 mb-3 text-gray-500 font-black text-[11px] uppercase tracking-wider pb-2 border-b-2 border-dashed border-gray-200 dark:border-[#333333]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                <span>{{ $post->user->username }} memposting ulang</span> <!-- $post tetap digunakan di sini untuk menampilkan nama orang yang merepost -->
+                <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span> <!-- $post tetap digunakan di sini untuk menampilkan nama orang yang merepost -->
             </div>
         @endif
 								
@@ -260,7 +260,7 @@
                                     <div class="flex flex-col items-center flex-shrink-0">
                                         <a href="{{ route('user.profile', $displayPost->user->username) }}">
                                             @if ($displayPost->user->avatar)
-                                                <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="Avatar" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all">
+                                                <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar') }}" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all">
                                             @else
                                                 <div class="h-10 w-10 sm:h-12 sm:w-12 border-2 border-black dark:border-[#333333] bg-pink-400 dark:bg-pink-500 rounded-full flex items-center justify-center text-black font-black uppercase text-base sm:text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all">
                                                     {{ substr($displayPost->user->name, 0, 1) }}
@@ -279,7 +279,7 @@
                                                 </a>
                                                 
                                                 @if($displayPost->user->is_verified)
-                                                    <span class="inline-flex items-center justify-center w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-blue-500 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ml-0.5 cursor-help transition-transform hover:scale-110" title="Terverifikasi">
+                                                    <span class="inline-flex items-center justify-center w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-blue-500 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ml-0.5 cursor-help transition-transform hover:scale-110" title="{{ __('threads.verified') }}">
                                                         <svg class="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white stroke-[4px]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                                                     </span>
                                                 @endif
@@ -304,14 +304,14 @@
                                                     <div x-show="openOptions" @click.away="openOptions = false" style="display: none;" class="absolute right-0 mt-1 sm:mt-2 w-40 sm:w-44 bg-white dark:bg-[#101010] border-2 border-black dark:border-[#333333] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-50 flex flex-col">
                                                         <a href="{{ route('posts.edit', $displayPost->uid) }}" class="px-3 py-2.5 text-[11px] sm:text-xs font-black uppercase text-black dark:text-white border-b-2 border-black dark:border-[#333333] hover:bg-cyan-400 transition-colors flex items-center gap-2">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                                            Ubah
+                                                            {{ __('threads.actions.edit') }}
                                                         </a>
-                                                        <form action="{{ route('posts.destroy', $displayPost->uid) }}" method="POST" onsubmit="return confirm('Hapus utas ini secara permanen?');" class="w-full m-0">
+                                                        <form action="{{ route('posts.destroy', $displayPost->uid) }}" method="POST" data-confirm="{{ __('threads.confirm_delete') }}" onsubmit="return confirm(this.dataset.confirm);" class="w-full m-0">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" class="w-full text-left px-3 py-2.5 text-[11px] sm:text-xs font-black uppercase text-red-600 hover:bg-pink-400 hover:text-black transition-colors flex items-center gap-2">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                                                Hapus
+                                                                {{ __('threads.actions.delete') }}
                                                             </button>
                                                         </form>
                                                     </div>
@@ -345,7 +345,7 @@
                                                         <!-- Ukuran dipaksa seragam dengan 'aspect-[4/5]' & bisa berdampingan pas di desktop dengan 'sm:w-[48%]' -->
                                                         <div @click="openLightbox(@js($postImageUrls), {{ $loop->index }})" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] cursor-pointer border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden group transition-all hover:translate-y-[-2px]">
                                                             <!-- h-full & object-cover akan memastikan gambar mengisi seluruh kotak seragam tanpa merusak rasio aslinya -->
-                                                            <img src="{{ asset('storage/' . $imgUrl) }}" alt="Foto" class="w-full h-full object-cover group-hover:opacity-85 transition-opacity">
+                                                            <img src="{{ asset('storage/' . $imgUrl) }}" alt="{{ __('threads.media.photo') }}" class="w-full h-full object-cover group-hover:opacity-85 transition-opacity">
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -380,7 +380,7 @@
                                             <!-- Tombol Repost (Berfungsi) -->
                                             <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $displayPost->reposted_by_me ? 'bg-emerald-400 text-black' : 'bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-emerald-300' }} group" title="Posting Ulang">
+                                                <button type="submit" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $displayPost->reposted_by_me ? 'bg-emerald-400 text-black' : 'bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-emerald-300' }} group" title="{{ __('threads.actions.repost') }}">
                                                     <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform {{ $displayPost->reposted_by_me ? 'fill-black' : 'fill-none' }}" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                                     @if($displayPost->reposts_count > 0)
                                                         <span class="text-xs sm:text-sm font-black">{{ $displayPost->reposts_count }}</span>
@@ -392,21 +392,21 @@
                                                 <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" aria-label="Hapus dari tersimpan" title="Hapus dari tersimpan" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-yellow-300 text-black group">
+                                                    <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-yellow-300 text-black group">
                                                         <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
                                                     </button>
                                                 </form>
                                             @else
                                                 <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
                                                     @csrf
-                                                    <button type="submit" aria-label="Simpan" title="Simpan" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-yellow-300 group">
+                                                    <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-yellow-300 group">
                                                         <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
                                                     </button>
                                                 </form>
                                             @endif
 
                                             <!-- Tombol Share (URL Spesifik) -->
-                                            <button @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', 'Tautan utas berhasil disalin!')" type="button" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-yellow-300 group" title="Bagikan">
+                                            <button @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', '{{ __('threads.thread_link_copied') }}')" type="button" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black dark:border-[#333333] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white dark:bg-[#101010] text-black dark:text-white hover:bg-yellow-300 group" title="{{ __('threads.actions.share') }}">
                                                 <svg class="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                                             </button>
                                         </div>
@@ -423,7 +423,7 @@
                                                 <div class="flex gap-2 sm:gap-3">
                                                     <div class="flex flex-col items-center flex-shrink-0">
                                                         @if ($topComment->user->avatar)
-                                                            <img src="{{ asset('storage/' . $topComment->user->avatar) }}" alt="Avatar" class="h-6 w-6 sm:h-8 sm:w-8 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                                            <img src="{{ asset('storage/' . $topComment->user->avatar) }}" alt="{{ __('threads.media.avatar') }}" class="h-6 w-6 sm:h-8 sm:w-8 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                         @else
                                                             <div class="h-6 w-6 sm:h-8 sm:w-8 border-2 border-black dark:border-[#333333] bg-cyan-400 rounded-full flex items-center justify-center text-black font-black uppercase text-[10px] sm:text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                                 {{ substr($topComment->user->name, 0, 1) }}
@@ -434,7 +434,7 @@
                                                         <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
                                                             <span class="font-black text-[11px] sm:text-[13px] text-black dark:text-white hover:underline cursor-pointer">{{ $topComment->user->username }}</span>
                                                             @if($topComment->user->is_verified)
-                                                                <span class="inline-flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-blue-500 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]" title="Terverifikasi">
+                                                                <span class="inline-flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-blue-500 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]" title="{{ __('threads.verified') }}">
                                                                     <svg class="w-2 h-2 text-white stroke-[4px]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                                                                 </span>
                                                             @endif
@@ -446,7 +446,7 @@
                                                         @if ($displayPost->root_comments_count > 1)
                                                             <button @click="showComments = true" type="button" class="mt-1 sm:mt-1.5 text-[10px] sm:text-[11px] font-black text-gray-500 hover:text-black dark:hover:text-white transition-colors flex items-center gap-1">
                                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
-                                                                Lihat {{ $displayPost->root_comments_count - 1 }} komentar lainnya...
+                                                                {{ trans_choice('threads.comments.more', $displayPost->root_comments_count - 1, ['count' => $displayPost->root_comments_count - 1]) }}
                                                             </button>
                                                         @endif
                                                     </div>
@@ -462,7 +462,7 @@
                                                         <div class="flex gap-3">
                                                             <div class="flex flex-col items-center flex-shrink-0">
                                                                 @if ($comment->user->avatar)
-                                                                    <img src="{{ asset('storage/' . $comment->user->avatar) }}" alt="Avatar" class="h-8 w-8 sm:h-8 sm:w-8 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                                                    <img src="{{ asset('storage/' . $comment->user->avatar) }}" alt="{{ __('threads.media.avatar') }}" class="h-8 w-8 sm:h-8 sm:w-8 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                                 @else
                                                                     <div class="h-8 w-8 sm:h-8 sm:w-8 border-2 border-black dark:border-[#333333] bg-cyan-400 dark:bg-cyan-500 rounded-full flex items-center justify-center text-black font-black uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                                         {{ substr($comment->user->name, 0, 1) }}
@@ -474,22 +474,22 @@
                                                                 <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
                                                                     <span class="font-black text-[12px] sm:text-[13px] text-black dark:text-white hover:underline cursor-pointer">{{ $comment->user->username }}</span>
                                                                     @if($comment->user->is_verified)
-                                                                        <span class="inline-flex items-center justify-center w-3 h-3 sm:w-3 sm:h-3 rounded-full bg-blue-500 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]" title="Terverifikasi">
+                                                                        <span class="inline-flex items-center justify-center w-3 h-3 sm:w-3 sm:h-3 rounded-full bg-blue-500 border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]" title="{{ __('threads.verified') }}">
                                                                             <svg class="w-2 h-2 text-white stroke-[4px]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                                                                         </span>
                                                                     @endif
                                                                     <span class="text-[10px] font-bold text-gray-500 ml-1">{{ $comment->created_at->diffForHumans(null, true, true) }}</span>
                                                                 </div>
                                                                 <p class="text-black dark:text-white font-medium text-[13px] sm:text-sm leading-relaxed">{{ $comment->content }}</p>
-                                                                <button @click="openReply = !openReply" type="button" class="mt-1 text-[11px] font-black uppercase text-gray-500 hover:text-black transition-colors">Balas</button>
+                                                                <button @click="openReply = !openReply" type="button" class="mt-1 text-[11px] font-black uppercase text-gray-500 hover:text-black transition-colors">{{ __('threads.actions.reply') }}</button>
                                                                 
                                                                 <div x-show="openReply" style="display: none;" class="mt-2 w-full">
                                                                     <form action="{{ route('comments.store', $displayPost->uid) }}" method="POST" class="w-full flex gap-2 items-center" @submit="isSubmitting = true">
                                                                         @csrf
                                                                         <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                                                                        <input type="text" name="content" class="flex-1 min-w-0 w-full bg-transparent border-b-2 border-black dark:border-[#333333] focus:ring-0 focus:outline-none text-[11px] sm:text-xs font-bold p-0 pb-1 text-black dark:text-white placeholder-gray-400" placeholder="Balas ke {{ $comment->user->name }}..." required>
+                                                                        <input type="text" name="content" class="flex-1 min-w-0 w-full bg-transparent border-b-2 border-black dark:border-[#333333] focus:ring-0 focus:outline-none text-[11px] sm:text-xs font-bold p-0 pb-1 text-black dark:text-white placeholder-gray-400" placeholder="{{ __('threads.comments.reply_to', ['name' => $comment->user->name]) }}" required>
                                                                         <button type="submit" :disabled="isSubmitting" class="flex-shrink-0 text-[10px] text-black font-black uppercase border-2 border-black bg-yellow-300 px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:bg-gray-400">
-                                                                            <span x-show="!isSubmitting">Kirim</span>
+                                                                            <span x-show="!isSubmitting">{{ __('threads.actions.send') }}</span>
                                                                             <span x-show="isSubmitting">...</span>
                                                                         </button>
                                                                     </form>
@@ -501,7 +501,7 @@
                                                                             <div class="flex gap-2">
                                                                                 <div class="flex flex-col items-center flex-shrink-0 mt-0.5">
                                                                                     @if ($reply->user->avatar)
-                                                                                        <img src="{{ asset('storage/' . $reply->user->avatar) }}" alt="Avatar" class="h-6 w-6 sm:h-6 sm:w-6 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                                                                        <img src="{{ asset('storage/' . $reply->user->avatar) }}" alt="{{ __('threads.media.avatar') }}" class="h-6 w-6 sm:h-6 sm:w-6 object-cover border-2 border-black dark:border-[#333333] rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                                                     @else
                                                                                         <div class="h-6 w-6 sm:h-6 sm:w-6 border-2 border-black dark:border-[#333333] bg-pink-400 rounded-full flex items-center justify-center text-black font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                                                             {{ substr($reply->user->name, 0, 1) }}
@@ -531,7 +531,7 @@
                                             <div x-data="{ isSubmitting: false }" class="mt-3 pt-3 border-t-2 border-black dark:border-[#333333] border-dashed flex gap-3 items-center w-full min-w-0">
                                                 <div class="flex-shrink-0">
                                                     @if (Auth::user()->avatar)
-                                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="h-8 w-8 rounded-full border-2 border-black dark:border-[#333333] object-cover shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}" class="h-8 w-8 rounded-full border-2 border-black dark:border-[#333333] object-cover shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                     @else
                                                         <div class="h-8 w-8 border-2 border-black dark:border-[#333333] bg-cyan-400 rounded-full flex items-center justify-center text-black font-black uppercase text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                                             {{ substr(Auth::user()->name, 0, 1) }}
@@ -540,9 +540,9 @@
                                                 </div>
                                                 <form action="{{ route('comments.store', $displayPost->uid) }}" method="POST" class="flex-1 flex gap-2 items-center min-w-0" @submit="isSubmitting = true">
                                                     @csrf
-                                                    <input type="text" name="content" class="flex-1 min-w-0 w-full bg-transparent border-none focus:ring-0 focus:outline-none text-black dark:text-white font-bold text-xs sm:text-sm placeholder-gray-400" placeholder="Tambahkan komentar..." required>
+                                                    <input type="text" name="content" class="flex-1 min-w-0 w-full bg-transparent border-none focus:ring-0 focus:outline-none text-black dark:text-white font-bold text-xs sm:text-sm placeholder-gray-400" placeholder="{{ __('threads.comments.add') }}" required>
                                                     <button type="submit" :disabled="isSubmitting" class="flex-shrink-0 text-[10px] sm:text-[11px] text-black font-black uppercase border-2 border-black bg-cyan-400 px-3 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:bg-gray-400">
-                                                        <span x-show="!isSubmitting">Kirim</span>
+                                                        <span x-show="!isSubmitting">{{ __('threads.actions.send') }}</span>
                                                         <span x-show="isSubmitting">...</span>
                                                     </button>
                                                 </form>
@@ -555,18 +555,18 @@
 
                     </div>
 
-                    <div x-show="openImage" @click.self="closeImage()" @keydown.window="if (openImage && $event.key === 'ArrowLeft') previousImage(); if (openImage && $event.key === 'ArrowRight') nextImage()" @keydown.escape.window="closeImage()" style="display: none;" role="dialog" aria-modal="true" aria-label="Pratinjau foto" class="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-8 bg-black/90 backdrop-blur-sm" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+                    <div x-show="openImage" @click.self="closeImage()" @keydown.window="if (openImage && $event.key === 'ArrowLeft') previousImage(); if (openImage && $event.key === 'ArrowRight') nextImage()" @keydown.escape.window="closeImage()" style="display: none;" role="dialog" aria-modal="true" aria-label="{{ __('threads.media.photo_preview') }}" class="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-8 bg-black/90 backdrop-blur-sm" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
                         <div x-show="lightboxImages.length > 1" x-text="(lightboxIndex + 1) + ' / ' + lightboxImages.length" class="absolute top-4 left-4 sm:top-8 sm:left-8 z-[110] bg-black/70 text-white border-2 border-white px-2 py-1 font-black text-xs sm:text-sm"></div>
-                        <button type="button" x-show="lightboxImages.length > 1" @click.stop="previousImage()" aria-label="Gambar sebelumnya" class="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 z-[110] bg-black/70 text-white border-2 border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:text-black p-2 sm:p-3 transition-all">
+                        <button type="button" x-show="lightboxImages.length > 1" @click.stop="previousImage()" aria-label="{{ __('threads.media.previous_image') }}" class="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 z-[110] bg-black/70 text-white border-2 border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:text-black p-2 sm:p-3 transition-all">
                             <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M15 18l-6-6 6-6"></path></svg>
                         </button>
-                        <button type="button" x-show="lightboxImages.length > 1" @click.stop="nextImage()" aria-label="Gambar selanjutnya" class="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 z-[110] bg-black/70 text-white border-2 border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:text-black p-2 sm:p-3 transition-all">
+                        <button type="button" x-show="lightboxImages.length > 1" @click.stop="nextImage()" aria-label="{{ __('threads.media.next_image') }}" class="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 z-[110] bg-black/70 text-white border-2 border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:text-black p-2 sm:p-3 transition-all">
                             <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M9 18l6-6-6-6"></path></svg>
                         </button>
-                        <button type="button" @click="closeImage()" aria-label="Tutup pratinjau" class="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-yellow-400 transition-colors z-[110] bg-black/50 rounded-full p-1 border-2 border-transparent hover:border-white">
+                        <button type="button" @click="closeImage()" aria-label="{{ __('threads.media.close_preview') }}" class="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-yellow-400 transition-colors z-[110] bg-black/50 rounded-full p-1 border-2 border-transparent hover:border-white">
                             <svg class="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
-                        <img :src="activeImage" alt="Foto Penuh" class="max-w-full max-h-[90vh] object-contain border-2 sm:border-4 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                        <img :src="activeImage" alt="{{ __('threads.media.full_photo') }}" class="max-w-full max-h-[90vh] object-contain border-2 sm:border-4 border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                     </div>
 
                     @if ($posts->hasPages())
@@ -588,17 +588,17 @@
                 <!-- Widget 1: Topik Hangat -->
                 <div class="p-4 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
     <h2 class="text-lg font-black uppercase mb-4 flex items-center gap-2 border-b-4 border-black pb-2">
-        🔥 Sedang Hangat
+        🔥 {{ __('threads.trending.title') }}
     </h2>
 
     <div class="space-y-3">
         @forelse($trendingHashtags ?? [] as $tag => $count)
             <a href="{{ route('search', ['q' => '#' . $tag]) }}" class="block p-2 border-2 border-black bg-gray-50 hover:bg-yellow-300 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 <p class="font-black text-black text-sm">#{{ $tag }}</p>
-                <p class="text-xs font-bold text-gray-500">{{ $count }} Utas</p>
+                <p class="text-xs font-bold text-gray-500">{{ trans_choice('threads.trending.thread_count', $count, ['count' => $count]) }}</p>
             </a>
         @empty
-            <p class="text-xs font-bold text-gray-500 italic">Belum ada topik hangat hari ini.</p>
+            <p class="text-xs font-bold text-gray-500 italic">{{ __('threads.trending.empty') }}</p>
         @endforelse
     </div>
 </div>
@@ -607,9 +607,9 @@
                 <div class="bg-pink-400 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-5 relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 text-6xl opacity-20 transform rotate-12">🚀</div>
                     <h3 class="font-black text-black uppercase text-lg mb-2 relative z-10">SkuySocial V.2</h3>
-                    <p class="font-bold text-sm text-black mb-5 leading-tight relative z-10">Mari berteman dan dukung terus komunitas ini agar makin solid dan ramai!</p>
+                    <p class="font-bold text-sm text-black mb-5 leading-tight relative z-10">{{ __('threads.community.message') }}</p>
                     <a href="{{ route('user.profile', auth()->user()->username) }}" class="block text-center w-full bg-white border-2 border-black font-black uppercase text-sm py-2 hover:bg-yellow-300 hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all text-black relative z-10">
-                        Lihat Profilku
+                        {{ __('threads.community.view_profile') }}
                     </a>
                 </div>
 
@@ -622,27 +622,27 @@
     <div class="md:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-[#101010] border-t-4 border-black dark:border-[#333333] flex justify-around items-center p-3 z-50 pb-safe">
         
         <!-- Beranda -->
-        <a href="{{ route('feed') }}" aria-label="Beranda" aria-current="{{ request()->routeIs('feed') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('feed') }}" aria-label="{{ __('navigation.home') }}" aria-current="{{ request()->routeIs('feed') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3l8 6v12h-5v-7h-6v7H4V9l8-6z"></path></svg>
         </a>
 
         <!-- Pencarian -->
-        <a href="{{ route('search') }}" aria-label="Cari" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('search') }}" aria-label="{{ __('navigation.search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </a>
 
         <!-- Buat Thread / Postingan (Tombol Tengah Mencolok) -->
-        <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Buat utas" type="button" class="bg-yellow-300 border-2 border-black p-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black">
+        <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="{{ __('navigation.create_thread') }}" type="button" class="bg-yellow-300 border-2 border-black p-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-black">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
         </button>
 
         <!-- Aktivitas / Notifikasi -->
-        <a href="{{ route('activity.index') }}" aria-label="Aktivitas" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('activity.index') }}" aria-label="{{ __('navigation.activity') }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
         </a>
 
         <!-- Profil (BUGS FIXED DI SINI) -->
-        <a href="{{ route('user.profile', auth()->user()->username) }}" aria-label="Profil" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === auth()->user()->username ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
+        <a href="{{ route('user.profile', auth()->user()->username) }}" aria-label="{{ __('navigation.profile') }}" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === auth()->user()->username ? 'page' : 'false' }}" class="text-black dark:text-white p-2 hover:opacity-70 transition-opacity">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
         </a>
 

@@ -406,7 +406,7 @@ class SearchActivityPerformanceTest extends TestCase
             ->assertOk()
             ->assertSee(route('user.profile', $actor), false)
             ->assertSee(route('posts.show', $post), false)
-            ->assertSee('Lihat postingan');
+            ->assertSee('Lihat utas');
         $this->assertCount(0, $postQueries);
     }
 
@@ -424,7 +424,7 @@ class SearchActivityPerformanceTest extends TestCase
             ->assertOk()
             ->assertSee(route('user.profile', $actor), false)
             ->assertSee(route('posts.show', $post), false)
-            ->assertSee('Lihat postingan');
+            ->assertSee('Lihat utas');
     }
 
     public function test_activity_follow_notification_keeps_actor_navigation_without_post_target(): void
@@ -439,7 +439,7 @@ class SearchActivityPerformanceTest extends TestCase
         $response
             ->assertOk()
             ->assertSee(route('user.profile', $actor), false)
-            ->assertDontSee('Lihat postingan');
+            ->assertDontSee('Lihat utas');
     }
 
     public function test_activity_handles_notification_with_missing_post_key(): void
@@ -456,7 +456,7 @@ class SearchActivityPerformanceTest extends TestCase
 
         $response = $this->actingAs($recipient)->get(route('activity.index'));
 
-        $response->assertOk()->assertDontSee('Lihat postingan');
+        $response->assertOk()->assertDontSee('Lihat utas');
     }
 
     public function test_activity_handles_notification_with_null_post_key(): void
@@ -473,7 +473,7 @@ class SearchActivityPerformanceTest extends TestCase
 
         $response = $this->actingAs($recipient)->get(route('activity.index'));
 
-        $response->assertOk()->assertDontSee('Lihat postingan');
+        $response->assertOk()->assertDontSee('Lihat utas');
     }
 
     public function test_activity_handles_notification_with_empty_post_key(): void
@@ -490,7 +490,7 @@ class SearchActivityPerformanceTest extends TestCase
 
         $response = $this->actingAs($recipient)->get(route('activity.index'));
 
-        $response->assertOk()->assertDontSee('Lihat postingan');
+        $response->assertOk()->assertDontSee('Lihat utas');
     }
 
     public function test_activity_keeps_post_link_when_the_target_post_was_deleted(): void
@@ -508,7 +508,7 @@ class SearchActivityPerformanceTest extends TestCase
         $response
             ->assertOk()
             ->assertSee(route('posts.show', $postUid), false)
-            ->assertSee('Lihat postingan');
+            ->assertSee('Lihat utas');
     }
 
     public function test_feed_badge_counts_only_unread_notifications(): void

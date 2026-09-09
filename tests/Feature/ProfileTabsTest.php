@@ -152,8 +152,8 @@ class ProfileTabsTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Belum ada postingan yang disukai')
-            ->assertDontSee('Belum ada utas');
+            ->assertSee('Belum ada utas yang disukai')
+            ->assertDontSee('Pengguna ini belum membuat utas apa pun.');
     }
 
     public function test_guest_cannot_access_profile_tabs(): void

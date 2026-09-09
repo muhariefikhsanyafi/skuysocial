@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="border-b-4 border-black pb-2">
             <h2 class="font-black text-2xl text-black uppercase tracking-widest">
-                {{ __('Pengaturan Akun') }}
+                {{ __('settings.title') }}
             </h2>
         </div>
     </x-slot>

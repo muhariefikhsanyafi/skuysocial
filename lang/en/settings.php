@@ -1,0 +1,55 @@
+<?php
+
+return [
+    'title' => 'Account Settings',
+
+    'profile' => [
+        'heading' => 'Profile Information',
+        'description' => "Update your account's profile information and email address.",
+        'name' => 'Name',
+        'display_name' => 'Display Name',
+        'username' => 'Username',
+        'username_read_only' => 'Username (cannot be changed)',
+        'username_format' => 'Use only letters, numbers, periods, and underscores without spaces.',
+        'email' => 'Email',
+        'email_unverified' => 'Your email address is unverified.',
+        'resend_verification' => 'Click here to resend the verification email.',
+        'verification_sent' => 'A new verification link has been sent to your email address.',
+        'bio_short' => 'Short Bio',
+        'bio_about' => 'Bio / About Me',
+        'bio_placeholder' => 'Write something about yourself...',
+        'avatar' => 'Profile Photo (Avatar)',
+        'change_cover' => 'Change cover',
+        'change_avatar' => 'Change avatar',
+        'bio_limit' => 'Maximum 255 characters',
+        'save' => 'Save',
+        'save_changes' => 'Save Changes',
+        'saving' => 'Saving...',
+        'saved' => 'Saved!',
+        'cancel' => 'Cancel',
+    ],
+
+    'password' => [
+        'heading' => 'Update Password',
+        'description' => 'Use a long, random password to keep your account secure.',
+        'current' => 'Current Password',
+        'new' => 'New Password',
+        'confirmation' => 'Confirm Password',
+        'save' => 'Save Password',
+        'saved' => 'Saved!',
+    ],
+
+    'delete' => [
+        'heading' => 'Delete Account',
+        'description' => 'Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, download any data or information you want to keep.',
+        'short_description' => 'Once your account is deleted, all of its resources and data will be permanently deleted. Enter your password to confirm.',
+        'confirmation_heading' => 'Are you sure you want to delete your account?',
+        'confirmation_description' => 'Once your account is deleted, all of its resources and data will be permanently deleted. Enter your password to confirm the account deletion.',
+        'password' => 'Your Password',
+        'password_placeholder' => 'Enter your password to continue...',
+        'button' => 'Delete This Account',
+        'cancel' => 'Cancel',
+        'confirm' => 'Delete Account',
+        'browser_confirmation' => 'Are you sure you want to permanently delete this account?',
+    ],
+];

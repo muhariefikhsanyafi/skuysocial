@@ -2,12 +2,12 @@
     <div class="max-w-2xl mx-auto pb-10 pt-4 sm:pt-8 px-4 sm:px-0">
         <!-- Header Halaman -->
         <div class="mb-6 flex items-center gap-3 border-b-4 border-black pb-4 dark:border-[#333333]">
-            <a href="{{ route('feed') }}" class="p-2 border-2 border-black bg-white hover:bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
+            <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="p-2 border-2 border-black bg-white hover:bg-yellow-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
             </a>
-            <h1 class="text-xl sm:text-2xl font-black uppercase tracking-wider">Aktivitas Saya</h1>
+            <h1 class="text-xl sm:text-2xl font-black uppercase tracking-wider">{{ __('activity.title') }}</h1>
         </div>
 
         <!-- Daftar Notifikasi -->
@@ -18,8 +18,8 @@
                 <!-- Tampilan jika tidak ada notifikasi -->
                 <div class="p-8 border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center flex flex-col items-center justify-center">
                     <div class="text-6xl mb-4">📭</div>
-                    <h2 class="text-xl font-black uppercase mb-2">Belum ada aktivitas</h2>
-                    <p class="text-gray-600 font-bold">Notifikasi akan muncul di sini saat seseorang menyukai, membalas, atau mengikuti Anda.</p>
+                    <h2 class="text-xl font-black uppercase mb-2">{{ __('activity.empty_title') }}</h2>
+                    <p class="text-gray-600 font-bold">{{ __('activity.empty_description') }}</p>
                 </div>
 
             @else
@@ -62,7 +62,7 @@
                             </span>
                             @if($postTargetUrl)
                                 <a href="{{ $postTargetUrl }}" class="inline-block mt-2 text-xs font-black uppercase underline hover:text-blue-600 transition-colors">
-                                    Lihat postingan
+                                    {{ __('activity.view_thread') }}
                                 </a>
                             @endif
                         </div>
