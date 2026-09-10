@@ -27,6 +27,10 @@ return [
         'repost' => 'Repost',
         'view_thread' => 'View Thread',
         'view_full_thread' => 'View full Thread',
+        'view_more_threads' => 'View More Threads',
+        'loading_threads' => 'Loading Threads...',
+        'load_more_failed' => 'Could not load more Threads. Select the link again to continue.',
+        'view_more_replies' => 'View more replies',
     ],
 
     'composer' => [

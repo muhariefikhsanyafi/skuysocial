@@ -2,22 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
 use App\Models\Hashtag;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Throwable;
+use UnexpectedValueException;
 
 class PostController extends Controller
 {
     // Menampilkan halaman Feed
     public function index(Request $request)
     {
+        $isEnhancedFeedRequest = $request->header('X-Feed-Fragment') === '1';
         $viewerId = $request->user()->getKey();
         $loadDisplayPost = function ($query) use ($viewerId): void {
             $query
@@ -35,27 +39,48 @@ class PostController extends Controller
                 ]);
         };
 
-        $posts = Post::query()
-            ->with([
-                'user',
-                'feedComments.user',
-                'feedComments.feedReplies.user',
-                'originalPost' => $loadDisplayPost,
-            ])
-            ->withCount([
-                'likes',
-                'comments',
-                'comments as root_comments_count' => fn (Builder $query) => $query->whereNull('parent_id'),
-                'reposts',
-            ])
-            ->withExists([
-                'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
-                'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
-                'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
-            ])
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->simplePaginate(15);
+        try {
+            $posts = Post::query()
+                ->with([
+                    'user',
+                    'feedComments.user',
+                    'feedComments.feedReplies.user',
+                    'originalPost' => $loadDisplayPost,
+                ])
+                ->withCount([
+                    'likes',
+                    'comments',
+                    'comments as root_comments_count' => fn (Builder $query) => $query->whereNull('parent_id'),
+                    'reposts',
+                ])
+                ->withExists([
+                    'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                    'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                    'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                ])
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->cursorPaginate(10);
+        } catch (UnexpectedValueException $exception) {
+            if (! $isEnhancedFeedRequest) {
+                throw $exception;
+            }
+
+            abort(422);
+        }
+
+        if ($isEnhancedFeedRequest) {
+            abort_if($posts->cursor() === null, 422);
+
+            return response()
+                ->json([
+                    'html' => view('partials.feed-threads', compact('posts'))->render(),
+                    'has_more' => $posts->hasMorePages(),
+                    'next_url' => $posts->nextPageUrl(),
+                ])
+                ->header('Cache-Control', 'no-store, private')
+                ->header('Vary', 'X-Feed-Fragment');
+        }
 
         $unreadNotificationCount = $request->user()->unreadNotifications()->count();
 
@@ -135,9 +160,9 @@ class PostController extends Controller
     }
     
     // Menampilkan Halaman Detail Postingan Tunggal
-    public function show(Post $post)
+    public function show(Request $request, Post $post)
     {
-        $viewerId = auth()->id();
+        $viewerId = $request->user()->getKey();
 
         $post->load(['user', 'originalPost.user']);
 
@@ -150,23 +175,90 @@ class PostController extends Controller
                 'bookmarks as bookmarked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
             ]);
 
+        $loadReplyData = function ($query) use ($viewerId): void {
+            $query
+                ->with('user')
+                ->withCount('likes')
+                ->withExists([
+                    'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
+                ]);
+        };
+
+        $commentsPerPage = 20;
+        $expandedComment = null;
+
+        if ($request->has('replies_for')) {
+            $requestedReplyRootId = $request->query('replies_for');
+
+            abort_unless(is_string($requestedReplyRootId) && ctype_digit($requestedReplyRootId), 404);
+
+            $expandedComment = $displayPost->detailComments()->find((int) $requestedReplyRootId);
+
+            abort_unless($expandedComment instanceof Comment, 404);
+
+            $precedingRootCount = $displayPost->detailComments()
+                ->where(function (Builder $query) use ($expandedComment): void {
+                    $query
+                        ->where('created_at', '>', $expandedComment->created_at)
+                        ->orWhere(function (Builder $query) use ($expandedComment): void {
+                            $query
+                                ->where('created_at', $expandedComment->created_at)
+                                ->where('id', '>', $expandedComment->getKey());
+                        });
+                })
+                ->count();
+            $canonicalCommentsPage = intdiv($precedingRootCount, $commentsPerPage) + 1;
+
+            if (Paginator::resolveCurrentPage('comments_page') !== $canonicalCommentsPage) {
+                $routeParameters = [
+                    'post' => $post,
+                    'comments_page' => $canonicalCommentsPage,
+                    'replies_for' => $expandedComment->getKey(),
+                ];
+                $replyCursor = $request->query('replies_cursor');
+
+                if (is_string($replyCursor) && $replyCursor !== '') {
+                    $routeParameters['replies_cursor'] = $replyCursor;
+                }
+
+                return redirect(
+                    route('posts.show', $routeParameters).'#comment-'.$expandedComment->getKey()
+                );
+            }
+        }
+
         $comments = $displayPost->detailComments()
             ->with([
                 'user',
-                'feedReplies' => fn ($query) => $query
-                    ->with('user')
-                    ->withCount('likes')
-                    ->withExists([
-                        'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
-                    ]),
+                'feedReplies' => $loadReplyData,
             ])
-            ->withCount('likes')
+            ->withCount(['likes', 'replies'])
             ->withExists([
                 'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
             ])
-            ->simplePaginate(20, ['*'], 'comments_page');
+            ->simplePaginate($commentsPerPage, ['*'], 'comments_page');
 
-        return view('show-post', compact('post', 'displayPost', 'comments'));
+        $expandedReplyRootId = null;
+        $expandedReplies = null;
+
+        if ($expandedComment instanceof Comment) {
+            $expandedReplyRootId = $expandedComment->getKey();
+            $expandedReplyQuery = $expandedComment->detailReplies()
+                ->where('post_id', $displayPost->getKey());
+            $loadReplyData($expandedReplyQuery);
+
+            $expandedReplies = $expandedReplyQuery
+                ->cursorPaginate(10, ['*'], 'replies_cursor')
+                ->withQueryString();
+        }
+
+        return view('show-post', compact(
+            'post',
+            'displayPost',
+            'comments',
+            'expandedReplyRootId',
+            'expandedReplies',
+        ));
     }
 	
 	// Logika Repost (Posting Ulang)

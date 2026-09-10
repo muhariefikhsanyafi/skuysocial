@@ -27,6 +27,10 @@ return [
         'repost' => 'Posting Ulang',
         'view_thread' => 'Lihat utas',
         'view_full_thread' => 'Lihat utas lengkap',
+        'view_more_threads' => 'Lihat Utas Lainnya',
+        'loading_threads' => 'Memuat Utas...',
+        'load_more_failed' => 'Utas berikutnya tidak dapat dimuat. Pilih tautan lagi untuk melanjutkan.',
+        'view_more_replies' => 'Lihat balasan lainnya',
     ],
 
     'composer' => [

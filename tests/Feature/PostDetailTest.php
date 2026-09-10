@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -225,6 +226,255 @@ class PostDetailTest extends TestCase
         }
     }
 
+    public function test_root_with_two_replies_renders_every_reply_without_an_expansion_link(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create(['locale' => 'id']);
+        $post = $this->createPost($author);
+        $root = $this->createComment($post, $author, 'Root with complete preview');
+        $this->createComment($post, $viewer, 'Reachable reply one', ['parent_id' => $root->id]);
+        $this->createComment($post, $viewer, 'Reachable reply two', ['parent_id' => $root->id]);
+
+        $response = $this->actingAs($viewer)->get(route('posts.show', $post));
+        $loadedRoot = $response->viewData('comments')->first();
+
+        $response->assertOk()
+            ->assertSee('Reachable reply one')
+            ->assertSee('Reachable reply two')
+            ->assertDontSee('Lihat balasan lainnya');
+        $this->assertSame(2, $loadedRoot->replies_count);
+        $this->assertCount(2, $loadedRoot->feedReplies);
+    }
+
+    public function test_later_replies_are_reachable_through_bounded_stable_cursor_urls(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create(['locale' => 'en']);
+        $post = $this->createPost($author);
+        $root = $this->createComment($post, $author, 'Root with paginated replies');
+        $sameTime = Carbon::create(2026, 9, 1, 12, 0, 0);
+        $replies = collect();
+
+        for ($number = 1; $number <= 12; $number++) {
+            $replies->push($this->createComment($post, $viewer, "Expanded reply {$number}", [
+                'parent_id' => $root->id,
+                'created_at' => $sameTime,
+                'updated_at' => $sameTime,
+            ]));
+        }
+
+        $initialResponse = $this->actingAs($viewer)->get(route('posts.show', $post));
+        $initialRoot = $initialResponse->viewData('comments')->first();
+        $expansionUrl = route('posts.show', [
+            'post' => $post,
+            'comments_page' => 1,
+            'replies_for' => $root->id,
+        ]);
+
+        $this->assertSame(12, $initialRoot->replies_count);
+        $this->assertSame(
+            $replies->reverse()->take(2)->pluck('id')->all(),
+            $initialRoot->feedReplies->pluck('id')->all(),
+        );
+        $initialResponse->assertSee('View more replies')
+            ->assertSee('href="'.e($expansionUrl.'#comment-'.$root->id).'"', false);
+
+        $firstExpandedResponse = $this->actingAs($viewer)->get($expansionUrl);
+        $firstExpandedReplies = $firstExpandedResponse->viewData('expandedReplies');
+        $firstExpandedIds = $firstExpandedReplies->getCollection()->pluck('id')->all();
+
+        $this->assertInstanceOf(CursorPaginator::class, $firstExpandedReplies);
+        $this->assertSame($root->id, $firstExpandedResponse->viewData('expandedReplyRootId'));
+        $this->assertCount(10, $firstExpandedReplies->getCollection());
+        $this->assertSame($replies->reverse()->take(10)->pluck('id')->all(), $firstExpandedIds);
+        $this->assertTrue($firstExpandedReplies->hasMorePages());
+        $firstExpandedResponse->assertSee('Expanded reply 3');
+        $this->assertSame(1, substr_count($firstExpandedResponse->getContent(), 'Expanded reply 12'));
+
+        foreach ($firstExpandedReplies as $reply) {
+            $this->assertTrue($reply->relationLoaded('user'));
+            $this->assertArrayHasKey('likes_count', $reply->getAttributes());
+            $this->assertArrayHasKey('liked_by_current_user', $reply->getAttributes());
+            $this->assertFalse($reply->relationLoaded('likes'));
+        }
+
+        $nextPageUrl = $firstExpandedReplies->nextPageUrl();
+
+        $this->assertNotNull($nextPageUrl);
+        $this->assertStringContainsString('replies_cursor=', $nextPageUrl);
+        $this->assertStringContainsString('comments_page=1', $nextPageUrl);
+        $this->assertStringContainsString('replies_for='.$root->id, $nextPageUrl);
+        $firstExpandedResponse->assertSee(
+            'href="'.e($nextPageUrl.'#comment-'.$root->id).'"',
+            false,
+        );
+
+        $secondExpandedResponse = $this->actingAs($viewer)->get($nextPageUrl);
+        $secondExpandedReplies = $secondExpandedResponse->viewData('expandedReplies');
+        $secondExpandedIds = $secondExpandedReplies->getCollection()->pluck('id')->all();
+
+        $this->assertSame($replies->take(2)->reverse()->values()->pluck('id')->all(), $secondExpandedIds);
+        $this->assertSame([], array_values(array_intersect($firstExpandedIds, $secondExpandedIds)));
+        $this->assertFalse($secondExpandedReplies->hasMorePages());
+        $secondExpandedResponse->assertSee('Expanded reply 1');
+    }
+
+    public function test_stale_reply_url_redirects_to_the_roots_current_page_after_page_drift(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($author);
+        $baseTime = Carbon::create(2026, 9, 1, 12, 0, 0);
+        $selectedRoot = $this->createComment($post, $author, 'Drift selected root', [
+            'created_at' => $baseTime,
+            'updated_at' => $baseTime,
+        ]);
+
+        for ($number = 1; $number <= 19; $number++) {
+            $this->createComment($post, $author, "Newer root {$number}", [
+                'created_at' => $baseTime->copy()->addSeconds($number),
+                'updated_at' => $baseTime->copy()->addSeconds($number),
+            ]);
+        }
+
+        for ($number = 1; $number <= 11; $number++) {
+            $this->createComment($post, $viewer, sprintf('Drift reply %02d', $number), [
+                'parent_id' => $selectedRoot->id,
+                'created_at' => $baseTime->copy()->addMinutes($number),
+                'updated_at' => $baseTime->copy()->addMinutes($number),
+            ]);
+        }
+
+        $initialExpansionUrl = route('posts.show', [
+            'post' => $post,
+            'comments_page' => 1,
+            'replies_for' => $selectedRoot->id,
+        ]);
+        $initialResponse = $this->actingAs($viewer)->get($initialExpansionUrl);
+        $initialReplies = $initialResponse->viewData('expandedReplies');
+        $staleReplyUrl = $initialReplies->nextPageUrl();
+
+        $initialResponse->assertOk();
+        $this->assertSame($selectedRoot->id, $initialResponse->viewData('expandedReplyRootId'));
+        $this->assertNotNull($staleReplyUrl);
+
+        parse_str((string) parse_url($staleReplyUrl, PHP_URL_QUERY), $staleQuery);
+        $this->assertSame('1', $staleQuery['comments_page']);
+        $this->assertArrayHasKey('replies_cursor', $staleQuery);
+
+        $this->createComment($post, $author, 'Root that causes page drift', [
+            'created_at' => $baseTime->copy()->addSeconds(20),
+            'updated_at' => $baseTime->copy()->addSeconds(20),
+        ]);
+
+        $canonicalParameters = [
+            'post' => $post,
+            'comments_page' => 2,
+            'replies_for' => $selectedRoot->id,
+            'replies_cursor' => $staleQuery['replies_cursor'],
+        ];
+        $canonicalUrl = route('posts.show', $canonicalParameters);
+
+        $this->actingAs($viewer)
+            ->get($staleReplyUrl)
+            ->assertRedirect($canonicalUrl.'#comment-'.$selectedRoot->id);
+
+        $correctedResponse = $this->actingAs($viewer)->get($canonicalUrl);
+        $correctedReplies = $correctedResponse->viewData('expandedReplies');
+
+        $correctedResponse->assertOk()
+            ->assertSee('Drift selected root')
+            ->assertSee('Drift reply 01');
+        $this->assertSame(2, $correctedResponse->viewData('comments')->currentPage());
+        $this->assertSame($selectedRoot->id, $correctedResponse->viewData('expandedReplyRootId'));
+        $this->assertCount(1, $correctedReplies->getCollection());
+    }
+
+    public function test_reply_expansion_action_is_localized_for_supported_account_locales(): void
+    {
+        $author = User::factory()->create();
+        $post = $this->createPost($author);
+        $root = $this->createComment($post, $author, 'Localized reply root');
+
+        for ($number = 1; $number <= 3; $number++) {
+            $this->createComment($post, $author, "Localized reply {$number}", [
+                'parent_id' => $root->id,
+            ]);
+        }
+
+        foreach ([
+            'id' => 'Lihat balasan lainnya',
+            'en' => 'View more replies',
+        ] as $locale => $copy) {
+            $viewer = User::factory()->create(['locale' => $locale]);
+
+            $this->actingAs($viewer)
+                ->get(route('posts.show', $post))
+                ->assertOk()
+                ->assertSee($copy);
+        }
+    }
+
+    public function test_reply_expansion_rejects_a_root_comment_from_another_post(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($author);
+        $this->createComment($post, $author, 'Local root');
+        $foreignPost = $this->createPost($author);
+        $foreignRoot = $this->createComment($foreignPost, $author, 'Foreign root');
+        $this->createComment($foreignPost, $author, 'Foreign reply secret', [
+            'parent_id' => $foreignRoot->id,
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('posts.show', [
+                'post' => $post,
+                'comments_page' => 1,
+                'replies_for' => $foreignRoot->id,
+            ]))
+            ->assertNotFound()
+            ->assertDontSee('Foreign reply secret');
+    }
+
+    public function test_reply_expansion_rejects_a_child_comment_as_the_selected_root(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($author);
+        $root = $this->createComment($post, $author, 'Valid root');
+        $child = $this->createComment($post, $author, 'Child cannot be selected as root', [
+            'parent_id' => $root->id,
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('posts.show', [
+                'post' => $post,
+                'comments_page' => 1,
+                'replies_for' => $child->id,
+            ]))
+            ->assertNotFound();
+    }
+
+    public function test_reply_expansion_returns_not_found_after_the_selected_root_is_deleted(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($author);
+        $root = $this->createComment($post, $author, 'Root deleted after link creation');
+        $url = route('posts.show', [
+            'post' => $post,
+            'comments_page' => 1,
+            'replies_for' => $root->id,
+        ]);
+
+        $root->delete();
+
+        $this->actingAs($viewer)
+            ->get($url)
+            ->assertNotFound();
+    }
+
     public function test_root_and_reply_like_counts_and_current_user_state_are_scalar(): void
     {
         $author = User::factory()->create();
@@ -304,19 +554,41 @@ class PostDetailTest extends TestCase
 
     private function createPost(User $user, array $attributes = []): Post
     {
-        return Post::create(array_merge([
+        $post = Post::create(array_merge([
             'user_id' => $user->id,
             'content' => 'Detail post',
         ], $attributes));
+
+        $timestamps = array_intersect_key($attributes, [
+            'created_at' => true,
+            'updated_at' => true,
+        ]);
+
+        if ($timestamps !== []) {
+            $post->forceFill($timestamps)->saveQuietly();
+        }
+
+        return $post;
     }
 
     private function createComment(Post $post, User $user, string $content, array $attributes = []): Comment
     {
-        return Comment::create(array_merge([
+        $comment = Comment::create(array_merge([
             'post_id' => $post->id,
             'user_id' => $user->id,
             'content' => $content,
             'parent_id' => null,
         ], $attributes));
+
+        $timestamps = array_intersect_key($attributes, [
+            'created_at' => true,
+            'updated_at' => true,
+        ]);
+
+        if ($timestamps !== []) {
+            $comment->forceFill($timestamps)->saveQuietly();
+        }
+
+        return $comment;
     }
 }

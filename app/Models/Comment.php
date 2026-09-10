@@ -30,6 +30,16 @@ class Comment extends Model
     }
 
     /**
+     * Replies used by bounded pagination on the post detail page.
+     */
+    public function detailReplies(): HasMany
+    {
+        return $this->replies()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
+    }
+
+    /**
      * Relasi ke komentar induknya (opsional, tapi berguna)
      */
     public function parent()

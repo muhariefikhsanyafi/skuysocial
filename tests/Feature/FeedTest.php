@@ -8,8 +8,9 @@ use App\Models\Post;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\Cursor;
+use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -26,7 +27,7 @@ class FeedTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('posts', function ($posts): bool {
-            return $posts instanceof Paginator;
+            return $posts instanceof CursorPaginator;
         });
     }
 
@@ -235,14 +236,14 @@ class FeedTest extends TestCase
         $this->assertSame([$tieHigher->id, $tieLower->id, $older->id], $ids);
     }
 
-    public function test_feed_uses_fifteen_item_pagination_and_page_two_contains_next_posts(): void
+    public function test_feed_uses_ten_item_cursor_batches_and_a_server_rendered_load_more_link(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['locale' => 'id']);
         $baseTime = Carbon::create(2026, 8, 31, 12, 0, 0);
 
         $posts = collect();
 
-        for ($number = 1; $number <= 16; $number++) {
+        for ($number = 1; $number <= 11; $number++) {
             $posts->push($this->createPost($user, [
                 'content' => "Feed post {$number}",
                 'created_at' => $baseTime->copy()->addSeconds($number),
@@ -253,15 +254,284 @@ class FeedTest extends TestCase
         $pageOne = $this->actingAs($user)->get(route('feed'));
         $pageOnePosts = $pageOne->viewData('posts');
 
-        $this->assertCount(15, $pageOnePosts->getCollection());
+        $this->assertInstanceOf(CursorPaginator::class, $pageOnePosts);
+        $this->assertCount(10, $pageOnePosts->getCollection());
+        $this->assertSame(
+            $posts->reverse()->take(10)->pluck('id')->all(),
+            $pageOnePosts->getCollection()->pluck('id')->all(),
+        );
         $this->assertTrue($pageOnePosts->hasMorePages());
+        $pageOne
+            ->assertSee('Lihat Utas Lainnya')
+            ->assertSee('id="feed-thread-list"', false)
+            ->assertSee('@click="loadMoreThreads($event)"', false)
+            ->assertSee(':aria-disabled="isLoadingMore.toString()"', false)
+            ->assertSee(':aria-busy="isLoadingMore.toString()"', false)
+            ->assertSee('aria-live="polite"', false)
+            ->assertSee('role="alert"', false)
+            ->assertSee('min-h-[44px]', false)
+            ->assertDontSee('if (this.feedLoadFailed) return;', false)
+            ->assertSee("if (this.isLoadingMore || !this.nextFeedUrl) return;", false)
+            ->assertSee('this.feedLoadFailed = false;', false)
+            ->assertSee('this.feedLoadFailed = true;', false)
+            ->assertSee("'X-Feed-Fragment': '1'", false)
+            ->assertSee("this.nextFeedUrl = batch.has_more ? batch.next_url : '';", false)
+            ->assertSee('window.copyAndToast', false)
+            ->assertSee('bg-yellow-300 sm:bg-white', false)
+            ->assertDontSee('history.pushState', false)
+            ->assertDontSee('history.replaceState', false);
 
-        $pageTwo = $this->actingAs($user)->get(route('feed', ['page' => 2]));
+        $nextPageUrl = $pageOnePosts->nextPageUrl();
+
+        $this->assertNotNull($nextPageUrl);
+        $this->assertStringContainsString('cursor=', $nextPageUrl);
+        $this->assertStringNotContainsString('page=', $nextPageUrl);
+        $pageOne
+            ->assertSee('href="'.e($nextPageUrl).'"', false)
+            ->assertSee('data-feed-next-url="'.e($nextPageUrl).'"', false);
+
+        $pageTwo = $this->actingAs($user)->get($nextPageUrl);
         $pageTwoPosts = $pageTwo->viewData('posts');
 
         $this->assertCount(1, $pageTwoPosts->getCollection());
         $this->assertSame($posts->first()->id, $pageTwoPosts->getCollection()->first()->id);
+        $this->assertSame([], array_values(array_intersect(
+            $pageOnePosts->getCollection()->pluck('id')->all(),
+            $pageTwoPosts->getCollection()->pluck('id')->all(),
+        )));
         $this->assertFalse($pageTwoPosts->hasMorePages());
+        $pageTwo->assertDontSee('Lihat Utas Lainnya');
+    }
+
+    public function test_feed_does_not_render_load_more_when_ten_threads_exist(): void
+    {
+        $user = User::factory()->create(['locale' => 'id']);
+
+        for ($number = 1; $number <= 10; $number++) {
+            $this->createPost($user, ['content' => "Bounded feed post {$number}"]);
+        }
+
+        $response = $this->actingAs($user)->get(route('feed'));
+
+        $this->assertCount(10, $response->viewData('posts')->getCollection());
+        $this->assertFalse($response->viewData('posts')->hasMorePages());
+        $response->assertDontSee('Lihat Utas Lainnya');
+    }
+
+    public function test_enhanced_feed_returns_bounded_server_rendered_cursor_batches_without_duplicates(): void
+    {
+        $user = User::factory()->create();
+        $baseTime = Carbon::create(2026, 8, 31, 12, 0, 0);
+        $posts = collect();
+
+        for ($number = 1; $number <= 21; $number++) {
+            $posts->push($this->createPost($user, [
+                'content' => "Enhanced feed post {$number}",
+                'created_at' => $baseTime->copy()->addSeconds($number),
+                'updated_at' => $baseTime->copy()->addSeconds($number),
+            ]));
+        }
+
+        $pageOne = $this->actingAs($user)->get(route('feed'));
+        $pageOnePosts = $pageOne->viewData('posts');
+        $expectedKeys = $posts->reverse()->values()->pluck('uid');
+        $initialKeys = $pageOnePosts->getCollection()->pluck('uid')->all();
+        $nextPageUrl = $pageOnePosts->nextPageUrl();
+
+        $this->assertCount(10, $initialKeys);
+        $this->assertSame($expectedKeys->take(10)->all(), $initialKeys);
+        $this->assertNotNull($nextPageUrl);
+
+        $pageTwo = $this->withHeader('X-Feed-Fragment', '1')->get($nextPageUrl);
+
+        $pageTwo
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertHeader('Vary', 'X-Feed-Fragment')
+            ->assertJsonStructure(['html', 'has_more', 'next_url'])
+            ->assertJsonPath('has_more', true);
+
+        $pageTwoHtml = $pageTwo->json('html');
+        $pageThreeUrl = $pageTwo->json('next_url');
+
+        $this->assertIsString($pageTwoHtml);
+        $pageTwoKeys = $this->feedThreadKeysFromHtml($pageTwoHtml);
+        $this->assertCount(10, $pageTwoKeys);
+        $this->assertSame($expectedKeys->slice(10, 10)->values()->all(), $pageTwoKeys);
+        $this->assertSame([], array_values(array_intersect($initialKeys, $pageTwoKeys)));
+        $this->assertStringNotContainsString('name="images[]"', $pageTwoHtml);
+        $this->assertIsString($pageThreeUrl);
+        $this->assertStringContainsString('cursor=', $pageThreeUrl);
+        $this->assertStringNotContainsString('page=', $pageThreeUrl);
+
+        $pageThree = $this->withHeader('X-Feed-Fragment', '1')->get($pageThreeUrl);
+
+        $pageThree
+            ->assertOk()
+            ->assertJsonPath('has_more', false)
+            ->assertJsonPath('next_url', null);
+
+        $pageThreeHtml = $pageThree->json('html');
+        $this->assertIsString($pageThreeHtml);
+        $pageThreeKeys = $this->feedThreadKeysFromHtml($pageThreeHtml);
+
+        $this->assertSame($expectedKeys->slice(20)->values()->all(), $pageThreeKeys);
+        $this->assertSame([], array_values(array_intersect(
+            array_merge($initialKeys, $pageTwoKeys),
+            $pageThreeKeys,
+        )));
+    }
+
+    public function test_enhanced_feed_rejects_unauthenticated_and_invalid_requests_without_rendering_threads(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $protectedContent = 'This thread must not appear in an invalid fragment response';
+
+        $this->createPost($author, ['content' => $protectedContent]);
+
+        $this
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'X-Feed-Fragment' => '1',
+            ])
+            ->get(route('feed', ['cursor' => 'not-a-valid-cursor']))
+            ->assertUnauthorized()
+            ->assertDontSee($protectedContent);
+
+        $invalidCursors = [
+            'not-a-valid-cursor',
+            (new Cursor(['created_at' => now()->toDateTimeString()], true))->encode(),
+        ];
+
+        foreach ($invalidCursors as $cursor) {
+            $this
+                ->actingAs($viewer)
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'X-Feed-Fragment' => '1',
+                ])
+                ->get(route('feed', ['cursor' => $cursor]))
+                ->assertStatus(422)
+                ->assertDontSee($protectedContent);
+        }
+    }
+
+    public function test_feed_cursor_url_does_not_preserve_thread_detail_query_state(): void
+    {
+        $user = User::factory()->create();
+
+        for ($number = 1; $number <= 11; $number++) {
+            $this->createPost($user, ['content' => "Query-state feed post {$number}"]);
+        }
+
+        $response = $this->actingAs($user)->get(route('feed', [
+            'page' => 4,
+            'comments_page' => 2,
+            'replies_for' => 123,
+            'replies_cursor' => 'stale-reply-cursor',
+        ]));
+        $nextPageUrl = $response->viewData('posts')->nextPageUrl();
+
+        $response->assertOk();
+        $this->assertNotNull($nextPageUrl);
+
+        parse_str((string) parse_url($nextPageUrl, PHP_URL_QUERY), $nextPageQuery);
+
+        $this->assertSame(['cursor'], array_keys($nextPageQuery));
+        $this->actingAs($user)->get($nextPageUrl)->assertOk();
+    }
+
+    public function test_feed_cursor_uses_id_to_order_equal_timestamps_without_duplicates(): void
+    {
+        $user = User::factory()->create();
+        $sameTime = Carbon::create(2026, 8, 31, 12, 0, 0);
+        $posts = collect();
+
+        for ($number = 1; $number <= 12; $number++) {
+            $posts->push($this->createPost($user, [
+                'content' => "Equal timestamp post {$number}",
+                'created_at' => $sameTime,
+                'updated_at' => $sameTime,
+            ]));
+        }
+
+        $pageOne = $this->actingAs($user)->get(route('feed'))->viewData('posts');
+        $pageTwo = $this
+            ->withHeader('X-Feed-Fragment', '1')
+            ->get($pageOne->nextPageUrl());
+        $pageOneKeys = $pageOne->getCollection()->pluck('uid')->all();
+
+        $pageTwo->assertOk();
+        $pageTwoHtml = $pageTwo->json('html');
+        $this->assertIsString($pageTwoHtml);
+        $pageTwoKeys = $this->feedThreadKeysFromHtml($pageTwoHtml);
+        $this->assertSame($posts->reverse()->take(10)->pluck('uid')->all(), $pageOneKeys);
+        $this->assertSame($posts->take(2)->reverse()->values()->pluck('uid')->all(), $pageTwoKeys);
+        $this->assertSame([], array_values(array_intersect($pageOneKeys, $pageTwoKeys)));
+    }
+
+    public function test_newer_post_inserted_between_cursor_requests_does_not_duplicate_seen_posts(): void
+    {
+        $user = User::factory()->create();
+        $baseTime = Carbon::create(2026, 8, 31, 12, 0, 0);
+        $posts = collect();
+
+        for ($number = 1; $number <= 12; $number++) {
+            $posts->push($this->createPost($user, [
+                'content' => "Mutable feed post {$number}",
+                'created_at' => $baseTime->copy()->addSeconds($number),
+                'updated_at' => $baseTime->copy()->addSeconds($number),
+            ]));
+        }
+
+        $pageOne = $this->actingAs($user)->get(route('feed'))->viewData('posts');
+        $pageOneIds = $pageOne->getCollection()->pluck('id')->all();
+        $nextPageUrl = $pageOne->nextPageUrl();
+        $newPost = $this->createPost($user, [
+            'content' => 'Inserted after the first batch',
+            'created_at' => $baseTime->copy()->addMinute(),
+            'updated_at' => $baseTime->copy()->addMinute(),
+        ]);
+
+        $pageTwo = $this->actingAs($user)->get($nextPageUrl)->viewData('posts');
+        $pageTwoIds = $pageTwo->getCollection()->pluck('id')->all();
+
+        $this->assertSame($posts->take(2)->reverse()->values()->pluck('id')->all(), $pageTwoIds);
+        $this->assertNotContains($newPost->id, $pageTwoIds);
+        $this->assertSame([], array_values(array_intersect($pageOneIds, $pageTwoIds)));
+    }
+
+    public function test_feed_load_more_action_is_localized_for_supported_account_locales(): void
+    {
+        $author = User::factory()->create();
+
+        for ($number = 1; $number <= 11; $number++) {
+            $this->createPost($author, ['content' => "Localized feed post {$number}"]);
+        }
+
+        foreach ([
+            'id' => [
+                'Lihat Utas Lainnya',
+                'Memuat Utas...',
+                'Utas berikutnya tidak dapat dimuat. Pilih tautan lagi untuk melanjutkan.',
+            ],
+            'en' => [
+                'View More Threads',
+                'Loading Threads...',
+                'Could not load more Threads. Select the link again to continue.',
+            ],
+        ] as $locale => $copy) {
+            $viewer = User::factory()->create(['locale' => $locale]);
+
+            $response = $this->actingAs($viewer)
+                ->get(route('feed'))
+                ->assertOk();
+
+            foreach ($copy as $text) {
+                $response->assertSee($text);
+            }
+        }
     }
 
     public function test_repost_remains_a_feed_item_and_displays_original_content_and_author(): void
@@ -499,22 +769,51 @@ class FeedTest extends TestCase
         $this->assertSame($onePostQueryCount, $threePostQueryCount);
     }
 
+    private function feedThreadKeysFromHtml(string $html): array
+    {
+        preg_match_all('/data-feed-thread-key="([^"]+)"/', $html, $matches);
+
+        return $matches[1];
+    }
+
     private function createPost(User $user, array $attributes = []): Post
     {
-        return Post::create(array_merge([
+        $post = Post::create(array_merge([
             'user_id' => $user->id,
             'content' => 'A feed post',
         ], $attributes));
+
+        $timestamps = array_intersect_key($attributes, [
+            'created_at' => true,
+            'updated_at' => true,
+        ]);
+
+        if ($timestamps !== []) {
+            $post->forceFill($timestamps)->saveQuietly();
+        }
+
+        return $post;
     }
 
     private function createComment(Post $post, User $user, string $content, array $attributes = []): Comment
     {
-        return Comment::create(array_merge([
+        $comment = Comment::create(array_merge([
             'post_id' => $post->id,
             'user_id' => $user->id,
             'content' => $content,
             'parent_id' => null,
         ], $attributes));
+
+        $timestamps = array_intersect_key($attributes, [
+            'created_at' => true,
+            'updated_at' => true,
+        ]);
+
+        if ($timestamps !== []) {
+            $comment->forceFill($timestamps)->saveQuietly();
+        }
+
+        return $comment;
     }
 
     private function measureFeedQueryCount(User $viewer): int

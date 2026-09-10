@@ -204,8 +204,17 @@
                 @if($comments->isNotEmpty())
                     <h3 class="font-black uppercase text-gray-500 mb-4 border-b-2 border-black dark:border-[#333333] pb-2">{{ __('threads.labels.replies') }}</h3>
                 @endif
-                
+
                 @foreach ($comments as $comment)
+                    @php
+                        $showExpandedReplies = $expandedReplyRootId === $comment->id && $expandedReplies !== null;
+                        $visibleReplies = $showExpandedReplies ? $expandedReplies : $comment->feedReplies;
+                        $replyExpansionUrl = route('posts.show', [
+                            'post' => $post,
+                            'comments_page' => $comments->currentPage(),
+                            'replies_for' => $comment->id,
+                        ]).'#comment-'.$comment->id;
+                    @endphp
                     <div id="comment-{{ $comment->id }}" x-data="{ openReply: false, isSubmitting: false }" class="flex gap-3 relative scroll-mt-20">
                         <div class="flex flex-col items-center flex-shrink-0">
                             @if ($comment->user->avatar)
@@ -215,7 +224,7 @@
                                     {{ substr($comment->user->name, 0, 1) }}
                                 </div>
                             @endif
-                            <div class="w-0.5 bg-gray-300 dark:bg-[#333333] flex-1 mt-2 mb-1 min-h-[20px]" x-show="openReply || {{ $comment->feedReplies->count() > 0 ? 'true' : 'false' }}"></div>
+                            <div class="w-0.5 bg-gray-300 dark:bg-[#333333] flex-1 mt-2 mb-1 min-h-[20px]" x-show="openReply || {{ $comment->replies_count > 0 ? 'true' : 'false' }}"></div>
                         </div>
                         <div class="flex-1 pb-4">
                             <div class="flex items-center gap-1.5 flex-wrap mb-1">
@@ -269,9 +278,9 @@
                             </div>
 
                             <!-- Area Balasan Anak -->
-                            @if ($comment->feedReplies->count() > 0)
+                            @if ($visibleReplies->count() > 0)
                                 <div class="mt-4 space-y-4">
-                                    @foreach ($comment->feedReplies as $reply)
+                                    @foreach ($visibleReplies as $reply)
                                         <div id="reply-{{ $reply->id }}" class="flex gap-2 scroll-mt-20">
                                             <div class="flex flex-col items-center flex-shrink-0 mt-0.5">
                                                 @if ($reply->user->avatar)
@@ -312,13 +321,21 @@
                                                         <svg class="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                                     </button>
                                                     <!-- Share Link -->
-                                                    <button @click="copyAndToast('{{ url()->current() }}#reply-{{ $reply->id }}', '{{ __('threads.reply_link_copied') }}')" type="button" class="hover:text-yellow-500 transition-colors group" title="{{ __('threads.actions.share') }}">
+                                                    <button @click="copyAndToast(@js(request()->fullUrl().'#reply-'.$reply->id), @js(__('threads.reply_link_copied')))" type="button" class="hover:text-yellow-500 transition-colors group" title="{{ __('threads.actions.share') }}">
                                                         <svg class="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
                                     @endforeach
+                                </div>
+                            @endif
+
+                            @if ((! $showExpandedReplies && $comment->replies_count > $visibleReplies->count()) || ($showExpandedReplies && $expandedReplies->hasMorePages()))
+                                <div class="mt-3">
+                                    <a href="{{ $showExpandedReplies ? $expandedReplies->nextPageUrl().'#comment-'.$comment->id : $replyExpansionUrl }}" class="inline-flex min-h-[44px] max-w-full items-center justify-center border-2 border-black bg-cyan-300 px-3 py-2 text-center text-xs font-black uppercase leading-tight text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black focus-visible:ring-offset-2 dark:focus-visible:ring-yellow-300 dark:focus-visible:ring-offset-[#101010]">
+                                        {{ __('threads.actions.view_more_replies') }}
+                                    </a>
                                 </div>
                             @endif
                         </div>
