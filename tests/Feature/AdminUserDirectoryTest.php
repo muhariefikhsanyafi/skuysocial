@@ -67,7 +67,10 @@ class AdminUserDirectoryTest extends TestCase
 
         $this->actingAs($user)
             ->get('/admin/users')
-            ->assertForbidden();
+            ->assertForbidden()
+            ->assertSeeText(trans('moderation.forbidden.title'))
+            ->assertSeeText(trans('moderation.forbidden.generic_body'))
+            ->assertDontSeeText(trans('moderation.restricted.denial_body'));
     }
 
     public function test_unverified_administrator_cannot_access_the_user_resource(): void
@@ -245,6 +248,7 @@ class AdminUserDirectoryTest extends TestCase
 
         $this->assertArrayNotHasKey('password', $attributes);
         $this->assertArrayNotHasKey('remember_token', $attributes);
+        $this->assertArrayNotHasKey('auth_session_version', $attributes);
         $this->assertArrayNotHasKey('avatar', $attributes);
     }
 

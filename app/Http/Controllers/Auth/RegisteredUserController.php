@@ -34,17 +34,16 @@ class RegisteredUserController extends Controller
         Request $request,
         TurnstileVerifier $turnstile,
         LocalePreference $locales,
-    ): RedirectResponse
-    {
-		if (is_string($request->input('username'))) {
-			$request->merge([
-				'username' => strtolower($request->input('username')),
-			]);
-		}
+    ): RedirectResponse {
+        if (is_string($request->input('username'))) {
+            $request->merge([
+                'username' => strtolower($request->input('username')),
+            ]);
+        }
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-			'username' => ['required', 'string', 'max:255', 'unique:users', 'regex:/^[a-zA-Z0-9_.]+$/'],
+            'username' => ['required', 'string', 'max:255', 'unique:users', 'regex:/^[a-zA-Z0-9_.]+$/'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -53,13 +52,14 @@ class RegisteredUserController extends Controller
 
         $user = new User([
             'name' => $request->name,
-			'username' => $request->username,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
         $locale = $locales->currentLocale();
         $user->locale = $locale;
         $user->save();
+        $user->refresh();
 
         event(new Registered($user));
 

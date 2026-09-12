@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ModerationState;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -32,6 +33,8 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'moderation_state' => ModerationState::Active->value,
+            'auth_session_version' => 0,
         ];
     }
 

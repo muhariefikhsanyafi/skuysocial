@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\UserRole;
 use App\Models\User;
 
 class UserPolicy
@@ -69,7 +68,6 @@ class UserPolicy
 
     private function isVerifiedAdministrator(User $user): bool
     {
-        return UserRole::tryFrom((string) $user->role) === UserRole::Administrator
-            && $user->hasVerifiedEmail();
+        return $user->isUsableAdministrator();
     }
 }

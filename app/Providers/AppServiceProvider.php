@@ -2,10 +2,14 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\EnforceAccountSession;
+use App\Models\User;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL; // <--- Wajib dipanggil untuk fitur HTTPS
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +26,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(Login::class, function (Login $event): void {
+            if ($event->guard !== 'web' || ! $event->user instanceof User) {
+                return;
+            }
+
+            $request = request();
+
+            if (! $request->hasSession()) {
+                return;
+            }
+
+            $request->session()->put(
+                EnforceAccountSession::SESSION_VERSION_KEY,
+                $event->user->authSessionVersion() ?? -1,
+            );
+        });
+
         // Paksa semua URL (termasuk CSS Vite) menjadi HTTPS jika sedang online (production)
         if (config('app.env') === 'production') {
             URL::forceScheme('https');

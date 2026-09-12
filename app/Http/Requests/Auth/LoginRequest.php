@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Enums\ModerationState;
+use App\Models\User;
 use App\Services\TurnstileVerifier;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -45,11 +47,25 @@ class LoginRequest extends FormRequest
 
         app(TurnstileVerifier::class)->validate($this->input('cf-turnstile-response'), 'login');
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $validatedModerationState = null;
+
+        if (! Auth::attemptWhen(
+            $this->only('email', 'password'),
+            function (User $user) use (&$validatedModerationState): bool {
+                $validatedModerationState = $user->moderationState();
+
+                return $validatedModerationState?->allowsAuthentication() ?? false;
+            },
+            $this->boolean('remember'),
+        )) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => match ($validatedModerationState) {
+                    ModerationState::Suspended => trans('moderation.login.suspended'),
+                    ModerationState::Banned => trans('moderation.login.banned'),
+                    default => trans('auth.failed'),
+                },
             ]);
         }
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\ModerationState;
 use App\Enums\UserRole;
 use App\Services\LocalePreference;
 use Database\Factories\UserFactory;
@@ -17,7 +18,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'username', 'email', 'password', 'avatar', 'cover', 'bio'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'auth_session_version'])]
 class User extends Authenticatable implements FilamentUser, HasLocalePreference
 {
     /** @use HasFactory<UserFactory> */
@@ -32,6 +33,7 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
     {
         return [
             'email_verified_at' => 'datetime',
+            'moderation_state_changed_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -50,8 +52,55 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
     public function canAccessPanel(Panel $panel): bool
     {
         return $panel->getId() === 'admin'
-            && UserRole::tryFrom((string) $this->role) === UserRole::Administrator
-            && $this->hasVerifiedEmail();
+            && $this->isUsableAdministrator();
+    }
+
+    public function moderationState(): ?ModerationState
+    {
+        $state = $this->getAttribute('moderation_state');
+
+        return is_string($state) ? ModerationState::tryFrom($state) : null;
+    }
+
+    public function authSessionVersion(): ?int
+    {
+        $version = $this->getAttribute('auth_session_version');
+
+        if (is_int($version)) {
+            return $version >= 0 ? $version : null;
+        }
+
+        if (! is_string($version) || ! ctype_digit($version)) {
+            return null;
+        }
+
+        $validated = filter_var($version, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 0],
+        ]);
+
+        return $validated === false ? null : $validated;
+    }
+
+    public function canAuthenticate(): bool
+    {
+        return $this->moderationState()?->allowsAuthentication() ?? false;
+    }
+
+    public function canMaintainAuthenticatedSession(): bool
+    {
+        return $this->moderationState()?->allowsAuthenticatedSession() ?? false;
+    }
+
+    public function canPerformSocialWrites(): bool
+    {
+        return $this->moderationState()?->allowsSocialWrites() ?? false;
+    }
+
+    public function isUsableAdministrator(): bool
+    {
+        return UserRole::tryFrom((string) $this->role) === UserRole::Administrator
+            && $this->hasVerifiedEmail()
+            && $this->moderationState() === ModerationState::Active;
     }
 
     public function posts(): HasMany
