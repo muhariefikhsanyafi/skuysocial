@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\ModerationState;
 use App\Models\User;
 
 class UserPolicy
@@ -14,6 +15,13 @@ class UserPolicy
     public function view(User $user, User $model): bool
     {
         return $this->isVerifiedAdministrator($user);
+    }
+
+    public function moderate(User $actor, User $target): bool
+    {
+        return $actor->isUsableAdministrator()
+            && ! $actor->is($target)
+            && $target->moderationState() instanceof ModerationState;
     }
 
     public function create(User $user): bool

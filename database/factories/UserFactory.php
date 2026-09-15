@@ -34,6 +34,7 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
             'moderation_state' => ModerationState::Active->value,
+            'moderation_state_version' => 0,
             'auth_session_version' => 0,
         ];
     }

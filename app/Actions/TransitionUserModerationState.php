@@ -16,17 +16,29 @@ use OverflowException;
 
 class TransitionUserModerationState
 {
+    public const STALE_STATE_ERROR_CODE = 409;
+
     public function handle(
         User $actor,
         User $target,
         ModerationState $newState,
         ModerationReason $reasonCode,
         string $reasonText,
+        ?ModerationState $expectedPreviousState = null,
+        ?int $expectedPreviousVersion = null,
     ): ModerationEvent {
         $reasonText = trim($reasonText);
 
         if ($reasonText === '') {
             throw new InvalidArgumentException('A moderation reason is required.');
+        }
+
+        if (mb_strlen($reasonText) > 2000) {
+            throw new InvalidArgumentException('The moderation reason is too long.');
+        }
+
+        if ($expectedPreviousVersion !== null && $expectedPreviousVersion < 0) {
+            throw new InvalidArgumentException('The expected moderation state version is invalid.');
         }
 
         return DB::transaction(function () use (
@@ -35,6 +47,8 @@ class TransitionUserModerationState
             $newState,
             $reasonCode,
             $reasonText,
+            $expectedPreviousState,
+            $expectedPreviousVersion,
         ): ModerationEvent {
             $usableAdministrators = User::query()
                 ->where('role', UserRole::Administrator->value)
@@ -65,6 +79,28 @@ class TransitionUserModerationState
                 throw new DomainException('The stored moderation state is invalid.');
             }
 
+            $previousVersion = $lockedTarget->moderationStateVersion();
+
+            if ($previousVersion === null) {
+                throw new DomainException('The stored moderation state version is invalid.');
+            }
+
+            if (
+                (
+                    $expectedPreviousState instanceof ModerationState
+                    && $previousState !== $expectedPreviousState
+                )
+                || (
+                    $expectedPreviousVersion !== null
+                    && $previousVersion !== $expectedPreviousVersion
+                )
+            ) {
+                throw new DomainException(
+                    'The target moderation state changed before this transition was applied.',
+                    self::STALE_STATE_ERROR_CODE,
+                );
+            }
+
             if ($previousState === $newState) {
                 throw new DomainException('The moderation state is unchanged.');
             }
@@ -87,10 +123,15 @@ class TransitionUserModerationState
                 throw new DomainException('The stored authentication session version is invalid.');
             }
 
+            if ($previousVersion === PHP_INT_MAX) {
+                throw new OverflowException('The moderation state version cannot be incremented.');
+            }
+
             $changedAt = now();
             $updates = [
                 'moderation_state' => $newState->value,
                 'moderation_state_changed_at' => $changedAt,
+                'moderation_state_version' => $previousVersion + 1,
             ];
 
             if ($newState->revokesAuthenticatedAccess()) {

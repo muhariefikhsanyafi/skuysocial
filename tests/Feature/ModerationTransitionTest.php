@@ -36,12 +36,15 @@ class ModerationTransitionTest extends TestCase
             ModerationState::from($to),
             ModerationReason::PolicyViolation,
             'Reviewed moderation transition.',
+            expectedPreviousState: ModerationState::from($from),
+            expectedPreviousVersion: 0,
         );
 
         $target->refresh();
 
         $this->assertSame($to, $target->moderation_state);
         $this->assertNotNull($target->moderation_state_changed_at);
+        $this->assertSame(1, $target->moderationStateVersion());
         $this->assertSame(
             in_array($to, ['suspended', 'banned'], true) ? 1 : 0,
             $target->authSessionVersion(),
@@ -69,6 +72,7 @@ class ModerationTransitionTest extends TestCase
             $this->fail('A same-state transition should be rejected.');
         } catch (DomainException) {
             $this->assertSame(ModerationState::Active->value, $target->refresh()->moderation_state);
+            $this->assertSame(0, $target->moderationStateVersion());
             $this->assertDatabaseCount('moderation_events', 0);
         }
     }
@@ -87,6 +91,110 @@ class ModerationTransitionTest extends TestCase
             ModerationReason::Other,
             '   ',
         );
+    }
+
+    public function test_reason_text_longer_than_two_thousand_characters_is_rejected(): void
+    {
+        $actor = User::factory()->administrator()->create();
+        $target = User::factory()->create();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->transition()->handle(
+            $actor,
+            $target,
+            ModerationState::Restricted,
+            ModerationReason::Other,
+            str_repeat('x', 2001),
+        );
+    }
+
+    public function test_expected_previous_state_rejects_stale_transition_atomically(): void
+    {
+        $actor = User::factory()->administrator()->create();
+        $target = User::factory()->create();
+
+        $this->transition()->handle(
+            $actor,
+            $target,
+            ModerationState::Restricted,
+            ModerationReason::PolicyViolation,
+            'The first transition wins.',
+        );
+
+        try {
+            $this->transition()->handle(
+                $actor,
+                $target,
+                ModerationState::Suspended,
+                ModerationReason::SecurityAbuse,
+                'This stale transition must not apply.',
+                expectedPreviousState: ModerationState::Active,
+            );
+
+            $this->fail('A stale transition should be rejected.');
+        } catch (DomainException $exception) {
+            $this->assertSame(TransitionUserModerationState::STALE_STATE_ERROR_CODE, $exception->getCode());
+            $this->assertSame(ModerationState::Restricted->value, $target->refresh()->moderation_state);
+            $this->assertSame(1, $target->moderationStateVersion());
+            $this->assertDatabaseCount('moderation_events', 1);
+        }
+    }
+
+    public function test_expected_previous_version_rejects_an_aba_transition_atomically(): void
+    {
+        $actor = User::factory()->administrator()->create();
+        $target = User::factory()->create();
+        $transition = $this->transition();
+
+        $transition->handle(
+            $actor,
+            $target,
+            ModerationState::Restricted,
+            ModerationReason::PolicyViolation,
+            'First intervening transition.',
+            expectedPreviousState: ModerationState::Active,
+            expectedPreviousVersion: 0,
+        );
+
+        $this->assertSame(1, $target->refresh()->moderationStateVersion());
+
+        $transition->handle(
+            $actor,
+            $target,
+            ModerationState::Active,
+            ModerationReason::Other,
+            'Second intervening transition.',
+            expectedPreviousState: ModerationState::Restricted,
+            expectedPreviousVersion: 1,
+        );
+
+        $this->assertSame(2, $target->refresh()->moderationStateVersion());
+
+        try {
+            $transition->handle(
+                $actor,
+                $target,
+                ModerationState::Banned,
+                ModerationReason::SecurityAbuse,
+                'The stale ABA transition must not apply.',
+                expectedPreviousState: ModerationState::Active,
+                expectedPreviousVersion: 0,
+            );
+
+            $this->fail('An ABA-stale transition should be rejected.');
+        } catch (DomainException $exception) {
+            $target->refresh();
+
+            $this->assertSame(TransitionUserModerationState::STALE_STATE_ERROR_CODE, $exception->getCode());
+            $this->assertSame(ModerationState::Active->value, $target->moderation_state);
+            $this->assertSame(2, $target->moderationStateVersion());
+            $this->assertDatabaseCount('moderation_events', 2);
+            $this->assertDatabaseMissing('moderation_events', [
+                'target_user_id' => $target->id,
+                'reason_text' => 'The stale ABA transition must not apply.',
+            ]);
+        }
     }
 
     public function test_non_usable_actors_are_rejected(): void
@@ -321,6 +429,7 @@ class ModerationTransitionTest extends TestCase
             $this->assertSame('Simulated audit insert failure.', $exception->getMessage());
             $target->refresh();
             $this->assertSame(ModerationState::Active->value, $target->moderation_state);
+            $this->assertSame(0, $target->moderationStateVersion());
             $this->assertSame(0, $target->authSessionVersion());
             $this->assertDatabaseCount('moderation_events', 0);
         }

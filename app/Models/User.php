@@ -18,7 +18,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'username', 'email', 'password', 'avatar', 'cover', 'bio'])]
-#[Hidden(['password', 'remember_token', 'auth_session_version'])]
+#[Hidden(['password', 'remember_token', 'auth_session_version', 'moderation_state_version'])]
 class User extends Authenticatable implements FilamentUser, HasLocalePreference
 {
     /** @use HasFactory<UserFactory> */
@@ -81,6 +81,25 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
         return $validated === false ? null : $validated;
     }
 
+    public function moderationStateVersion(): ?int
+    {
+        $version = $this->getAttribute('moderation_state_version');
+
+        if (is_int($version)) {
+            return $version >= 0 ? $version : null;
+        }
+
+        if (! is_string($version) || ! ctype_digit($version)) {
+            return null;
+        }
+
+        $validated = filter_var($version, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 0],
+        ]);
+
+        return $validated === false ? null : $validated;
+    }
+
     public function canAuthenticate(): bool
     {
         return $this->moderationState()?->allowsAuthentication() ?? false;
@@ -106,6 +125,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function moderationEvents(): HasMany
+    {
+        return $this->hasMany(ModerationEvent::class, 'target_user_id');
     }
 
     public function bookmarks(): HasMany

@@ -32,6 +32,7 @@ class ModerationStateTest extends TestCase
         $this->assertSame(ModerationState::Active->value, $user->moderation_state);
         $this->assertSame(ModerationState::Active, $user->moderationState());
         $this->assertNull($user->moderation_state_changed_at);
+        $this->assertSame(0, $user->moderationStateVersion());
         $this->assertSame(0, $user->authSessionVersion());
     }
 
@@ -97,16 +98,19 @@ class ModerationStateTest extends TestCase
             'name' => 'Protected Fields',
             'moderation_state' => ModerationState::Banned->value,
             'moderation_state_changed_at' => now(),
+            'moderation_state_version' => 99,
             'auth_session_version' => 99,
         ]);
 
         $this->assertNull($user->moderation_state);
         $this->assertNull($user->moderation_state_changed_at);
+        $this->assertNull($user->moderation_state_version);
         $this->assertNull($user->auth_session_version);
 
         $persisted = User::factory()->create();
         $attributes = $persisted->toArray();
 
+        $this->assertArrayNotHasKey('moderation_state_version', $attributes);
         $this->assertArrayNotHasKey('auth_session_version', $attributes);
         $this->assertArrayNotHasKey('password', $attributes);
         $this->assertArrayNotHasKey('remember_token', $attributes);
@@ -158,6 +162,7 @@ class ModerationStateTest extends TestCase
             ->findOrFail($administrator->id);
 
         $this->assertNull($partial->moderationState());
+        $this->assertNull($partial->moderationStateVersion());
         $this->assertNull($partial->authSessionVersion());
         $this->assertFalse($partial->canAuthenticate());
         $this->assertFalse($partial->canPerformSocialWrites());

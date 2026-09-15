@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ModerationState;
 use App\Enums\UserRole;
 use App\Filament\Resources\UserResource\Pages\ListUsers;
 use App\Filament\Resources\UserResource\Pages\ViewUser;
+use App\Filament\Resources\UserResource\RelationManagers\ModerationEventsRelationManager;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\ViewAction;
@@ -60,6 +62,8 @@ class UserResource extends Resource
             'is_verified',
             'locale',
             'role',
+            'moderation_state',
+            'moderation_state_version',
             'bio',
             'created_at',
             'updated_at',
@@ -88,6 +92,13 @@ class UserResource extends Resource
                     ->state(fn (User $record): string => self::roleState($record->role))
                     ->formatStateUsing(fn (string $state): string => self::roleLabel($state))
                     ->color(fn (string $state): string => self::roleColor($state))
+                    ->badge()
+                    ->sortable(),
+                TextColumn::make('moderation_state')
+                    ->label(__('admin.columns.moderation_state'))
+                    ->state(fn (User $record): string => self::moderationState($record->moderation_state))
+                    ->formatStateUsing(fn (string $state): string => self::moderationStateLabel($state))
+                    ->color(fn (string $state): string => self::moderationStateColor($state))
                     ->badge()
                     ->sortable(),
                 TextColumn::make('email_verified_at')
@@ -124,6 +135,14 @@ class UserResource extends Resource
                     ->options([
                         UserRole::User->value => __('admin.values.user'),
                         UserRole::Administrator->value => __('admin.values.administrator'),
+                    ]),
+                SelectFilter::make('moderation_state')
+                    ->label(__('admin.filters.moderation_state'))
+                    ->options([
+                        ModerationState::Active->value => __('admin.moderation.states.active'),
+                        ModerationState::Restricted->value => __('admin.moderation.states.restricted'),
+                        ModerationState::Suspended->value => __('admin.moderation.states.suspended'),
+                        ModerationState::Banned->value => __('admin.moderation.states.banned'),
                     ]),
                 SelectFilter::make('email_verification')
                     ->label(__('admin.filters.email_verification'))
@@ -196,6 +215,12 @@ class UserResource extends Resource
                                     ->formatStateUsing(fn (string $state): string => self::roleLabel($state))
                                     ->color(fn (string $state): string => self::roleColor($state))
                                     ->badge(),
+                                TextEntry::make('moderation_state')
+                                    ->label(__('admin.columns.moderation_state'))
+                                    ->state(fn (User $record): string => self::moderationState($record->moderation_state))
+                                    ->formatStateUsing(fn (string $state): string => self::moderationStateLabel($state))
+                                    ->color(fn (string $state): string => self::moderationStateColor($state))
+                                    ->badge(),
                                 TextEntry::make('email_verified_at')
                                     ->label(__('admin.columns.email_verification'))
                                     ->state(fn (User $record): string => filled($record->email_verified_at) ? 'verified' : 'unverified')
@@ -246,6 +271,13 @@ class UserResource extends Resource
         ];
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            ModerationEventsRelationManager::class,
+        ];
+    }
+
     private static function roleState(mixed $state): string
     {
         return match (is_string($state) ? UserRole::tryFrom($state) : null) {
@@ -269,6 +301,34 @@ class UserResource extends Resource
         return match ($state) {
             UserRole::Administrator->value => 'warning',
             UserRole::User->value => 'gray',
+            default => 'danger',
+        };
+    }
+
+    private static function moderationState(mixed $state): string
+    {
+        return is_string($state) && ModerationState::tryFrom($state) instanceof ModerationState
+            ? $state
+            : 'unknown';
+    }
+
+    private static function moderationStateLabel(string $state): string
+    {
+        return match ($state) {
+            ModerationState::Active->value => __('admin.moderation.states.active'),
+            ModerationState::Restricted->value => __('admin.moderation.states.restricted'),
+            ModerationState::Suspended->value => __('admin.moderation.states.suspended'),
+            ModerationState::Banned->value => __('admin.moderation.states.banned'),
+            default => __('admin.values.unknown_state'),
+        };
+    }
+
+    private static function moderationStateColor(string $state): string
+    {
+        return match ($state) {
+            ModerationState::Active->value => 'success',
+            ModerationState::Restricted->value => 'warning',
+            ModerationState::Suspended->value, ModerationState::Banned->value => 'danger',
             default => 'danger',
         };
     }

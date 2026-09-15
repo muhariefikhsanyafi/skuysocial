@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ModerationState;
 use App\Enums\UserRole;
 use App\Filament\Resources\UserResource;
 use App\Filament\Resources\UserResource\Pages\ListUsers;
@@ -11,6 +12,7 @@ use Filament\Facades\Filament;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -110,6 +112,12 @@ class AdminUserDirectoryTest extends TestCase
             ->assertTableBulkActionDoesNotExist('delete')
             ->assertTableBulkActionDoesNotExist('forceDelete')
             ->assertTableBulkActionDoesNotExist('restore')
+            ->assertTableActionDoesNotExist('active_restrict')
+            ->assertTableActionDoesNotExist('active_suspend')
+            ->assertTableActionDoesNotExist('active_ban')
+            ->assertTableBulkActionDoesNotExist('active_restrict')
+            ->assertTableBulkActionDoesNotExist('active_suspend')
+            ->assertTableBulkActionDoesNotExist('active_ban')
             ->assertTableColumnExists('role', fn (TextColumn $column): bool => ! $column->isInline(), $user);
 
         $this->assertFalse(UserResource::canCreate());
@@ -265,6 +273,38 @@ class AdminUserDirectoryTest extends TestCase
             ->assertSee(__('admin.values.unknown_role'));
     }
 
+    public function test_moderation_state_filter_limits_results_and_state_is_read_only(): void
+    {
+        $administrator = User::factory()->administrator()->create();
+        $active = User::factory()->create([
+            'moderation_state' => ModerationState::Active->value,
+        ]);
+        $banned = User::factory()->create([
+            'moderation_state' => ModerationState::Banned->value,
+        ]);
+
+        $this->actingAs($administrator);
+
+        Livewire::test(ListUsers::class)
+            ->assertTableColumnExists('moderation_state', fn (TextColumn $column): bool => ! $column->isInline(), $active)
+            ->filterTable('moderation_state', ModerationState::Banned->value)
+            ->assertCanSeeTableRecords([$banned])
+            ->assertCanNotSeeTableRecords([$active]);
+    }
+
+    public function test_unknown_moderation_state_renders_as_a_safe_label(): void
+    {
+        $administrator = User::factory()->administrator()->create();
+        $unknownState = User::factory()->create();
+        $this->corruptModerationState($unknownState);
+
+        $this->actingAs($administrator);
+
+        Livewire::test(ListUsers::class)
+            ->assertCanSeeTableRecords([$unknownState])
+            ->assertSee(__('admin.values.unknown_state'));
+    }
+
     public function test_user_table_uses_bounded_pagination_and_newest_first_default_sort(): void
     {
         $administrator = User::factory()->administrator()->create();
@@ -317,5 +357,20 @@ class AdminUserDirectoryTest extends TestCase
             ->assertSee('Users')
             ->assertSee('Name')
             ->assertDontSee('Pengguna');
+    }
+
+    private function corruptModerationState(User $user): User
+    {
+        DB::statement('PRAGMA ignore_check_constraints = ON');
+
+        try {
+            DB::table('users')
+                ->where('id', $user->id)
+                ->update(['moderation_state' => 'invalid_state']);
+        } finally {
+            DB::statement('PRAGMA ignore_check_constraints = OFF');
+        }
+
+        return $user->refresh();
     }
 }
