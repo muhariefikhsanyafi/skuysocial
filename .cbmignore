@@ -1,0 +1,20 @@
+# SkuySocial Codebase MCP exclusions
+# Security / secrets
+.env
+.env.*
+
+# Protected local databases
+database/*.sqlite
+database/*.sqlite-*
+
+# Local archives / backups
+*.zip
+
+# Runtime, cache, logs, sessions, and generated output
+storage/
+bootstrap/cache/
+public/build/
+
+# Dependencies are not project source
+vendor/
+node_modules/
