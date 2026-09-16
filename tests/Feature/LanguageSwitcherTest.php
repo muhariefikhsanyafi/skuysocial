@@ -82,7 +82,7 @@ class LanguageSwitcherTest extends TestCase
 
     public function test_language_switcher_heading_tokens_are_scoped_to_the_app_variant(): void
     {
-        $defaultHeadingClass = 'border-b-2 border-black px-3 py-2 text-xs font-black uppercase dark:border-[#333333]';
+        $defaultHeadingClass = 'skuy-guest-language-menu__heading';
         $appHeadingClass = 'border-b border-[var(--skuy-border-subtle)] px-3 py-2 text-xs font-bold uppercase text-[var(--skuy-text-muted)]';
 
         foreach (['/', '/login'] as $path) {

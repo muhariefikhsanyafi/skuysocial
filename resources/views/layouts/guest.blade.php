@@ -5,28 +5,37 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ __('auth.common.page_title') }} - {{ config('app.name', 'SkuySocial') }}</title>
-        
+
+        <script>
+            const savedTheme = window.localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        </script>
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
-        
+        <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
+
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans text-gray-900 antialiased bg-blue-400 min-h-screen flex flex-col justify-center items-center p-4">
-        
-        <!-- Logo dan kontrol global -->
-        <header class="w-full sm:max-w-md mb-8 flex items-start justify-between gap-2 sm:gap-4">
-            <a href="/" class="font-black text-3xl sm:text-4xl text-black uppercase tracking-widest bg-white border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] px-4 sm:px-6 py-2 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all inline-block">
-                SkuySocial
-            </a>
-            <x-language-switcher />
-        </header>
+    <body class="skuy-product skuy-guest-surface antialiased">
+        <div
+            class="skuy-guest-shell"
+            x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
+            x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
+            x-effect="document.documentElement.classList.toggle('dark', darkMode)"
+        >
+            <x-guest-header />
 
-        <!-- Kotak Form Utama -->
-        <div class="w-full sm:max-w-md bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8">
-            {{ $slot }}
+            <main class="skuy-auth-main">
+                <div class="skuy-auth-panel">
+                    {{ $slot }}
+                </div>
+            </main>
         </div>
-        
     </body>
 </html>
