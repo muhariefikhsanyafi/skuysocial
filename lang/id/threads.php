@@ -15,6 +15,7 @@ return [
 
     'actions' => [
         'post' => 'Posting',
+        'open_options' => 'Buka opsi utas',
         'edit' => 'Edit',
         'delete' => 'Hapus',
         'cancel' => 'Batal',

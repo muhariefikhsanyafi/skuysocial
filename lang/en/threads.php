@@ -15,6 +15,7 @@ return [
 
     'actions' => [
         'post' => 'Post',
+        'open_options' => 'Open Thread options',
         'edit' => 'Edit',
         'delete' => 'Delete',
         'cancel' => 'Cancel',

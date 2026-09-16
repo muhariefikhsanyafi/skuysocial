@@ -25,7 +25,13 @@ class FeedTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('feed'));
 
-        $response->assertOk();
+        $response
+            ->assertOk()
+            ->assertSee('@'.$user->username, false)
+            ->assertDontSee('{{ Auth::user()->username }}', false)
+            ->assertSee('for="composer-topic"', false)
+            ->assertSee('id="composer-topic"', false)
+            ->assertDontSee('class="skuy-composer__topic-input" placeholder=', false);
         $response->assertViewHas('posts', function ($posts): bool {
             return $posts instanceof CursorPaginator;
         });
@@ -41,6 +47,7 @@ class FeedTest extends TestCase
             ->assertSee('name="images[]"', false)
             ->assertSee('multiple', false)
             ->assertSee('accept="image/*"', false)
+            ->assertSee('class="skuy-upload"', false)
             ->assertSee('selectedImages', false)
             ->assertSee('x-ref="imagesInput"', false)
             ->assertSee('@change="handleImageSelection($event)"', false)
@@ -60,6 +67,132 @@ class FeedTest extends TestCase
             ->assertSee('@keydown.escape.window="closeImage()"', false)
             ->assertSee(':aria-label="\'Hapus gambar \'', false)
             ->assertSee('Maksimal 4 gambar', false);
+    }
+
+    public function test_feed_input_boundaries_use_the_strong_semantic_border_token(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertIsString($css);
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-composer__topic-input\s*\{[^}]*border-bottom:\s*1px solid var\(--skuy-border-strong\)/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-upload\s*\{[^}]*border:\s*1px solid var\(--skuy-border-strong\)/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-inline-input\s*\{[^}]*border:\s*1px solid var\(--skuy-border-strong\)/s',
+            $css,
+        );
+    }
+
+    public function test_feed_post_options_menu_exposes_accessible_controls(): void
+    {
+        $owner = User::factory()->create();
+        $post = $this->createPost($owner);
+
+        $response = $this->actingAs($owner)->get(route('feed'));
+
+        $response
+            ->assertOk()
+            ->assertSee('id="post-options-trigger-'.$post->uid.'"', false)
+            ->assertSee('aria-label="'.__('threads.actions.open_options').'"', false)
+            ->assertSee('aria-expanded="false"', false)
+            ->assertSee(':aria-expanded="openOptions"', false)
+            ->assertSee('aria-controls="post-options-'.$post->uid.'"', false)
+            ->assertSee('id="post-options-'.$post->uid.'"', false)
+            ->assertSee('role="menu"', false)
+            ->assertSee('aria-labelledby="post-options-trigger-'.$post->uid.'"', false)
+            ->assertSee('role="menuitem"', false)
+            ->assertSee('@keydown.escape.window="if (openOptions) closeOptions(true)"', false)
+            ->assertSee(__('threads.actions.edit'))
+            ->assertSee(__('threads.actions.delete'))
+            ->assertDontSee('aria-label="'.__('threads.actions.edit').'"', false);
+    }
+
+    public function test_feed_mobile_actions_preserve_equal_slots_and_touch_width(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertIsString($css);
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-actions\s*\{[^}]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-actions\s*>\s*button\s*\{[^}]*min-width:\s*44px/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-action\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;/s',
+            $css,
+        );
+
+        $mobileStart = strpos($css, '@media (max-width: 767px)');
+        $mobileEnd = strpos($css, '@media (min-width: 640px)', $mobileStart === false ? 0 : $mobileStart);
+
+        $this->assertIsInt($mobileStart);
+        $this->assertIsInt($mobileEnd);
+
+        $mobileCss = substr($css, $mobileStart, $mobileEnd - $mobileStart);
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-action--dense-count\s*\{\s*gap:\s*0;\s*font-size:\s*0\.625rem;\s*\}/s',
+            $mobileCss,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-action--dense-count\s+svg\s*\{\s*width:\s*14px;\s*height:\s*14px;\s*\}/s',
+            $mobileCss,
+        );
+    }
+
+    public function test_feed_compacts_large_action_counts_without_losing_full_labels(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $cases = [
+            [[999, 1000, 12345], ['999', '1K', '12K'], 0],
+            [[123456, 999999, 1000000], ['123K', '999K', '1M'], 2],
+            [[12345678, 123456789, 999999999], ['12M', '123M', '999M'], 2],
+            [[1, 2, 10], ['1', '2', '10'], 0],
+        ];
+
+        foreach ($cases as [$counts, $visibleCounts, $denseCount]) {
+            [$likeCount, $commentCount, $repostCount] = $counts;
+            $post = $this->createPost($owner);
+
+            $post->setRelation('user', $owner);
+            $post->setRelation('feedComments', collect());
+            $post->setAttribute('likes_count', $likeCount);
+            $post->setAttribute('comments_count', $commentCount);
+            $post->setAttribute('reposts_count', $repostCount);
+            $post->setAttribute('root_comments_count', 0);
+            $post->setAttribute('liked_by_me', false);
+            $post->setAttribute('reposted_by_me', false);
+            $post->setAttribute('bookmarked_by_me', false);
+
+            $html = (string) $this->actingAs($viewer)
+                ->view('partials.feed-threads', ['posts' => collect([$post])]);
+
+            foreach ($visibleCounts as $visibleCount) {
+                $this->assertStringContainsString('>'.$visibleCount.'</span>', $html);
+            }
+
+            $this->assertSame($denseCount, substr_count($html, 'skuy-action--dense-count'));
+            $this->assertStringNotContainsString('>99K</span>', $html);
+            $this->assertStringNotContainsString('>99M</span>', $html);
+
+            foreach ([
+                __('threads.labels.like') => $likeCount,
+                __('threads.actions.reply') => $commentCount,
+                __('threads.actions.repost') => $repostCount,
+            ] as $label => $count) {
+                $accessibleLabel = $label.' ('.$count.')';
+                $this->assertStringContainsString('aria-label="'.$accessibleLabel.'"', $html);
+                $this->assertStringContainsString('title="'.$accessibleLabel.'"', $html);
+            }
+        }
     }
 
     public function test_text_only_post_creation_still_succeeds(): void
@@ -277,7 +410,7 @@ class FeedTest extends TestCase
             ->assertSee("'X-Feed-Fragment': '1'", false)
             ->assertSee("this.nextFeedUrl = batch.has_more ? batch.next_url : '';", false)
             ->assertSee('window.copyAndToast', false)
-            ->assertSee('bg-yellow-300 sm:bg-white', false)
+            ->assertSee('skuy-load-more', false)
             ->assertDontSee('history.pushState', false)
             ->assertDontSee('history.replaceState', false);
 

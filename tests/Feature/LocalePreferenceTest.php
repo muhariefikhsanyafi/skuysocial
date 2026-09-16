@@ -258,12 +258,13 @@ class LocalePreferenceTest extends TestCase
 
         $user = User::factory()->create(['locale' => 'en']);
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->withSession(['locale' => 'id'])
             ->withUnencryptedCookie($cookie->getName(), $cookie->getValue())
             ->get('/dashboard')
-            ->assertOk()
-            ->assertSee('<html lang="en"', false);
+            ->assertOk();
+
+        $this->assertRootLanguage($response, 'en');
 
         $this->assertSame('en', app()->getLocale());
         $this->assertSame('en', $user->fresh()->locale);
@@ -273,11 +274,12 @@ class LocalePreferenceTest extends TestCase
     {
         $user = User::factory()->create(['locale' => 'fr']);
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->withSession(['locale' => 'en'])
             ->get('/dashboard')
-            ->assertOk()
-            ->assertSee('<html lang="en"', false);
+            ->assertOk();
+
+        $this->assertRootLanguage($response, 'en');
 
         $this->assertSame('en', app()->getLocale());
         $this->assertSame('fr', $user->fresh()->locale);
@@ -288,13 +290,11 @@ class LocalePreferenceTest extends TestCase
         $englishUser = User::factory()->create(['locale' => 'en']);
         $indonesianUser = User::factory()->create(['locale' => 'id']);
 
-        $this->actingAs($englishUser)
-            ->get('/dashboard')
-            ->assertSee('<html lang="en"', false);
+        $englishResponse = $this->actingAs($englishUser)->get('/dashboard');
+        $this->assertRootLanguage($englishResponse, 'en');
 
-        $this->actingAs($indonesianUser)
-            ->get('/dashboard')
-            ->assertSee('<html lang="id"', false);
+        $indonesianResponse = $this->actingAs($indonesianUser)->get('/dashboard');
+        $this->assertRootLanguage($indonesianResponse, 'id');
 
         $this->assertSame('id', app()->getLocale());
     }
@@ -420,6 +420,14 @@ class LocalePreferenceTest extends TestCase
                 app('encrypter')->getKey(),
             ).$locale,
             Crypt::decrypt($cookie->getValue(), false),
+        );
+    }
+
+    private function assertRootLanguage($response, string $locale): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\A<!DOCTYPE html>\s*<html\s+lang="'.preg_quote($locale, '/').'"(?:\s|>)/',
+            $response->getContent(),
         );
     }
 }

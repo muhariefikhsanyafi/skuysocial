@@ -60,7 +60,7 @@ class LanguageSwitcherTest extends TestCase
                 ->assertSee('aria-current="true"', false);
 
             $this->assertSame(1, substr_count($response->getContent(), 'aria-pressed="true"'));
-            $this->assertSame(1, substr_count($response->getContent(), 'aria-haspopup="menu"'));
+            $this->assertSame(1, substr_count($response->getContent(), 'aria-controls="language-menu-'));
             $this->assertStringNotContainsString('>Bahasa Indonesia<', $response->getContent());
         }
     }
@@ -78,6 +78,28 @@ class LanguageSwitcherTest extends TestCase
 
             $this->assertSame(1, substr_count($response->getContent(), 'aria-haspopup="menu"'));
         }
+    }
+
+    public function test_language_switcher_heading_tokens_are_scoped_to_the_app_variant(): void
+    {
+        $defaultHeadingClass = 'border-b-2 border-black px-3 py-2 text-xs font-black uppercase dark:border-[#333333]';
+        $appHeadingClass = 'border-b border-[var(--skuy-border-subtle)] px-3 py-2 text-xs font-bold uppercase text-[var(--skuy-text-muted)]';
+
+        foreach (['/', '/login'] as $path) {
+            $response = $this->withSession(['locale' => 'id'])->get($path);
+
+            $response
+                ->assertOk()
+                ->assertSee($defaultHeadingClass, false)
+                ->assertDontSee($appHeadingClass, false);
+        }
+
+        $appResponse = $this->actingAs(User::factory()->create())->get('/dashboard');
+
+        $appResponse
+            ->assertOk()
+            ->assertSee($appHeadingClass, false)
+            ->assertDontSee($defaultHeadingClass, false);
     }
 
     public function test_fresh_guest_uses_the_configured_default_without_saved_preference(): void
@@ -163,9 +185,10 @@ class LanguageSwitcherTest extends TestCase
         foreach ($settingsUrls as $settingsUrl) {
             $response = $this->actingAs($user)->get($settingsUrl);
 
+            $response->assertOk();
+            $this->assertRootLanguage($response, 'en');
+
             $response
-                ->assertOk()
-                ->assertSee('<html lang="en"', false)
                 ->assertSee('action="'.route('locale.update').'"', false)
                 ->assertSee('name="locale"', false)
                 ->assertSee('value="id"', false)
@@ -176,7 +199,7 @@ class LanguageSwitcherTest extends TestCase
                 ->assertDontSee('grid gap-4 sm:grid-cols-2', false)
                 ->assertDontSee('name="user_id"', false);
 
-            $this->assertSame(1, substr_count($response->getContent(), 'aria-haspopup="menu"'));
+            $this->assertSame(1, substr_count($response->getContent(), 'aria-controls="language-menu-'));
         }
     }
 
@@ -192,7 +215,7 @@ class LanguageSwitcherTest extends TestCase
             ->assertSee('aria-haspopup="menu"', false)
             ->assertDontSee('grid gap-4 sm:grid-cols-2', false);
 
-        $this->assertSame(1, substr_count($response->getContent(), 'aria-haspopup="menu"'));
+        $this->assertSame(1, substr_count($response->getContent(), 'aria-controls="language-menu-'));
     }
 
     public function test_authenticated_switch_updates_only_the_current_user_and_preserves_local_return(): void
@@ -241,5 +264,13 @@ class LanguageSwitcherTest extends TestCase
         ])
             ->assertRedirect('/')
             ->assertSessionHasErrors('return_to');
+    }
+
+    private function assertRootLanguage($response, string $locale): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\A<!DOCTYPE html>\s*<html\s+lang="'.preg_quote($locale, '/').'"(?:\s|>)/',
+            $response->getContent(),
+        );
     }
 }

@@ -30,9 +30,17 @@ class NavigationTest extends TestCase
         $this->assertStringContainsString('aria-controls="mobile-profile-menu"', $html);
         $this->assertStringContainsString(':aria-expanded="open"', $html);
         $this->assertStringContainsString(":aria-label=\"open ? 'Tutup menu profil' : 'Buka menu profil'\"", $html);
+        $this->assertStringContainsString('id="desktop-profile-trigger"', $html);
+        $this->assertStringContainsString('aria-controls="desktop-profile-menu"', $html);
+        $this->assertStringContainsString('id="desktop-profile-menu"', $html);
+        $this->assertStringContainsString('aria-labelledby="desktop-profile-trigger"', $html);
+        $this->assertStringContainsString('role="menu"', $html);
+        $this->assertStringContainsString('role="menuitem"', $html);
+        $this->assertStringContainsString('@keydown.escape.window="if (open) closeMenu(true)"', $html);
         $this->assertStringContainsString('aria-label="Cari"', $html);
         $this->assertStringContainsString('aria-label="Aktivitas"', $html);
         $this->assertStringContainsString('aria-label="Profil"', $html);
+        $this->assertStringContainsString('skuy-profile-icon', $html);
         $this->assertStringContainsString('aria-label="Buat utas"', $html);
         $this->assertStringContainsString(':aria-pressed="darkMode"', $html);
         $this->assertStringContainsString(":aria-label=\"darkMode ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'\"", $html);
@@ -40,7 +48,7 @@ class NavigationTest extends TestCase
         $this->assertDoesNotMatchRegularExpression('/href="'.preg_quote(route('search'), '/').'"[^>]*aria-current="page"/', $html);
         $this->assertDoesNotMatchRegularExpression('/href="'.preg_quote(route('activity.index'), '/').'"[^>]*aria-current="page"/', $html);
 
-        $bottomNavStart = strpos($html, '<!-- BOTTOM NAVIGATION BAR');
+        $bottomNavStart = strpos($html, '<nav class="skuy-mobile-nav"');
         $this->assertNotFalse($bottomNavStart);
         $this->assertStringNotContainsString(route('bookmarks.index'), substr($html, $bottomNavStart));
 
@@ -48,8 +56,8 @@ class NavigationTest extends TestCase
         $this->assertNotFalse($mobileNavigationStart);
         $this->assertStringContainsString(route('bookmarks.index'), substr($html, $mobileNavigationStart));
 
-        $desktopDropdownStart = strpos($html, '<!-- Tombol Dropdown Profil (Desktop) -->');
-        $mobileProfileStart = strpos($html, '<!-- Hamburger Menu Profil (HP) -->');
+        $desktopDropdownStart = strpos($html, 'class="skuy-profile-trigger"');
+        $mobileProfileStart = strpos($html, 'id="mobile-profile-menu"');
         $this->assertNotFalse($desktopDropdownStart);
         $this->assertNotFalse($mobileProfileStart);
         $this->assertStringNotContainsString(route('bookmarks.index'), substr($html, $desktopDropdownStart, $mobileProfileStart - $desktopDropdownStart));

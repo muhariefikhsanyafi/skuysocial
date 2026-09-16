@@ -527,7 +527,7 @@ class SearchActivityPerformanceTest extends TestCase
 
         $response->assertOk();
         $this->assertSame(2, $response->viewData('unreadNotificationCount'));
-        $response->assertSee('bg-red-500', false);
+        $response->assertSee('skuy-feed-nav__badge', false);
         $response->assertSee('2', false);
     }
 

@@ -69,9 +69,8 @@ class ApplicationLocalizationTest extends TestCase
         foreach ($cases as $locale => $copy) {
             $response = $this->withSession(['locale' => $locale])->get('/');
 
-            $response
-                ->assertOk()
-                ->assertSee('<html lang="'.$locale.'">', false);
+            $response->assertOk();
+            $this->assertRootLanguage($response, $locale);
 
             foreach ($copy['expected'] as $expected) {
                 $response->assertSeeText($expected);
@@ -341,10 +340,17 @@ class ApplicationLocalizationTest extends TestCase
             ->withSession(['locale' => $conflictingLocale])
             ->get($url);
 
-        $response
-            ->assertOk()
-            ->assertSee('<html lang="'.$locale.'"', false);
+        $response->assertOk();
+        $this->assertRootLanguage($response, $locale);
 
         return $response;
+    }
+
+    private function assertRootLanguage($response, string $locale): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\A<!DOCTYPE html>\s*<html\s+lang="'.preg_quote($locale, '/').'"(?:\s|>)/',
+            $response->getContent(),
+        );
     }
 }
