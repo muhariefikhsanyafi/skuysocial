@@ -11,34 +11,27 @@
             @csrf
 
             <div class="skuy-auth-field">
-                <label for="email" class="skuy-auth-label">{{ __('auth.login.email_label') }}</label>
+                <label for="email" class="skuy-auth-label">{{ __('auth.login.identifier_label') }}</label>
                 <input
                     id="email"
-                    type="email"
+                    type="text"
                     name="email"
                     value="{{ old('email') }}"
                     required
                     autofocus
-                    autocomplete="email"
+                    autocomplete="username"
                     @if ($errors->has('email')) aria-describedby="email-error" aria-invalid="true" @endif
                     class="skuy-auth-input"
                 >
                 <x-input-error variant="auth" :messages="$errors->get('email')" id="email-error" />
             </div>
 
-            <div class="skuy-auth-field">
-                <label for="password" class="skuy-auth-label">{{ __('auth.login.password_label') }}</label>
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    required
-                    autocomplete="current-password"
-                    @if ($errors->has('password')) aria-describedby="password-error" aria-invalid="true" @endif
-                    class="skuy-auth-input"
-                >
-                <x-input-error variant="auth" :messages="$errors->get('password')" id="password-error" />
-            </div>
+            <x-auth-password-field
+                id="password"
+                name="password"
+                :label="__('auth.login.password_label')"
+                autocomplete="current-password"
+            />
 
             @if (Route::has('password.request'))
                 <div class="skuy-auth-utility">

@@ -12,13 +12,15 @@ return [
         'email_address' => 'EMAIL ADDRESS',
         'password' => 'PASSWORD',
         'password_confirmation' => 'CONFIRM PASSWORD',
+        'show_password' => 'Show password',
+        'hide_password' => 'Hide password',
         'log_out' => 'LOG OUT',
     ],
 
     'login' => [
         'title' => 'Sign in to SkuySocial',
         'intro' => 'Continue the conversations you follow.',
-        'email_label' => 'Email address',
+        'identifier_label' => 'Email or username',
         'password_label' => 'Password',
         'forgot_password' => 'Forgot password?',
         'no_account' => "Don't have an account?",
@@ -27,11 +29,18 @@ return [
     ],
 
     'register' => [
-        'title' => 'Create Account',
+        'title' => 'Create your SkuySocial account',
+        'intro' => 'Start conversations and find topics you want to follow.',
+        'name_label' => 'Name',
+        'username_label' => 'Username',
         'username_hint' => '(no spaces)',
         'username_format_hint' => 'Username cannot contain spaces.',
+        'email_label' => 'Email address',
+        'password_label' => 'Password',
+        'password_confirmation_label' => 'Confirm password',
         'has_account' => 'Already have an account?',
-        'submit' => 'SIGN UP',
+        'sign_in' => 'Sign in',
+        'submit' => 'Create account',
     ],
 
     'forgot_password' => [

@@ -32,14 +32,20 @@ class AuthenticationTest extends TestCase
             ->assertSee('method="POST"', false)
             ->assertSee('name="_token"', false)
             ->assertSee('name="email"', false)
-            ->assertSee('type="email"', false)
-            ->assertSee('autocomplete="email"', false)
+            ->assertSee('type="text"', false)
+            ->assertSee('autocomplete="username"', false)
             ->assertSee('name="password"', false)
             ->assertSee('type="password"', false)
             ->assertSee('autocomplete="current-password"', false)
+            ->assertSee('class="skuy-auth-password-toggle"', false)
+            ->assertSee('type="button"', false)
+            ->assertSee('aria-pressed="false"', false)
             ->assertSee('href="'.route('password.request').'"', false)
             ->assertSee('href="'.route('register').'"', false);
 
+        $this->assertSame(1, substr_count($content, 'class="skuy-auth-password-toggle"'));
+        $this->assertSame(1, substr_count($content, 'type="password"'));
+        $this->assertSame(1, substr_count($content, 'x-data="{ visible: false }"'));
         $this->assertSame(1, $headingCount);
     }
 
@@ -49,8 +55,10 @@ class AuthenticationTest extends TestCase
             ->get(route('login'))
             ->assertSeeText('Masuk ke SkuySocial')
             ->assertSeeText('Lanjutkan percakapan yang kamu ikuti.')
-            ->assertSeeText('Alamat email')
+            ->assertSeeText('Email atau nama pengguna')
             ->assertSeeText('Kata sandi')
+            ->assertSee('aria-label="Tampilkan kata sandi"', false)
+            ->assertSee('data-hide-label="Sembunyikan kata sandi"', false)
             ->assertSeeText('Masuk')
             ->assertSeeText('Belum memiliki akun?')
             ->assertSeeText('Buat akun');
@@ -62,8 +70,10 @@ class AuthenticationTest extends TestCase
             ->get(route('login'))
             ->assertSeeText('Sign in to SkuySocial')
             ->assertSeeText('Continue the conversations you follow.')
-            ->assertSeeText('Email address')
+            ->assertSeeText('Email or username')
             ->assertSeeText('Password')
+            ->assertSee('aria-label="Show password"', false)
+            ->assertSee('data-hide-label="Hide password"', false)
             ->assertSeeText('Sign in')
             ->assertSeeText("Don't have an account?")
             ->assertSeeText('Create account');
@@ -73,7 +83,7 @@ class AuthenticationTest extends TestCase
     {
         $this->from(route('login'))
             ->post(route('login'), [
-                'email' => 'not-an-email',
+                'email' => '',
                 'password' => '',
             ])
             ->assertRedirect(route('login'));
@@ -98,6 +108,62 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_users_can_authenticate_using_a_registered_username_with_canonical_case(): void
+    {
+        $user = User::factory()->create(['username' => 'login_username']);
+
+        $response = $this->post('/login', [
+            'email' => 'LOGIN_USERNAME',
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_wrong_password_with_a_username_gets_the_generic_failure(): void
+    {
+        $user = User::factory()->create(['username' => 'wrong_password_user']);
+
+        $this->from(route('login'))
+            ->post(route('login'), [
+                'email' => $user->username,
+                'password' => 'wrong-password',
+            ])
+            ->assertSessionHasErrors(['email' => trans('auth.failed')])
+            ->assertRedirect(route('login'));
+
+        $this->assertGuest();
+    }
+
+    public function test_nonexistent_email_and_username_identifiers_get_the_same_generic_failure(): void
+    {
+        foreach (['missing-account@example.com', 'missing_account'] as $identifier) {
+            $this->from(route('login'))
+                ->post(route('login'), [
+                    'email' => $identifier,
+                    'password' => 'password',
+                ])
+                ->assertSessionHasErrors(['email' => trans('auth.failed')])
+                ->assertRedirect(route('login'));
+
+            $this->assertGuest();
+        }
+    }
+
+    public function test_login_identifier_is_preserved_after_validation_failure(): void
+    {
+        $this->from(route('login'))
+            ->post(route('login'), [
+                'email' => 'remember_this_identifier',
+                'password' => '',
+            ])
+            ->assertRedirect(route('login'));
+
+        $this->get(route('login'))
+            ->assertSee('value="remember_this_identifier"', false);
     }
 
     public function test_stored_english_locale_overrides_stale_guest_preferences_after_login(): void

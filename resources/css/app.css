@@ -1767,6 +1767,50 @@
         border-color: var(--skuy-danger);
     }
 
+    .skuy-auth-password-control {
+        position: relative;
+        min-width: 0;
+    }
+
+    .skuy-auth-password-input {
+        padding-inline-end: 60px;
+    }
+
+    .skuy-auth-password-toggle {
+        position: absolute;
+        inset-block: 2px;
+        inset-inline-end: 2px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        min-height: 44px;
+        padding: 0;
+        border: 1px solid transparent;
+        border-radius: var(--radius-small, 8px);
+        background: transparent;
+        color: var(--skuy-text-secondary);
+        cursor: pointer;
+        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .skuy-auth-password-toggle:hover {
+        border-color: var(--skuy-border-subtle);
+        background: var(--skuy-surface-subtle);
+        color: var(--skuy-text-primary);
+    }
+
+    .skuy-auth-password-toggle:active {
+        background: var(--skuy-selected);
+        color: var(--skuy-on-selected);
+    }
+
+    .skuy-auth-password-icon {
+        width: 20px;
+        height: 20px;
+        flex: 0 0 auto;
+    }
+
     .skuy-auth-error {
         display: flex;
         flex-direction: column;

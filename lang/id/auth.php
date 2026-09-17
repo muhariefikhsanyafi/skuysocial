@@ -12,13 +12,15 @@ return [
         'email_address' => 'ALAMAT EMAIL',
         'password' => 'KATA SANDI',
         'password_confirmation' => 'KONFIRMASI KATA SANDI',
+        'show_password' => 'Tampilkan kata sandi',
+        'hide_password' => 'Sembunyikan kata sandi',
         'log_out' => 'KELUAR',
     ],
 
     'login' => [
         'title' => 'Masuk ke SkuySocial',
         'intro' => 'Lanjutkan percakapan yang kamu ikuti.',
-        'email_label' => 'Alamat email',
+        'identifier_label' => 'Email atau nama pengguna',
         'password_label' => 'Kata sandi',
         'forgot_password' => 'Lupa kata sandi?',
         'no_account' => 'Belum memiliki akun?',
@@ -27,11 +29,18 @@ return [
     ],
 
     'register' => [
-        'title' => 'Daftar',
+        'title' => 'Buat akun SkuySocial',
+        'intro' => 'Mulai percakapan dan temukan topik yang ingin kamu ikuti.',
+        'name_label' => 'Nama',
+        'username_label' => 'Nama pengguna',
         'username_hint' => '(tanpa spasi)',
         'username_format_hint' => 'Nama pengguna tidak boleh menggunakan spasi.',
-        'has_account' => 'Sudah memiliki akun?',
-        'submit' => 'DAFTAR',
+        'email_label' => 'Alamat email',
+        'password_label' => 'Kata sandi',
+        'password_confirmation_label' => 'Konfirmasi kata sandi',
+        'has_account' => 'Sudah punya akun?',
+        'sign_in' => 'Masuk',
+        'submit' => 'Buat akun',
     ],
 
     'forgot_password' => [

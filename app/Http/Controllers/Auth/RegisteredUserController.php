@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\ModerationState;
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\LocalePreference;
@@ -58,6 +60,11 @@ class RegisteredUserController extends Controller
         ]);
         $locale = $locales->currentLocale();
         $user->locale = $locale;
+        $user->role = UserRole::User->value;
+        $user->moderation_state = ModerationState::Active->value;
+        $user->moderation_state_changed_at = null;
+        $user->moderation_state_version = 0;
+        $user->auth_session_version = 0;
         $user->save();
         $user->refresh();
 

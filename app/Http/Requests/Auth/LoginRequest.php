@@ -31,7 +31,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -50,7 +50,7 @@ class LoginRequest extends FormRequest
         $validatedModerationState = null;
 
         if (! Auth::attemptWhen(
-            $this->only('email', 'password'),
+            $this->loginCredentials(),
             function (User $user) use (&$validatedModerationState): bool {
                 $validatedModerationState = $user->moderationState();
 
@@ -70,6 +70,29 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    /**
+     * Resolve the submitted value against the existing email or username contract.
+     *
+     * @return array{email?: string, username?: string, password: string}
+     */
+    private function loginCredentials(): array
+    {
+        $identifier = $this->string('email')->toString();
+        $password = $this->string('password')->toString();
+
+        if (str_contains($identifier, '@')) {
+            return [
+                'email' => $identifier,
+                'password' => $password,
+            ];
+        }
+
+        return [
+            'username' => strtolower($identifier),
+            'password' => $password,
+        ];
     }
 
     /**
