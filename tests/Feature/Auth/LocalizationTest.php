@@ -29,12 +29,14 @@ class LocalizationTest extends TestCase
     {
         $this->get('/login')
             ->assertOk()
-            ->assertSee('ALAMAT EMAIL')
-            ->assertSee('KATA SANDI')
+            ->assertSee('Masuk ke SkuySocial')
+            ->assertSee('Lanjutkan percakapan yang kamu ikuti.')
+            ->assertSee('Alamat email')
+            ->assertSee('Kata sandi')
             ->assertSee('Lupa kata sandi?')
             ->assertSee('Belum memiliki akun?')
-            ->assertSee('MASUK')
-            ->assertSee('DAFTAR');
+            ->assertSee('Masuk')
+            ->assertSee('Buat akun');
 
         $this->get('/register')
             ->assertOk()
@@ -151,12 +153,14 @@ class LocalizationTest extends TestCase
             ->get('/login')
             ->assertOk()
             ->assertSee('<html lang="id">', false)
-            ->assertSeeText('ALAMAT EMAIL')
-            ->assertSeeText('KATA SANDI')
+            ->assertSeeText('Masuk ke SkuySocial')
+            ->assertSeeText('Lanjutkan percakapan yang kamu ikuti.')
+            ->assertSeeText('Alamat email')
+            ->assertSeeText('Kata sandi')
             ->assertSeeText('Lupa kata sandi?')
             ->assertSeeText('Belum memiliki akun?')
-            ->assertSeeText('MASUK')
-            ->assertSeeText('DAFTAR')
+            ->assertSeeText('Masuk')
+            ->assertSeeText('Buat akun')
             ->assertDontSeeText('Forgot password?');
 
         $this->get('/register')
@@ -206,12 +210,14 @@ class LocalizationTest extends TestCase
             ->get('/login')
             ->assertOk()
             ->assertSee('<html lang="en">', false)
-            ->assertSeeText('EMAIL ADDRESS')
-            ->assertSeeText('PASSWORD')
+            ->assertSeeText('Sign in to SkuySocial')
+            ->assertSeeText('Continue the conversations you follow.')
+            ->assertSeeText('Email address')
+            ->assertSeeText('Password')
             ->assertSeeText('Forgot password?')
             ->assertSeeText("Don't have an account?")
-            ->assertSeeText('SIGN IN')
-            ->assertSeeText('SIGN UP')
+            ->assertSeeText('Sign in')
+            ->assertSeeText('Create account')
             ->assertDontSeeText('Lupa kata sandi?');
 
         $this->get('/register')

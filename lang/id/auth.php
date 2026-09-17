@@ -16,11 +16,14 @@ return [
     ],
 
     'login' => [
-        'title' => 'Masuk',
+        'title' => 'Masuk ke SkuySocial',
+        'intro' => 'Lanjutkan percakapan yang kamu ikuti.',
+        'email_label' => 'Alamat email',
+        'password_label' => 'Kata sandi',
         'forgot_password' => 'Lupa kata sandi?',
         'no_account' => 'Belum memiliki akun?',
-        'submit' => 'MASUK',
-        'register' => 'DAFTAR',
+        'submit' => 'Masuk',
+        'register' => 'Buat akun',
     ],
 
     'register' => [

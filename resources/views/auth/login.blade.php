@@ -1,45 +1,67 @@
 <x-guest-layout>
-    <!-- Pesan Error (Jika Ada) -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <form method="POST" action="{{ route('login') }}" class="space-y-6">
-        @csrf
-        
-        <!-- Email -->
-        <div>
-            <label for="email" class="block font-black text-black uppercase text-sm mb-1">{{ __('auth.common.email_address') }}</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" class="w-full border-4 border-black p-3 font-bold focus:ring-0 focus:outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-yellow-50 focus:bg-yellow-200 transition-colors">
-            <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-600 font-bold" />
+    <section class="skuy-auth-content" aria-labelledby="login-heading">
+        <div class="skuy-auth-intro">
+            <h1 id="login-heading" class="skuy-auth-heading">{{ __('auth.login.title') }}</h1>
+            <p class="skuy-auth-intro__copy">{{ __('auth.login.intro') }}</p>
         </div>
 
-        <!-- Password -->
-        <div>
-            <label for="password" class="block font-black text-black uppercase text-sm mb-1">{{ __('auth.common.password') }}</label>
-            <input id="password" type="password" name="password" required autocomplete="current-password" class="w-full border-4 border-black p-3 font-bold focus:ring-0 focus:outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-yellow-50 focus:bg-yellow-200 transition-colors">
-            <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-600 font-bold" />
-        </div>
+        <x-auth-session-status variant="auth" :status="session('status')" />
 
-        <x-turnstile action="login" />
+        <form method="POST" action="{{ route('login') }}" class="skuy-auth-form">
+            @csrf
 
-        <!-- Tombol Aksi -->
-        <div class="flex items-center justify-between mt-6">
+            <div class="skuy-auth-field">
+                <label for="email" class="skuy-auth-label">{{ __('auth.login.email_label') }}</label>
+                <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    value="{{ old('email') }}"
+                    required
+                    autofocus
+                    autocomplete="email"
+                    @if ($errors->has('email')) aria-describedby="email-error" aria-invalid="true" @endif
+                    class="skuy-auth-input"
+                >
+                <x-input-error variant="auth" :messages="$errors->get('email')" id="email-error" />
+            </div>
+
+            <div class="skuy-auth-field">
+                <label for="password" class="skuy-auth-label">{{ __('auth.login.password_label') }}</label>
+                <input
+                    id="password"
+                    type="password"
+                    name="password"
+                    required
+                    autocomplete="current-password"
+                    @if ($errors->has('password')) aria-describedby="password-error" aria-invalid="true" @endif
+                    class="skuy-auth-input"
+                >
+                <x-input-error variant="auth" :messages="$errors->get('password')" id="password-error" />
+            </div>
+
             @if (Route::has('password.request'))
-                <a class="text-sm font-bold text-black hover:underline hover:decoration-4 hover:decoration-pink-400 transition-all" href="{{ route('password.request') }}">
-                    {{ __('auth.login.forgot_password') }}
-                </a>
+                <div class="skuy-auth-utility">
+                    <a class="skuy-auth-link" href="{{ route('password.request') }}">
+                        {{ __('auth.login.forgot_password') }}
+                    </a>
+                </div>
             @endif
 
-            <button type="submit" class="bg-pink-400 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[6px] hover:translate-x-[6px] font-black uppercase px-8 py-3 text-black transition-all text-lg">
+            <div class="skuy-auth-turnstile">
+                <x-turnstile action="login" />
+            </div>
+
+            <button type="submit" class="skuy-auth-primary-action">
                 {{ __('auth.login.submit') }}
             </button>
-        </div>
-        
-        <!-- Link Daftar -->
-        <div class="text-center mt-8 border-t-4 border-black pt-6">
-            <p class="font-bold text-sm text-gray-700">{{ __('auth.login.no_account') }}</p>
-            <a href="{{ route('register') }}" class="inline-block mt-3 bg-yellow-300 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] font-black uppercase px-6 py-3 text-black transition-all w-full text-center">
-                {{ __('auth.login.register') }}
-            </a>
-        </div>
-    </form>
+
+            <p class="skuy-auth-signup">
+                <span>{{ __('auth.login.no_account') }}</span>
+                <a class="skuy-auth-signup__link" href="{{ route('register') }}">
+                    {{ __('auth.login.register') }}
+                </a>
+            </p>
+        </form>
+    </section>
 </x-guest-layout>

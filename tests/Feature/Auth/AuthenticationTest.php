@@ -20,6 +20,73 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_login_screen_exposes_the_expected_accessible_auth_structure(): void
+    {
+        $response = $this->get(route('login'));
+        $content = $response->getContent();
+        $headingCount = preg_match_all('/<h1\b/i', $content, $headings);
+
+        $response
+            ->assertOk()
+            ->assertSee('action="'.route('login').'"', false)
+            ->assertSee('method="POST"', false)
+            ->assertSee('name="_token"', false)
+            ->assertSee('name="email"', false)
+            ->assertSee('type="email"', false)
+            ->assertSee('autocomplete="email"', false)
+            ->assertSee('name="password"', false)
+            ->assertSee('type="password"', false)
+            ->assertSee('autocomplete="current-password"', false)
+            ->assertSee('href="'.route('password.request').'"', false)
+            ->assertSee('href="'.route('register').'"', false);
+
+        $this->assertSame(1, $headingCount);
+    }
+
+    public function test_login_screen_uses_indonesian_copy(): void
+    {
+        $this->withSession(['locale' => 'id'])
+            ->get(route('login'))
+            ->assertSeeText('Masuk ke SkuySocial')
+            ->assertSeeText('Lanjutkan percakapan yang kamu ikuti.')
+            ->assertSeeText('Alamat email')
+            ->assertSeeText('Kata sandi')
+            ->assertSeeText('Masuk')
+            ->assertSeeText('Belum memiliki akun?')
+            ->assertSeeText('Buat akun');
+    }
+
+    public function test_login_screen_uses_english_copy(): void
+    {
+        $this->withSession(['locale' => 'en'])
+            ->get(route('login'))
+            ->assertSeeText('Sign in to SkuySocial')
+            ->assertSeeText('Continue the conversations you follow.')
+            ->assertSeeText('Email address')
+            ->assertSeeText('Password')
+            ->assertSeeText('Sign in')
+            ->assertSeeText("Don't have an account?")
+            ->assertSeeText('Create account');
+    }
+
+    public function test_login_field_errors_are_associated_with_their_inputs(): void
+    {
+        $this->from(route('login'))
+            ->post(route('login'), [
+                'email' => 'not-an-email',
+                'password' => '',
+            ])
+            ->assertRedirect(route('login'));
+
+        $this->get(route('login'))
+            ->assertSee('aria-invalid="true"', false)
+            ->assertSee('aria-describedby="email-error"', false)
+            ->assertSee('aria-describedby="password-error"', false)
+            ->assertSee('id="email-error"', false)
+            ->assertSee('id="password-error"', false)
+            ->assertSee('role="alert"', false);
+    }
+
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();

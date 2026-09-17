@@ -16,11 +16,14 @@ return [
     ],
 
     'login' => [
-        'title' => 'Sign In',
+        'title' => 'Sign in to SkuySocial',
+        'intro' => 'Continue the conversations you follow.',
+        'email_label' => 'Email address',
+        'password_label' => 'Password',
         'forgot_password' => 'Forgot password?',
         'no_account' => "Don't have an account?",
-        'submit' => 'SIGN IN',
-        'register' => 'SIGN UP',
+        'submit' => 'Sign in',
+        'register' => 'Create account',
     ],
 
     'register' => [
