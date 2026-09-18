@@ -44,10 +44,11 @@ return [
     ],
 
     'forgot_password' => [
-        'title' => 'Lupa Kata Sandi',
-        'intro' => 'Masukkan alamat email Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.',
-        'back_to_login' => 'Kembali ke Halaman Masuk',
-        'submit' => 'KIRIM TAUTAN ATUR ULANG',
+        'title' => 'Lupa kata sandi?',
+        'intro' => 'Masukkan alamat email akunmu. Kami akan mengirim tautan untuk mengatur ulang kata sandi.',
+        'email_label' => 'Alamat email',
+        'back_to_login' => 'Kembali ke masuk',
+        'submit' => 'Kirim tautan reset',
     ],
 
     'reset_password' => [

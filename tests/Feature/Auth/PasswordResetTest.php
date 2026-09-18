@@ -17,7 +17,28 @@ class PasswordResetTest extends TestCase
     {
         $response = $this->get('/forgot-password');
 
-        $response->assertStatus(200);
+        $response
+            ->assertOk()
+            ->assertSee('<h1 id="forgot-password-heading" class="skuy-auth-heading">Lupa kata sandi?</h1>', false)
+            ->assertSee('action="'.route('password.email').'"', false)
+            ->assertSee('name="_token"', false)
+            ->assertSee('name="email"', false)
+            ->assertSee('type="email"', false)
+            ->assertSee('autocomplete="email"', false)
+            ->assertSee('href="'.route('login').'"', false);
+
+        $this->assertSame(1, substr_count($response->getContent(), '<h1'));
+    }
+
+    public function test_invalid_email_is_associated_with_the_email_field(): void
+    {
+        $this->followingRedirects()
+            ->from('/forgot-password')
+            ->post('/forgot-password', ['email' => 'not-an-email'])
+            ->assertOk()
+            ->assertSee('aria-invalid="true"', false)
+            ->assertSee('aria-describedby="email-error"', false)
+            ->assertSee('id="email-error"', false);
     }
 
     public function test_reset_password_link_can_be_requested(): void

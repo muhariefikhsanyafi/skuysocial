@@ -59,10 +59,11 @@ class LocalizationTest extends TestCase
     {
         $this->get('/forgot-password')
             ->assertOk()
-            ->assertSee('Masukkan alamat email Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.')
-            ->assertSee('ALAMAT EMAIL')
-            ->assertSee('Kembali ke Halaman Masuk')
-            ->assertSee('KIRIM TAUTAN ATUR ULANG');
+            ->assertSee('Lupa kata sandi?')
+            ->assertSee('Masukkan alamat email akunmu. Kami akan mengirim tautan untuk mengatur ulang kata sandi.')
+            ->assertSee('Alamat email')
+            ->assertSee('Kembali ke masuk')
+            ->assertSee('Kirim tautan reset');
 
         $this->get('/reset-password/test-token')
             ->assertOk()
@@ -187,9 +188,11 @@ class LocalizationTest extends TestCase
 
         $this->get('/forgot-password')
             ->assertOk()
-            ->assertSeeText('Masukkan alamat email Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.')
-            ->assertSeeText('Kembali ke Halaman Masuk')
-            ->assertSeeText('KIRIM TAUTAN ATUR ULANG');
+            ->assertSeeText('Lupa kata sandi?')
+            ->assertSeeText('Masukkan alamat email akunmu. Kami akan mengirim tautan untuk mengatur ulang kata sandi.')
+            ->assertSeeText('Alamat email')
+            ->assertSeeText('Kembali ke masuk')
+            ->assertSeeText('Kirim tautan reset');
 
         $this->get('/reset-password/test-token')
             ->assertOk()
@@ -249,9 +252,11 @@ class LocalizationTest extends TestCase
 
         $this->get('/forgot-password')
             ->assertOk()
-            ->assertSeeText('Enter your email address and we will send you a link to reset your password.')
-            ->assertSeeText('Back to Sign In')
-            ->assertSeeText('SEND RESET LINK');
+            ->assertSeeText('Forgot your password?')
+            ->assertSeeText("Enter the email address for your account. We'll send you a link to reset your password.")
+            ->assertSeeText('Email address')
+            ->assertSeeText('Back to sign in')
+            ->assertSeeText('Send reset link');
 
         $this->get('/reset-password/test-token')
             ->assertOk()

@@ -44,10 +44,11 @@ return [
     ],
 
     'forgot_password' => [
-        'title' => 'Forgot Password',
-        'intro' => 'Enter your email address and we will send you a link to reset your password.',
-        'back_to_login' => 'Back to Sign In',
-        'submit' => 'SEND RESET LINK',
+        'title' => 'Forgot your password?',
+        'intro' => "Enter the email address for your account. We'll send you a link to reset your password.",
+        'email_label' => 'Email address',
+        'back_to_login' => 'Back to sign in',
+        'submit' => 'Send reset link',
     ],
 
     'reset_password' => [
