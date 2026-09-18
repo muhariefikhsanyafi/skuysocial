@@ -98,12 +98,53 @@ class PasswordResetTest extends TestCase
         $this->post('/forgot-password', ['email' => $user->email]);
 
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-            $response = $this->get('/reset-password/'.$notification->token);
+            $response = $this->get(route('password.reset', [
+                'token' => $notification->token,
+                'email' => 'reset@example.com',
+            ]));
 
-            $response->assertStatus(200);
+            $response
+                ->assertOk()
+                ->assertSee('<h1 id="reset-password-heading" class="skuy-auth-heading">Atur ulang kata sandi</h1>', false)
+                ->assertSee('action="'.route('password.store').'"', false)
+                ->assertSee('type="hidden" name="token"', false)
+                ->assertSee('name="email"', false)
+                ->assertSee('type="email"', false)
+                ->assertSee('autocomplete="email"', false)
+                ->assertSee('value="reset@example.com"', false)
+                ->assertSee('id="password"', false)
+                ->assertSee('id="password_confirmation"', false)
+                ->assertSee('type="password"', false)
+                ->assertSee('autocomplete="new-password"', false)
+                ->assertSee('class="skuy-auth-password-toggle"', false)
+                ->assertSee('aria-label="Tampilkan kata sandi"', false)
+                ->assertSee('data-hide-label="Sembunyikan kata sandi"', false)
+                ->assertSee('href="'.route('login').'"', false);
+
+            $this->assertSame(1, substr_count($response->getContent(), '<h1'));
+            $this->assertSame(2, substr_count($response->getContent(), 'class="skuy-auth-password-toggle"'));
 
             return true;
         });
+    }
+
+    public function test_password_confirmation_validation_is_associated_with_the_password_field(): void
+    {
+        $response = $this
+            ->from('/reset-password/test-token')
+            ->followingRedirects()
+            ->post('/reset-password', [
+                'token' => 'test-token',
+                'email' => 'reset@example.com',
+                'password' => 'new-password',
+                'password_confirmation' => 'different-password',
+            ]);
+
+        $response
+            ->assertOk()
+            ->assertSee('aria-describedby="password-error"', false)
+            ->assertSee('aria-invalid="true"', false)
+            ->assertSee('id="password-error"', false);
     }
 
     public function test_password_can_be_reset_with_valid_token(): void

@@ -52,9 +52,13 @@ return [
     ],
 
     'reset_password' => [
-        'title' => 'Atur Ulang Kata Sandi',
-        'new_password' => 'KATA SANDI BARU',
-        'submit' => 'ATUR ULANG KATA SANDI',
+        'title' => 'Atur ulang kata sandi',
+        'intro' => 'Buat kata sandi baru untuk akunmu.',
+        'email_label' => 'Alamat email',
+        'new_password' => 'Kata sandi baru',
+        'password_confirmation' => 'Konfirmasi kata sandi baru',
+        'back_to_login' => 'Kembali ke masuk',
+        'submit' => 'Atur ulang kata sandi',
     ],
 
     'confirm_password' => [

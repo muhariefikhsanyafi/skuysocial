@@ -67,10 +67,13 @@ class LocalizationTest extends TestCase
 
         $this->get('/reset-password/test-token')
             ->assertOk()
-            ->assertSee('ALAMAT EMAIL')
-            ->assertSee('KATA SANDI BARU')
-            ->assertSee('KONFIRMASI KATA SANDI')
-            ->assertSee('ATUR ULANG KATA SANDI');
+            ->assertSee('Atur ulang kata sandi')
+            ->assertSee('Buat kata sandi baru untuk akunmu.')
+            ->assertSee('Alamat email')
+            ->assertSee('Kata sandi baru')
+            ->assertSee('Konfirmasi kata sandi baru')
+            ->assertSee('Atur ulang kata sandi')
+            ->assertSee('Kembali ke masuk');
     }
 
     public function test_password_reset_notification_uses_skuy_social_copy_and_existing_reset_url(): void
@@ -196,9 +199,13 @@ class LocalizationTest extends TestCase
 
         $this->get('/reset-password/test-token')
             ->assertOk()
-            ->assertSeeText('KATA SANDI BARU')
-            ->assertSeeText('KONFIRMASI KATA SANDI')
-            ->assertSeeText('ATUR ULANG KATA SANDI');
+            ->assertSeeText('Atur ulang kata sandi')
+            ->assertSeeText('Buat kata sandi baru untuk akunmu.')
+            ->assertSeeText('Alamat email')
+            ->assertSeeText('Kata sandi baru')
+            ->assertSeeText('Konfirmasi kata sandi baru')
+            ->assertSeeText('Atur ulang kata sandi')
+            ->assertSeeText('Kembali ke masuk');
 
         $user = User::factory()->unverified()->create(['locale' => 'id']);
 
@@ -260,9 +267,13 @@ class LocalizationTest extends TestCase
 
         $this->get('/reset-password/test-token')
             ->assertOk()
-            ->assertSeeText('NEW PASSWORD')
-            ->assertSeeText('CONFIRM PASSWORD')
-            ->assertSeeText('RESET PASSWORD');
+            ->assertSeeText('Reset your password')
+            ->assertSeeText('Create a new password for your account.')
+            ->assertSeeText('Email address')
+            ->assertSeeText('New password')
+            ->assertSeeText('Confirm new password')
+            ->assertSeeText('Reset password')
+            ->assertSeeText('Back to sign in');
 
         $user = User::factory()->unverified()->create(['locale' => 'en']);
 

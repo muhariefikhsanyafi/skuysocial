@@ -52,9 +52,13 @@ return [
     ],
 
     'reset_password' => [
-        'title' => 'Reset Password',
-        'new_password' => 'NEW PASSWORD',
-        'submit' => 'RESET PASSWORD',
+        'title' => 'Reset your password',
+        'intro' => 'Create a new password for your account.',
+        'email_label' => 'Email address',
+        'new_password' => 'New password',
+        'password_confirmation' => 'Confirm new password',
+        'back_to_login' => 'Back to sign in',
+        'submit' => 'Reset password',
     ],
 
     'confirm_password' => [

@@ -1,41 +1,56 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('password.store') }}">
-        @csrf
-
-        <!-- Password Reset Token -->
-        <input type="hidden" name="token" value="{{ $request->route('token') }}">
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('auth.common.email_address')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+    <section class="skuy-auth-content" aria-labelledby="reset-password-heading">
+        <div class="skuy-auth-intro">
+            <h1 id="reset-password-heading" class="skuy-auth-heading">{{ __('auth.reset_password.title') }}</h1>
+            <p class="skuy-auth-intro__copy">{{ __('auth.reset_password.intro') }}</p>
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('auth.reset_password.new_password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+        <form method="POST" action="{{ route('password.store') }}" class="skuy-auth-form">
+            @csrf
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('auth.common.password_confirmation')" />
+            <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                                type="password"
-                                name="password_confirmation" required autocomplete="new-password" />
+            <div class="skuy-auth-field">
+                <label for="email" class="skuy-auth-label">{{ __('auth.reset_password.email_label') }}</label>
+                <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    value="{{ old('email', $request->email) }}"
+                    required
+                    autofocus
+                    autocomplete="email"
+                    @if ($errors->has('email')) aria-describedby="email-error" aria-invalid="true" @endif
+                    class="skuy-auth-input"
+                >
+                <x-input-error variant="auth" :messages="$errors->get('email')" id="email-error" />
+            </div>
 
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
+            <x-auth-password-field
+                id="password"
+                name="password"
+                :label="__('auth.reset_password.new_password')"
+            />
 
-        <x-turnstile action="reset_password" />
+            <x-auth-password-field
+                id="password_confirmation"
+                name="password_confirmation"
+                :label="__('auth.reset_password.password_confirmation')"
+            />
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
+            <div class="skuy-auth-turnstile">
+                <x-turnstile action="reset_password" />
+            </div>
+
+            <button type="submit" class="skuy-auth-primary-action">
                 {{ __('auth.reset_password.submit') }}
-            </x-primary-button>
-        </div>
-    </form>
+            </button>
+
+            <div class="skuy-auth-utility">
+                <a class="skuy-auth-link" href="{{ route('login') }}">
+                    {{ __('auth.reset_password.back_to_login') }}
+                </a>
+            </div>
+        </form>
+    </section>
 </x-guest-layout>
