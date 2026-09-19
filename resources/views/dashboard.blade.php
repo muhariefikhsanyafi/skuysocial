@@ -1,42 +1,118 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="border-b-4 border-black pb-2">
-            <h2 class="font-black text-2xl text-black uppercase tracking-widest">
-                {{ __('home.dashboard.title') }}
-            </h2>
-        </div>
-    </x-slot>
+    @php
+        $user = auth()->user();
+        $canCreateThread = $user->canPerformSocialWrites();
+    @endphp
 
-    <div class="py-12 bg-gray-50 min-h-screen">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            
-            <!-- Kartu Sambutan Brutal -->
-            <div class="bg-yellow-300 border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-8 sm:p-16 text-center">
-                
-                <h3 class="text-4xl sm:text-6xl font-black text-black uppercase tracking-tighter mb-6 drop-shadow-[4px_4px_0px_rgba(255,255,255,1)]">
-                    {{ __('home.dashboard.greeting', ['name' => auth()->user()->name]) }}
-                </h3>
-                
-                <p class="text-lg sm:text-2xl font-bold text-gray-900 mb-12 border-4 border-black bg-white inline-block px-6 py-3 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                    {{ __('home.dashboard.welcome') }}
-                </p>
+    <div class="skuy-dashboard-page">
+        <div class="skuy-dashboard-frame">
+            <section class="skuy-dashboard-welcome" aria-labelledby="dashboard-title">
+                    <div>
+                        <p class="skuy-dashboard-kicker">{{ __('home.dashboard.title') }}</p>
+                        <h1 id="dashboard-title" class="skuy-dashboard-title">
+                            {{ __('home.dashboard.greeting', ['name' => $user->name]) }}
+                        </h1>
+                        <p class="skuy-dashboard-welcome__copy">{{ __('home.dashboard.welcome') }}</p>
+                    </div>
 
-                <!-- Tombol Pintasan Cepat -->
-                <div class="flex flex-col sm:flex-row justify-center gap-6 mt-4">
-                    
-                    <!-- Pintasan ke Beranda -->
-                    <a href="{{ route('feed') }}" class="bg-pink-400 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[6px] hover:translate-x-[6px] font-black uppercase px-8 py-4 text-black transition-all text-xl flex items-center justify-center gap-2">
-                        <span>➔</span> {{ __('home.dashboard.open_feed') }}
-                    </a>
+                    <div class="skuy-dashboard-welcome__action">
+                        @if ($canCreateThread)
+                            <a href="{{ route('feed') }}#composer" class="skuy-button skuy-button--primary skuy-dashboard-primary-action">
+                                {{ __('home.dashboard.create_thread') }}
+                            </a>
+                        @else
+                            <a href="{{ route('feed') }}" class="skuy-button skuy-button--primary skuy-dashboard-primary-action">
+                                {{ __('home.dashboard.open_feed') }}
+                            </a>
+                        @endif
+                    </div>
+            </section>
 
-                    <!-- Pintasan ke Profil -->
-                    <a href="{{ route('user.profile', auth()->user()->username) }}" class="bg-cyan-400 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[6px] hover:translate-x-[6px] font-black uppercase px-8 py-4 text-black transition-all text-xl flex items-center justify-center gap-2">
-                        <span>👤</span> {{ __('home.dashboard.view_profile') }}
-                    </a>
-                    
+            <section class="skuy-dashboard-routes" aria-labelledby="dashboard-routes-title">
+                <div class="skuy-dashboard-routes__heading">
+                    <div>
+                        <p class="skuy-dashboard-kicker">{{ __('home.dashboard.route_kicker') }}</p>
+                        <h2 id="dashboard-routes-title" class="skuy-dashboard-section-title">{{ __('home.dashboard.route_heading') }}</h2>
+                    </div>
+                    <p class="skuy-dashboard-routes__description">{{ __('home.dashboard.route_description') }}</p>
                 </div>
-            </div>
 
+                <nav class="skuy-dashboard-route-list" aria-label="{{ __('home.dashboard.route_heading') }}">
+                    <a href="{{ route('feed') }}" class="skuy-dashboard-route">
+                        <span class="skuy-dashboard-route__icon" aria-hidden="true">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path></svg>
+                        </span>
+                        <span class="skuy-dashboard-route__copy">
+                            <span class="skuy-dashboard-route__label">{{ __('home.dashboard.route_feed') }}</span>
+                            <span class="skuy-dashboard-route__description">{{ __('home.dashboard.route_feed_description') }}</span>
+                        </span>
+                    </a>
+
+                    <a href="{{ route('search') }}" class="skuy-dashboard-route">
+                        <span class="skuy-dashboard-route__icon" aria-hidden="true">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path stroke-linecap="round" d="m16 16 5 5"></path></svg>
+                        </span>
+                        <span class="skuy-dashboard-route__copy">
+                            <span class="skuy-dashboard-route__label">{{ __('home.dashboard.route_search') }}</span>
+                            <span class="skuy-dashboard-route__description">{{ __('home.dashboard.route_search_description') }}</span>
+                        </span>
+                    </a>
+
+                    <a href="{{ route('activity.index') }}" class="skuy-dashboard-route">
+                        <span class="skuy-dashboard-route__icon" aria-hidden="true">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path><path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path></svg>
+                        </span>
+                        <span class="skuy-dashboard-route__copy">
+                            <span class="skuy-dashboard-route__label">{{ __('home.dashboard.route_activity') }}</span>
+                            <span class="skuy-dashboard-route__description">{{ __('home.dashboard.route_activity_description') }}</span>
+                        </span>
+                    </a>
+
+                    <a href="{{ route('bookmarks.index') }}" class="skuy-dashboard-route">
+                        <span class="skuy-dashboard-route__icon" aria-hidden="true">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4Z"></path></svg>
+                        </span>
+                        <span class="skuy-dashboard-route__copy">
+                            <span class="skuy-dashboard-route__label">{{ __('home.dashboard.route_saved') }}</span>
+                            <span class="skuy-dashboard-route__description">{{ __('home.dashboard.route_saved_description') }}</span>
+                        </span>
+                    </a>
+                </nav>
+            </section>
+            <aside class="skuy-dashboard-account" aria-labelledby="dashboard-account-title">
+                    <div class="skuy-dashboard-account__identity">
+                        @if ($user->avatar)
+                            <div class="skuy-dashboard-avatar">
+                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
+                            </div>
+                        @else
+                            <div class="skuy-dashboard-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
+                                <span aria-hidden="true">{{ strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+                            </div>
+                        @endif
+
+                        <div class="min-w-0">
+                            <p class="skuy-dashboard-account__eyebrow">{{ __('home.dashboard.account') }}</p>
+                            <h2 id="dashboard-account-title" class="skuy-dashboard-account__name">{{ $user->name }}</h2>
+                            <p class="skuy-dashboard-account__username">{{ '@' . $user->username }}</p>
+                        </div>
+                    </div>
+
+                    <dl class="skuy-dashboard-account__details">
+                        <div>
+                            <dt>{{ __('home.dashboard.email') }}</dt>
+                            <dd>{{ $user->email }}</dd>
+                        </div>
+                        <div>
+                            <dt>{{ __('home.dashboard.username') }}</dt>
+                            <dd>{{ '@' . $user->username }}</dd>
+                        </div>
+                    </dl>
+
+                    <a href="{{ route('profile.edit') }}" class="skuy-dashboard-account__link">
+                        {{ __('home.dashboard.account_settings') }}
+                    </a>
+            </aside>
         </div>
     </div>
 </x-app-layout>

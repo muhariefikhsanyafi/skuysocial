@@ -75,4 +75,79 @@ class NavigationTest extends TestCase
             ->assertSee('href="'.route('activity.index').'"', false)
             ->assertSee(route('feed'), false);
     }
+
+    public function test_dashboard_is_an_authenticated_home_base_with_real_destinations(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Dashboard Reader',
+            'username' => 'dashboard_reader',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+        $html = $response->getContent();
+        $headingCount = preg_match_all('/<h1\b/i', $html, $headings);
+
+        $response
+            ->assertOk()
+            ->assertSeeText(__('home.dashboard.greeting', ['name' => $user->name]))
+            ->assertSee('href="'.route('feed').'#composer"', false)
+            ->assertSee('href="'.route('user.profile', $user->username).'"', false)
+            ->assertSee('href="'.route('search').'"', false)
+            ->assertSee('href="'.route('activity.index').'"', false)
+            ->assertSee('href="'.route('bookmarks.index').'"', false)
+            ->assertSee('id="dashboard-title"', false)
+            ->assertSee('aria-current="page"', false);
+
+        $this->assertSame(1, $headingCount);
+    }
+
+    public function test_dashboard_navigation_uses_dashboard_semantics_for_unverified_users(): void
+    {
+        foreach ([
+            'id' => ['dashboard' => 'Dasbor', 'feed' => 'Utas'],
+            'en' => ['dashboard' => 'Dashboard', 'feed' => 'Feed'],
+        ] as $locale => $labels) {
+            $user = User::factory()->unverified()->create(['locale' => $locale]);
+            $response = $this
+                ->actingAs($user)
+                ->withSession(['locale' => $locale === 'id' ? 'en' : 'id'])
+                ->get(route('dashboard'));
+            $html = $response->getContent();
+
+            $response->assertOk();
+            $this->assertStringContainsString('href="'.route('dashboard').'" class="skuy-brand"', $html);
+            $this->assertMatchesRegularExpression(
+                '/<a\s+href="'.preg_quote(route('dashboard'), '/').'"[^>]*aria-current="page"[^>]*class="skuy-app-nav__link"[^>]*>.*?<span class="skuy-app-nav__label">'.preg_quote($labels['dashboard'], '/').'<\/span>/s',
+                $html,
+            );
+            $this->assertMatchesRegularExpression(
+                '/<a\s+href="'.preg_quote(route('feed'), '/').'"[^>]*aria-current="false"[^>]*class="skuy-app-nav__link"[^>]*>.*?<span class="skuy-app-nav__label">'.preg_quote($labels['feed'], '/').'<\/span>/s',
+                $html,
+            );
+            $this->assertMatchesRegularExpression(
+                '/<nav class="skuy-mobile-nav".*?<a href="'.preg_quote(route('dashboard'), '/').'" aria-label="'.preg_quote($labels['dashboard'], '/').'" aria-current="page"/s',
+                $html,
+            );
+            $this->assertDoesNotMatchRegularExpression(
+                '/<a\s+href="'.preg_quote(route('feed'), '/').'"[^>]*aria-label="'.preg_quote($labels['dashboard'], '/').'"/s',
+                $html,
+            );
+
+            $feedResponse = $this
+                ->actingAs($user)
+                ->withSession(['locale' => $locale === 'id' ? 'en' : 'id'])
+                ->get(route('feed'));
+            $feedHtml = $feedResponse->getContent();
+
+            $feedResponse->assertOk();
+            $this->assertMatchesRegularExpression(
+                '/<a\s+href="'.preg_quote(route('feed'), '/').'"[^>]*aria-current="page"[^>]*class="skuy-app-nav__link"[^>]*>.*?<span class="skuy-app-nav__label">'.preg_quote($labels['feed'], '/').'<\/span>/s',
+                $feedHtml,
+            );
+            $this->assertMatchesRegularExpression(
+                '/<nav class="skuy-mobile-nav".*?<a href="'.preg_quote(route('feed'), '/').'" aria-label="'.preg_quote($labels['feed'], '/').'" aria-current="page"/s',
+                $feedHtml,
+            );
+        }
+    }
 }

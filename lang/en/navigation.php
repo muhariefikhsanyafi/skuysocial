@@ -1,7 +1,9 @@
 <?php
 
 return [
+    'dashboard' => 'Dashboard',
     'home' => 'Home',
+    'feed' => 'Feed',
     'search' => 'Search',
     'activity' => 'Activity',
     'saved' => 'Saved',
@@ -21,4 +23,5 @@ return [
     'close_profile_menu' => 'Close profile menu',
     'enable_light_mode' => 'Enable light mode',
     'enable_dark_mode' => 'Enable dark mode',
+    'skip_to_content' => 'Skip to main content',
 ];

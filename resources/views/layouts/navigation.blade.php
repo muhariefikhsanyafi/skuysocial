@@ -1,13 +1,58 @@
-<nav x-data="{ open: false, sidebarOpen: false }" class="skuy-topbar">
+@php
+    $user = auth()->user();
+    $profileUrl = route('user.profile', $user->username);
+    $isDashboard = request()->routeIs('dashboard');
+    $isFeed = request()->routeIs('feed');
+    $showDashboardNavigation = $user->hasVerifiedEmail() || $isDashboard;
+    $unreadNotificationCount = $unreadNotificationCount
+        ?? ($isFeed ? $user->unreadNotifications()->count() : null);
+    $brandHref = $showDashboardNavigation ? route('dashboard') : route('feed');
+    $brandLabel = $showDashboardNavigation ? __('navigation.dashboard') : __('navigation.feed');
+    $navigationItems = [];
+
+    if ($showDashboardNavigation) {
+        $navigationItems[] = ['key' => 'dashboard', 'href' => route('dashboard'), 'label' => __('navigation.dashboard'), 'active' => $isDashboard, 'icon' => 'dashboard'];
+    }
+
+    $navigationItems = array_merge($navigationItems, [
+        ['key' => 'feed', 'href' => route('feed'), 'label' => __('navigation.feed'), 'active' => request()->routeIs('feed'), 'icon' => 'home'],
+        ['key' => 'search', 'href' => route('search'), 'label' => __('navigation.search'), 'active' => request()->routeIs('search'), 'icon' => 'search'],
+        ['key' => 'activity', 'href' => route('activity.index'), 'label' => __('navigation.activity'), 'active' => request()->routeIs('activity.index'), 'icon' => 'activity'],
+        ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'saved'],
+        ['key' => 'profile', 'href' => $profileUrl, 'label' => __('navigation.profile'), 'active' => request()->routeIs('user.profile') && request()->route('username') === $user->username, 'icon' => 'profile'],
+    ]);
+    $bottomHomeIsDashboard = $isDashboard;
+    $bottomHomeHref = $bottomHomeIsDashboard ? route('dashboard') : route('feed');
+    $bottomHomeLabel = $bottomHomeIsDashboard ? __('navigation.dashboard') : __('navigation.feed');
+    $bottomHomeCurrent = $bottomHomeIsDashboard || $isFeed;
+    $composerHref = $isFeed ? '#composer' : route('feed').'#composer';
+@endphp
+
+<div
+    x-data="{
+        open: false,
+        sidebarOpen: window.matchMedia('(min-width: 1280px)').matches,
+        navigationQuery: null,
+        init() {
+            this.navigationQuery = window.matchMedia('(min-width: 1280px)');
+            this.navigationQuery.addEventListener('change', event => {
+                this.sidebarOpen = event.matches;
+            });
+        }
+    }"
+    @keydown.escape.window="if (window.innerWidth < 1280) sidebarOpen = false"
+    class="skuy-navigation-shell"
+>
+<nav class="skuy-topbar">
     <div class="skuy-topbar__inner">
         <div class="skuy-topbar__brand-group">
             <button
-                @click="sidebarOpen = !sidebarOpen; $dispatch('toggle-sidebar', sidebarOpen)"
+                @click="sidebarOpen = !sidebarOpen"
                 :aria-label="sidebarOpen ? '{{ __('navigation.close_navigation_menu') }}' : '{{ __('navigation.open_navigation_menu') }}'"
                 :aria-expanded="sidebarOpen"
                 aria-controls="mobile-navigation"
                 type="button"
-                class="skuy-icon-button md:hidden"
+                class="skuy-icon-button skuy-navigation-trigger xl:hidden"
             >
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h10"></path>
@@ -15,7 +60,7 @@
                 <span class="sr-only">{{ __('navigation.open_navigation_menu') }}</span>
             </button>
 
-            <a href="{{ route('feed') }}" class="skuy-brand" aria-label="SkuySocial, {{ __('navigation.home') }}">
+            <a href="{{ $brandHref }}" class="skuy-brand" aria-label="SkuySocial, {{ $brandLabel }}">
                 <span class="skuy-brand__accent">Skuy</span><span>Social</span>
             </a>
         </div>
@@ -127,3 +172,93 @@
         </div>
     </div>
 </nav>
+
+<aside
+    id="mobile-navigation"
+    x-show="sidebarOpen"
+    x-transition
+    style="display: none;"
+    class="skuy-app-rail"
+    aria-label="{{ __('home.public.primary_navigation') }}"
+>
+    <div class="skuy-app-rail__inner">
+        <p class="skuy-app-nav__eyebrow">{{ __('home.public.primary_navigation') }}</p>
+
+        <nav class="skuy-app-nav" aria-label="{{ __('home.public.primary_navigation') }}">
+            @foreach ($navigationItems as $item)
+                <a
+                    href="{{ $item['href'] }}"
+                    aria-current="{{ $item['active'] ? 'page' : 'false' }}"
+                    @click="sidebarOpen = false"
+                    class="skuy-app-nav__link"
+                >
+                    <svg class="skuy-app-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                        @if ($item['icon'] === 'dashboard' || $item['icon'] === 'home')
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path>
+                        @elseif ($item['icon'] === 'search')
+                            <circle cx="11" cy="11" r="6.5"></circle>
+                            <path stroke-linecap="round" d="m16 16 5 5"></path>
+                        @elseif ($item['icon'] === 'activity')
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path>
+                        @elseif ($item['icon'] === 'saved')
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4Z"></path>
+                        @else
+                            <circle cx="12" cy="8" r="3.5"></circle>
+                            <path stroke-linecap="round" d="M5 21a7 7 0 0 1 14 0"></path>
+                        @endif
+                    </svg>
+                    <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
+
+                    @if ($item['key'] === 'activity' && isset($unreadNotificationCount) && $unreadNotificationCount > 0)
+                        <span class="skuy-feed-nav__badge" aria-label="{{ $unreadNotificationCount }} {{ $item['label'] }}">{{ $unreadNotificationCount }}</span>
+                    @endif
+                </a>
+            @endforeach
+        </nav>
+
+        @if ($user->canPerformSocialWrites())
+            <a href="{{ route('feed') }}#composer" class="skuy-app-rail__compose">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" d="M12 5v14M5 12h14"></path>
+                </svg>
+                <span>{{ __('navigation.create_thread') }}</span>
+            </a>
+        @endif
+    </div>
+</aside>
+
+<nav class="skuy-mobile-nav" aria-label="{{ __('home.public.primary_navigation') }}">
+    <a href="{{ $bottomHomeHref }}" aria-label="{{ $bottomHomeLabel }}" aria-current="{{ $bottomHomeCurrent ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path></svg>
+        <span>{{ $bottomHomeLabel }}</span>
+    </a>
+
+    <a href="{{ route('search') }}" aria-label="{{ __('navigation.search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path stroke-linecap="round" d="m16 16 5 5"></path></svg>
+        <span>{{ __('navigation.search') }}</span>
+    </a>
+
+    @if ($user->canPerformSocialWrites())
+        <a href="{{ $composerHref }}" aria-label="{{ __('navigation.create_thread') }}" class="skuy-mobile-nav__item skuy-mobile-nav__item--compose">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 5v14M5 12h14"></path></svg>
+            <span class="sr-only">{{ __('navigation.create_thread') }}</span>
+        </a>
+    @else
+        <a href="{{ route('feed') }}" aria-label="{{ __('navigation.feed') }}" class="skuy-mobile-nav__item">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path></svg>
+            <span>{{ __('navigation.feed') }}</span>
+        </a>
+    @endif
+
+    <a href="{{ route('activity.index') }}" aria-label="{{ __('navigation.activity') }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path><path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path></svg>
+        <span>{{ __('navigation.activity') }}</span>
+    </a>
+
+    <a href="{{ $profileUrl }}" aria-label="{{ __('navigation.profile') }}" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === $user->username ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path stroke-linecap="round" d="M5 21a7 7 0 0 1 14 0"></path></svg>
+        <span>{{ __('navigation.profile') }}</span>
+    </a>
+</nav>
+</div>

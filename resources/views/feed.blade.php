@@ -1,61 +1,6 @@
 <x-app-layout>
     <div class="skuy-feed-page">
         <div class="skuy-feed-shell">
-            <aside class="skuy-feed-nav-column" aria-label="{{ __('navigation.home') }}">
-                <div
-                    id="mobile-navigation"
-                    x-data="{ sidebarOpen: false }"
-                    @toggle-sidebar.window="sidebarOpen = $event.detail"
-                    x-show="sidebarOpen"
-                    x-transition
-                    style="display: none;"
-                    class="skuy-feed-nav md:!flex"
-                >
-                    <p class="skuy-feed-nav__eyebrow">{{ __('navigation.home') }}</p>
-
-                    <a href="{{ route('feed') }}" aria-current="{{ request()->routeIs('feed') ? 'page' : 'false' }}" class="skuy-feed-nav__link">
-                        <svg class="skuy-feed-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path>
-                        </svg>
-                        <span class="skuy-feed-nav__label">{{ __('navigation.home') }}</span>
-                    </a>
-
-                    <a href="{{ route('search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="skuy-feed-nav__link">
-                        <svg class="skuy-feed-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="11" cy="11" r="6.5"></circle>
-                            <path stroke-linecap="round" d="m16 16 5 5"></path>
-                        </svg>
-                        <span class="skuy-feed-nav__label">{{ __('navigation.search') }}</span>
-                    </a>
-
-                    <a href="{{ route('activity.index') }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="skuy-feed-nav__link">
-                        <svg class="skuy-feed-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path>
-                        </svg>
-                        <span class="skuy-feed-nav__label">{{ __('navigation.activity') }}</span>
-                        @if ($unreadNotificationCount > 0)
-                            <span class="skuy-feed-nav__badge" aria-label="{{ $unreadNotificationCount }} {{ __('navigation.activity') }}">{{ $unreadNotificationCount }}</span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('bookmarks.index') }}" aria-current="{{ request()->routeIs('bookmarks.index') ? 'page' : 'false' }}" class="skuy-feed-nav__link">
-                        <svg class="skuy-feed-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4Z"></path>
-                        </svg>
-                        <span class="skuy-feed-nav__label">{{ __('navigation.saved') }}</span>
-                    </a>
-
-                    <a href="{{ route('user.profile', auth()->user()->username) }}" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === auth()->user()->username ? 'page' : 'false' }}" class="skuy-feed-nav__link">
-                        <svg class="skuy-feed-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="12" cy="8" r="3.5"></circle>
-                            <path stroke-linecap="round" d="M5 21a7 7 0 0 1 14 0"></path>
-                        </svg>
-                        <span class="skuy-feed-nav__label">{{ __('navigation.profile') }}</span>
-                    </a>
-                </div>
-            </aside>
-
             <section
                 class="skuy-feed-content"
                 aria-labelledby="feed-title"
@@ -167,7 +112,7 @@
             >
                 <h1 id="feed-title" class="sr-only">{{ __('navigation.home') }}</h1>
 
-                <div data-composer class="skuy-composer">
+                <div id="composer" data-composer class="skuy-composer">
                     <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" x-data="{
                         isSubmitting: false,
                         content: '',
@@ -377,31 +322,5 @@
             </aside>
         </div>
 
-        <nav class="skuy-mobile-nav" aria-label="{{ __('navigation.home') }}">
-            <a href="{{ route('feed') }}" aria-label="{{ __('navigation.home') }}" aria-current="{{ request()->routeIs('feed') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path></svg>
-                <span>{{ __('navigation.home') }}</span>
-            </a>
-
-            <a href="{{ route('search') }}" aria-label="{{ __('navigation.search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path stroke-linecap="round" d="m16 16 5 5"></path></svg>
-                <span>{{ __('navigation.search') }}</span>
-            </a>
-
-            <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="{{ __('navigation.create_thread') }}" type="button" class="skuy-mobile-nav__item skuy-mobile-nav__item--compose">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 5v14M5 12h14"></path></svg>
-                <span class="sr-only">{{ __('navigation.create_thread') }}</span>
-            </button>
-
-            <a href="{{ route('activity.index') }}" aria-label="{{ __('navigation.activity') }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path><path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path></svg>
-                <span>{{ __('navigation.activity') }}</span>
-            </a>
-
-            <a href="{{ route('user.profile', auth()->user()->username) }}" aria-label="{{ __('navigation.profile') }}" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === auth()->user()->username ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path stroke-linecap="round" d="M5 21a7 7 0 0 1 14 0"></path></svg>
-                <span>{{ __('navigation.profile') }}</span>
-            </a>
-        </nav>
     </div>
 </x-app-layout>

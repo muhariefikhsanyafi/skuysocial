@@ -88,11 +88,25 @@ class ApplicationLocalizationTest extends TestCase
     {
         $cases = [
             'id' => [
-                'dashboard' => ['Dasbor', 'Selamat datang di markas besar SkuySocial.', 'Buka Beranda'],
+                'dashboard' => [
+                    'Dasbor',
+                    'Halo, Locale id User',
+                    'Gunakan pintasan di bawah untuk kembali ke bagian SkuySocial yang kamu butuhkan.',
+                    'Buat utas',
+                    'Akunmu',
+                    'Mau ke mana sekarang?',
+                ],
                 'feed' => ['Beranda', 'Cari', 'Aktivitas', 'Profil', 'Topik Utas', 'Mulai utas baru...', 'Posting', 'Sedang Hangat'],
             ],
             'en' => [
-                'dashboard' => ['Dashboard', 'Welcome to SkuySocial headquarters.', 'Open Home'],
+                'dashboard' => [
+                    'Dashboard',
+                    'Hello, Locale en User',
+                    'Use the shortcuts below to return to the part of SkuySocial you need.',
+                    'Create Thread',
+                    'Your account',
+                    'Where do you want to go?',
+                ],
                 'feed' => ['Home', 'Search', 'Activity', 'Profile', 'Thread topic', 'Start a new Thread...', 'Post', 'Trending'],
             ],
         ];

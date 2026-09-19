@@ -21,19 +21,25 @@
         <div class="skuy-app-shell">
             @include('layouts.navigation')
 
-            <x-restricted-account-notice />
+            <div class="skuy-app-shell__workspace">
+                <a href="#main-content" class="skuy-skip-link">{{ __('navigation.skip_to_content') }}</a>
+
+                <div class="skuy-shell-notice">
+                    <x-restricted-account-notice />
+                </div>
 
             @isset($header)
-                <header class="bg-white shadow dark:bg-[#1c2126]">
-                    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                    <header class="skuy-app-page-header">
+                        <div class="skuy-app-page-header__inner">
                         {{ $header }}
-                    </div>
-                </header>
+                        </div>
+                    </header>
             @endisset
 
-            <main>
+                <main id="main-content" tabindex="-1">
                 {{ $slot }}
-            </main>
+                </main>
+            </div>
         </div>
 
         <div

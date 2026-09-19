@@ -1,7 +1,9 @@
 <?php
 
 return [
+    'dashboard' => 'Dasbor',
     'home' => 'Beranda',
+    'feed' => 'Utas',
     'search' => 'Cari',
     'activity' => 'Aktivitas',
     'saved' => 'Tersimpan',
@@ -21,4 +23,5 @@ return [
     'close_profile_menu' => 'Tutup menu profil',
     'enable_light_mode' => 'Aktifkan mode terang',
     'enable_dark_mode' => 'Aktifkan mode gelap',
+    'skip_to_content' => 'Lewati ke konten utama',
 ];
