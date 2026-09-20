@@ -6,8 +6,8 @@ use App\Models\Like;
 use App\Models\Post;
 use App\Models\User;
 use App\Notifications\PostLiked;
-use Illuminate\Database\QueryException;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -31,6 +31,68 @@ class LikeConcurrencyTest extends TestCase
             'user_id' => $actor->id,
             'post_id' => $post->id,
         ]);
+    }
+
+    public function test_json_like_returns_the_confirmed_state_count_and_post_uid(): void
+    {
+        $owner = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($owner);
+
+        $response = $this->actingAs($actor)->postJson(route('posts.like', $post), [
+            'liked' => true,
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertExactJson([
+                'post_uid' => $post->uid,
+                'liked' => true,
+                'like_count' => 1,
+            ]);
+    }
+
+    public function test_json_unlike_returns_the_confirmed_state_and_count(): void
+    {
+        $owner = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($owner);
+
+        Like::create([
+            'user_id' => $actor->id,
+            'post_id' => $post->id,
+        ]);
+
+        $response = $this->actingAs($actor)->postJson(route('posts.like', $post), [
+            'liked' => false,
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertExactJson([
+                'post_uid' => $post->uid,
+                'liked' => false,
+                'like_count' => 0,
+            ]);
+    }
+
+    public function test_repeated_json_like_intent_keeps_one_like_and_one_notification(): void
+    {
+        Notification::fake();
+        $owner = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = $this->createPost($owner);
+
+        $this->actingAs($actor)->postJson(route('posts.like', $post), [
+            'liked' => true,
+        ]);
+        $this->actingAs($actor)->postJson(route('posts.like', $post), [
+            'liked' => true,
+        ]);
+
+        $this->assertDatabaseCount('likes', 1);
+        Notification::assertSentTo($owner, PostLiked::class);
+        $this->assertCount(1, Notification::sent($owner, PostLiked::class));
     }
 
     public function test_second_sequential_toggle_removes_the_like(): void

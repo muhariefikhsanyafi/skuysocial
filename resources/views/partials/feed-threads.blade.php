@@ -185,17 +185,59 @@
                 $formatActionLabel = static fn (string $label, int $count): string => $count > 0
                     ? $label.' ('.$count.')'
                     : $label;
-                $likeActionLabel = $formatActionLabel(__('threads.labels.like'), $likeCount);
+                $likeActionLabel = $formatActionLabel(
+                    $displayPost->liked_by_me ? __('threads.actions.unlike') : __('threads.labels.like'),
+                    $likeCount,
+                );
                 $commentActionLabel = $formatActionLabel(__('threads.actions.reply'), $commentCount);
                 $repostActionLabel = $formatActionLabel(__('threads.actions.repost'), $repostCount);
             @endphp
 
-                    <div class="skuy-actions">
-                        <form action="{{ route('posts.like', $displayPost->uid) }}" method="POST">
+                    <div
+                        x-data="likeControl({
+                            liked: @js((bool) $displayPost->liked_by_me),
+                            likeCount: @js($likeCount),
+                            postUid: @js((string) $displayPost->uid),
+                            url: @js(route('posts.like', $displayPost->uid)),
+                            labels: {
+                                like: @js(__('threads.labels.like')),
+                                unlike: @js(__('threads.actions.unlike')),
+                                liked: @js(__('threads.feedback.liked')),
+                                unliked: @js(__('threads.feedback.unliked')),
+                                sessionExpired: @js(__('threads.feedback.session_expired')),
+                                restricted: @js(__('threads.feedback.restricted')),
+                                invalid: @js(__('threads.feedback.invalid')),
+                                failed: @js(__('threads.feedback.failed')),
+                                network: @js(__('threads.feedback.network')),
+                            },
+                        })"
+                    >
+                        <div class="skuy-actions">
+                            <form
+                                action="{{ route('posts.like', $displayPost->uid) }}"
+                                method="POST"
+                                @submit.prevent="toggleLike($event)"
+                            >
                             @csrf
-                            <button type="submit" aria-label="{{ $likeActionLabel }}" title="{{ $likeActionLabel }}" aria-pressed="{{ $displayPost->liked_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction{{ $likeActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
-                                <svg class="h-5 w-5 {{ $displayPost->liked_by_me ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path></svg>
-                                <span>{{ $likeDisplayCount }}</span>
+                            <button
+                                x-ref="likeButton"
+                                type="submit"
+                                aria-label="{{ $likeActionLabel }}"
+                                title="{{ $likeActionLabel }}"
+                                :aria-label="likeButtonLabel()"
+                                :title="likeButtonLabel()"
+                                aria-pressed="{{ $displayPost->liked_by_me ? 'true' : 'false' }}"
+                                :aria-pressed="liked.toString()"
+                                :aria-busy="isLikeRequestInFlight.toString()"
+                                :disabled="isLikeRequestInFlight"
+                                class="skuy-action skuy-action--reaction{{ $likeActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
+                            >
+                                <svg x-ref="likeIcon" class="h-5 w-5 {{ $displayPost->liked_by_me ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path></svg>
+                                <span
+                                    x-show="likeDisplayCount()"
+                                    x-text="likeDisplayCount()"
+                                    @if ($likeDisplayCount === '') style="display: none;" @endif
+                                >{{ $likeDisplayCount }}</span>
                             </button>
                         </form>
 
@@ -234,6 +276,19 @@
                         <button @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', '{{ __('threads.thread_link_copied') }}')" type="button" aria-label="{{ __('threads.actions.share') }}" title="{{ __('threads.actions.share') }}" class="skuy-action">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m12 3 9 18-9-3-9 3 9-18Zm0 0v15"></path></svg>
                         </button>
+                        </div>
+                        <div class="min-h-5">
+                            <p
+                                x-show="feedbackMessage"
+                                x-text="feedbackMessage"
+                                :role="feedbackIsError ? 'alert' : 'status'"
+                                :aria-live="feedbackIsError ? 'assertive' : 'polite'"
+                                aria-atomic="true"
+                                style="display: none;"
+                                :class="feedbackIsError ? 'text-[var(--skuy-danger)]' : 'text-[var(--skuy-secondary)]'"
+                                class="text-xs font-semibold"
+                            ></p>
+                        </div>
                     </div>
 
                     @php

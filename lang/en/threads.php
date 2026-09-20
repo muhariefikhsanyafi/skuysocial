@@ -25,6 +25,7 @@ return [
         'share' => 'Share',
         'reply' => 'Reply',
         'send' => 'Send',
+        'unlike' => 'Unlike',
         'repost' => 'Repost',
         'view_thread' => 'View Thread',
         'view_full_thread' => 'View full Thread',
@@ -32,6 +33,16 @@ return [
         'loading_threads' => 'Loading Threads...',
         'load_more_failed' => 'Could not load more Threads. Select the link again to continue.',
         'view_more_replies' => 'View more replies',
+    ],
+
+    'feedback' => [
+        'liked' => 'Thread liked.',
+        'unliked' => 'Thread unliked.',
+        'session_expired' => 'Your session expired. Reload the page to like this Thread.',
+        'restricted' => 'Your account cannot perform this social action.',
+        'invalid' => 'The like response was invalid. Try again.',
+        'failed' => 'The like could not be updated. Try again.',
+        'network' => 'The connection failed. Your like was not updated.',
     ],
 
     'composer' => [

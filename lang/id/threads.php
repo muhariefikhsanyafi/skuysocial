@@ -25,6 +25,7 @@ return [
         'share' => 'Bagikan',
         'reply' => 'Balas',
         'send' => 'Kirim',
+        'unlike' => 'Batalkan suka',
         'repost' => 'Posting Ulang',
         'view_thread' => 'Lihat utas',
         'view_full_thread' => 'Lihat utas lengkap',
@@ -32,6 +33,16 @@ return [
         'loading_threads' => 'Memuat Utas...',
         'load_more_failed' => 'Utas berikutnya tidak dapat dimuat. Pilih tautan lagi untuk melanjutkan.',
         'view_more_replies' => 'Lihat balasan lainnya',
+    ],
+
+    'feedback' => [
+        'liked' => 'Utas disukai.',
+        'unliked' => 'Suka pada utas dibatalkan.',
+        'session_expired' => 'Sesi Anda berakhir. Muat ulang halaman untuk menyukai utas.',
+        'restricted' => 'Akun Anda tidak dapat melakukan aksi sosial ini.',
+        'invalid' => 'Respons suka tidak valid. Coba lagi.',
+        'failed' => 'Suka tidak dapat diperbarui. Coba lagi.',
+        'network' => 'Koneksi gagal. Suka tidak diperbarui.',
     ],
 
     'composer' => [

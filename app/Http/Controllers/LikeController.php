@@ -13,24 +13,44 @@ class LikeController extends Controller
     public function toggle(Post $post, Request $request)
     {
         $targetPost = $post->interactionTarget();
+        $isJson = $request->expectsJson();
+        $userId = $request->user()->id;
+        $desiredLiked = null;
+
+        if ($isJson && $request->exists('liked')) {
+            $liked = $request->input('liked');
+
+            if (is_bool($liked)) {
+                $desiredLiked = $liked;
+            } elseif ($liked === 1 || $liked === '1') {
+                $desiredLiked = true;
+            } elseif ($liked === 0 || $liked === '0') {
+                $desiredLiked = false;
+            } else {
+                return response()->json([
+                    'message' => trans('threads.feedback.invalid'),
+                    'code' => 'invalid_like_request',
+                ], 422);
+            }
+        }
 
         // Cari apakah user ini sudah menyukai postingan ini
-        $like = $targetPost->likes()->where('user_id', $request->user()->id)->first();
+        $like = $targetPost->likes()->where('user_id', $userId)->first();
 
-        if ($like) {
+        if ($like && $desiredLiked !== true) {
             // Jika sudah like, hapus (Unlike)
-            $like->delete(); 
-        } else {
+            $like->delete();
+        } elseif (! $like && $desiredLiked !== false) {
             try {
-                DB::transaction(function () use ($targetPost, $request): void {
+                DB::transaction(function () use ($targetPost, $userId, $request): void {
                     // Jika belum, buat Like baru
                     $targetPost->likes()->create([
-                        'user_id' => $request->user()->id
+                        'user_id' => $userId,
                     ]);
 
                     // --- PELATUK NOTIFIKASI LIKE ---
                     // Cegah kirim notifikasi jika user menyukai postingannya sendiri
-                    if ($targetPost->user_id !== $request->user()->id) {
+                    if ($targetPost->user_id !== $userId) {
                         $targetPost->user->notify(new PostLiked($request->user(), $targetPost));
                     }
                 });
@@ -39,6 +59,14 @@ class LikeController extends Controller
                     throw $exception;
                 }
             }
+        }
+
+        if ($isJson) {
+            return response()->json([
+                'post_uid' => (string) $targetPost->uid,
+                'liked' => $targetPost->likes()->where('user_id', $userId)->exists(),
+                'like_count' => $targetPost->likes()->count(),
+            ]);
         }
 
         // Kembalikan ke halaman sebelumnya

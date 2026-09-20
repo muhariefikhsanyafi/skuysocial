@@ -37,6 +37,39 @@ class FeedTest extends TestCase
         });
     }
 
+    public function test_feed_like_action_keeps_html_fallback_and_exposes_reactive_hooks(): void
+    {
+        $user = User::factory()->create();
+        $post = $this->createPost(User::factory()->create());
+
+        $response = $this->actingAs($user)->get(route('feed'));
+        $javascript = file_get_contents(resource_path('js/app.js'));
+
+        $response
+            ->assertOk()
+            ->assertSee('action="'.route('posts.like', $post).'"', false)
+            ->assertSee('method="POST"', false)
+            ->assertSee('x-data="likeControl({', false)
+            ->assertSee('@submit.prevent="toggleLike($event)"', false)
+            ->assertSee(':disabled="isLikeRequestInFlight"', false)
+            ->assertSee(':aria-pressed="liked.toString()"', false)
+            ->assertSee(':aria-label="likeButtonLabel()"', false)
+            ->assertSee(':title="likeButtonLabel()"', false)
+            ->assertSee('x-text="likeDisplayCount()"', false)
+            ->assertSee('x-show="likeDisplayCount()"', false)
+            ->assertSee('feedbackMessage', false)
+            ->assertSee('class="min-h-5"', false)
+            ->assertSee(':role="feedbackIsError ? \'alert\' : \'status\'"', false)
+            ->assertSee(':aria-live="feedbackIsError ? \'assertive\' : \'polite\'"', false);
+
+        $this->assertIsString($javascript);
+        $this->assertStringContainsString("credentials: 'same-origin'", $javascript);
+        $this->assertStringContainsString('body: JSON.stringify({ liked: desiredLiked })', $javascript);
+        $this->assertStringContainsString('if (this.isLikeRequestInFlight) return;', $javascript);
+        $this->assertStringContainsString('this.liked = payload.liked;', $javascript);
+        $this->assertStringContainsString('this.likeCount = payload.like_count;', $javascript);
+    }
+
     public function test_feed_composer_exposes_native_media_preview_hooks(): void
     {
         $user = User::factory()->create();
@@ -404,7 +437,7 @@ class FeedTest extends TestCase
             ->assertSee('role="alert"', false)
             ->assertSee('min-h-[44px]', false)
             ->assertDontSee('if (this.feedLoadFailed) return;', false)
-            ->assertSee("if (this.isLoadingMore || !this.nextFeedUrl) return;", false)
+            ->assertSee('if (this.isLoadingMore || !this.nextFeedUrl) return;', false)
             ->assertSee('this.feedLoadFailed = false;', false)
             ->assertSee('this.feedLoadFailed = true;', false)
             ->assertSee("'X-Feed-Fragment': '1'", false)
