@@ -1,233 +1,319 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div></div>
-    </x-slot>
+    <div class="skuy-discovery-page">
+        <div class="skuy-discovery-shell">
+            <a href="{{ route('search') }}" class="skuy-discovery-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14 5-7 7 7 7"></path>
+                </svg>
+                <span>{{ __('navigation.search') }}</span>
+            </a>
 
-    <!-- Background dibuat sedikit abu-abu agar elemen yang cerah makin menonjol -->
-    <div class="py-12 bg-gray-50 min-h-screen">
-        <div class="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8">
-            
-            <!-- Papan Nama Tagar -->
-    <div class="bg-blue-300 border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mb-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl sm:text-4xl font-black uppercase text-black">
-                {{ __('search.hashtag.heading') }}
-            </h1>
-            <p class="font-bold text-gray-900 mt-1">{{ trans_choice('search.hashtag.found', $posts->total(), ['count' => $posts->total()]) }}</p>
-        </div>
-        <div class="bg-black text-white border-4 border-white px-4 py-2 font-black text-2xl sm:text-3xl shadow-[4px_4px_0px_0px_rgba(255,255,0,1)] rotate-[-2deg]">
-            #{{ $hashtag->name }}
-        </div>
-    </div>
-
-            <!-- Area Daftar Status / Timeline -->
-            <div class="space-y-10">
-                @foreach ($posts as $post)
-                    <div class="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
-                        
-                        <!-- Header Postingan -->
-                        <div class="flex items-center justify-between mb-5 border-b-4 border-black pb-4">
-                            <div class="flex items-center">
-                                <!-- Avatar Kotak -->
-                                <!-- Avatar Kotak Pada Postingan -->
-            @if ($post->user->avatar)
-                <!-- Munculkan foto jika user tersebut punya foto -->
-                <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $post->user->name]) }}" class="h-14 w-14 object-cover border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white">
-            @else
-                <!-- Munculkan inisial jika user tersebut belum punya foto -->
-                <div class="h-14 w-14 border-4 border-black bg-pink-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center text-black font-black uppercase text-2xl">
-                    {{ substr($post->user->name, 0, 1) }}
+            <header class="skuy-discovery-context" aria-labelledby="hashtag-page-title">
+                <span class="skuy-discovery-context__icon" aria-hidden="true">#</span>
+                <div class="skuy-discovery-context__body">
+                    <p class="skuy-discovery-eyebrow">{{ __('search.hashtag.heading') }}</p>
+                    <h1 id="hashtag-page-title" class="skuy-discovery-context__title">
+                        <span aria-hidden="true">#</span>{{ $hashtag->name }}
+                    </h1>
+                    <p class="skuy-discovery-context__count">
+                        {{ trans_choice('search.hashtag.found', $posts->total(), ['count' => $posts->total()]) }}
+                    </p>
                 </div>
-            @endif
-                                <div class="ml-4">
-                                    <a href="{{ route('user.profile', $post->user->username) }}" class="text-xl font-black text-black uppercase tracking-wide hover:underline hover:decoration-yellow-400 hover:decoration-4 transition-all">
-    {{ $post->user->name }}
-	</a>
-                                    <p class="text-xs font-bold text-gray-800 mt-1 bg-gray-200 border-2 border-black inline-block px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">
-                                        {{ $post->created_at->diffForHumans() }}
-                                    </p>
-                                </div>
-                            </div>
+            </header>
 
-                            <!-- Tombol Aksi (Hanya muncul untuk pemilik postingan) -->
-                            @if ($post->user_id === auth()->id())
-                                <div class="flex gap-2">
-                                    <!-- Tombol Edit -->
-                                    <a href="{{ route('posts.edit', $post->uid) }}" class="bg-yellow-300 border-2 border-black font-bold uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                                        {{ __('threads.actions.edit') }}
-                                    </a>
-                                    <!-- Tombol Hapus -->
-                                    <form action="{{ route('posts.destroy', $post->uid) }}" method="POST" data-confirm="{{ __('threads.confirm_delete') }}" onsubmit="return confirm(this.dataset.confirm);">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="bg-red-400 text-black border-2 border-black font-black uppercase px-3 py-1 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                                            {{ __('threads.actions.delete') }}
-                                        </button>
-                                    </form>
-                                </div>
-                            @endif
-                        </div>
-                        
-                        <!-- Isi Konten Postingan -->
-                        <p class="text-black font-bold text-lg leading-relaxed whitespace-pre-wrap">{!! preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="/tags/$1" class="text-blue-600 font-black hover:underline hover:bg-blue-100 px-1 transition-colors">#$1</a>', nl2br(e($post->content))) !!}</p>
-						<!-- Tampilkan Gambar Jika Ada -->
-                        @php
-                            $displayPost = $post->originalPost ?? $post;
-                            $modernMedia = is_array($displayPost?->images) ? $displayPost->images : [];
-                            $mediaPaths = [];
-
-                            foreach ($modernMedia as $mediaPath) {
-                                if (is_string($mediaPath) && trim($mediaPath) !== '' && ! in_array($mediaPath, $mediaPaths, true)) {
-                                    $mediaPaths[] = $mediaPath;
-                                }
-                            }
-
-                            if ($mediaPaths === [] && is_string($displayPost?->image) && trim($displayPost->image) !== '') {
-                                $mediaPaths[] = $displayPost->image;
-                            }
-                        @endphp
-                        @if (count($mediaPaths) === 1)
-                            <div class="mt-4 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-                                <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}" class="w-full h-auto object-cover">
-                            </div>
-                        @elseif (count($mediaPaths) > 1)
-                            <div x-data="{
-                                    activeSlide: 0,
-                                    updateDots(e) {
-                                        let maxIndex = {{ count($mediaPaths) - 1 }};
-                                        if (maxIndex === 0) return;
-                                        let maxScroll = e.target.scrollWidth - e.target.clientWidth;
-                                        if (maxScroll === 0) return;
-                                        this.activeSlide = Math.round((e.target.scrollLeft / maxScroll) * maxIndex);
-                                    }
-                                }" data-media-slider="true" class="mt-4">
-                                <div @scroll.passive="updateDots" data-media-slider-track="true" class="flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                                    @foreach ($mediaPaths as $mediaPath)
-                                        <div data-media-slide="true" class="snap-center shrink-0 w-[85%] sm:w-[48%] aspect-[4/5] border-2 sm:border-4 border-black dark:border-[#333333] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-xl sm:rounded-2xl overflow-hidden">
-                                            <img src="{{ asset('storage/' . $mediaPath) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}" class="w-full h-full object-cover">
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <div data-media-indicator="true" class="flex justify-center items-center gap-1.5 mt-1 sm:mt-2 mb-2">
-                                    @foreach ($mediaPaths as $index => $mediaPath)
-                                        <div data-media-indicator-dot="true" class="h-1.5 sm:h-2 rounded-full border border-black dark:border-[#333333] transition-all duration-300" :class="activeSlide === {{ $index }} ? 'w-4 sm:w-5 bg-black dark:bg-white' : 'w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]'"></div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-						<!-- Tombol Interaksi -->
-                        <div class="mt-6 pt-4 border-t-4 border-black flex items-center">
-                            <form action="{{ route('posts.like', $post->uid) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="flex items-center gap-2 px-4 py-2 border-4 border-black font-black uppercase transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] {{ $post->liked_by_me ? 'bg-pink-400 text-black' : 'bg-white text-black' }}" title="{{ __('threads.labels.like') }}">
-                                    <!-- Ikon Hati -->
-                                    <svg class="w-6 h-6" fill="{{ $post->liked_by_me ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                                        <path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                    </svg>
-                                    <!-- Jumlah Suka -->
-                                    <span>{{ trans_choice('threads.counts.likes', $post->likes_count, ['count' => $post->likes_count]) }}</span>
-                                </button>
-                            </form>
-                            @if ($displayPost->bookmarked_by_me)
-                                <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" class="flex items-center gap-1.5 px-4 py-2 border-4 border-black font-black uppercase text-yellow-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
-                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
-                                    </button>
-                                </form>
-                            @else
-                                <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" class="flex items-center gap-1.5 px-4 py-2 border-4 border-black font-black uppercase text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-						<!-- Area Komentar -->
-                        <div class="mt-4 pt-4 border-t-4 border-black">
-                            
-                            <!-- Daftar Komentar Sebelumnya -->
-                            <!-- Daftar Komentar Sebelumnya (Threaded) -->
-<div class="space-y-4 mb-4">
-    <!-- Hanya ambil komentar utama (yang tidak punya parent_id) -->
-    <a href="{{ route('posts.show', $post->uid) }}" class="inline-block mb-3 text-xs font-black uppercase text-blue-600 hover:underline">
-        {{ __('threads.actions.view_full_thread') }}
-    </a>
-    @foreach ($post->feedComments as $comment)
-        
-        <!-- Bungkus dengan Alpine.js untuk fitur buka-tutup form balasan -->
-        <div x-data="{ openReply: false }" class="flex flex-col gap-2">
-            
-            <!-- 1. Kotak Komentar Utama -->
-            <div class="bg-cyan-100 border-2 border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col">
-                <div class="flex justify-between items-center mb-1 border-b-2 border-black pb-1">
-                    <span class="font-black text-xs uppercase">{{ $comment->user->name }}</span>
-                    <span class="text-[10px] font-bold text-gray-700 uppercase">{{ $comment->created_at->diffForHumans() }}</span>
+            <section class="skuy-discovery-listing" aria-labelledby="hashtag-threads-heading">
+                <div class="skuy-discovery-listing__heading">
+                    <h2 id="hashtag-threads-heading" class="skuy-discovery-section__title">{{ __('search.sections.threads') }}</h2>
                 </div>
-                <p class="text-black font-bold text-sm mt-1">{{ $comment->content }}</p>
-                
-                <!-- Tombol Balas -->
-                <div class="mt-2 text-right">
-                    <button @click="openReply = !openReply" type="button" class="text-[10px] font-black uppercase bg-yellow-300 border-2 border-black px-2 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
-                        {{ __('threads.actions.reply') }}
-                    </button>
-                </div>
-            </div>
 
-            <!-- 2. Form Input Balasan (Tersembunyi secara default) -->
-            <div x-show="openReply" style="display: none;" class="ml-6 sm:ml-10">
-                <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="flex gap-2">
-                    @csrf
-                    <!-- Input rahasia untuk mengirimkan ID komentar yang dibalas -->
-                    <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                    
-                    <input type="text" name="content" class="flex-1 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none focus:bg-yellow-50 text-black font-bold text-xs p-2" placeholder="{{ __('threads.comments.reply_to', ['name' => $comment->user->name]) }}" required>
-                    <button type="submit" class="bg-emerald-400 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] transition-all font-black uppercase text-xs px-3 py-1 text-black">
-                        {{ __('threads.actions.send') }}
-                    </button>
-                </form>
-            </div>
-
-            <!-- 3. Daftar Balasan (Anak Komentar) -->
-            @if ($comment->feedReplies->count() > 0)
-                <div class="ml-6 sm:ml-10 flex flex-col gap-2 border-l-4 border-black pl-3 mt-1">
-                    @foreach ($comment->feedReplies as $reply)
-                        <div class="bg-pink-200 border-2 border-black p-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col">
-                            <div class="flex justify-between items-center mb-1 border-b-2 border-black pb-1">
-                                <span class="font-black text-[11px] uppercase">{{ $reply->user->name }}</span>
-                                <span class="text-[9px] font-bold text-gray-700 uppercase">{{ $reply->created_at->diffForHumans() }}</span>
-                            </div>
-                            <p class="text-black font-bold text-xs mt-1">{{ $reply->content }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-
-        </div>
-    @endforeach
-</div>
-
-                            <!-- Form Input Komentar Baru -->
-                            <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="flex gap-2">
-                                @csrf
-                                <input type="text" name="content" class="flex-1 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none p-2 font-bold text-black text-sm" placeholder="{{ __('threads.comments.add') }}" required autocomplete="off">
-                                <button type="submit" class="bg-emerald-400 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] font-black uppercase px-4 py-2 text-black transition-all text-sm">
-                                    {{ __('threads.actions.send') }}
-                                </button>
-                            </form>
-                        </div>
+                @if ($posts->isEmpty())
+                    <div class="skuy-discovery-empty" role="status">
+                        <span class="skuy-discovery-empty__mark" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 6.5h14M5 12h10M5 17.5h6"></path>
+                            </svg>
+                        </span>
+                        <h3 class="skuy-discovery-empty__title">{{ __('search.empty.threads') }}</h3>
                     </div>
-                @endforeach
-            </div>
+                @else
+                    <div class="skuy-discovery-post-list">
+                        @foreach ($posts as $post)
+                            @php
+                                $isRepost = $post->repost_id !== null;
+                                $displayPost = $post->originalPost ?? $post;
+                                $modernMedia = is_array($displayPost?->images) ? $displayPost->images : [];
+                                $mediaPaths = [];
 
-            @if ($posts->hasPages())
-                <div class="mt-6">
-                    {{ $posts->links() }}
-                </div>
-            @endif
+                                foreach ($modernMedia as $mediaPath) {
+                                    if (is_string($mediaPath) && trim($mediaPath) !== '' && ! in_array($mediaPath, $mediaPaths, true)) {
+                                        $mediaPaths[] = $mediaPath;
+                                    }
+                                }
 
+                                if ($mediaPaths === [] && is_string($displayPost?->image) && trim($displayPost->image) !== '') {
+                                    $mediaPaths[] = $displayPost->image;
+                                }
+
+                                $likeCount = (int) ($post->likes_count ?? 0);
+                                $commentCount = (int) ($post->comments_count ?? 0);
+                                $likeLabel = $post->liked_by_me ? __('threads.actions.unlike') : __('threads.labels.like');
+                            @endphp
+
+                            <article x-data="{ showComments: false }" class="skuy-post skuy-discovery-post" aria-labelledby="hashtag-post-{{ $post->uid }}">
+                                @if ($isRepost)
+                                    <div class="skuy-post__repost">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path>
+                                        </svg>
+                                        <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
+                                    </div>
+                                @endif
+
+                                <div class="skuy-post__layout">
+                                    <div class="skuy-post__avatar-column">
+                                        <a href="{{ route('user.profile', $post->user->username) }}" class="skuy-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $post->user->name]) }}">
+                                            @if ($post->user->avatar)
+                                                <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $post->user->name]) }}">
+                                            @else
+                                                <span aria-hidden="true">{{ substr($post->user->name, 0, 1) }}</span>
+                                            @endif
+                                        </a>
+                                    </div>
+
+                                    <div class="skuy-post__body">
+                                        <div class="skuy-post__body-main">
+                                            <header class="skuy-post__header">
+                                                <div class="skuy-post__identity">
+                                                    <a id="hashtag-post-{{ $post->uid }}" href="{{ route('user.profile', $post->user->username) }}" class="skuy-post__display-name">
+                                                        {{ $post->user->name }}
+                                                    </a>
+                                                    <a href="{{ route('user.profile', $post->user->username) }}" class="skuy-post__username">
+                                                        <span aria-hidden="true">@</span>{{ $post->user->username }}
+                                                    </a>
+                                                    @if ($post->user->is_verified)
+                                                        <span class="skuy-discovery-verified" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
+                                                        </span>
+                                                    @endif
+                                                    @if ($post->topic)
+                                                        <span aria-hidden="true" class="text-[var(--skuy-text-muted)]">&middot;</span>
+                                                        <a href="{{ route('topik.show', $post->topic) }}" class="skuy-post__topic">#{{ $post->topic }}</a>
+                                                    @endif
+                                                    <time datetime="{{ $post->created_at->toIso8601String() }}" class="skuy-post__time">
+                                                        {{ $post->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}
+                                                    </time>
+                                                </div>
+
+                                                @if ($post->user_id === auth()->id())
+                                                    <div class="skuy-discovery-post__owner-actions">
+                                                        <a href="{{ route('posts.edit', $post->uid) }}" class="skuy-button skuy-button--quiet">{{ __('threads.actions.edit') }}</a>
+                                                        <form action="{{ route('posts.destroy', $post->uid) }}" method="POST" data-confirm="{{ __('threads.confirm_delete') }}" onsubmit="return confirm(this.dataset.confirm);">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="skuy-button skuy-button--quiet skuy-button--danger">{{ __('threads.actions.delete') }}</button>
+                                                        </form>
+                                                    </div>
+                                                @endif
+                                            </header>
+
+                                            <div class="skuy-post__content">
+                                                <p class="skuy-post__text">{!! preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="'.url('/tags').'/$1" class="skuy-hashtag">#$1</a>', e($displayPost->content ?? '')) !!}</p>
+
+                                                @if (count($mediaPaths) === 1)
+                                                    <div class="skuy-discovery-post__single-media">
+                                                        <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
+                                                    </div>
+                                                @elseif (count($mediaPaths) > 1)
+                                                    <div
+                                                        x-data="{
+                                                            activeSlide: 0,
+                                                            updateDots(event) {
+                                                                const maxIndex = {{ count($mediaPaths) - 1 }};
+                                                                if (maxIndex === 0) return;
+                                                                const maxScroll = event.target.scrollWidth - event.target.clientWidth;
+                                                                if (maxScroll === 0) return;
+                                                                this.activeSlide = Math.round((event.target.scrollLeft / maxScroll) * maxIndex);
+                                                            }
+                                                        }"
+                                                        data-media-slider="true"
+                                                        class="skuy-discovery-post__media-slider"
+                                                    >
+                                                        <div @scroll.passive="updateDots" data-media-slider-track="true" class="skuy-media-track flex gap-1.5 sm:gap-2 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                                            @foreach ($mediaPaths as $mediaPath)
+                                                                <div data-media-slide="true" class="skuy-media-item skuy-discovery-post__media-item snap-center shrink-0 w-[85%] sm:w-[48%]">
+                                                                    <img src="{{ asset('storage/' . $mediaPath) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                        <div data-media-indicator="true" class="skuy-media-dots" aria-hidden="true">
+                                                            @foreach ($mediaPaths as $index => $mediaPath)
+                                                                <div data-media-indicator-dot="true" class="skuy-media-dot" :class="activeSlide === {{ $index }} ? 'is-active w-4 sm:w-5 bg-black dark:bg-white' : 'w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]' "></div>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            <div class="skuy-actions skuy-discovery-post__actions">
+                                                <form action="{{ route('posts.like', $post->uid) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" aria-label="{{ $likeLabel }}" title="{{ $likeLabel }}" aria-pressed="{{ $post->liked_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction">
+                                                        <svg class="h-5 w-5 {{ $post->liked_by_me ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path></svg>
+                                                        <span>{{ $likeCount > 0 ? $likeCount : '' }}</span>
+                                                    </button>
+                                                </form>
+
+                                                <button @click="showComments = !showComments" type="button" aria-label="{{ __('threads.actions.reply') }}" title="{{ __('threads.actions.reply') }}" :aria-expanded="showComments.toString()" aria-controls="hashtag-comments-{{ $post->uid }}" class="skuy-action">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.4 8.4 0 0 1-3.5-.75L4 20l1.35-3.6A7.3 7.3 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"></path></svg>
+                                                    <span>{{ $commentCount > 0 ? $commentCount : '' }}</span>
+                                                </button>
+
+                                                <button type="button" aria-label="{{ __('threads.repost_coming_soon') }}" title="{{ __('threads.repost_coming_soon') }}" class="skuy-action">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path></svg>
+                                                </button>
+
+                                                @if ($displayPost->bookmarked_by_me)
+                                                    <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
+                                                            <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
+                                                            <svg class="h-5 w-5 fill-none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                <button type="button" aria-label="{{ __('threads.actions.share') }}" title="{{ __('threads.actions.share') }}" class="skuy-action">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m12 3 9 18-9-3-9 3 9-18Zm0 0v15"></path></svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="skuy-discovery-post__footer">
+                                                <a href="{{ route('posts.show', $post->uid) }}" class="skuy-discovery-post__view-link">
+                                                    {{ __('threads.actions.view_thread') }}
+                                                </a>
+                                            </div>
+
+                                            @php
+                                                $topComment = $post->feedComments->first();
+                                            @endphp
+
+                                            @if ($topComment)
+                                                <div x-show="!showComments" class="skuy-comment-preview">
+                                                    <div class="skuy-comment">
+                                                        <div class="skuy-avatar skuy-avatar--small" aria-label="{{ __('threads.media.avatar_of', ['name' => $topComment->user->name]) }}">
+                                                            @if ($topComment->user->avatar)
+                                                                <img src="{{ asset('storage/' . $topComment->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $topComment->user->name]) }}">
+                                                            @else
+                                                                <span aria-hidden="true">{{ substr($topComment->user->name, 0, 1) }}</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="skuy-comment__body">
+                                                            <div class="skuy-comment__identity">
+                                                                <span class="skuy-comment__user"><span aria-hidden="true">@</span>{{ $topComment->user->username }}</span>
+                                                                <span class="skuy-comment__time">{{ $topComment->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}</span>
+                                                            </div>
+                                                            <p class="skuy-comment__text">{{ $topComment->content }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            <div id="hashtag-comments-{{ $post->uid }}" x-show="showComments" x-transition.opacity.duration.300ms style="display: none;" class="skuy-comments">
+                                                <a href="{{ route('posts.show', $post->uid) }}" class="skuy-discovery-post__view-link">
+                                                    {{ __('threads.actions.view_full_thread') }}
+                                                </a>
+
+                                                <div class="skuy-discovery-comments-list">
+                                                    @foreach ($post->feedComments as $comment)
+                                                        <div x-data="{ openReply: false, isSubmitting: false }" class="skuy-comment">
+                                                            <div class="skuy-avatar skuy-avatar--small" aria-label="{{ __('threads.media.avatar_of', ['name' => $comment->user->name]) }}">
+                                                                @if ($comment->user->avatar)
+                                                                    <img src="{{ asset('storage/' . $comment->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $comment->user->name]) }}">
+                                                                @else
+                                                                    <span aria-hidden="true">{{ substr($comment->user->name, 0, 1) }}</span>
+                                                                @endif
+                                                            </div>
+                                                            <div class="skuy-comment__body">
+                                                                <div class="skuy-comment__identity">
+                                                                    <span class="skuy-comment__user"><span aria-hidden="true">@</span>{{ $comment->user->username }}</span>
+                                                                    <span class="skuy-comment__time">{{ $comment->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}</span>
+                                                                </div>
+                                                                <p class="skuy-comment__text">{{ $comment->content }}</p>
+                                                                <button @click="openReply = !openReply" type="button" :aria-expanded="openReply.toString()" class="skuy-comment__reply">{{ __('threads.actions.reply') }}</button>
+
+                                                                <div x-show="openReply" style="display: none;">
+                                                                    <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="skuy-inline-form" @submit="isSubmitting = true">
+                                                                        @csrf
+                                                                        <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                                                                        <input type="text" name="content" class="skuy-inline-input" placeholder="{{ __('threads.comments.reply_to', ['name' => $comment->user->name]) }}" required>
+                                                                        <button type="submit" :disabled="isSubmitting" class="skuy-button skuy-button--primary min-h-[40px] px-3 py-1 text-xs">
+                                                                            <span x-show="!isSubmitting">{{ __('threads.actions.send') }}</span>
+                                                                            <span x-show="isSubmitting">...</span>
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+
+                                                                @if ($comment->feedReplies->count() > 0)
+                                                                    <div class="skuy-comment__replies">
+                                                                        @foreach ($comment->feedReplies as $reply)
+                                                                            <div class="skuy-comment">
+                                                                                <div class="skuy-avatar skuy-avatar--tiny" aria-label="{{ __('threads.media.avatar_of', ['name' => $reply->user->name]) }}">
+                                                                                    @if ($reply->user->avatar)
+                                                                                        <img src="{{ asset('storage/' . $reply->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $reply->user->name]) }}">
+                                                                                    @else
+                                                                                        <span aria-hidden="true">{{ substr($reply->user->name, 0, 1) }}</span>
+                                                                                    @endif
+                                                                                </div>
+                                                                                <div class="skuy-comment__body">
+                                                                                    <div class="skuy-comment__identity">
+                                                                                        <span class="skuy-comment__user"><span aria-hidden="true">@</span>{{ $reply->user->username }}</span>
+                                                                                        <span class="skuy-comment__time">{{ $reply->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}</span>
+                                                                                    </div>
+                                                                                    <p class="skuy-comment__text">{{ $reply->content }}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+
+                                                <form action="{{ route('comments.store', $post->uid) }}" method="POST" class="skuy-inline-form">
+                                                    @csrf
+                                                    <div class="skuy-avatar skuy-avatar--small" aria-label="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
+                                                        @if (Auth::user()->avatar)
+                                                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
+                                                        @else
+                                                            <span aria-hidden="true">{{ substr(Auth::user()->name, 0, 1) }}</span>
+                                                        @endif
+                                                    </div>
+                                                    <input type="text" name="content" class="skuy-inline-input" placeholder="{{ __('threads.comments.add') }}" required autocomplete="off">
+                                                    <button type="submit" class="skuy-button skuy-button--primary min-h-[40px] px-3 py-1 text-xs">{{ __('threads.actions.send') }}</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+
+                    @if ($posts->hasPages())
+                        <div class="skuy-discovery-pagination">
+                            {{ $posts->links() }}
+                        </div>
+                    @endif
+                @endif
+            </section>
         </div>
     </div>
 </x-app-layout>

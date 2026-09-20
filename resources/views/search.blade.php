@@ -1,140 +1,238 @@
 <x-app-layout>
-    <div class="max-w-2xl mx-auto pb-10 pt-4 sm:pt-8 px-4 sm:px-0">
-
-        <!-- Header -->
-        <div class="mb-6 flex items-center gap-3 border-b-4 border-black pb-4 dark:border-[#333333]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <h1 class="text-xl sm:text-2xl font-black uppercase tracking-wider">{{ __('search.heading') }}</h1>
-        </div>
-
-        <!-- Form Input Pencarian -->
-        <form action="{{ route('search') }}" method="GET" class="mb-8 flex gap-2">
-            <input type="text" name="q" value="{{ $query ?? '' }}" placeholder="{{ __('search.placeholder') }}" autocomplete="off" class="w-full p-3 border-4 border-black text-lg font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:bg-yellow-100 transition-colors">
-            <button type="submit" class="px-6 bg-yellow-300 border-4 border-black font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-400 hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
-                {{ __('search.submit') }}
-            </button>
-        </form>
-
-        <!-- AREA HASIL PENCARIAN -->
-        @if(isset($query) && $query !== '')
-
-            <!-- 1. Blok Hasil Akun (Orang) -->
-            <div class="mb-10">
-                <h2 class="text-lg font-black bg-cyan-300 border-4 border-black inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 uppercase">
-                    👥 {{ __('search.sections.users') }}
-                </h2>
-                
-                @if($users->isEmpty())
-                    <p class="font-bold text-gray-500 italic">{{ __('search.empty.users') }}</p>
-                @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        @foreach($users as $user)
-                            <a href="{{ route('user.profile', $user->username) }}" class="flex items-center gap-3 p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-cyan-100 transition-colors cursor-pointer">
-                                <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=random&color=fff&font-weight=bold' }}" alt="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}" class="w-12 h-12 rounded-full border-2 border-black object-cover bg-gray-200">
-                                <div>
-                                    <p class="font-black text-black leading-tight">{{ $user->name }}</p>
-                                    <p class="text-xs text-gray-600 font-bold">{{ '@' . $user->username }}</p>
-                                </div>
-                            </a>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-
-            @if($hashtags->isNotEmpty())
-                <!-- 2. Blok Hasil Tagar -->
-                <div class="mb-10">
-                    <h2 class="text-lg font-black bg-yellow-300 border-4 border-black inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 uppercase">
-                        🏷️ {{ __('search.sections.hashtags') }}
-                    </h2>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        @foreach($hashtags as $hashtag)
-                            <a href="{{ route('tags.show', $hashtag->name) }}" class="block p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 transition-colors cursor-pointer">
-                                <p class="font-black text-black">#{{ $hashtag->name }}</p>
-                            </a>
-                        @endforeach
+    <div class="skuy-discovery-page">
+        <div class="skuy-discovery-shell">
+            <header class="skuy-discovery-header" aria-labelledby="search-page-title">
+                <div class="skuy-discovery-header__identity">
+                    <span class="skuy-discovery-header__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="11" cy="11" r="6.5"></circle>
+                            <path stroke-linecap="round" d="m16 16 5 5"></path>
+                        </svg>
+                    </span>
+                    <div>
+                        <p class="skuy-discovery-eyebrow">{{ __('navigation.search') }}</p>
+                        <h1 id="search-page-title" class="skuy-discovery-title">{{ __('search.heading') }}</h1>
                     </div>
                 </div>
-            @endif
+            </header>
 
-            @if($topics->isNotEmpty())
-                <!-- 3. Blok Hasil Topik -->
-                <div class="mb-10">
-                    <h2 class="text-lg font-black bg-emerald-300 border-4 border-black inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 uppercase">
-                        🧵 {{ __('search.sections.topics') }}
-                    </h2>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        @foreach($topics as $topic)
-                            <a href="{{ route('topik.show', ['topic' => $topic]) }}" class="block p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 transition-colors cursor-pointer">
-                                <p class="font-black text-black">{{ $topic }}</p>
-                            </a>
-                        @endforeach
-                    </div>
+            <form action="{{ route('search') }}" method="GET" class="skuy-discovery-search" role="search">
+                <label for="discovery-search-input" class="skuy-discovery-search__label">
+                    {{ __('search.heading') }}
+                </label>
+                <div class="skuy-discovery-search__row">
+                    <input
+                        id="discovery-search-input"
+                        type="search"
+                        name="q"
+                        value="{{ $query }}"
+                        placeholder="{{ __('search.placeholder') }}"
+                        autocomplete="off"
+                        class="skuy-discovery-search__input"
+                    >
+                    <button type="submit" class="skuy-button skuy-button--primary skuy-discovery-search__submit">
+                        {{ __('search.submit') }}
+                    </button>
                 </div>
-            @endif
+            </form>
 
-            <!-- 4. Blok Hasil Postingan -->
-            <div>
-                <h2 class="text-lg font-black bg-pink-400 text-white border-4 border-black inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-4 uppercase">
-                    📝 {{ __('search.sections.threads') }}
-                </h2>
+            @if ($query !== '')
+                <div class="skuy-discovery-query" role="status" aria-live="polite">
+                    <span class="skuy-discovery-query__label">{{ __('search.heading') }}</span>
+                    <span class="skuy-discovery-query__value">{{ $query }}</span>
+                </div>
 
-                @if($posts->isEmpty())
-                    <p class="font-bold text-gray-500 italic">{{ __('search.empty.threads') }}</p>
-                @else
-                    <div class="space-y-4">
-                        @foreach($posts as $post)
-                            <div class="block p-4 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 hover:translate-x-1 transition-all cursor-pointer">
-                                <a href="{{ route('posts.show', $post) }}" class="block">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="font-black text-black hover:underline">{{ $post->user->name }}</span>
-                                        <span class="text-xs text-gray-500 font-bold">&bull; {{ $post->created_at->diffForHumans() }}</span>
-                                    </div>
-                                    <p class="text-black font-medium">{{ $post->content }}</p>
-                                </a>
-
-                                <div class="mt-3 pt-3 border-t-2 border-black flex justify-end">
-                                    @if ($post->bookmarked_by_me)
-                                        <form action="{{ route('bookmarks.destroy', $post->uid) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-yellow-300 text-black group">
-                                                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <form action="{{ route('bookmarks.store', $post->uid) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all bg-white text-black hover:bg-yellow-300 group">
-                                                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    @if($posts->hasPages())
-                        <div class="mt-6">
-                            {{ $posts->links() }}
+                <div class="skuy-discovery-sections">
+                    <section class="skuy-discovery-section" aria-labelledby="search-users-heading">
+                        <div class="skuy-discovery-section__heading">
+                            <span class="skuy-discovery-section__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <circle cx="9" cy="8" r="3"></circle>
+                                    <path stroke-linecap="round" d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.5a2.5 2.5 0 0 1 0 5M16 13a5 5 0 0 1 4.5 4.5"></path>
+                                </svg>
+                            </span>
+                            <h2 id="search-users-heading" class="skuy-discovery-section__title">{{ __('search.sections.users') }}</h2>
                         </div>
-                    @endif
-                @endif
-            </div>
 
-        @else
-            <!-- Tampilan Awal Jika Belum Mencari Sesuatu -->
-            <div class="p-8 border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center flex flex-col items-center">
-                <div class="text-6xl mb-4">🕵️‍♂️</div>
-                <h2 class="text-xl font-black uppercase mb-2">{{ __('search.empty.initial_title') }}</h2>
-                <p class="text-gray-600 font-bold">{{ __('search.empty.initial_description') }}</p>
-            </div>
-        @endif
-        
+                        @if ($users->isEmpty())
+                            <div class="skuy-discovery-empty skuy-discovery-empty--compact" role="status">
+                                <p class="skuy-discovery-empty__description">{{ __('search.empty.users') }}</p>
+                            </div>
+                        @else
+                            <div class="skuy-discovery-user-grid" role="list">
+                                @foreach ($users as $user)
+                                    <a href="{{ route('user.profile', $user->username) }}" class="skuy-discovery-user" role="listitem">
+                                        <span class="skuy-avatar skuy-discovery-user__avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
+                                            @if ($user->avatar)
+                                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
+                                            @else
+                                                <span aria-hidden="true">{{ substr($user->name, 0, 1) }}</span>
+                                            @endif
+                                        </span>
+                                        <span class="skuy-discovery-user__identity">
+                                            <span class="skuy-discovery-user__name">{{ $user->name }}</span>
+                                            <span class="skuy-discovery-user__username">{{ '@' . $user->username }}</span>
+                                        </span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+                    </section>
+
+                    @if ($hashtags->isNotEmpty())
+                        <section class="skuy-discovery-section" aria-labelledby="search-hashtags-heading">
+                            <div class="skuy-discovery-section__heading">
+                                <span class="skuy-discovery-section__icon" aria-hidden="true">#</span>
+                                <h2 id="search-hashtags-heading" class="skuy-discovery-section__title">{{ __('search.sections.hashtags') }}</h2>
+                            </div>
+                            <div class="skuy-discovery-link-grid" role="list">
+                                @foreach ($hashtags as $hashtag)
+                                    <a href="{{ route('tags.show', $hashtag->name) }}" class="skuy-discovery-link" role="listitem">
+                                        <span class="skuy-discovery-link__mark" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h10M4 17h7"></path></svg>
+                                        </span>
+                                        <span class="skuy-discovery-link__text">#{{ $hashtag->name }}</span>
+                                        <svg class="skuy-discovery-link__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7"></path>
+                                        </svg>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </section>
+                    @endif
+
+                    @if ($topics->isNotEmpty())
+                        <section class="skuy-discovery-section" aria-labelledby="search-topics-heading">
+                            <div class="skuy-discovery-section__heading">
+                                <span class="skuy-discovery-section__icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" d="M5 7h14M5 12h10M5 17h7"></path>
+                                    </svg>
+                                </span>
+                                <h2 id="search-topics-heading" class="skuy-discovery-section__title">{{ __('search.sections.topics') }}</h2>
+                            </div>
+                            <div class="skuy-discovery-link-grid" role="list">
+                                @foreach ($topics as $topic)
+                                    <a href="{{ route('topik.show', ['topic' => $topic]) }}" class="skuy-discovery-link" role="listitem">
+                                        <span class="skuy-discovery-link__mark" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h10M4 17h7"></path></svg>
+                                        </span>
+                                        <span class="skuy-discovery-link__text">#{{ $topic }}</span>
+                                        <svg class="skuy-discovery-link__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7"></path>
+                                        </svg>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </section>
+                    @endif
+
+                    <section class="skuy-discovery-section" aria-labelledby="search-threads-heading">
+                        <div class="skuy-discovery-section__heading">
+                            <span class="skuy-discovery-section__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 6.5h14M5 12h14M5 17.5h9"></path>
+                                </svg>
+                            </span>
+                            <h2 id="search-threads-heading" class="skuy-discovery-section__title">{{ __('search.sections.threads') }}</h2>
+                        </div>
+
+                        @if ($posts->isEmpty())
+                            <div class="skuy-discovery-empty" role="status">
+                                <span class="skuy-discovery-empty__mark" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 6.5h14M5 12h10M5 17.5h6"></path>
+                                    </svg>
+                                </span>
+                                <h3 class="skuy-discovery-empty__title">{{ __('search.empty.threads') }}</h3>
+                            </div>
+                        @else
+                            <div class="skuy-discovery-post-list">
+                                @foreach ($posts as $post)
+                                    <article class="skuy-post skuy-discovery-post" aria-labelledby="search-post-{{ $post->uid }}">
+                                        <div class="skuy-post__layout">
+                                            <div class="skuy-post__avatar-column">
+                                                <a href="{{ route('user.profile', $post->user->username) }}" class="skuy-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $post->user->name]) }}">
+                                                    @if ($post->user->avatar)
+                                                        <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $post->user->name]) }}">
+                                                    @else
+                                                        <span aria-hidden="true">{{ substr($post->user->name, 0, 1) }}</span>
+                                                    @endif
+                                                </a>
+                                            </div>
+
+                                            <div class="skuy-post__body">
+                                                <div class="skuy-post__body-main">
+                                                    <header class="skuy-post__header">
+                                                        <div class="skuy-post__identity">
+                                                            <a id="search-post-{{ $post->uid }}" href="{{ route('user.profile', $post->user->username) }}" class="skuy-post__display-name">
+                                                                {{ $post->user->name }}
+                                                            </a>
+                                                            <a href="{{ route('user.profile', $post->user->username) }}" class="skuy-post__username">
+                                                                <span aria-hidden="true">@</span>{{ $post->user->username }}
+                                                            </a>
+                                                            @if ($post->topic)
+                                                                <span aria-hidden="true" class="text-[var(--skuy-text-muted)]">&middot;</span>
+                                                                <a href="{{ route('topik.show', $post->topic) }}" class="skuy-post__topic">#{{ $post->topic }}</a>
+                                                            @endif
+                                                            <time datetime="{{ $post->created_at->toIso8601String() }}" class="skuy-post__time">
+                                                                {{ $post->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}
+                                                            </time>
+                                                        </div>
+                                                    </header>
+
+                                                    <div class="skuy-post__content">
+                                                        <p class="skuy-post__text">{!! preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="'.url('/tags').'/$1" class="skuy-hashtag">#$1</a>', e($post->content)) !!}</p>
+                                                    </div>
+                                                </div>
+
+                                                <footer class="skuy-discovery-post__footer">
+                                                    <a href="{{ route('posts.show', $post) }}" class="skuy-discovery-post__view-link">
+                                                        {{ __('threads.actions.view_thread') }}
+                                                    </a>
+                                                    @if ($post->bookmarked_by_me)
+                                                        <form action="{{ route('bookmarks.destroy', $post->uid) }}" method="POST">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
+                                                                <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <form action="{{ route('bookmarks.store', $post->uid) }}" method="POST">
+                                                            @csrf
+                                                            <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
+                                                                <svg class="h-5 w-5 fill-none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </footer>
+                                            </div>
+                                        </div>
+                                    </article>
+                                @endforeach
+                            </div>
+
+                            @if ($posts->hasPages())
+                                <div class="skuy-discovery-pagination">
+                                    {{ $posts->links() }}
+                                </div>
+                            @endif
+                        @endif
+                    </section>
+                </div>
+            @else
+                <section class="skuy-discovery-empty skuy-discovery-empty--initial" aria-labelledby="search-empty-title" role="status">
+                    <span class="skuy-discovery-empty__mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="11" cy="11" r="6.5"></circle>
+                            <path stroke-linecap="round" d="m16 16 5 5"></path>
+                        </svg>
+                    </span>
+                    <h2 id="search-empty-title" class="skuy-discovery-empty__title">{{ __('search.empty.initial_title') }}</h2>
+                    <p class="skuy-discovery-empty__description">{{ __('search.empty.initial_description') }}</p>
+                </section>
+            @endif
+        </div>
     </div>
 </x-app-layout>
