@@ -7,10 +7,19 @@ use Tests\TestCase;
 
 class TrustedHostTest extends TestCase
 {
-    public function test_canonical_application_host_is_allowed(): void
+    public function test_legacy_dot_com_host_is_rejected(): void
     {
         $response = $this->withProductionTrustedHosts(function () {
             return $this->get('http://skuysocial.com/login');
+        });
+
+        $response->assertStatus(400);
+    }
+
+    public function test_canonical_application_host_is_allowed(): void
+    {
+        $response = $this->withProductionTrustedHosts(function () {
+            return $this->get('http://skuysocial.id/login');
         });
 
         $response->assertOk();
@@ -28,7 +37,7 @@ class TrustedHostTest extends TestCase
     public function test_application_subdomains_are_not_implicitly_trusted(): void
     {
         $response = $this->withProductionTrustedHosts(function () {
-            return $this->get('http://preview.skuysocial.com/login');
+            return $this->get('http://preview.skuysocial.id/login');
         });
 
         $response->assertStatus(400);
@@ -37,7 +46,7 @@ class TrustedHostTest extends TestCase
     public function test_canonical_host_preserves_password_reset_url_behavior(): void
     {
         $this->withProductionTrustedHosts(function (): void {
-            $response = $this->get('http://skuysocial.com/forgot-password');
+            $response = $this->get('http://skuysocial.id/forgot-password');
 
             $response
                 ->assertOk()

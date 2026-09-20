@@ -19,8 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustHosts(
             at: fn (): array => app()->environment('production')
-                ? ['^skuysocial\.com$']
-                : ['^skuysocial\.com$', '^localhost$', '^127\.0\.0\.1$'],
+                ? ['^skuysocial\.id$']
+                : ['^skuysocial\.id$', '^localhost$', '^127\.0\.0\.1$'],
             subdomains: false,
         );
 
