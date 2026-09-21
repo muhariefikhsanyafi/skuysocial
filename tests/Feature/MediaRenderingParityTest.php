@@ -144,10 +144,10 @@ class MediaRenderingParityTest extends TestCase
         $this->assertSame(count($images), substr_count($content, 'data-media-indicator-dot="true"'));
         $this->assertStringContainsString('activeSlide: 0', $content);
         $this->assertStringContainsString('@scroll.passive="updateDots"', $content);
-        $this->assertStringContainsString('overflow-x-auto snap-x snap-mandatory', $content);
+        $this->assertStringContainsString('class="skuy-media-track"', $content);
         $this->assertStringContainsString('activeSlide === 0', $content);
         $this->assertStringContainsString('activeSlide === 2', $content);
-        $this->assertStringContainsString('w-1.5 sm:w-2 bg-[var(--skuy-border-subtle)]', $content);
+        $this->assertStringContainsString('class="skuy-media-dot"', $content);
     }
 
     public function test_post_detail_without_media_has_no_slider_or_indicator(): void
