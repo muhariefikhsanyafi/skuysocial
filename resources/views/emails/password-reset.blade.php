@@ -1,3 +1,8 @@
+@php
+    $appUrl = rtrim((string) config('app.url'), '/');
+    $appUrl = $appUrl !== '' ? $appUrl : url('/');
+    $appHost = parse_url($appUrl, PHP_URL_HOST) ?: $appUrl;
+@endphp
 <!doctype html>
 <html lang="id">
 <head>
@@ -5,32 +10,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Atur Ulang Kata Sandi SkuySocial</title>
 </head>
-<body style="margin:0; padding:0; background-color:#fef08a; color:#000000; font-family:Arial, Helvetica, sans-serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; margin:0; padding:0; background-color:#fef08a;">
+<body style="margin:0; padding:0; background-color:#FFF9F2; color:#20262E; font-family:Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; margin:0; padding:0; background-color:#FFF9F2;">
         <tr>
             <td align="center" style="padding:32px 16px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; max-width:600px; background-color:#ffffff; border:4px solid #000000; box-shadow:8px 8px 0 #000000;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; max-width:600px; background-color:#FFFFFF; border:1px solid #D6DCE1; border-radius:12px;">
                     <tr>
-                        <td style="padding:28px 24px; background-color:#a7f3d0; border-bottom:4px solid #000000;">
-                            <p style="margin:0 0 12px; font-size:14px; line-height:1.4; font-weight:800; letter-spacing:2px;">SKUYSOCIAL</p>
-                            <h1 style="margin:0; font-size:30px; line-height:1.15; font-weight:900;">Atur Ulang Kata Sandi</h1>
+                        <td style="padding:30px 32px 12px;">
+                            <p style="margin:0; color:#0D6B65; font-size:16px; line-height:1.4; font-weight:700;">SkuySocial</p>
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding:28px 24px 24px;">
-                            <p style="margin:0 0 18px; font-size:16px; line-height:1.6;">Kami menerima permintaan untuk mengatur ulang kata sandi akun SkuySocial Anda.</p>
-                            <p style="margin:0 0 24px; font-size:16px; line-height:1.6;">Gunakan tombol berikut untuk melanjutkan:</p>
-                            <p style="margin:0 0 28px; text-align:center;">
-                                <a href="{{ $url }}" style="display:inline-block; padding:14px 20px; background-color:#f9a8d4; border:4px solid #000000; box-shadow:5px 5px 0 #000000; color:#000000; font-size:15px; line-height:1.2; font-weight:900; text-decoration:none;">ATUR ULANG KATA SANDI</a>
+                        <td style="padding:0 32px 32px;">
+                            <h1 style="margin:0 0 20px; color:#20262E; font-size:28px; line-height:1.25; font-weight:700;">Atur Ulang Kata Sandi</h1>
+                            <p style="margin:0 0 18px; color:#20262E; font-size:16px; line-height:1.6;">Kami menerima permintaan untuk mengatur ulang kata sandi akun SkuySocial Anda.</p>
+                            <p style="margin:0 0 24px; color:#20262E; font-size:16px; line-height:1.6;">Gunakan tombol berikut untuk melanjutkan:</p>
+                            <p style="margin:0 0 26px;">
+                                <a href="{{ $url }}" style="display:inline-block; padding:13px 20px; background-color:#0D6B65; color:#FFFFFF; border-radius:8px; font-size:15px; line-height:1.3; font-weight:700; text-decoration:none;">ATUR ULANG KATA SANDI</a>
                             </p>
-                            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; font-weight:700;">Tautan ini berlaku selama {{ $expiration }} menit.</p>
-                            <p style="margin:0; font-size:14px; line-height:1.6;">Jika Anda tidak meminta pengaturan ulang kata sandi, abaikan email ini.</p>
+                            <p style="margin:0 0 18px; color:#4A5563; font-size:14px; line-height:1.6;">Tautan ini berlaku selama {{ $expiration }} menit.</p>
+                            <p style="margin:0 0 20px; color:#4A5563; font-size:14px; line-height:1.6;">Jika Anda tidak meminta pengaturan ulang kata sandi, abaikan email ini.</p>
+                            <p style="margin:0 0 8px; color:#5F6B78; font-size:13px; line-height:1.5;">Jika tombol tidak berfungsi, salin dan buka tautan berikut:</p>
+                            <p style="margin:0; font-size:13px; line-height:1.5; word-break:break-all;">
+                                <a href="{{ $url }}" style="color:#0D6B65; text-decoration:underline;">{{ $url }}</a>
+                            </p>
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding:18px 24px; background-color:#e9d5ff; border-top:4px solid #000000; font-size:14px; line-height:1.5; font-weight:800;">
-                            SkuySocial<br>
-                            <a href="https://skuysocial.com" style="color:#000000; text-decoration:underline;">skuysocial.com</a>
+                        <td style="padding:20px 32px; border-top:1px solid #D6DCE1; color:#5F6B78; font-size:13px; line-height:1.5;">
+                            <p style="margin:0;">SkuySocial · <a href="{{ $appUrl }}" style="color:#0D6B65; text-decoration:underline;">{{ $appHost }}</a></p>
                         </td>
                     </tr>
                 </table>

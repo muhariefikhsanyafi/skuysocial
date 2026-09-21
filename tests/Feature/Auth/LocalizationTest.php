@@ -97,17 +97,26 @@ class LocalizationTest extends TestCase
             $html = view($mail->view['html'], $mail->viewData)->render();
             $text = view($mail->view['text'], $mail->viewData)->render();
 
+            $appUrl = rtrim((string) config('app.url'), '/');
+            $appUrl = $appUrl !== '' ? $appUrl : url('/');
+            $appHost = parse_url($appUrl, PHP_URL_HOST) ?: $appUrl;
+
             $this->assertSame('Atur Ulang Kata Sandi SkuySocial', $mail->subject);
             $this->assertSame($expectedUrl, $mail->viewData['url']);
             $this->assertSame(45, $mail->viewData['expiration']);
             $this->assertStringContainsString('Atur Ulang Kata Sandi', $html);
             $this->assertStringContainsString('Kami menerima permintaan untuk mengatur ulang kata sandi akun SkuySocial Anda.', $html);
             $this->assertStringContainsString('ATUR ULANG KATA SANDI', $html);
+            $this->assertStringContainsString($expectedUrl, $html);
             $this->assertStringContainsString('Tautan ini berlaku selama 45 menit.', $html);
             $this->assertStringContainsString('Jika Anda tidak meminta pengaturan ulang kata sandi, abaikan email ini.', $html);
             $this->assertStringContainsString('Atur Ulang Kata Sandi', $text);
+            $this->assertStringContainsString($expectedUrl, $text);
             $this->assertStringContainsString('Tautan ini berlaku selama 45 menit.', $text);
-            $this->assertStringContainsString('skuysocial.com', $html);
+            $this->assertStringContainsString($appHost, $html);
+            $this->assertStringContainsString($appHost, $text);
+            $this->assertStringNotContainsString('skuysocial.com', $html);
+            $this->assertStringNotContainsString('skuysocial.com', $text);
             $this->assertStringNotContainsString('Your password has been reset.', $html);
             $this->assertStringNotContainsString('test-turnstile-secret', $html);
             $this->assertStringNotContainsString('test-turnstile-secret', $text);
