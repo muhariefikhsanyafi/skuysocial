@@ -231,6 +231,7 @@
                                 :aria-busy="isLikeRequestInFlight.toString()"
                                 :disabled="isLikeRequestInFlight"
                                 class="skuy-action skuy-action--reaction{{ $likeActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
+                                :class="liked ? '!border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : ''"
                             >
                                 <svg x-ref="likeIcon" class="h-5 w-5 {{ $displayPost->liked_by_me ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path></svg>
                                 <span
@@ -248,7 +249,7 @@
 
                         <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
                             @csrf
-                            <button type="submit" aria-label="{{ $repostActionLabel }}" title="{{ $repostActionLabel }}" aria-pressed="{{ $displayPost->reposted_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--selected{{ $repostActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
+                            <button type="submit" aria-label="{{ $repostActionLabel }}" title="{{ $repostActionLabel }}" aria-pressed="{{ $displayPost->reposted_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--selected{{ $repostActionCountIsDense ? ' skuy-action--dense-count' : '' }}{{ $displayPost->reposted_by_me ? ' !border-[var(--skuy-secondary)] !bg-[var(--skuy-secondary)] !text-[var(--skuy-on-secondary)]' : '' }}">
                                 <svg class="h-5 w-5 {{ $displayPost->reposted_by_me ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path></svg>
                                 @if ($repostDisplayCount !== '')
                                     <span>{{ $repostDisplayCount }}</span>
@@ -260,7 +261,7 @@
                             <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
+                                <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark !border-[var(--skuy-secondary)] !bg-[var(--skuy-selected)] !text-[var(--skuy-on-selected)]">
                                     <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
                                 </button>
                             </form>
