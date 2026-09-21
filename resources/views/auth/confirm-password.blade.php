@@ -1,27 +1,32 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('auth.confirm_password.intro') }}
-    </div>
-
-    <form method="POST" action="{{ route('password.confirm') }}">
-        @csrf
-
-        <!-- Password -->
-        <div>
-            <x-input-label for="password" :value="__('auth.common.password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+    <section class="skuy-auth-content" aria-labelledby="confirm-password-heading">
+        <div class="skuy-auth-intro">
+            <h1 id="confirm-password-heading" class="skuy-auth-heading">{{ __('auth.confirm_password.title') }}</h1>
+            <p class="skuy-auth-intro__copy">{{ __('auth.confirm_password.intro') }}</p>
         </div>
 
-        <div class="flex justify-end mt-4">
-            <x-primary-button>
+        <form method="POST" action="{{ route('password.confirm') }}" class="skuy-auth-form">
+            @csrf
+
+            <div class="skuy-auth-field">
+                <x-input-label for="password" :value="__('auth.common.password')" class="skuy-auth-label" />
+
+                <x-text-input
+                    id="password"
+                    name="password"
+                    type="password"
+                    class="skuy-auth-input"
+                    required
+                    autocomplete="current-password"
+                    @if ($errors->has('password')) aria-describedby="password-error" aria-invalid="true" @endif
+                />
+
+                <x-input-error variant="auth" :messages="$errors->get('password')" id="password-error" />
+            </div>
+
+            <x-primary-button class="skuy-auth-primary-action">
                 {{ __('auth.confirm_password.submit') }}
             </x-primary-button>
-        </div>
-    </form>
+        </form>
+    </section>
 </x-guest-layout>

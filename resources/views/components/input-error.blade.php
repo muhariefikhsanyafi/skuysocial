@@ -7,7 +7,7 @@
     @php
         $defaultClass = $variant === 'auth'
             ? 'skuy-auth-error'
-            : 'text-sm text-red-600 space-y-1';
+            : 'space-y-1 text-sm font-semibold text-[var(--skuy-danger)]';
     @endphp
 
     <ul {{ $attributes->merge(['class' => $defaultClass, 'role' => 'alert']) }}>

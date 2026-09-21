@@ -7,7 +7,7 @@
         data-action="{{ $action }}"
     ></div>
 
-    <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2 text-red-600 font-bold" />
+    <x-input-error variant="auth" :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
 
     @once
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
