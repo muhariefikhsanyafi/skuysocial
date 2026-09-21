@@ -125,20 +125,24 @@ Reason: a visual idea that excludes people is an incomplete product idea.
 
 ### Palette intent
 
-The color system uses a warm off-white and charcoal foundation, a warm coral
-brand signal, a deep teal supporting accent, and a restrained saffron accent
-for reactions and attention states.
+The color system uses a warm off-white and charcoal foundation, teal as the
+primary SkuySocial identity color, mint support surfaces for selected and
+highlighted states, and a restrained saffron accent for reactions and attention
+states. Red is reserved for semantic danger and error states.
 
-- Warm coral identifies SkuySocial actions and moments of social energy.
-- Deep teal supports navigation, links, focus, and positive confirmation
-  without competing with the brand action.
+- Teal identifies SkuySocial primary actions, identity, and social activity.
+- Mint supports selected navigation, tabs, filters, highlights, and other quiet
+  support surfaces without competing with the primary action.
+- Warm off-white is the light-mode foundation; charcoal is the dark-mode
+  foundation.
 - Saffron is reserved for reactions, warnings, and occasional emphasis where
   a second signal is genuinely useful.
-- Warm neutrals keep long reading sessions comfortable and distinguish the
-  product from cold white SaaS surfaces.
+- Red is reserved for destructive actions, validation errors, and other
+  semantic danger or error states; it is not a general brand accent.
 
-Reason: three active hues plus neutrals create a recognizable palette without
-turning every piece of content into a colored object.
+Reason: teal, mint, saffron, semantic red, and warm neutrals create a
+recognizable palette while keeping expression concentrated in meaningful
+states.
 
 ### Semantic tokens
 
@@ -157,18 +161,18 @@ page-specific color.
 | `--color-text-muted` | `#5F6B78` | `#AAB4BD` | Tertiary metadata and helper text that remains readable. |
 | `--color-border-subtle` | `#D6DCE1` | `#39434C` | Low-noise separators that do not define a control. |
 | `--color-border-strong` | `#788594` | `#82909B` | Input, control, media, and other visible boundaries. |
-| `--color-brand-primary` | `#C7473F` | `#F07E70` | Primary action and social activity signal. |
-| `--color-brand-hover` | `#A93B35` | `#FF9688` | Hover state for primary actions. |
-| `--color-brand-pressed` | `#8E302D` | `#D86358` | Pressed state for primary actions. |
-| `--color-on-brand` | `#FFFFFF` | `#321714` | Text and icons placed on brand surfaces. |
-| `--color-secondary` | `#0D6B65` | `#6EC9C0` | Links, focus, navigation support, and confirmation. |
+| `--color-brand-primary` | `#0D6B65` | `#6EC9C0` | Primary SkuySocial identity, action, and social activity signal. |
+| `--color-brand-hover` | `#09524E` | `#93DED6` | Hover state for primary actions. |
+| `--color-brand-pressed` | `#063F3B` | `#4FAFA7` | Pressed state for primary actions. |
+| `--color-on-brand` | `#FFFFFF` | `#10302E` | Text and icons placed on teal brand surfaces. |
+| `--color-secondary` | `#0D6B65` | `#6EC9C0` | Teal links, focus, navigation support, and confirmation. |
 | `--color-secondary-hover` | `#09524E` | `#93DED6` | Hover state for secondary actions. |
 | `--color-on-secondary` | `#FFFFFF` | `#10302E` | Text and icons placed on secondary surfaces. |
 | `--color-accent` | `#B87400` | `#E8B94F` | Saffron attention, reaction, and warning signal. |
 | `--color-on-accent` | `#1A1B14` | `#34250D` | Text and icons placed on accent surfaces. |
 | `--color-focus` | `#0D6B65` | `#98E5DE` | Visible keyboard focus indicator. |
-| `--color-selected` | `#FCE3DC` | `#3A2825` | Selected navigation, tab, or filter support surface. |
-| `--color-on-selected` | `#7D2B2A` | `#FFE2D8` | Text and icons for selected support surfaces. |
+| `--color-selected` | `#D7F0EC` | `#23433F` | Mint selected navigation, tab, filter, or highlight support surface. |
+| `--color-on-selected` | `#0D6B65` | `#93DED6` | Teal text and icons for mint selected support surfaces. |
 | `--color-success` | `#0D6B65` | `#6EC9C0` | Successful completion and positive status. |
 | `--color-on-success` | `#FFFFFF` | `#10302E` | Text and icons on success surfaces. |
 | `--color-warning` | `#B87400` | `#E8B94F` | Caution that needs a human-readable explanation. |
@@ -180,9 +184,12 @@ page-specific color.
 
 ### Color rules
 
-- The active palette is limited to the warm coral brand, deep teal secondary,
-  saffron accent, and neutral surfaces. Additional colors require a semantic
+- The active palette is limited to teal primary identity, mint support
+  surfaces, saffron accent and reaction states, semantic red danger/error
+  states, and warm neutral foundations. Additional colors require a semantic
   role and a one-line product reason.
+- Coral and red must not be assigned to brand-primary or selected roles. Red is
+  reserved for semantic danger and error states.
 - There is no default gradient token. A gradient may be introduced only for a
   specific hierarchy or brand need, with the reason recorded beside the
   component decision. It must not cover the page or sit behind readable text.
