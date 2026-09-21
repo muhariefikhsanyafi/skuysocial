@@ -147,7 +147,7 @@ class MediaRenderingParityTest extends TestCase
         $this->assertStringContainsString('overflow-x-auto snap-x snap-mandatory', $content);
         $this->assertStringContainsString('activeSlide === 0', $content);
         $this->assertStringContainsString('activeSlide === 2', $content);
-        $this->assertStringContainsString('w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]', $content);
+        $this->assertStringContainsString('w-1.5 sm:w-2 bg-[var(--skuy-border-subtle)]', $content);
     }
 
     public function test_post_detail_without_media_has_no_slider_or_indicator(): void
