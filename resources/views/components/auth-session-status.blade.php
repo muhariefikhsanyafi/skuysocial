@@ -7,7 +7,7 @@
     @php
         $defaultClass = $variant === 'auth'
             ? 'skuy-auth-status'
-            : 'font-medium text-sm text-green-600';
+            : 'font-medium text-sm text-[var(--skuy-secondary)]';
     @endphp
 
     <div {{ $attributes->merge(['class' => $defaultClass, 'role' => 'status']) }}>
