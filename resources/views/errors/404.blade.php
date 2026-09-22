@@ -1,6 +1,5 @@
 @php
-    $user = auth()->user();
-    $homeUrl = $user instanceof \App\Models\User ? route('feed') : url('/');
+    $homeUrl = auth()->check() ? route('feed') : url('/');
 @endphp
 
 @include('errors._page', [

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Auth\GenericUser;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -63,6 +64,34 @@ class ErrorSurfaceTest extends TestCase
                 ->assertSeeText($title)
                 ->assertSee('lang="en"', false);
         }
+    }
+
+    public function test_authenticated_not_found_cta_links_to_feed(): void
+    {
+        $response = $this
+            ->actingAs(new GenericUser(['id' => 1]))
+            ->get('/__missing-error-surface-authenticated');
+
+        preg_match_all('/<a\\s+href="([^"]+)"[^>]*>/i', $response->getContent(), $matches);
+
+        $response->assertNotFound();
+        $this->assertSame(1, count(array_filter(
+            $matches[1],
+            fn (string $href): bool => $href === route('feed'),
+        )));
+    }
+
+    public function test_guest_not_found_cta_links_to_public_home(): void
+    {
+        $response = $this->get('/__missing-error-surface-guest');
+
+        preg_match_all('/<a\\s+href="([^"]+)"[^>]*>/i', $response->getContent(), $matches);
+
+        $response->assertNotFound();
+        $this->assertSame(2, count(array_filter(
+            $matches[1],
+            fn (string $href): bool => $href === url('/'),
+        )));
     }
 
     public function test_forbidden_surface_keeps_generic_moderation_copy_without_internal_details(): void
