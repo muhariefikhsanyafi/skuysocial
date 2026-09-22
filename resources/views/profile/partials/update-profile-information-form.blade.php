@@ -1,10 +1,10 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-[var(--skuy-text-primary)]">
+        <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">
             {{ __('settings.profile.heading') }}
         </h2>
 
-        <p class="mt-1 text-sm text-[var(--skuy-text-secondary)]">
+        <p class="mt-2 text-sm leading-6 text-[var(--skuy-text-secondary)]">
             {{ __('settings.profile.description') }}
         </p>
     </header>
@@ -13,90 +13,85 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6" enctype="multipart/form-data">
+    <form method="post" action="{{ route('profile.update') }}" class="mt-8 space-y-6" enctype="multipart/form-data">
         @csrf
         @method('patch')
 
-        <div>
-            <x-input-label for="name" :value="__('settings.profile.name')" class="text-[var(--skuy-text-primary)]" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full border-4 border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] p-3 font-bold text-[var(--skuy-text-primary)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none focus:border-[var(--skuy-focus)] focus:bg-[var(--skuy-selected)]" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2 text-[var(--skuy-danger)]" :messages="$errors->get('name')" />
+        <div class="space-y-2">
+            <x-input-label for="name" :value="__('settings.profile.name')" />
+            <x-text-input id="name" name="name" type="text" class="mt-1" :value="old('name', $user->name)" required autofocus autocomplete="name" />
+            <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
-		
-		<!-- Username -->
-    <div>
-        <label for="username" class="block font-black text-[var(--skuy-text-primary)] uppercase text-sm mb-1">{{ __('settings.profile.username') }}</label>
-        <input id="username" 
-               name="username" 
-               type="text" 
-               class="w-full border-4 border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] p-3 font-bold text-[var(--skuy-text-primary)] focus:ring-0 focus:outline-none focus:border-[var(--skuy-focus)] focus:bg-[var(--skuy-selected)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(51,51,51,1)]"
-               value="{{ old('username', $user->username) }}" 
-               required 
-               autocomplete="username" 
-               oninput="this.value = this.value.replace(/\s/g, '').toLowerCase()" 
-               pattern="^[a-zA-Z0-9_.]+$" 
-               title="{{ __('settings.profile.username_format') }}" />
-        <x-input-error class="mt-2 text-[var(--skuy-danger)] font-bold" :messages="$errors->get('username')" />
-    </div>
-	
-        <div>
-            <x-input-label for="email" :value="__('settings.profile.email')" class="text-[var(--skuy-text-primary)]" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full border-4 border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] p-3 font-bold text-[var(--skuy-text-primary)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none focus:border-[var(--skuy-focus)] focus:bg-[var(--skuy-selected)]" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2 text-[var(--skuy-danger)]" :messages="$errors->get('email')" />
+
+        <div class="space-y-2">
+            <x-input-label for="username" :value="__('settings.profile.username')" />
+            <x-text-input
+                id="username"
+                name="username"
+                type="text"
+                class="mt-1"
+                :value="old('username', $user->username)"
+                required
+                autocomplete="username"
+                oninput="this.value = this.value.replace(/\s/g, '').toLowerCase()"
+                pattern="^[a-zA-Z0-9_.]+$"
+                title="{{ __('settings.profile.username_format') }}"
+            />
+            <x-input-error class="mt-2" :messages="$errors->get('username')" />
+        </div>
+
+        <div class="space-y-2">
+            <x-input-label for="email" :value="__('settings.profile.email')" />
+            <x-text-input id="email" name="email" type="email" class="mt-1" :value="old('email', $user->email)" required autocomplete="username" />
+            <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-[var(--skuy-text-secondary)]">
+                <div class="space-y-2">
+                    <p class="text-sm leading-6 text-[var(--skuy-text-secondary)]">
                         {{ __('settings.profile.email_unverified') }}
 
-                        <button form="send-verification" class="underline text-sm text-[var(--skuy-secondary)] hover:text-[var(--skuy-secondary-hover)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--skuy-focus)] focus:ring-offset-2">
+                        <button form="send-verification" type="submit" class="inline-flex min-h-[44px] items-center rounded-[var(--radius-small)] text-sm font-semibold text-[var(--skuy-secondary)] underline underline-offset-4 hover:text-[var(--skuy-secondary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
                             {{ __('settings.profile.resend_verification') }}
                         </button>
                     </p>
 
                     @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-[var(--skuy-secondary)]">
+                        <p class="text-sm font-semibold text-[var(--skuy-secondary)]" role="status" aria-live="polite">
                             {{ __('settings.profile.verification_sent') }}
                         </p>
                     @endif
                 </div>
             @endif
         </div>
-		
-		<!-- Input Bio Singkat -->
-        <div>
-            <x-input-label for="bio" :value="__('settings.profile.bio_short')" class="font-black uppercase text-[var(--skuy-text-primary)]" />
-            <textarea id="bio" name="bio" rows="3" class="mt-1 block w-full border-4 border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] p-3 font-bold text-[var(--skuy-text-primary)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:ring-0 focus:outline-none focus:bg-[var(--skuy-selected)] focus:border-[var(--skuy-focus)] resize-none" placeholder="{{ __('settings.profile.bio_placeholder') }}">{{ old('bio', $user->bio) }}</textarea>
-            <x-input-error class="mt-2 text-[var(--skuy-danger)]" :messages="$errors->get('bio')" />
+
+        <div class="space-y-2">
+            <x-input-label for="bio" :value="__('settings.profile.bio_short')" />
+            <textarea id="bio" name="bio" rows="3" class="mt-1 block min-h-[112px] w-full resize-y rounded-[var(--radius-small)] border border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] px-3 py-3 text-[var(--skuy-text-primary)] placeholder:text-[var(--skuy-text-muted)] focus:border-[var(--skuy-focus)] focus:outline-none focus:ring-2 focus:ring-[var(--skuy-focus)] focus:ring-offset-2 focus:ring-offset-[var(--skuy-surface)]" placeholder="{{ __('settings.profile.bio_placeholder') }}">{{ old('bio', $user->bio) }}</textarea>
+            <x-input-error class="mt-2" :messages="$errors->get('bio')" />
         </div>
 
-        <!-- Input Avatar (Foto Profil) -->
-        <div>
-            <x-input-label for="avatar" :value="__('settings.profile.avatar')" class="font-black uppercase mb-2" />
-            
-            <!-- Tampilkan foto lama jika ada -->
+        <div class="space-y-3">
+            <x-input-label for="avatar" :value="__('settings.profile.avatar')" />
+
             @if ($user->avatar)
-                <div class="mb-3">
-                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar') }}" class="h-24 w-24 object-cover border-4 border-[var(--skuy-border-strong)] bg-[var(--skuy-surface-subtle)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div class="inline-flex h-24 w-24 overflow-hidden rounded-full border border-[var(--skuy-border-subtle)] bg-[var(--skuy-selected)]">
+                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar') }}" class="h-full w-full object-cover">
                 </div>
             @endif
 
-            <input type="file" id="avatar" name="avatar" accept="image/*" class="block w-full text-sm text-[var(--skuy-text-primary)] file:mr-4 file:py-2 file:px-4 file:border-4 file:border-[var(--skuy-border-strong)] file:text-sm file:font-black file:uppercase file:bg-[var(--skuy-secondary)] file:text-[var(--skuy-on-secondary)] hover:file:bg-[var(--skuy-secondary-hover)] file:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:file:shadow-none hover:file:translate-y-[4px] hover:file:translate-x-[4px] file:transition-all mb-1 cursor-pointer">
-            <x-input-error class="mt-2 text-[var(--skuy-danger)]" :messages="$errors->get('avatar')" />
+            <input type="file" id="avatar" name="avatar" accept="image/*" class="block min-h-[48px] w-full rounded-[var(--radius-small)] border border-dashed border-[var(--skuy-border-strong)] bg-[var(--skuy-surface-subtle)] px-3 py-2 text-sm text-[var(--skuy-text-primary)] file:mr-3 file:rounded-[var(--radius-small)] file:border file:border-[var(--skuy-secondary)] file:bg-[var(--skuy-selected)] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-[var(--skuy-on-selected)] hover:file:bg-[var(--skuy-secondary)] hover:file:text-[var(--skuy-on-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--skuy-focus)] focus:ring-offset-2 focus:ring-offset-[var(--skuy-surface)]">
+            <x-input-error class="mt-2" :messages="$errors->get('avatar')" />
         </div>
-		
-        <div class="flex items-center gap-4">
-            <x-primary-button class="bg-[var(--skuy-brand)] hover:bg-[var(--skuy-brand-hover)] border-4 border-[var(--skuy-border-strong)] text-[var(--skuy-on-brand)] font-black uppercase px-6 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] transition-all">
-    {{ __('settings.profile.save') }}</x-primary-button>
+
+        <div class="flex flex-col-reverse items-stretch gap-3 border-t border-[var(--skuy-border-subtle)] pt-6 sm:flex-row sm:items-center sm:justify-end">
+            <x-primary-button>
+                {{ __('settings.profile.save') }}
+            </x-primary-button>
 
             @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-[var(--skuy-secondary)]"
-                >{{ __('settings.profile.saved') }}</p>
+                <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)" class="text-sm font-semibold text-[var(--skuy-secondary)]" role="status" aria-live="polite">
+                    {{ __('settings.profile.saved') }}
+                </p>
             @endif
         </div>
     </form>
