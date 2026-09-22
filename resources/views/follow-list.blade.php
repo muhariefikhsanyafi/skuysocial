@@ -1,50 +1,58 @@
 <x-app-layout>
-    <div class="pt-4 sm:pt-12 pb-24 bg-[var(--skuy-background)]  min-h-screen transition-colors duration-300">
-        <div class="w-full max-w-2xl lg:max-w-3xl mx-auto px-2 sm:px-6">
-            <div class="flex items-center gap-4 mb-6 px-2">
-                <a href="{{ route('user.profile', $profileUser) }}" aria-label="{{ __('navigation.back_to_profile') }}" class="p-2 hover:bg-[var(--skuy-surface-subtle)] dark:hover:bg-[var(--skuy-surface-subtle)] rounded-full transition-colors text-[var(--skuy-text-primary)] ">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+    <div class="skuy-feed-page">
+        <div class="skuy-feed-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+            <div class="mb-6 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
+                <a href="{{ route('user.profile', $profileUser) }}" aria-label="{{ __('navigation.back_to_profile') }}" class="skuy-action">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19 3 12l7-7M3 12h18"></path></svg>
                 </a>
-                <div>
-                    <h1 class="font-black text-xl text-[var(--skuy-text-primary)]  uppercase">{{ $title }}</h1>
-                    <p class="font-bold text-sm text-[var(--skuy-text-muted)]">{{ '@' }}{{ $profileUser->username }}</p>
+                <div class="min-w-0">
+                    <h1 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ $title }}</h1>
+                    <p class="mt-1 text-sm text-[var(--skuy-text-muted)]">{{ '@' }}{{ $profileUser->username }}</p>
                 </div>
             </div>
 
             @if ($users->isEmpty())
-                <div class="bg-[var(--skuy-surface)]  border-2 sm:border-4 border-[var(--skuy-border-strong)]  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-6 sm:p-8 text-center">
-                    <p class="font-black uppercase text-[var(--skuy-text-primary)] ">{{ $emptyMessage }}</p>
+                <div class="skuy-profile-empty" role="status">
+                    <p class="skuy-profile-empty__title">{{ $emptyMessage }}</p>
                 </div>
             @else
-                <div class="space-y-4">
+                <div class="space-y-3">
                     @foreach ($users as $listedUser)
                         @php($isFollowed = $followedUserIds->contains($listedUser->id))
 
-                        <div class="bg-[var(--skuy-surface)]  border-2 sm:border-4 border-[var(--skuy-border-strong)]  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-[var(--skuy-selected)] dark:hover:bg-[var(--skuy-surface-subtle)] transition-colors">
-                            <a href="{{ route('user.profile', $listedUser) }}" class="flex items-center gap-3 min-w-0 flex-1">
+                        <div class="flex items-center gap-3 rounded-[var(--radius-medium)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-3 transition-colors hover:bg-[var(--skuy-surface-subtle)] sm:p-4">
+                            <a href="{{ route('user.profile', $listedUser) }}" class="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-small)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
                                 @if ($listedUser->avatar)
-                                    <img src="{{ asset('storage/' . $listedUser->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $listedUser->name]) }}" class="w-12 h-12 rounded-full border-2 border-[var(--skuy-border-strong)] object-cover bg-[var(--skuy-surface-subtle)] flex-shrink-0">
+                                    <div class="skuy-avatar shrink-0">
+                                        <img src="{{ asset('storage/' . $listedUser->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $listedUser->name]) }}">
+                                    </div>
                                 @else
-                                    <div class="w-12 h-12 rounded-full border-2 border-[var(--skuy-border-strong)] bg-[var(--skuy-selected)] flex items-center justify-center text-[var(--skuy-on-selected)] font-black uppercase text-lg flex-shrink-0">
+                                    <div class="skuy-avatar shrink-0" aria-label="{{ __('threads.media.avatar_of', ['name' => $listedUser->name]) }}">
                                         {{ substr($listedUser->name, 0, 1) }}
                                     </div>
                                 @endif
 
                                 <div class="min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <p class="font-black text-[var(--skuy-text-primary)]  leading-tight truncate">{{ $listedUser->name }}</p>
+                                    <div class="flex flex-wrap items-center gap-1.5">
+                                        <p class="skuy-post__display-name truncate">{{ $listedUser->name }}</p>
                                         @if ($listedUser->is_verified)
-                                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[var(--skuy-secondary)] border-2 border-[var(--skuy-border-strong)] text-[var(--skuy-on-secondary)] text-[10px] font-black leading-none" title="{{ __('threads.verified') }}">✓</span>
+                                            <span class="inline-flex text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
+                                            </span>
                                         @endif
                                     </div>
-                                    <p class="text-xs text-[var(--skuy-text-secondary)]  font-bold truncate">{{ '@' }}{{ $listedUser->username }}</p>
+                                    <p class="skuy-post__username truncate">{{ '@' }}{{ $listedUser->username }}</p>
                                 </div>
                             </a>
 
                             @if (auth()->id() !== $listedUser->id)
-                                <form action="{{ route('user.follow', $listedUser) }}" method="POST" class="flex-shrink-0">
+                                <form action="{{ route('user.follow', $listedUser) }}" method="POST" class="shrink-0">
                                     @csrf
-                                    <button type="submit" class="px-3 py-2 sm:px-4 border-2 border-[var(--skuy-border-strong)] font-black uppercase text-[11px] sm:text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all {{ $isFollowed ? 'bg-[var(--skuy-surface)] text-[var(--skuy-text-primary)]' : 'bg-[var(--skuy-brand)] text-[var(--skuy-on-brand)] hover:bg-[var(--skuy-brand-hover)]' }}">
+                                    <button
+                                        type="submit"
+                                        aria-pressed="{{ $isFollowed ? 'true' : 'false' }}"
+                                        class="inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-medium)] border border-[var(--skuy-secondary)] px-4 py-2 text-sm font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)] {{ $isFollowed ? 'bg-[var(--skuy-surface)] text-[var(--skuy-secondary)] hover:bg-[var(--skuy-surface-subtle)]' : 'bg-[var(--skuy-secondary)] text-[var(--skuy-on-secondary)] hover:bg-[var(--skuy-secondary-hover)]' }}"
+                                    >
                                         {{ $isFollowed ? __('profile.following') : __('profile.follow') }}
                                     </button>
                                 </form>

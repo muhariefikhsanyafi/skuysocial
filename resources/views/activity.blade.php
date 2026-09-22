@@ -1,25 +1,26 @@
 <x-app-layout>
-    <div class="max-w-2xl mx-auto pb-10 pt-4 sm:pt-8 px-4 sm:px-0">
-        <!-- Header Halaman -->
-        <div class="mb-6 flex items-center gap-3 border-b-4 border-[var(--skuy-border-strong)] pb-4 ">
-            <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="p-2 border-2 border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] hover:bg-[var(--skuy-surface-subtle)] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-            </a>
-            <h1 class="text-xl sm:text-2xl font-black uppercase tracking-wider">{{ __('activity.title') }}</h1>
-        </div>
+    <div class="skuy-feed-page">
+        <div class="skuy-feed-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+            <!-- Header Halaman -->
+            <div class="mb-6 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
+                <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19 3 12l7-7M3 12h18"></path>
+                    </svg>
+                </a>
+                <h1 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ __('activity.title') }}</h1>
+            </div>
 
-        <!-- Daftar Notifikasi -->
-        <div class="space-y-4">
+            <!-- Daftar Notifikasi -->
+            <div class="space-y-3">
 
             <!-- Cek apakah data notifikasi kosong menggunakan IF standar -->
             @if($notifications->isEmpty())
                 <!-- Tampilan jika tidak ada notifikasi -->
-                <div class="p-8 border-4 border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center flex flex-col items-center justify-center">
-                    <div class="text-6xl mb-4">📭</div>
-                    <h2 class="text-xl font-black uppercase mb-2">{{ __('activity.empty_title') }}</h2>
-                    <p class="text-[var(--skuy-text-secondary)] font-bold">{{ __('activity.empty_description') }}</p>
+                <div class="skuy-profile-empty" role="status">
+                    <div class="mb-4 text-5xl opacity-60" aria-hidden="true">📭</div>
+                    <h2 class="skuy-profile-empty__title">{{ __('activity.empty_title') }}</h2>
+                    <p class="skuy-profile-empty__description">{{ __('activity.empty_description') }}</p>
                 </div>
 
             @else
@@ -40,50 +41,49 @@
                         }
                     @endphp
 
-                    <div class="p-4 border-4 border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-4">
-                        
+                    <div class="flex items-start gap-3 rounded-[var(--radius-medium)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-4 transition-colors hover:bg-[var(--skuy-surface-subtle)]">
                         <!-- Avatar Pembuat Aktivitas -->
-                        <a href="{{ route('user.profile', $data['username']) }}" class="flex-shrink-0">
+                        <a href="{{ route('user.profile', $data['username']) }}" class="skuy-avatar skuy-avatar--small shrink-0" aria-label="{{ __('threads.media.avatar_of', ['name' => $data['name']]) }}">
                             <img src="{{ isset($data['avatar']) ? asset('storage/' . $data['avatar']) : 'https://ui-avatars.com/api/?name='.urlencode($data['name']).'&background=random&color=fff&font-weight=bold' }}"
                                  alt="{{ $data['name'] }}"
-                                 class="w-12 h-12 rounded-full border-2 border-[var(--skuy-border-strong)] object-cover bg-[var(--skuy-surface-subtle)]">
+                                 class="object-cover">
                         </a>
 
                         <!-- Isi Pesan Notifikasi -->
-                        <div class="flex-1 pt-1">
-                            <p class="text-sm sm:text-base text-[var(--skuy-text-primary)]">
-                                <a href="{{ route('user.profile', $data['username']) }}" class="font-black hover:underline hover:text-[var(--skuy-secondary)] transition-colors">
+                        <div class="min-w-0 flex-1 pt-0.5">
+                            <p class="text-sm leading-6 text-[var(--skuy-text-primary)] sm:text-base">
+                                <a href="{{ route('user.profile', $data['username']) }}" class="font-semibold text-[var(--skuy-text-primary)] transition-colors hover:text-[var(--skuy-secondary)] hover:underline">
                                     {{ $data['name'] }}
                                 </a>
                                 {{ $data['message'] }}
                             </p>
-                            <span class="text-xs text-[var(--skuy-text-muted)] font-bold block mt-1">
+                            <span class="mt-1 block text-xs font-medium text-[var(--skuy-text-muted)]">
                                 {{ $notification->created_at->diffForHumans() }}
                             </span>
                             @if($postTargetUrl)
-                                <a href="{{ $postTargetUrl }}" class="inline-block mt-2 text-xs font-black uppercase underline hover:text-[var(--skuy-secondary)] transition-colors">
+                                <a href="{{ $postTargetUrl }}" class="mt-2 inline-flex min-h-[32px] items-center text-xs font-semibold text-[var(--skuy-secondary)] underline underline-offset-2 transition-colors hover:text-[var(--skuy-secondary-hover)]">
                                     {{ __('activity.view_thread') }}
                                 </a>
                             @endif
                         </div>
 
                         <!-- Ikon Penanda Jenis Aktivitas -->
-                        <div class="flex-shrink-0">
+                        <div class="shrink-0">
                             @if($data['type'] === 'like')
-                                <div class="w-10 h-10 bg-[var(--skuy-reaction)] border-2 border-[var(--skuy-border-strong)] flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[var(--skuy-on-reaction)]">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                                <div class="flex h-10 w-10 items-center justify-center rounded-[var(--radius-small)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-reaction)] text-[var(--skuy-on-reaction)]">
+                                    <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path></svg>
                                 </div>
                             @elseif($data['type'] === 'comment')
-                                <div class="w-10 h-10 bg-[var(--skuy-secondary)] border-2 border-[var(--skuy-border-strong)] flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[var(--skuy-on-secondary)]">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" /></svg>
+                                <div class="flex h-10 w-10 items-center justify-center rounded-[var(--radius-small)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-secondary)] text-[var(--skuy-on-secondary)]">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.4 8.4 0 0 1-3.5-.75L4 20l1.35-3.6A7.3 7.3 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"></path></svg>
                                 </div>
                             @elseif($data['type'] === 'follow')
-                                <div class="w-10 h-10 bg-[var(--skuy-secondary)] border-2 border-[var(--skuy-border-strong)] flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[var(--skuy-on-secondary)]">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
+                                <div class="flex h-10 w-10 items-center justify-center rounded-[var(--radius-small)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-secondary)] text-[var(--skuy-on-secondary)]">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path stroke-linecap="round" d="M2 21a7 7 0 0 1 14 0"></path><path stroke-linecap="round" d="M18 8v6M15 11h6"></path></svg>
                                 </div>
-								@elseif($data['type'] === 'repost')
-                                <div class="w-10 h-10 bg-[var(--skuy-secondary)] border-2 border-[var(--skuy-border-strong)] flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[var(--skuy-on-secondary)]">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                            @elseif($data['type'] === 'repost')
+                                <div class="flex h-10 w-10 items-center justify-center rounded-[var(--radius-small)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-secondary)] text-[var(--skuy-on-secondary)]">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path></svg>
                                 </div>
                             @endif
                         </div>

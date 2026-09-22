@@ -1,23 +1,23 @@
 <x-app-layout>
-    <div class="pt-4 sm:pt-12 pb-24 bg-[var(--skuy-background)]  min-h-screen transition-colors duration-300">
-        <div class="w-full max-w-3xl mx-auto px-2 sm:px-6">
-            <div class="flex items-center gap-4 mb-6 px-2">
-                <a href="{{ route('feed') }}" class="p-2 hover:bg-[var(--skuy-surface-subtle)]  rounded-full transition-colors text-[var(--skuy-text-primary)] " aria-label="{{ __('navigation.back_to_feed') }}">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+    <div class="skuy-feed-page">
+        <div class="skuy-feed-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+            <div class="mb-6 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
+                <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19 3 12l7-7M3 12h18"></path></svg>
                 </a>
-                <div>
-                    <h1 class="font-black text-xl text-[var(--skuy-text-primary)]  uppercase">{{ __('saved.title') }}</h1>
-                    <p class="font-bold text-sm text-[var(--skuy-text-muted)]">{{ __('saved.subtitle') }}</p>
+                <div class="min-w-0">
+                    <h1 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ __('saved.title') }}</h1>
+                    <p class="mt-1 text-sm text-[var(--skuy-text-muted)]">{{ __('saved.subtitle') }}</p>
                 </div>
             </div>
 
             @if ($posts->isEmpty())
-                <div class="bg-[var(--skuy-surface)]  border-2 sm:border-4 border-[var(--skuy-border-strong)]  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-6 sm:p-8 text-center">
-                    <div class="text-6xl mb-4 opacity-50">🔖</div>
-                    <p class="font-black uppercase text-[var(--skuy-text-primary)] ">{{ __('saved.empty') }}</p>
+                <div class="skuy-profile-empty" role="status">
+                    <div class="mb-4 text-5xl opacity-60" aria-hidden="true">🔖</div>
+                    <p class="skuy-profile-empty__title">{{ __('saved.empty') }}</p>
                 </div>
             @else
-                <div class="space-y-5 sm:space-y-6">
+                <div class="skuy-feed-list">
                     @foreach ($posts as $post)
                         @php
                             $isRepost = $post->repost_id !== null;
@@ -36,60 +36,73 @@
                             }
                         @endphp
 
-                        <article class="bg-[var(--skuy-surface)]  border-2 sm:border-4 border-[var(--skuy-border-strong)]  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(51,51,51,1)] p-4 sm:p-5 transition-colors hover:bg-[var(--skuy-surface-subtle)] ">
+                        <article class="skuy-post">
                             @if ($isRepost)
-                                <div class="flex items-center gap-2 mb-3 text-[var(--skuy-text-muted)]  font-black text-[11px] uppercase tracking-wider">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                <div class="skuy-post__repost">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path></svg>
                                     <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
                                 </div>
                             @endif
 
-                            <div class="flex gap-3 sm:gap-4">
-                                <a href="{{ route('user.profile', $displayPost->user->username) }}" class="flex-shrink-0">
+                            <div class="skuy-post__layout">
+                                <div class="skuy-post__avatar-column">
+                                <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
                                     @if ($displayPost->user->avatar)
-                                        <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}" class="h-10 w-10 sm:h-12 sm:w-12 object-cover border-2 border-[var(--skuy-border-strong)] rounded-full">
+                                        <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
                                     @else
-                                        <div class="h-10 w-10 sm:h-12 sm:w-12 border-2 border-[var(--skuy-border-strong)] bg-[var(--skuy-selected)] rounded-full flex items-center justify-center text-[var(--skuy-on-selected)] font-black uppercase text-base sm:text-lg">
+                                        <span aria-hidden="true">
                                             {{ substr($displayPost->user->name, 0, 1) }}
-                                        </div>
+                                        </span>
                                     @endif
                                 </a>
+                                </div>
 
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap mb-2">
-                                        <a href="{{ route('user.profile', $displayPost->user->username) }}" class="font-black text-sm sm:text-base text-[var(--skuy-text-primary)]  hover:underline">
+                                <div class="skuy-post__body">
+                                    <div class="skuy-post__header">
+                                        <div class="skuy-post__identity">
+                                        <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-post__display-name">
                                             {{ $displayPost->user->username }}
                                         </a>
-                                        <span class="text-[11px] sm:text-xs font-bold text-[var(--skuy-text-muted)]">
+                                        <time datetime="{{ $displayPost->created_at->toIso8601String() }}" class="skuy-post__time">
                                             {{ $displayPost->created_at->locale('id')->diffForHumans(null, true) }}
-                                        </span>
+                                        </time>
+                                        </div>
                                     </div>
 
                                     <a href="{{ route('posts.show', $displayPost->uid) }}" class="block">
-                                        <p class="text-[var(--skuy-text-primary)]  font-medium text-[15px] sm:text-base leading-relaxed whitespace-pre-wrap mb-3">{{ $displayPost->content }}</p>
+                                        <p class="skuy-post__text">{{ $displayPost->content }}</p>
 
                                         @if ($mediaPaths !== [])
-                                            <div class="flex gap-2 overflow-x-auto mb-3">
+                                            @if (count($mediaPaths) === 1)
+                                                <div class="skuy-profile-post__single-media mb-3">
+                                            @else
+                                                <div class="skuy-media-track mb-3">
+                                            @endif
                                                 @foreach ($mediaPaths as $mediaPath)
-                                                    <div class="shrink-0 w-[78%] sm:w-[48%] aspect-[4/5] border-2 sm:border-4 border-[var(--skuy-border-strong)]  shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-                                                        <img src="{{ asset('storage/' . $mediaPath) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}" class="w-full h-full object-cover">
-                                                    </div>
+                                                    @php($mediaUrl = asset('storage/' . $mediaPath))
+                                                    @if (count($mediaPaths) === 1)
+                                                        <img src="{{ $mediaUrl }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
+                                                    @else
+                                                        <div class="skuy-media-item">
+                                                            <img src="{{ $mediaUrl }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
+                                                        </div>
+                                                    @endif
                                                 @endforeach
                                             </div>
                                         @endif
                                     </a>
 
-                                    <div class="flex items-center justify-between gap-3 border-t-2 border-dashed border-[var(--skuy-border-subtle)]  pt-3">
-                                        <a href="{{ route('posts.show', $displayPost->uid) }}" class="text-xs font-black uppercase text-[var(--skuy-secondary)]  hover:underline">
+                                    <div class="skuy-profile-post__footer">
+                                        <a href="{{ route('posts.show', $displayPost->uid) }}" class="skuy-profile-post__view-link">
                                             {{ __('threads.actions.view_thread') }}
                                         </a>
 
                                         <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" class="flex items-center gap-1.5 px-3 py-1.5 border-2 border-[var(--skuy-border-strong)]  bg-[var(--skuy-selected)] text-[var(--skuy-on-selected)] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 011 1v17l-7-3.5L5 21V4a1 1 0 011-1z"></path></svg>
-                                                <span class="text-[10px] sm:text-xs font-black uppercase">{{ __('threads.actions.delete') }}</span>
+                                            <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark !border-[var(--skuy-secondary)] !bg-[var(--skuy-selected)] !text-[var(--skuy-on-selected)]">
+                                                <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                <span class="text-xs font-semibold">{{ __('threads.actions.delete') }}</span>
                                             </button>
                                         </form>
                                     </div>
