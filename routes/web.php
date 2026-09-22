@@ -10,7 +10,9 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 Route::get('/', function () {
     return view('welcome');
@@ -103,3 +105,23 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('moderation.active')
         ->name('user.update');
 });
+
+Route::fallback(static function (Request $request): never {
+    $allowedMethods = [];
+
+    foreach (Route::getRoutes()->getRoutes() as $route) {
+        if ($route->isFallback || ! $route->matches($request, false)) {
+            continue;
+        }
+
+        $allowedMethods = array_merge($allowedMethods, $route->methods());
+    }
+
+    $allowedMethods = array_values(array_unique($allowedMethods));
+
+    if ($allowedMethods !== []) {
+        throw new MethodNotAllowedHttpException($allowedMethods);
+    }
+
+    abort(404);
+})->where('fallbackPlaceholder', '^(?!api(?:/|$)).*');

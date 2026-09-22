@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Auth\GenericUser;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -68,8 +68,10 @@ class ErrorSurfaceTest extends TestCase
 
     public function test_authenticated_not_found_cta_links_to_feed(): void
     {
+        $user = User::factory()->make();
+
         $response = $this
-            ->actingAs(new GenericUser(['id' => 1]))
+            ->actingAs($user)
             ->get('/__missing-error-surface-authenticated');
 
         preg_match_all('/<a\\s+href="([^"]+)"[^>]*>/i', $response->getContent(), $matches);
@@ -92,6 +94,24 @@ class ErrorSurfaceTest extends TestCase
             $matches[1],
             fn (string $href): bool => $href === url('/'),
         )));
+    }
+
+    public function test_unknown_url_runs_the_web_locale_context(): void
+    {
+        $response = $this
+            ->withSession(['locale' => 'en'])
+            ->get('/tidakada');
+
+        $response
+            ->assertNotFound()
+            ->assertSee('lang="en"', false);
+    }
+
+    public function test_api_unknown_url_is_not_captured_by_the_web_fallback(): void
+    {
+        $this->getJson('/api/tidakada')
+            ->assertNotFound()
+            ->assertHeader('content-type', 'application/json');
     }
 
     public function test_forbidden_surface_keeps_generic_moderation_copy_without_internal_details(): void
