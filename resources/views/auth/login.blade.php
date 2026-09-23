@@ -33,13 +33,24 @@
                 autocomplete="current-password"
             />
 
-            @if (Route::has('password.request'))
-                <div class="skuy-auth-utility">
+            <div class="skuy-auth-utility skuy-auth-login-utility">
+                <label for="remember" class="skuy-auth-remember">
+                    <input
+                        id="remember"
+                        type="checkbox"
+                        name="remember"
+                        value="1"
+                        @checked(old('remember'))
+                    >
+                    <span>{{ __('auth.login.remember_30_days') }}</span>
+                </label>
+
+                @if (Route::has('password.request'))
                     <a class="skuy-auth-link" href="{{ route('password.request') }}">
                         {{ __('auth.login.forgot_password') }}
                     </a>
-                </div>
-            @endif
+                @endif
+            </div>
 
             <div class="skuy-auth-turnstile">
                 <x-turnstile action="login" />

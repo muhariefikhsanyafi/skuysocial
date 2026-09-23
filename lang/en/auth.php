@@ -22,6 +22,7 @@ return [
         'intro' => 'Continue the conversations you follow.',
         'identifier_label' => 'Email or username',
         'password_label' => 'Password',
+        'remember_30_days' => 'Remember me for 30 days',
         'forgot_password' => 'Forgot password?',
         'no_account' => "Don't have an account?",
         'submit' => 'Sign in',

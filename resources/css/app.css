@@ -2181,6 +2181,41 @@
         min-height: 44px;
     }
 
+    .skuy-auth-login-utility {
+        justify-content: space-between;
+        gap: 0 12px;
+        flex-wrap: wrap;
+    }
+
+    .skuy-auth-remember {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        min-height: 44px;
+        color: var(--skuy-text-primary);
+        font-size: 0.875rem;
+        line-height: 1.35;
+        cursor: pointer;
+    }
+
+    .skuy-auth-remember input {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        margin: 0;
+        accent-color: var(--skuy-secondary);
+    }
+
+    .skuy-auth-remember input:focus-visible {
+        outline: 2px solid var(--skuy-focus);
+        outline-offset: 3px;
+    }
+
+    .skuy-auth-remember span {
+        overflow-wrap: anywhere;
+    }
+
     .skuy-auth-link,
     .skuy-auth-signup__link {
         display: inline-flex;

@@ -22,6 +22,7 @@ return [
         'intro' => 'Lanjutkan percakapan yang kamu ikuti.',
         'identifier_label' => 'Email atau nama pengguna',
         'password_label' => 'Kata sandi',
+        'remember_30_days' => 'Ingat Saya selama 30 hari',
         'forgot_password' => 'Lupa kata sandi?',
         'no_account' => 'Belum memiliki akun?',
         'submit' => 'Masuk',
