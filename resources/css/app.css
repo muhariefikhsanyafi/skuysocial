@@ -987,6 +987,16 @@
         margin-bottom: 8px;
     }
 
+    .skuy-post__header:has(.skuy-post__options) {
+        padding-right: 56px;
+    }
+
+    .skuy-post__options {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
     .skuy-post__identity {
         display: flex;
         align-items: baseline;
@@ -1699,6 +1709,10 @@
 
     .skuy-post__header {
         gap: 8px;
+    }
+
+    .skuy-post__header:has(.skuy-post__options) {
+        padding-right: 52px;
     }
 
     .skuy-post__display-name {

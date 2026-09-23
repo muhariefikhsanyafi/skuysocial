@@ -74,7 +74,7 @@
                                 }
                             }"
                             @keydown.escape.window="if (openOptions) closeOptions(true)"
-                            class="relative shrink-0"
+                            class="skuy-post__options"
                         >
                             <button
                                 id="post-options-trigger-{{ $post->uid }}"

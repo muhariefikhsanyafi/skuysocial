@@ -145,6 +145,47 @@ class FeedTest extends TestCase
             ->assertDontSee('aria-label="'.__('threads.actions.edit').'"', false);
     }
 
+    public function test_feed_header_options_stay_out_of_normal_flow_for_owner_and_repost_items(): void
+    {
+        $owner = User::factory()->create();
+        $reposter = User::factory()->create();
+        $other = User::factory()->create();
+        $ownerPost = $this->createPost($owner, [
+            'content' => 'Owner feed body',
+        ]);
+        $this->createPost($other, [
+            'content' => 'Non-owner feed body',
+        ]);
+        $repost = $this->createPost($reposter, [
+            'repost_id' => $ownerPost->id,
+            'content' => null,
+            'created_at' => now()->addMinute(),
+            'updated_at' => now()->addMinute(),
+        ]);
+
+        $response = $this->actingAs($owner)->get(route('feed'));
+        $html = (string) $response->getContent();
+        $css = file_get_contents(resource_path('css/app.css'));
+
+        $response->assertOk()
+            ->assertSee('Owner feed body')
+            ->assertSee('Non-owner feed body')
+            ->assertSee(__('threads.reposted_by', ['username' => $reposter->username]));
+        $this->assertIsString($css);
+        $this->assertSame(2, substr_count($html, 'class="skuy-post__options"'));
+        $this->assertStringContainsString('id="post-options-trigger-'.$ownerPost->uid.'"', $html);
+        $this->assertStringContainsString('id="post-options-trigger-'.$repost->uid.'"', $html);
+        $this->assertStringNotContainsString('id="post-options-trigger-'.$other->uid.'"', $html);
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-post__options\s*\{[^}]*position:\s*absolute;[^}]*top:\s*0;[^}]*right:\s*0;/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-post__header:has\(\.skuy-post__options\)\s*\{[^}]*padding-right:\s*56px;/s',
+            $css,
+        );
+    }
+
     public function test_feed_mobile_actions_preserve_equal_slots_and_touch_width(): void
     {
         $css = file_get_contents(resource_path('css/app.css'));
