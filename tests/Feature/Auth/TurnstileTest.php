@@ -29,7 +29,9 @@ class TurnstileTest extends TestCase
             'services.turnstile.secret_key' => 'test-secret-key',
             'services.turnstile.hostname' => 'skuysocial.com',
             'services.turnstile.verify_url' => self::VERIFY_URL,
+            'mail.default' => 'array',
         ]);
+        Notification::fake();
     }
 
     public function test_disabled_turnstile_keeps_registration_functional_without_http_call(): void
@@ -39,7 +41,7 @@ class TurnstileTest extends TestCase
 
         $response = $this->post('/register', $this->registrationData());
 
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('verification.notice'));
         $this->assertAuthenticated();
         Http::assertNothingSent();
     }
@@ -52,7 +54,7 @@ class TurnstileTest extends TestCase
             'cf-turnstile-response' => 'register-token',
         ]));
 
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('verification.notice'));
         $this->assertAuthenticated();
         Http::assertSent(function ($request) {
             return $request->url() === self::VERIFY_URL

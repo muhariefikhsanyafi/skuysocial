@@ -12,7 +12,9 @@ use App\Policies\UserPolicy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -136,6 +138,9 @@ class ModerationAuthenticationTest extends TestCase
 
     public function test_registration_uses_active_defaults_and_ignores_moderation_input(): void
     {
+        Notification::fake();
+        Config::set('mail.default', 'array');
+
         $this->post('/register', [
             'name' => 'Moderation Default',
             'username' => 'moderation_default',
@@ -144,7 +149,7 @@ class ModerationAuthenticationTest extends TestCase
             'password_confirmation' => 'password',
             'moderation_state' => ModerationState::Banned->value,
             'auth_session_version' => 99,
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('verification.notice'));
 
         $user = User::query()->where('email', 'moderation-default@example.com')->firstOrFail();
 

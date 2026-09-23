@@ -24,7 +24,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->middleware('moderation.active')
@@ -54,10 +54,10 @@ require __DIR__.'/auth.php';
 
 Route::get('/post/{post}', [PostController::class, 'show'])
     ->name('posts.show')
-    ->middleware(['auth', 'inertia']);
+    ->middleware(['auth', 'verified', 'inertia']);
 
 // Rute ini hanya bisa diakses kalau user sudah login (auth)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/feed', [PostController::class, 'index'])->name('feed');
     Route::post('/feed', [PostController::class, 'store'])
         ->middleware(['moderation.active', 'throttle:5,1'])

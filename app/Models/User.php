@@ -2,24 +2,26 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\ModerationState;
 use App\Enums\UserRole;
+use App\Services\EmailVerificationOtpService;
 use App\Services\LocalePreference;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'username', 'email', 'password', 'avatar', 'cover', 'bio'])]
 #[Hidden(['password', 'remember_token', 'auth_session_version', 'moderation_state_version'])]
-class User extends Authenticatable implements FilamentUser, HasLocalePreference
+class User extends Authenticatable implements FilamentUser, HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -47,6 +49,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
 
         return $locales->supported($this->locale)
             ?? $locales->currentLocale();
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        app(EmailVerificationOtpService::class)->issue($this);
     }
 
     public function canAccessPanel(Panel $panel): bool
@@ -125,6 +132,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function emailVerificationOtp(): HasOne
+    {
+        return $this->hasOne(EmailVerificationOtp::class);
     }
 
     public function moderationEvents(): HasMany

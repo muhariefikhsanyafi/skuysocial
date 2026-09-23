@@ -101,53 +101,27 @@ class NavigationTest extends TestCase
         $this->assertSame(1, $headingCount);
     }
 
-    public function test_dashboard_navigation_uses_dashboard_semantics_for_unverified_users(): void
+    public function test_unverified_users_are_redirected_to_the_email_verification_challenge(): void
     {
         foreach ([
-            'id' => ['dashboard' => 'Dasbor', 'feed' => 'Utas'],
-            'en' => ['dashboard' => 'Dashboard', 'feed' => 'Feed'],
-        ] as $locale => $labels) {
+            'id' => 'Untuk melanjutkan ke SkuySocial, minta kode 6 digit',
+            'en' => 'To continue to SkuySocial, request a 6-digit code',
+        ] as $locale => $copy) {
             $user = User::factory()->unverified()->create(['locale' => $locale]);
-            $response = $this
-                ->actingAs($user)
+
+            $this->actingAs($user)
                 ->withSession(['locale' => $locale === 'id' ? 'en' : 'id'])
-                ->get(route('dashboard'));
-            $html = $response->getContent();
+                ->get(route('dashboard'))
+                ->assertRedirect(route('verification.notice'));
 
-            $response->assertOk();
-            $this->assertStringContainsString('href="'.route('dashboard').'" class="skuy-brand"', $html);
-            $this->assertMatchesRegularExpression(
-                '/<a\s+href="'.preg_quote(route('dashboard'), '/').'"[^>]*aria-current="page"[^>]*class="skuy-app-nav__link"[^>]*>.*?<span class="skuy-app-nav__label">'.preg_quote($labels['dashboard'], '/').'<\/span>/s',
-                $html,
-            );
-            $this->assertMatchesRegularExpression(
-                '/<a\s+href="'.preg_quote(route('feed'), '/').'"[^>]*aria-current="false"[^>]*class="skuy-app-nav__link"[^>]*>.*?<span class="skuy-app-nav__label">'.preg_quote($labels['feed'], '/').'<\/span>/s',
-                $html,
-            );
-            $this->assertMatchesRegularExpression(
-                '/<nav class="skuy-mobile-nav".*?<a href="'.preg_quote(route('dashboard'), '/').'" aria-label="'.preg_quote($labels['dashboard'], '/').'" aria-current="page"/s',
-                $html,
-            );
-            $this->assertDoesNotMatchRegularExpression(
-                '/<a\s+href="'.preg_quote(route('feed'), '/').'"[^>]*aria-label="'.preg_quote($labels['dashboard'], '/').'"/s',
-                $html,
-            );
+            $challenge = $this->get(route('verification.notice'));
+            $challenge
+                ->assertOk()
+                ->assertSee('<html lang="'.$locale.'">', false)
+                ->assertSeeText($copy);
 
-            $feedResponse = $this
-                ->actingAs($user)
-                ->withSession(['locale' => $locale === 'id' ? 'en' : 'id'])
-                ->get(route('feed'));
-            $feedHtml = $feedResponse->getContent();
-
-            $feedResponse->assertOk();
-            $this->assertMatchesRegularExpression(
-                '/<a\s+href="'.preg_quote(route('feed'), '/').'"[^>]*aria-current="page"[^>]*class="skuy-app-nav__link"[^>]*>.*?<span class="skuy-app-nav__label">'.preg_quote($labels['feed'], '/').'<\/span>/s',
-                $feedHtml,
-            );
-            $this->assertMatchesRegularExpression(
-                '/<nav class="skuy-mobile-nav".*?<a href="'.preg_quote(route('feed'), '/').'" aria-label="'.preg_quote($labels['feed'], '/').'" aria-current="page"/s',
-                $feedHtml,
-            );
+            $this->get(route('feed'))
+                ->assertRedirect(route('verification.notice'));
         }
     }
 }

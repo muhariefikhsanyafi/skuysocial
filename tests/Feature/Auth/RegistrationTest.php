@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
@@ -20,6 +21,14 @@ use Tests\TestCase;
 class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('mail.default', 'array');
+        Notification::fake();
+    }
 
     public function test_registration_screen_can_be_rendered(): void
     {
@@ -108,7 +117,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('verification.notice'));
         $this->assertDatabaseHas('users', [
             'name' => 'Test User',
             'username' => 'test_user',
@@ -138,7 +147,7 @@ class RegistrationTest extends TestCase
         $user = User::query()->where('email', 'session@example.com')->firstOrFail();
 
         $response
-            ->assertRedirect(route('dashboard', absolute: false))
+            ->assertRedirect(route('verification.notice'))
             ->assertSessionHas(EnforceAccountSession::SESSION_VERSION_KEY, 0);
         $this->assertNotSame($sessionIdBeforeRegistration, session()->getId());
         $this->assertAuthenticatedAs($user);
@@ -150,7 +159,7 @@ class RegistrationTest extends TestCase
         Auth::forgetGuards();
 
         $this->get(route('dashboard'))
-            ->assertOk()
+            ->assertRedirect(route('verification.notice'))
             ->assertSessionHas(EnforceAccountSession::SESSION_VERSION_KEY, 0);
         $this->assertAuthenticatedAs($user);
     }
@@ -177,7 +186,7 @@ class RegistrationTest extends TestCase
         $user = User::query()->where('email', 'security-state@example.com')->firstOrFail();
 
         $response
-            ->assertRedirect(route('dashboard', absolute: false))
+            ->assertRedirect(route('verification.notice'))
             ->assertSessionHas(EnforceAccountSession::SESSION_VERSION_KEY, 0);
         $this->assertTrue(Hash::check($password, $user->password));
         $this->assertSame(UserRole::User->value, $user->role);
@@ -187,7 +196,7 @@ class RegistrationTest extends TestCase
 
         Auth::forgetGuards();
 
-        $this->get(route('dashboard'))->assertOk();
+        $this->get(route('dashboard'))->assertRedirect(route('verification.notice'));
         $this->assertAuthenticatedAs($user);
 
         $this->post(route('logout'))->assertRedirect('/');
@@ -195,7 +204,7 @@ class RegistrationTest extends TestCase
         $this->post(route('login'), [
             'email' => $user->email,
             'password' => $password,
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('verification.notice'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -209,7 +218,7 @@ class RegistrationTest extends TestCase
             'email' => 'registration-login@example.com',
             'password' => $password,
             'password_confirmation' => $password,
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('verification.notice'));
 
         $user = User::query()->where('email', 'registration-login@example.com')->firstOrFail();
 
@@ -223,11 +232,11 @@ class RegistrationTest extends TestCase
             ])
             ->assertSessionHasNoErrors()
             ->assertSessionHas(EnforceAccountSession::SESSION_VERSION_KEY, 0)
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect(route('verification.notice'));
 
         $this->assertAuthenticatedAs($user);
         Auth::forgetGuards();
-        $this->get(route('dashboard'))->assertOk();
+        $this->get(route('dashboard'))->assertRedirect(route('verification.notice'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -241,7 +250,7 @@ class RegistrationTest extends TestCase
             'email' => 'registration-negative@example.com',
             'password' => $password,
             'password_confirmation' => $password,
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('verification.notice'));
 
         $user = User::query()->where('email', 'registration-negative@example.com')->firstOrFail();
 
@@ -268,7 +277,7 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('verification.notice'));
         $response->assertSessionHas('locale', 'en');
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
@@ -317,7 +326,7 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('verification.notice'));
         $this->assertDatabaseHas('users', [
             'username' => 'mixed_user',
         ]);

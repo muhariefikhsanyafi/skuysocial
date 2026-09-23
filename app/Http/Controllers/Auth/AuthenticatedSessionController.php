@@ -35,6 +35,10 @@ class AuthenticatedSessionController extends Controller
         $locale = $locales->supported($user->locale) ?? $effectiveGuestLocale;
         $cookie = $locales->synchronize($request, $locale, $user);
 
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')->withCookie($cookie);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false))->withCookie($cookie);
     }
 

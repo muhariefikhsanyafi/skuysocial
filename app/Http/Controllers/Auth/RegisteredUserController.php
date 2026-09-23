@@ -73,7 +73,10 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         $cookie = $locales->synchronize($request, $locale);
+        $status = $user->emailVerificationOtp()->exists() ? 'sent' : 'mail_failed';
 
-        return redirect(route('dashboard', absolute: false))->withCookie($cookie);
+        return redirect(route('verification.notice', absolute: false))
+            ->withCookie($cookie)
+            ->with('verification_status', $status);
     }
 }

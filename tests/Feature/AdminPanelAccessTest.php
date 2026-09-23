@@ -10,6 +10,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -170,6 +171,9 @@ class AdminPanelAccessTest extends TestCase
 
     public function test_registration_cannot_create_an_administrator(): void
     {
+        Notification::fake();
+        Config::set('mail.default', 'array');
+
         $this->post('/register', [
             'name' => 'Registered User',
             'username' => 'registered_user',
@@ -177,7 +181,7 @@ class AdminPanelAccessTest extends TestCase
             'password' => 'password',
             'password_confirmation' => 'password',
             'role' => UserRole::Administrator->value,
-        ])->assertRedirect(route('dashboard', absolute: false));
+        ])->assertRedirect(route('verification.notice'));
 
         $this->assertDatabaseHas('users', [
             'email' => 'registered@example.com',

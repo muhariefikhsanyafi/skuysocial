@@ -57,7 +57,7 @@ class LoginRequest extends FormRequest
 
                 return $validatedModerationState?->allowsAuthentication() ?? false;
             },
-            $this->boolean('remember'),
+            $this->shouldRemember(),
         )) {
             RateLimiter::hit($this->throttleKey());
 
@@ -71,6 +71,24 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    private function shouldRemember(): bool
+    {
+        if (! $this->boolean('remember')) {
+            return false;
+        }
+
+        $credentials = $this->loginCredentials();
+        $query = User::query()->whereNotNull('email_verified_at');
+
+        if (isset($credentials['email'])) {
+            $query->where('email', $credentials['email']);
+        } else {
+            $query->where('username', $credentials['username']);
+        }
+
+        return $query->exists();
     }
 
     /**

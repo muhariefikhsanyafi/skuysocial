@@ -225,12 +225,12 @@ class LocalizationTest extends TestCase
             ->assertSeeText('KATA SANDI')
             ->assertSeeText('KONFIRMASI');
 
-        $this->withSession(['status' => 'verification-link-sent'])
+        $this->withSession(['verification_status' => 'mail_failed'])
             ->get('/verify-email')
             ->assertOk()
-            ->assertSeeText('Sebelum melanjutkan, silakan verifikasi alamat email Anda melalui tautan yang telah kami kirimkan. Jika email tersebut belum Anda terima, kami dapat mengirimkannya kembali.')
-            ->assertSeeText('Tautan verifikasi baru telah dikirim ke alamat email Anda.')
-            ->assertSeeText('KIRIM ULANG EMAIL VERIFIKASI')
+            ->assertSeeText('Untuk melanjutkan ke SkuySocial, minta kode 6 digit')
+            ->assertSeeText('Kode verifikasi belum dapat dikirim. Akun Anda tetap belum terverifikasi. Silakan coba lagi.')
+            ->assertSeeText('Kirim kode baru')
             ->assertSeeText('KELUAR');
     }
 
@@ -293,12 +293,12 @@ class LocalizationTest extends TestCase
             ->assertSeeText('PASSWORD')
             ->assertSeeText('CONFIRM');
 
-        $this->withSession(['status' => 'verification-link-sent'])
+        $this->withSession(['verification_status' => 'mail_failed'])
             ->get('/verify-email')
             ->assertOk()
-            ->assertSeeText('Before continuing, please verify your email address using the link we sent you. If you did not receive the email, we can send another.')
-            ->assertSeeText('A new verification link has been sent to your email address.')
-            ->assertSeeText('RESEND VERIFICATION EMAIL')
+            ->assertSeeText('To continue to SkuySocial, request a 6-digit code')
+            ->assertSeeText("We couldn't send a verification code right now. Your account is still unverified. You can safely try again.")
+            ->assertSeeText('Send a new code')
             ->assertSeeText('LOG OUT');
     }
 
