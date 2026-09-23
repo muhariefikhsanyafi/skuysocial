@@ -17,6 +17,14 @@ class PostDetailTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // These assertions remain the Blade fallback contract; the Inertia contract is covered separately.
+        config(['frontend.post_detail_inertia' => false]);
+    }
+
     public function test_authenticated_user_can_open_post_detail(): void
     {
         $author = User::factory()->create();

@@ -13,6 +13,14 @@ class MediaRenderingParityTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Keep existing Blade markup parity assertions on the reversible fallback.
+        config(['frontend.post_detail_inertia' => false]);
+    }
+
     public function test_modern_single_image_renders_on_profile_hashtag_and_topic_listings(): void
     {
         $user = User::factory()->create();
@@ -284,7 +292,7 @@ class MediaRenderingParityTest extends TestCase
                 ->assertSee(route('posts.show', $post), false);
 
             foreach ($mediaPaths as $mediaPath) {
-                $response->assertSee(asset('storage/' . $mediaPath), false);
+                $response->assertSee(asset('storage/'.$mediaPath), false);
             }
 
             if ($expectIndicator) {
@@ -296,7 +304,7 @@ class MediaRenderingParityTest extends TestCase
                 $this->assertStringContainsString('overflow-x-auto snap-x snap-mandatory', $content);
                 $this->assertStringContainsString('w-[85%] sm:w-[48%]', $content);
                 $this->assertStringContainsString('activeSlide === 0', $content);
-                $this->assertStringContainsString('activeSlide === ' . (count($mediaPaths) - 1), $content);
+                $this->assertStringContainsString('activeSlide === '.(count($mediaPaths) - 1), $content);
                 $this->assertStringContainsString('w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]', $content);
             } else {
                 $this->assertSame(0, substr_count($content, 'data-media-slider="true"'));

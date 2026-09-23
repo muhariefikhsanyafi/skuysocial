@@ -17,6 +17,14 @@ class BookmarkTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Preserve the existing post-detail Blade assertions while the pilot has its own contract tests.
+        config(['frontend.post_detail_inertia' => false]);
+    }
+
     public function test_guest_cannot_access_bookmark_endpoints(): void
     {
         $owner = User::factory()->create();

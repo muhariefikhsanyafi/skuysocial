@@ -52,7 +52,9 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::get('/post/{post}', [PostController::class, 'show'])->name('posts.show')->middleware('auth');
+Route::get('/post/{post}', [PostController::class, 'show'])
+    ->name('posts.show')
+    ->middleware(['auth', 'inertia']);
 
 // Rute ini hanya bisa diakses kalau user sudah login (auth)
 Route::middleware(['auth'])->group(function () {

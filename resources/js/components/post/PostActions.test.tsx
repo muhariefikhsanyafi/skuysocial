@@ -1,0 +1,173 @@
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { DisplayPost, PostDetailRoutes, PostDetailTranslations } from '../../types/post';
+import { PostActions } from './PostActions';
+
+const { routerPost, routerDelete } = vi.hoisted(() => ({
+    routerPost: vi.fn(),
+    routerDelete: vi.fn(),
+}));
+
+vi.mock('@inertiajs/react', () => ({
+    router: {
+        post: routerPost,
+        delete: routerDelete,
+    },
+}));
+
+const translations: PostDetailTranslations = {
+    back_to_feed: 'Back to feed',
+    thread: 'Thread',
+    replies: 'Replies',
+    like: 'Like',
+    unlike: 'Unlike',
+    reply: 'Reply',
+    repost: 'Repost',
+    save: 'Save',
+    remove_from_saved: 'Remove from Saved',
+    share: 'Share',
+    send: 'Send',
+    view_more_replies: 'View more replies',
+    image_coming_soon: 'Image support is coming soon',
+    repost_coming_soon: 'Repost (Coming Soon)',
+    open_options: 'Open Thread options',
+    verified: 'Verified',
+    avatar_of: 'Avatar for :name',
+    reposted_by: ':username reposted',
+    confirm_delete: 'Permanently delete this Thread?',
+    edit: 'Edit',
+    delete: 'Delete',
+    comments_reply_to: 'Reply to :name...',
+    thread_link_copied: 'Thread link copied!',
+    comment_link_copied: 'Comment link copied!',
+    reply_link_copied: 'Reply link copied!',
+    photo: 'Photo',
+    full_photo: 'Full-size photo',
+    close_preview: 'Close preview',
+    previous_image: 'Previous image',
+    next_image: 'Next image',
+    pagination_previous: 'Previous',
+    pagination_next: 'Next',
+    feedback: {
+        liked: 'Thread liked.',
+        unliked: 'Thread unliked.',
+        session_expired: 'Your session expired.',
+        restricted: 'Your account cannot perform this social action.',
+        invalid: 'The like response was invalid.',
+        failed: 'The like could not be updated.',
+        network: 'The connection failed.',
+    },
+};
+
+const post: DisplayPost = {
+    uid: 'post-1',
+    content: 'Post content',
+    datetime: '2026-09-23T00:00:00+00:00',
+    display_time: 'now',
+    author: {
+        id: 1,
+        name: 'Owner',
+        username: 'owner',
+        avatar_url: null,
+        is_verified: false,
+    },
+    topic: null,
+    media: [],
+    interactions: {
+        liked: false,
+        like_count: 1,
+        bookmarked: false,
+        reposted: false,
+        repost_count: 0,
+        comment_count: 0,
+    },
+    capabilities: {
+        can_edit: false,
+        can_delete: false,
+        can_perform_social_writes: true,
+    },
+};
+
+const routes: PostDetailRoutes = {
+    feed: '/feed',
+    like: '/posts/post-1/like',
+    repost: '/post/post-1/repost',
+    bookmark_store: '/posts/post-1/bookmark',
+    bookmark_destroy: '/posts/post-1/bookmark',
+    comment: '/posts/post-1/comments',
+    share: '/post/post-1',
+    tags_base: '/tags',
+    edit: null,
+    delete: null,
+};
+
+describe('PostActions like state', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+        routerPost.mockReset();
+        routerDelete.mockReset();
+        document.head.innerHTML = '<meta name="csrf-token" content="test-token">';
+    });
+
+    afterEach(() => {
+        cleanup();
+    });
+
+    it('commits the server response and prevents a duplicate request while pending', async () => {
+        const fetchMock = vi.fn().mockResolvedValue(
+            new Response(JSON.stringify({ post_uid: 'post-1', liked: true, like_count: 2 }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+            }),
+        );
+        vi.stubGlobal('fetch', fetchMock);
+
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} />);
+        const button = screen.getByRole('button', { name: /Like/ });
+
+        fireEvent.click(button);
+        fireEvent.click(button);
+
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(button.getAttribute('aria-pressed')).toBe('true');
+
+        await waitFor(() => expect(screen.getByRole('status').textContent).toBe('Thread liked.'));
+        await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
+        expect(button.getAttribute('aria-pressed')).toBe('true');
+        expect(button.getAttribute('aria-label')).toBe('Unlike (2)');
+    });
+
+    it('disables social writes when the server marks the viewer as restricted', () => {
+        const fetchMock = vi.fn();
+        vi.stubGlobal('fetch', fetchMock);
+        const restrictedPost = {
+            ...post,
+            capabilities: {
+                ...post.capabilities,
+                can_perform_social_writes: false,
+            },
+        };
+
+        render(<PostActions post={restrictedPost} routes={routes} translations={translations} canPerformSocialWrites={false} />);
+
+        expect((screen.getByRole('button', { name: /Like/ }) as HTMLButtonElement).disabled).toBe(true);
+        expect((screen.getByRole('button', { name: 'Repost' }) as HTMLButtonElement).disabled).toBe(true);
+        expect((screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement).disabled).toBe(true);
+        expect((screen.getByRole('button', { name: 'Share' }) as HTMLButtonElement).disabled).toBe(false);
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+    it('rolls optimistic state back when the like request fails', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} />);
+        const button = screen.getByRole('button', { name: /Like/ });
+
+        fireEvent.click(button);
+        expect(button.getAttribute('aria-pressed')).toBe('true');
+
+        await waitFor(() => {
+            expect(button.getAttribute('aria-pressed')).toBe('false');
+            expect(screen.getByRole('status').textContent).toContain('connection failed');
+        });
+    });
+});
