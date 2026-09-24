@@ -21,6 +21,10 @@
         ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'saved'],
         ['key' => 'profile', 'href' => $profileUrl, 'label' => __('navigation.profile'), 'active' => request()->routeIs('user.profile') && request()->route('username') === $user->username, 'icon' => 'profile'],
     ]);
+    $navigationGroups = [
+        array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['dashboard', 'feed', 'search'], true)),
+        array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['activity', 'saved', 'profile'], true)),
+    ];
     $bottomHomeIsDashboard = $isDashboard;
     $bottomHomeHref = $bottomHomeIsDashboard ? route('dashboard') : route('feed');
     $bottomHomeLabel = $bottomHomeIsDashboard ? __('navigation.dashboard') : __('navigation.feed');
@@ -185,35 +189,41 @@
         <p class="skuy-app-nav__eyebrow">{{ __('home.public.primary_navigation') }}</p>
 
         <nav class="skuy-app-nav" aria-label="{{ __('home.public.primary_navigation') }}">
-            @foreach ($navigationItems as $item)
-                <a
-                    href="{{ $item['href'] }}"
-                    aria-current="{{ $item['active'] ? 'page' : 'false' }}"
-                    @click="sidebarOpen = false"
-                    class="skuy-app-nav__link"
-                >
-                    <svg class="skuy-app-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                        @if ($item['icon'] === 'dashboard' || $item['icon'] === 'home')
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path>
-                        @elseif ($item['icon'] === 'search')
-                            <circle cx="11" cy="11" r="6.5"></circle>
-                            <path stroke-linecap="round" d="m16 16 5 5"></path>
-                        @elseif ($item['icon'] === 'activity')
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path>
-                        @elseif ($item['icon'] === 'saved')
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4Z"></path>
-                        @else
-                            <circle cx="12" cy="8" r="3.5"></circle>
-                            <path stroke-linecap="round" d="M5 21a7 7 0 0 1 14 0"></path>
-                        @endif
-                    </svg>
-                    <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
+            @foreach ($navigationGroups as $navigationGroup)
+                @if ($navigationGroup)
+                    <div class="skuy-app-nav__group">
+                        @foreach ($navigationGroup as $item)
+                            <a
+                                href="{{ $item['href'] }}"
+                                aria-current="{{ $item['active'] ? 'page' : 'false' }}"
+                                @click="sidebarOpen = false"
+                                class="skuy-app-nav__link"
+                            >
+                                <svg class="skuy-app-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                                    @if ($item['icon'] === 'dashboard' || $item['icon'] === 'home')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path>
+                                    @elseif ($item['icon'] === 'search')
+                                        <circle cx="11" cy="11" r="6.5"></circle>
+                                        <path stroke-linecap="round" d="m16 16 5 5"></path>
+                                    @elseif ($item['icon'] === 'activity')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path>
+                                    @elseif ($item['icon'] === 'saved')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4Z"></path>
+                                    @else
+                                        <circle cx="12" cy="8" r="3.5"></circle>
+                                        <path stroke-linecap="round" d="M5 21a7 7 0 0 1 14 0"></path>
+                                    @endif
+                                </svg>
+                                <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
 
-                    @if ($item['key'] === 'activity' && isset($unreadNotificationCount) && $unreadNotificationCount > 0)
-                        <span class="skuy-feed-nav__badge" aria-label="{{ $unreadNotificationCount }} {{ $item['label'] }}">{{ $unreadNotificationCount }}</span>
-                    @endif
-                </a>
+                                @if ($item['key'] === 'activity' && isset($unreadNotificationCount) && $unreadNotificationCount > 0)
+                                    <span class="skuy-feed-nav__badge" aria-label="{{ $unreadNotificationCount }} {{ $item['label'] }}">{{ $unreadNotificationCount }}</span>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
             @endforeach
         </nav>
 

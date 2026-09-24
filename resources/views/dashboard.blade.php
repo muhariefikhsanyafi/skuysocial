@@ -5,28 +5,63 @@
     @endphp
 
     <div class="skuy-dashboard-page">
-        <div class="skuy-dashboard-frame">
+        <div class="skuy-dashboard-frame skuy-dashboard-frame--bento">
             <section class="skuy-dashboard-welcome" aria-labelledby="dashboard-title">
-                    <div>
-                        <p class="skuy-dashboard-kicker">{{ __('home.dashboard.title') }}</p>
-                        <h1 id="dashboard-title" class="skuy-dashboard-title">
-                            {{ __('home.dashboard.greeting', ['name' => $user->name]) }}
-                        </h1>
-                        <p class="skuy-dashboard-welcome__copy">{{ __('home.dashboard.welcome') }}</p>
-                    </div>
+                <div>
+                    <p class="skuy-dashboard-kicker">{{ __('home.dashboard.title') }}</p>
+                    <h1 id="dashboard-title" class="skuy-dashboard-title">
+                        {{ __('home.dashboard.greeting', ['name' => $user->name]) }}
+                    </h1>
+                    <p class="skuy-dashboard-welcome__copy">{{ __('home.dashboard.welcome') }}</p>
+                </div>
 
-                    <div class="skuy-dashboard-welcome__action">
-                        @if ($canCreateThread)
-                            <a href="{{ route('feed') }}#composer" class="skuy-button skuy-button--primary skuy-dashboard-primary-action">
-                                {{ __('home.dashboard.create_thread') }}
-                            </a>
-                        @else
-                            <a href="{{ route('feed') }}" class="skuy-button skuy-button--primary skuy-dashboard-primary-action">
-                                {{ __('home.dashboard.open_feed') }}
-                            </a>
-                        @endif
-                    </div>
+                <div class="skuy-dashboard-welcome__action">
+                    @if ($canCreateThread)
+                        <a href="{{ route('feed') }}#composer" class="skuy-button skuy-button--primary skuy-dashboard-primary-action">
+                            {{ __('home.dashboard.create_thread') }}
+                        </a>
+                    @else
+                        <a href="{{ route('feed') }}" class="skuy-button skuy-button--primary skuy-dashboard-primary-action">
+                            {{ __('home.dashboard.open_feed') }}
+                        </a>
+                    @endif
+                </div>
             </section>
+
+            <aside class="skuy-dashboard-account" aria-labelledby="dashboard-account-title">
+                <div class="skuy-dashboard-account__identity">
+                    @if ($user->avatar)
+                        <div class="skuy-dashboard-avatar">
+                            <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
+                        </div>
+                    @else
+                        <div class="skuy-dashboard-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
+                            <span aria-hidden="true">{{ strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+                        </div>
+                    @endif
+
+                    <div class="min-w-0">
+                        <p class="skuy-dashboard-account__eyebrow">{{ __('home.dashboard.account') }}</p>
+                        <h2 id="dashboard-account-title" class="skuy-dashboard-account__name">{{ $user->name }}</h2>
+                        <p class="skuy-dashboard-account__username">{{ '@' . $user->username }}</p>
+                    </div>
+                </div>
+
+                <dl class="skuy-dashboard-account__details">
+                    <div>
+                        <dt>{{ __('home.dashboard.email') }}</dt>
+                        <dd>{{ $user->email }}</dd>
+                    </div>
+                    <div>
+                        <dt>{{ __('home.dashboard.username') }}</dt>
+                        <dd>{{ '@' . $user->username }}</dd>
+                    </div>
+                </dl>
+
+                <a href="{{ route('profile.edit') }}" class="skuy-dashboard-account__link">
+                    {{ __('home.dashboard.account_settings') }}
+                </a>
+            </aside>
 
             <section class="skuy-dashboard-routes" aria-labelledby="dashboard-routes-title">
                 <div class="skuy-dashboard-routes__heading">
@@ -79,40 +114,6 @@
                     </a>
                 </nav>
             </section>
-            <aside class="skuy-dashboard-account" aria-labelledby="dashboard-account-title">
-                    <div class="skuy-dashboard-account__identity">
-                        @if ($user->avatar)
-                            <div class="skuy-dashboard-avatar">
-                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
-                            </div>
-                        @else
-                            <div class="skuy-dashboard-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
-                                <span aria-hidden="true">{{ strtoupper(mb_substr($user->name, 0, 1)) }}</span>
-                            </div>
-                        @endif
-
-                        <div class="min-w-0">
-                            <p class="skuy-dashboard-account__eyebrow">{{ __('home.dashboard.account') }}</p>
-                            <h2 id="dashboard-account-title" class="skuy-dashboard-account__name">{{ $user->name }}</h2>
-                            <p class="skuy-dashboard-account__username">{{ '@' . $user->username }}</p>
-                        </div>
-                    </div>
-
-                    <dl class="skuy-dashboard-account__details">
-                        <div>
-                            <dt>{{ __('home.dashboard.email') }}</dt>
-                            <dd>{{ $user->email }}</dd>
-                        </div>
-                        <div>
-                            <dt>{{ __('home.dashboard.username') }}</dt>
-                            <dd>{{ '@' . $user->username }}</dd>
-                        </div>
-                    </dl>
-
-                    <a href="{{ route('profile.edit') }}" class="skuy-dashboard-account__link">
-                        {{ __('home.dashboard.account_settings') }}
-                    </a>
-            </aside>
         </div>
     </div>
 </x-app-layout>

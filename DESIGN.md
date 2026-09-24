@@ -5,7 +5,7 @@
 This document is the authoritative design specification for SkuySocial
 public/product UI.
 
-- Status: Phase D1, documentation authority only.
+- Status: Active product authority, extended by the Premium Visual Revolution.
 - Direction: SkuySocial Expressive Clean.
 - Product surface: public and signed-in product experiences.
 - Admin surface: Filament Admin is outside this authority and keeps its
@@ -137,9 +137,8 @@ reactions. Red is reserved for semantic danger and error states.
   support surfaces without competing with the primary action.
 - Warm off-white is the light-mode foundation; charcoal is the dark-mode
   foundation.
-- Saffron is reserved for appreciation, achievement, and celebratory reactions.
-  Use neutral supporting surfaces for caution notices; red remains destructive
-  and error-only.
+- Saffron is reserved for appreciation and achievement. Use neutral supporting
+  surfaces for caution notices; red remains destructive and error-only.
 - Red is reserved for destructive actions, validation errors, and other
   semantic danger or error states; it is not a general brand accent.
 
@@ -151,18 +150,27 @@ states.
 
 The following values are the baseline tokens for light and dark themes. Token
 names are semantic. Components must use the role rather than hardcoding a
-page-specific color.
+page-specific color. `--skuy-background` remains a compatibility alias for the
+canvas; authenticated workspace layouts use the distinct workspace token.
 
 | Token | Light | Dark | Role |
 | --- | --- | --- | --- |
-| `--skuy-background` | `#FFF9F2` | `#14171A` | App and page background. |
-| `--skuy-surface` | `#FFFFFF` | `#1C2126` | Primary reading and form surface. |
-| `--skuy-surface-elevated` | `#FFFFFF` | `#242A30` | Menu, modal, and intentionally lifted surface. |
-| `--skuy-surface-subtle` | `#F2EEE8` | `#20262B` | Quiet grouping, selected support, and skeleton base. |
+| `--skuy-bg-canvas` | `#F3F0EA` | `#0B0F12` | Outer application canvas. |
+| `--skuy-bg-workspace` | `#FAF8F4` | `#12191D` | Authenticated workspace ground. |
+| `--skuy-background` | `var(--skuy-bg-canvas)` | `var(--skuy-bg-canvas)` | Compatibility alias for the canvas. |
+| `--skuy-surface-base` | `var(--skuy-bg-workspace)` | `var(--skuy-bg-workspace)` | Authenticated workspace ground. |
+| `--skuy-surface` | `#FFFEFA` | `#192127` | Primary reading and form surface. |
+| `--skuy-surface-raised` | `var(--skuy-surface)` | `var(--skuy-surface)` | Everyday raised surface. |
+| `--skuy-surface-elevated` | `#FFFFFF` | `#222D33` | Menu, modal, and intentionally lifted surface. |
+| `--skuy-surface-overlay` | `var(--skuy-surface-elevated)` | `var(--skuy-surface-elevated)` | Overlay/menu surface. |
+| `--skuy-surface-subtle` | `#F0EDE7` | `#1A2328` | Quiet grouping, selected support, and skeleton base. |
+| `--skuy-surface-accent` | `var(--skuy-selected)` | `var(--skuy-selected)` | Alias for the semantic mint support surface. |
+| `--skuy-surface-glass` | `rgb(255 254 250 / 0.92)` | `rgb(17 24 28 / 0.92)` | Near-opaque top bar (desktop/mobile), mobile dock, and contextual overlays. |
 | `--skuy-text-primary` | `#20262E` | `#F8F1E7` | Post content, headings, and primary labels. |
 | `--skuy-text-secondary` | `#4A5563` | `#D0D8DE` | Supporting descriptions and secondary metadata. |
 | `--skuy-text-muted` | `#5F6B78` | `#AAB4BD` | Tertiary metadata and helper text that remains readable. |
-| `--skuy-border-subtle` | `#D6DCE1` | `#39434C` | Low-noise separators that do not define a control. |
+| `--skuy-border-subtle` | `#D1D4D2` | `#354148` | Low-noise separators that do not define a control. |
+| `--skuy-border-soft` | `var(--skuy-border-subtle)` | `var(--skuy-border-subtle)` | Alias for a quiet semantic boundary. |
 | `--skuy-border-strong` | `#788594` | `#82909B` | Input, control, media, and other visible boundaries. |
 | `--skuy-brand` | `#0D6B65` | `#6EC9C0` | Primary SkuySocial identity, action, and social activity signal. |
 | `--skuy-brand-hover` | `#09524E` | `#93DED6` | Hover state for primary actions. |
@@ -171,15 +179,20 @@ page-specific color.
 | `--skuy-secondary` | `#0D6B65` | `#6EC9C0` | Teal links, focus, navigation support, confirmation, and success support. |
 | `--skuy-secondary-hover` | `#09524E` | `#93DED6` | Hover state for secondary actions. |
 | `--skuy-on-secondary` | `#FFFFFF` | `#10302E` | Text and icons placed on secondary surfaces. |
-| `--skuy-accent` | `#B87400` | `#E8B94F` | Saffron appreciation, achievement, and celebratory reaction signal. |
+| `--skuy-glow-primary` | `rgb(13 107 101 / 0.12)` | `rgb(68 177 164 / 0.20)` | Primary shell/hero ambient light. |
+| `--skuy-glow-secondary` | `rgb(101 176 160 / 0.08)` | `rgb(85 147 139 / 0.12)` | Secondary shell ambient light. |
+| `--skuy-accent` | `#B87400` | `#E8B94F` | Saffron appreciation and achievement only. |
 | `--skuy-on-accent` | `#1A1B14` | `#34250D` | Text and icons placed on accent surfaces. |
 | `--skuy-focus` | `#0D6B65` | `#98E5DE` | Visible keyboard focus indicator. |
 | `--skuy-selected` | `#D7F0EC` | `#23433F` | Mint selected navigation, tab, filter, or highlight support surface. |
 | `--skuy-on-selected` | `#0D6B65` | `#93DED6` | Teal text and icons for mint selected support surfaces. |
 | `--skuy-danger` | `#B3261E` | `#FF9B92` | Destructive action and validation error signal. |
 | `--skuy-on-danger` | `#FFFFFF` | `#341513` | Text and icons on danger surfaces. |
-| `--skuy-reaction` | `#B87400` | `#E8B94F` | Active like or reaction state. |
+| `--skuy-reaction` | `#B87400` | `#E8B94F` | Appreciation reaction state. |
 | `--skuy-on-reaction` | `#1A1B14` | `#34250D` | Text and icons on reaction surfaces. |
+| `--skuy-shadow-soft` | `0 2px 8px rgb(24 30 36 / 0.10)` | `0 4px 12px rgb(0 0 0 / 0.24)` | Alias for `--skuy-elevation-1`. |
+| `--skuy-shadow-raised` | `0 12px 30px rgb(24 30 36 / 0.16)` | `0 16px 36px rgb(0 0 0 / 0.36)` | Alias for `--skuy-elevation-2`. |
+| `--skuy-shadow-floating` | `0 18px 44px -30px rgb(32 38 46 / 0.24)` | `0 24px 64px -34px rgb(0 0 0 / 0.42)` | Restrained top bar/mobile dock elevation. |
 
 ### Color rules
 
@@ -189,15 +202,18 @@ page-specific color.
   role and a one-line product reason.
 - Coral and red must not be assigned to brand-primary or selected roles. Red is
   reserved for semantic danger and error states.
-- There is no default gradient token. A gradient may be introduced only for a
-  specific hierarchy or brand need, with the reason recorded beside the
-  component decision. It must not cover the page or reduce text contrast.
-- A subtle ambient glow is allowed only at a purposeful focal point, uses a
-  semantic `--skuy-glow-*` token, and remains secondary to content. Never add a
-  glow to every card or use neon-on-black/color fog as default decoration.
-- `--skuy-glow-primary` is a low-opacity teal signal (`rgb(13 107 101 / 0.08)`
-  in light mode; `rgb(110 201 192 / 0.12)` in dark mode). It may support one
-  focal welcome/action surface; it is not a background or component default.
+- There is no generic decorative gradient token. The authenticated workspace
+  may use the two broad, low-opacity ambient fields and the Dashboard hero
+  treatment defined in section 27. Other gradients require a specific content
+  hierarchy reason, use semantic surface/brand tokens, and must not reduce text
+  contrast.
+- Ambient glow uses semantic `--skuy-glow-*` tokens and remains secondary to
+  content. Shell-level ambient lighting is intentionally authorized in section
+  27; component-level glow remains exceptional. Never add glow to every card or
+  use neon-on-black/color fog as default decoration.
+- `--skuy-glow-primary` and `--skuy-glow-secondary` are low-opacity teal/mint
+  lighting tokens. Shell-level ambient use is defined in the Premium Visual
+  Revolution section; component-level glow remains exceptional.
 - Solid surfaces remain the baseline for the shell, posts, menus, and forms.
   Contextual translucent surfaces use `--skuy-surface-glass` only where content
   behind the overlay is non-essential; retain an opaque fallback and readable
@@ -396,18 +412,22 @@ Use elevation sparingly:
   `--skuy-shadow-soft` is `0 2px 8px rgb(24 30 36 / 0.10)` in light mode and
   `0 4px 12px rgb(0 0 0 / 0.24)` in dark mode; `--skuy-shadow-raised` uses the
   existing `elevation-2` values above.
-- Feed posts, navigation rails, tabs, and ordinary inputs are flat unless a
-  specific interaction or focal surface benefits from restrained lift. A
-  focused composer or dashboard welcome may use one soft shadow; do not shadow
-  or glow every card.
+- Feed posts, tabs, and ordinary inputs remain flat unless a specific
+  interaction benefits from restrained lift. The shell header and mobile dock
+  may use the named floating shadow, and the Dashboard hero/account modules may
+  use raised separation as specified in section 27. Do not shadow or glow every
+  card.
 
 Reason: a shadow marks an object that is temporarily above the reading plane;
 it should not make the entire app look like it is floating.
 
 Do not use blur or `backdrop-filter` as the default surface treatment. Solid
-surfaces are the baseline. Contextual translucent overlays must use the glass
-token, have an opaque fallback, and preserve contrast. A temporary scrim may
-use transparency when it improves focus and preserves contrast.
+surfaces remain the baseline. The authenticated top bar and mobile bottom dock
+are the only persistent glassmorphism-lite exceptions; use their near-opaque
+glass token, bounded blur, an opaque reduced-transparency fallback, and
+preserved contrast. Contextual overlays must also use the glass token, have an
+opaque fallback, and preserve contrast. A temporary scrim may use transparency
+when it improves focus and preserves contrast.
 
 ## 10. Iconography
 
@@ -575,18 +595,19 @@ The authenticated shell may occupy the full desktop workspace rather than
 centering the entire application in a narrow frame. Keep the navigation
 anchored to the left, let the main column use available space while bounding
 reading measure, and place optional right context at the far edge only when
-there is room. Collapse secondary context before compressing the feed. Use
-solid shell and mobile-navigation surfaces; reserve contextual glass for a
-near-opaque desktop top-bar overlay when it improves layering.
+there is room. Collapse secondary context before compressing the feed. Use the
+layered canvas/workspace and contextual glass limits in section 27; mobile
+content remains single-column, with only the compact top bar and bottom dock
+eligible for the bounded translucency and blur specified there.
 
 ### Dashboard
 
-The dashboard is an orientation surface, not a KPI dashboard. A single welcome
-region may establish the focal point, with a compact account summary and a
-small set of real destination shortcuts arranged as selective bento groups.
-Use surface contrast and whitespace first; one restrained ambient glow or soft
-shadow may support the welcome region. Keep other sections calm, avoid
-decorative widgets, and do not wrap the page in a giant rounded panel.
+The dashboard is an orientation surface, not a KPI dashboard. Its approved
+composition uses the real welcome content as the dominant hero, a distinct
+account-summary module, and the real destination shortcuts as asymmetric bento
+tiles on wide screens. On mobile, source order is hero, account, shortcuts.
+Use surface contrast, whitespace, and the named lighting treatment in section
+27; do not add widgets, metrics, or a giant rounded page wrapper.
 
 ### Right context rail
 
@@ -597,10 +618,11 @@ when space is constrained. Do not invent activity, counts, or utility cards.
 
 ### Desktop navigation
 
-Use a calm rail with clear labels, relevant icons, and one selected surface.
-The selected state uses `--skuy-selected`, `--skuy-on-selected`, and a
-visible icon or weight change. Keep primary destinations in a stable order and
-do not include links for unbuilt pages.
+Use a calm, grouped rail with clear labels, relevant icons, and one selected
+surface. The selected state uses `--skuy-surface-accent` (an alias of
+`--skuy-selected`), `--skuy-on-selected`, a visible icon or weight change, and
+may use one restrained edge-light treatment. Keep primary destinations in a
+stable order and do not include links for unbuilt pages.
 
 Navigation can include the primary compose action when it is a real reachable
 action. Secondary account actions belong in a menu or settings route rather
@@ -610,8 +632,10 @@ than competing with the feed.
 
 Use a compact bottom navigation for a small set of primary destinations, or a
 labeled Menu control when the product's real route set does not fit. The
-active item has a text label, icon state, and selected surface. Do not hide the
-only route to a core task behind an unlabeled hamburger.
+active item has a text label, icon state, and selected surface. A restrained,
+near-opaque frosted bottom dock with at most 6px blur and an integrated central
+creation action is allowed; honor safe-area and reduced-transparency settings.
+Do not hide the only route to a core task behind an unlabeled hamburger.
 
 Reserve bottom-bar height and device safe-area space in the scroll container.
 Keep the bar short enough that the content remains dominant.
@@ -622,10 +646,11 @@ The top bar establishes page context and contains only the actions relevant to
 that context. Use a real back action on detail and sheet flows. Avoid stacking
 multiple rows of controls on compact screens.
 
-On desktop, the top bar may align with the content frame or navigation rail.
+On desktop, the authenticated top bar may use the 92%-opaque glass token, a
+subtle 8px blur, crisp border, and floating separation defined in section 27.
 On mobile, keep the title, back/menu control, and one primary action within
-comfortable reach. Long titles wrap or truncate with a complete accessible
-name.
+comfortable reach; use a solid fallback or no more than 4px blur. Long titles
+wrap or truncate with a complete accessible name.
 
 ### Buttons
 
@@ -1214,6 +1239,122 @@ A public/product UI change is complete when:
 - The implementation has been run and checked at the relevant breakpoints and
   themes, with console and interaction issues resolved.
 
+## 27. SkuySocial Expressive Clean — Premium Visual Revolution
+
+This section is the focused authority for the authenticated shell and the
+Dashboard's premium visual evolution. It clarifies the surface, depth, and
+responsive rules above; all non-conflicting Expressive Clean, accessibility,
+localization, and product-behavior rules remain in force. It does not change the
+design authority for Filament Admin or authorize a full redesign of other
+product surfaces.
+
+### Semantic token policy
+
+Extend and reuse the existing `--skuy-*` semantic system; never create a
+parallel palette or theme vocabulary. The theme's canvas and workspace are
+separate layers, while older `--skuy-background` remains an alias for the
+canvas. Use these established roles:
+
+| Token | Contract |
+| --- | --- |
+| `--skuy-bg-canvas` | Outer application foundation: warm off-white in light mode, near-black charcoal in dark mode. |
+| `--skuy-bg-workspace` | Authenticated workspace ground, subtly distinct from the canvas. |
+| `--skuy-surface-base` | Alias of `--skuy-bg-workspace`. |
+| `--skuy-surface-raised` | Alias of `--skuy-surface`; everyday raised surfaces. |
+| `--skuy-surface-elevated` / `--skuy-surface-overlay` | Higher-contrast menu, overlay, or intentional hero/account module. |
+| `--skuy-surface-accent` | Alias of `--skuy-selected`; mint support only, never a second primary color. |
+| `--skuy-surface-glass` | Near-opaque, theme-aware surface for the authenticated top bar, mobile dock, and contextual overlays only. |
+| `--skuy-border-soft` / `--skuy-border-strong` | Existing semantic border levels; preserve non-text contrast and visible focus. |
+| `--skuy-shadow-soft` / `--skuy-shadow-raised` | Existing aliases for `elevation-1` and `elevation-2`. |
+| `--skuy-shadow-floating` | One additional restrained level for the top bar and mobile dock; not a default card shadow. |
+| `--skuy-glow-primary` / `--skuy-glow-secondary` | Low-opacity teal/mint ambient light. Keep the palette within SkuySocial's color contract. |
+
+Use the existing `--radius-small`, `--radius-medium`, `--radius-large`, and
+`--radius-full` scale for shape hierarchy. Do not add duplicate `--skuy-radius`
+aliases unless the established radius tokens are actually retired.
+
+### Workspace lighting and depth
+
+- The shell uses a deep charcoal/near-black canvas in dark mode and a warm
+  off-white canvas in light mode. The workspace, raised modules, and elevated
+  modules remain visibly distinguishable in both themes.
+- The authenticated workspace may use at most two broad, soft radial fields,
+  sourced from the primary and secondary glow tokens. Keep them behind content,
+  low-opacity, teal/mint, and limited to the shell; do not add a gradient stack,
+  texture, or neon halo to each component.
+- Raised surfaces use semantic fills, crisp soft borders, and contextual
+  shadows. Reserve the strongest contrast/depth for the Dashboard hero and
+  account module; shortcuts remain legible, tactile, and subordinate.
+- The shell canvas may inherit across authenticated pages. This is shared shell
+  styling, not permission to redesign Feed, Profile, Search, Activity, Saved,
+  or Settings.
+
+### Glassmorphism-lite and the shell
+
+- The authenticated top bar is the primary desktop glass surface: use the
+  near-opaque glass token, a crisp border, no more than 8px backdrop blur, and
+  floating separation. The existing left rail stays mostly solid and visibly
+  grounded.
+- Mobile keeps the top bar and compact sticky bottom dock as the only persistent
+  glassmorphism-lite surfaces. Use the near-opaque glass token with no more than
+  4px blur on the top bar and 6px on the dock; do not make mobile a mini desktop
+  toolbar or add translucent surfaces elsewhere by default.
+- Respect `prefers-reduced-transparency` by making persistent surfaces fully
+  solid and removing backdrop filters. Maintain the same border, text contrast,
+  keyboard focus, and selected-state communication without glow or blur.
+- Contextual menus/sheets may use the glass token only when obscured content is
+  non-essential and all foreground text and controls remain readable.
+
+### Navigation composition
+
+- Desktop keeps the full-width workspace, far-left anchored navigation rail,
+  flexible central area, and optional far-right context where it fits. Group
+  related destinations with a quiet separator and consistent rhythm; preserve
+  the stable real route order and behavior.
+- The current route uses the semantic mint selected surface, clear text/icon
+  state, and at most one restrained edge-light treatment. Keep navigation
+  controls compact; avoid oversized pills. The real compose CTA is the single
+  strong rail action.
+- Mobile retains the existing route structure, safe-area spacing, and compact
+  bottom navigation. Keep a clear selected state and a strong central compose
+  action, with sufficient content clearance and comfortable touch targets.
+
+### Dashboard bento composition
+
+- Use only existing welcome, account-summary, shortcut, and real destination
+  content. The welcome region is the dominant hero; the account summary is a
+  distinct secondary module; shortcuts are individual modular tiles rather
+  than a plain link list. The one Dashboard h1 may use a 40–64px responsive
+  display treatment on desktop and scale down for mobile; keep all other page
+  and section titles within the shared type hierarchy.
+- On wide desktops (1500px and above), place the hero and account summary in
+  a balanced two-column focal band, then recompose the real shortcut tiles as
+  a low horizontal bento across the full available workspace. Give the Feed
+  destination the broadest tile and keep secondary destinations compact. On
+  intermediate desktop widths, retain the hero/account band and use a
+  balanced two-row shortcut arrangement before creating narrow tiles or dead
+  space.
+- Below 1280px, stack in source order: hero, account, shortcuts. On mobile,
+  keep shortcut tiles touch-sized and avoid any right-rail assumption.
+- A single semantic hero gradient/glow may support the welcome focal point.
+  Do not add KPI/statistic tiles, invented activity, decorative widgets, or
+  unsupported content. Existing long names and `id`/`en` labels must wrap.
+
+### Parity, accessibility, and anti-overuse
+
+- Light mode uses warm canvas/workspace layers, clean raised modules, subtle
+  teal/mint tint, and visible soft depth; never muddy translucent gray.
+- Dark mode uses near-black/charcoal layers, readable borders, and restrained
+  teal/mint light; never washed-out glass or neon.
+- Preserve WCAG contrast, visible keyboard focus, active states that do not rely
+  on glow alone, 44px minimum mobile targets, safe-area padding, 200% zoom,
+  localization resilience, reduced transparency, and reduced motion.
+- Explicitly reject excessive blur; glass everywhere; glow on every card;
+  decorative gradients everywhere; low-contrast translucency; oversized
+  rounded containers by default; visual noise; a dashboard-game aesthetic; and
+  copying Sngine or any other product 1:1. Use references for broad principles
+  only. SkuySocial Expressive Clean remains the sole design authority.
+
 ## Next Design Deliverables
 
 Before implementation, the next design deliverables are:
@@ -1223,4 +1364,5 @@ Before implementation, the next design deliverables are:
 3. Profile, responsive mockup/spec.
 4. Search / Explore, responsive mockup/spec.
 
-Do not implement these mockups as part of Phase D1.
+These remain future design deliverables; implement them only within their
+separately scoped milestones.

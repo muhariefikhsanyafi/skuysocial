@@ -25,6 +25,7 @@ class NavigationTest extends TestCase
         $this->assertSame(2, substr_count($html, 'href="'.route('activity.index').'"'));
         $this->assertStringContainsString('<div class="skuy-app-shell">', $html);
         $this->assertStringContainsString('<div class="skuy-app-shell__workspace">', $html);
+        $this->assertSame(2, substr_count($html, 'class="skuy-app-nav__group"'));
         $this->assertStringContainsString('aria-controls="mobile-navigation"', $html);
         $this->assertStringContainsString(':aria-expanded="sidebarOpen"', $html);
         $this->assertStringContainsString(":aria-label=\"sidebarOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
@@ -91,6 +92,7 @@ class NavigationTest extends TestCase
 
         $response
             ->assertOk()
+            ->assertSee('class="skuy-dashboard-frame skuy-dashboard-frame--bento"', false)
             ->assertSeeText(__('home.dashboard.greeting', ['name' => $user->name]))
             ->assertSee('href="'.route('feed').'#composer"', false)
             ->assertSee('href="'.route('user.profile', $user->username).'"', false)
@@ -101,6 +103,15 @@ class NavigationTest extends TestCase
             ->assertSee('aria-current="page"', false);
 
         $this->assertSame(1, $headingCount);
+
+        $heroPosition = strpos($html, 'class="skuy-dashboard-welcome"');
+        $accountPosition = strpos($html, 'class="skuy-dashboard-account"');
+        $shortcutsPosition = strpos($html, 'class="skuy-dashboard-routes"');
+        $this->assertNotFalse($heroPosition);
+        $this->assertNotFalse($accountPosition);
+        $this->assertNotFalse($shortcutsPosition);
+        $this->assertLessThan($accountPosition, $heroPosition);
+        $this->assertLessThan($shortcutsPosition, $accountPosition);
     }
 
     public function test_authenticated_shell_uses_semantic_surfaces_and_adaptive_desktop_rails(): void
@@ -109,17 +120,35 @@ class NavigationTest extends TestCase
 
         $this->assertIsString($css);
         foreach ([
+            '--skuy-bg-canvas: #f3f0ea;',
+            '--skuy-bg-workspace: #faf8f4;',
+            '--skuy-bg-canvas: #0b0f12;',
+            '--skuy-bg-workspace: #12191d;',
             '--skuy-surface-base:',
             '--skuy-surface-raised:',
             '--skuy-surface-overlay:',
-            '--skuy-surface-glass: rgb(255 255 255 / 0.94);',
+            '--skuy-surface-glass: rgb(255 254 250 / 0.92);',
+            '--skuy-surface-glass: rgb(17 24 28 / 0.92);',
+            '--skuy-surface-accent: var(--skuy-selected);',
             '--skuy-border-soft:',
             '--skuy-shadow-soft:',
             '--skuy-shadow-raised: var(--skuy-elevation-2);',
-            '--skuy-glow-primary: rgb(13 107 101 / 0.08);',
+            '--skuy-shadow-floating:',
+            '--skuy-glow-primary: rgb(13 107 101 / 0.12);',
+            '--skuy-glow-secondary: rgb(101 176 160 / 0.08);',
             '--skuy-shell-nav-width: 250px;',
+            'background-image:',
             'backdrop-filter: blur(8px);',
+            'backdrop-filter: blur(4px);',
+            'backdrop-filter: blur(6px);',
             '@media (prefers-reduced-transparency: reduce)',
+            '.skuy-app-nav__group + .skuy-app-nav__group',
+            '.skuy-dashboard-frame--bento',
+            '"routes routes";',
+            '"feed feed feed feed search search search activity activity saved saved saved";',
+            '@media (max-width: 1279px)',
+            '@media (min-width: 768px) and (max-width: 1023px)',
+            'box-shadow: var(--skuy-shadow-floating);',
             '.skuy-dashboard-welcome {',
             '.skuy-dashboard-route {',
             '.skuy-post:hover',
