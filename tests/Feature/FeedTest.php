@@ -43,6 +43,14 @@ class FeedTest extends TestCase
         $viewer = User::factory()->create();
         $post = $this->createPost($author, ['content' => 'Feed visual regression post']);
         $this->createComment($post, $author, 'Feed visual regression reply');
+        $this->createPost($author, [
+            'content' => 'Feed visual regression media post',
+            'images' => ['feed-visual-regression.jpg'],
+        ]);
+        $this->createPost($author, [
+            'content' => 'Feed visual regression carousel post',
+            'images' => ['feed-slide-one.jpg', 'feed-slide-two.jpg'],
+        ]);
         $this->createPost($viewer, [
             'repost_id' => $post->id,
             'content' => null,
@@ -66,6 +74,11 @@ class FeedTest extends TestCase
             'class="skuy-post__repost skuy-feed-post__repost"',
             'class="skuy-actions skuy-feed-post__actions"',
             'class="skuy-comment-preview skuy-feed-post__comment-preview"',
+            'class="skuy-media-track skuy-feed-media-track--single"',
+            'class="skuy-media-track"',
+            'data-media-slider="true"',
+            'data-media-slide="true"',
+            'data-media-indicator="true"',
             'class="skuy-context skuy-feed-context"',
         ] as $markupHook) {
             $this->assertTrue(str_contains($html, $markupHook), "Missing Feed presentation hook: {$markupHook}");
@@ -83,11 +96,66 @@ class FeedTest extends TestCase
             '.skuy-feed-page .skuy-feed-post',
             '.skuy-feed-page .skuy-feed-post__actions',
             '.skuy-feed-page .skuy-feed-context-card',
-            'max-width: 52rem;',
+            'max-width: 44rem;',
+            'padding: 14px;',
+            'grid-template-columns: minmax(0, 1fr) minmax(260px, 280px);',
+            '@media (min-width: 1500px)',
+            '@media (max-width: 767px)',
+            'padding-bottom: calc(104px + env(safe-area-inset-bottom));',
+            'grid-template-columns: repeat(5, minmax(0, 1fr));',
+            'height: clamp(14rem, 26vw, 22rem);',
+            'height: clamp(11rem, 58vw, 15rem);',
+            'object-fit: contain;',
+            'flex: 0 0 92%;',
+            'flex: 0 0 100%;',
             'clip-path: inset(50%);',
             '@media (hover: hover) and (pointer: fine)',
         ] as $cssHook) {
             $this->assertTrue(str_contains($css, $cssHook), "Missing Feed style hook: {$cssHook}");
+        }
+    }
+
+    public function test_feed_composer_and_action_row_do_not_stack_visual_containers(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        foreach ([
+            '.skuy-feed-page .skuy-feed-post {' => [
+                'padding: 14px 0 16px;',
+                'border-bottom: 1px solid var(--skuy-border-soft);',
+                'background: transparent;',
+                'box-shadow: none;',
+            ],
+            '.skuy-feed-page .skuy-composer__topic {' => [
+                'border: 0;',
+                'background: transparent;',
+                'padding: 0;',
+            ],
+            '.skuy-feed-page .skuy-composer__textarea {' => [
+                'border: 0;',
+                'background: transparent;',
+            ],
+            '.skuy-feed-page .skuy-feed-post__actions {' => [
+                'display: flex;',
+                'justify-content: flex-start;',
+                'border: 0;',
+                'background: transparent;',
+                'padding: 0;',
+            ],
+        ] as $selector => $declarations) {
+            $ruleStart = strpos($css, $selector);
+            $this->assertIsInt($ruleStart, "Missing CSS rule: {$selector}");
+            $ruleEnd = strpos($css, '}', $ruleStart);
+            $this->assertIsInt($ruleEnd, "Unclosed CSS rule: {$selector}");
+            $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart + 1);
+
+            foreach ($declarations as $declaration) {
+                $this->assertTrue(
+                    str_contains($rule, $declaration),
+                    "Missing declaration {$declaration} from {$selector}",
+                );
+            }
         }
     }
 
