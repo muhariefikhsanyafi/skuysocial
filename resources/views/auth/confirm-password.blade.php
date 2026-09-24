@@ -11,15 +11,17 @@
             <div class="skuy-auth-field">
                 <x-input-label for="password" :value="__('auth.common.password')" class="skuy-auth-label" />
 
-                <x-text-input
+                <input
                     id="password"
                     name="password"
                     type="password"
                     class="skuy-auth-input"
                     required
+                    autofocus
+                    tabindex="0"
                     autocomplete="current-password"
                     @if ($errors->has('password')) aria-describedby="password-error" aria-invalid="true" @endif
-                />
+                >
 
                 <x-input-error variant="auth" :messages="$errors->get('password')" id="password-error" />
             </div>
