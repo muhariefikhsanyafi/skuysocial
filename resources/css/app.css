@@ -4935,7 +4935,7 @@
     }
 }
 
-/* R5-V3C2: compact Feed surfaces and contained media; all post styling stays Feed-only. */
+/* R5-V3C3: Feed-only light surface and normalized media refinements. */
 .skuy-feed-page .skuy-feed-shell {
     width: 100%;
     max-width: none;
@@ -4958,7 +4958,7 @@
 .skuy-feed-page .skuy-feed-composer {
     margin-bottom: 0;
     padding: 14px;
-    border-color: var(--skuy-border-soft);
+    border-color: var(--skuy-border-strong);
     border-radius: var(--radius-medium);
     background: var(--skuy-surface-raised);
     box-shadow: var(--skuy-shadow-soft);
@@ -5141,13 +5141,13 @@
     padding: 12px 14px;
     border: 1px solid var(--skuy-border-soft);
     border-radius: var(--radius-small);
-    background: var(--skuy-surface-subtle);
+    background: var(--skuy-surface-raised);
     box-shadow: none;
     transition: background-color 160ms ease, border-color 160ms ease;
 }
 
 .skuy-feed-page .skuy-feed-post:hover {
-    background: var(--skuy-surface-subtle);
+    background: var(--skuy-surface-raised);
 }
 
 .skuy-feed-page .skuy-feed-post .skuy-post__body-main::before {
@@ -5214,13 +5214,14 @@
 
 .skuy-feed-page .skuy-feed-post__media {
     width: 100%;
-    margin: 8px 0;
+    max-width: 35.5rem;
+    margin: 8px auto;
     overflow: hidden;
     border-radius: var(--radius-small);
 }
 
 .skuy-feed-page .skuy-feed-post__media .skuy-media-track {
-    gap: 6px;
+    gap: 4px;
     padding-bottom: 0;
 }
 
@@ -5229,9 +5230,10 @@
 }
 
 .skuy-feed-page .skuy-feed-post__media .skuy-media-item {
-    flex: 0 0 92%;
-    height: clamp(13rem, 25vw, 20rem);
-    aspect-ratio: auto;
+    flex: 0 0 94%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    max-height: 20rem;
     border: 0;
     border-radius: var(--radius-small);
     background: transparent;
@@ -5459,11 +5461,13 @@
 
     .skuy-feed-page .skuy-feed-post__media {
         width: 100%;
-        margin-inline-start: 0;
+        max-width: 18.5rem;
+        margin-inline: auto;
     }
 
     .skuy-feed-page .skuy-feed-post__media .skuy-media-item {
-        height: clamp(10rem, 52vw, 14rem);
+        aspect-ratio: 4 / 3;
+        max-height: 14rem;
     }
 
     .skuy-feed-page .skuy-feed-post__comment-preview,
@@ -5491,7 +5495,16 @@
 @media (hover: hover) and (pointer: fine) {
     .skuy-feed-page .skuy-feed-post:hover {
         border-color: var(--skuy-border-strong);
-        background: var(--skuy-surface-subtle);
+        background: var(--skuy-surface-raised);
         box-shadow: none;
     }
+}
+
+.dark .skuy-feed-page .skuy-feed-post,
+.dark .skuy-feed-page .skuy-feed-post:hover {
+    background: var(--skuy-surface-subtle);
+}
+
+.dark .skuy-feed-page .skuy-feed-composer {
+    border-color: var(--skuy-border-soft);
 }

@@ -103,14 +103,20 @@ class FeedTest extends TestCase
             '@media (max-width: 767px)',
             'padding-bottom: calc(104px + env(safe-area-inset-bottom));',
             'grid-template-columns: repeat(5, minmax(0, 1fr));',
-            'height: clamp(13rem, 25vw, 20rem);',
-            'height: clamp(10rem, 52vw, 14rem);',
-            'gap: 6px;',
+            'max-height: 20rem;',
+            'max-height: 14rem;',
+            'aspect-ratio: 16 / 9;',
+            'aspect-ratio: 4 / 3;',
+            'max-width: 35.5rem;',
+            'max-width: 18.5rem;',
+            'gap: 4px;',
             'margin-top: 8px;',
+            'background: var(--skuy-surface-raised);',
             'background: var(--skuy-surface-subtle);',
             'border: 1px solid var(--skuy-border-soft);',
+            'border-color: var(--skuy-border-strong);',
             'object-fit: contain;',
-            'flex: 0 0 92%;',
+            'flex: 0 0 94%;',
             'flex: 0 0 100%;',
             'clip-path: inset(50%);',
             '@media (hover: hover) and (pointer: fine)',
@@ -125,25 +131,47 @@ class FeedTest extends TestCase
         $this->assertIsString($css);
 
         foreach ([
+            '.skuy-feed-page .skuy-feed-composer {' => [
+                'padding: 14px;',
+                'border-color: var(--skuy-border-strong);',
+                'background: var(--skuy-surface-raised);',
+                'box-shadow: var(--skuy-shadow-soft);',
+            ],
+            '.dark .skuy-feed-page .skuy-feed-composer {' => [
+                'border-color: var(--skuy-border-soft);',
+            ],
             '.skuy-feed-page .skuy-feed-post {' => [
                 'padding: 12px 14px;',
                 'border: 1px solid var(--skuy-border-soft);',
                 'border-radius: var(--radius-small);',
-                'background: var(--skuy-surface-subtle);',
+                'background: var(--skuy-surface-raised);',
                 'box-shadow: none;',
             ],
+            '.dark .skuy-feed-page .skuy-feed-post,' => [
+                'background: var(--skuy-surface-subtle);',
+            ],
+            '.skuy-feed-page .skuy-feed-post__media {' => [
+                'max-width: 35.5rem;',
+                'margin: 8px auto;',
+            ],
             '.skuy-feed-page .skuy-feed-post__media .skuy-media-track {' => [
-                'gap: 6px;',
+                'gap: 4px;',
                 'padding-bottom: 0;',
             ],
             '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {' => [
                 'flex: 0 0 100%;',
             ],
             '.skuy-feed-page .skuy-feed-post__media .skuy-media-item {' => [
+                'flex: 0 0 94%;',
+                'height: auto;',
+                'aspect-ratio: 16 / 9;',
+                'max-height: 20rem;',
                 'border: 0;',
                 'border-radius: var(--radius-small);',
                 'background: transparent;',
-                'height: clamp(13rem, 25vw, 20rem);',
+            ],
+            '.skuy-feed-page .skuy-feed-post__media .skuy-media-item img {' => [
+                'object-fit: contain;',
             ],
             '.skuy-feed-page .skuy-composer__topic {' => [
                 'border: 0;',
@@ -195,6 +223,37 @@ class FeedTest extends TestCase
 
         $this->assertStringContainsString('min-width: 44px;', $rule);
         $this->assertStringContainsString('min-height: 44px;', $rule);
+    }
+
+    public function test_feed_mobile_media_frames_keep_the_normalized_aspect_and_bounds(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        $selector = '.skuy-feed-page .skuy-feed-post__media .skuy-media-item {';
+        $ruleStart = strrpos($css, $selector);
+        $this->assertIsInt($ruleStart, "Missing mobile media rule: {$selector}");
+
+        $mobileBreakpoint = strrpos(substr($css, 0, $ruleStart), '@media (max-width: 767px)');
+        $this->assertIsInt($mobileBreakpoint, 'Missing mobile Feed breakpoint before media bounds');
+
+        $ruleEnd = strpos($css, '}', $ruleStart);
+        $this->assertIsInt($ruleEnd, "Unclosed mobile media rule: {$selector}");
+        $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart + 1);
+
+        $this->assertStringContainsString('max-height: 14rem;', $rule);
+        $this->assertStringContainsString('aspect-ratio: 4 / 3;', $rule);
+
+        $mediaSelector = '.skuy-feed-page .skuy-feed-post__media {';
+        $mediaRuleStart = strrpos($css, $mediaSelector);
+        $this->assertIsInt($mediaRuleStart, "Missing mobile media viewport: {$mediaSelector}");
+
+        $mediaRuleEnd = strpos($css, '}', $mediaRuleStart);
+        $this->assertIsInt($mediaRuleEnd, "Unclosed mobile media viewport: {$mediaSelector}");
+        $mediaRule = substr($css, $mediaRuleStart, $mediaRuleEnd - $mediaRuleStart + 1);
+
+        $this->assertStringContainsString('max-width: 18.5rem;', $mediaRule);
+        $this->assertStringContainsString('margin-inline: auto;', $mediaRule);
     }
 
     public function test_feed_like_action_keeps_html_fallback_and_exposes_reactive_hooks(): void

@@ -700,8 +700,10 @@ input the strongest initial focus, show the current author identity, and keep
 the submit action close to the text entry area.
 
 The composer may use a raised surface, a soft semantic shadow, and a clear
-boundary to distinguish it from the scrolling posts. Keep the treatment
-compact and avoid ambient glow behind input text or controls.
+boundary to distinguish it from the scrolling posts. In the Feed, make the
+light-mode boundary clearer than ordinary post boundaries while preserving the
+compact structure and soft shadow. Avoid ambient glow behind input text or
+controls.
 
 Only render controls for real supported features. Attachments, mentions,
 visibility, drafts, and scheduling require their own behavior and states.
@@ -715,15 +717,19 @@ the user to dismiss the keyboard.
 ### Feed post
 
 Each main Feed post uses a compact semantic surface distinct from the workspace
-canvas: subtle background, 1px quiet border, small radius, and no default
-shadow. Text, reply/repost, and media posts share this same outer treatment.
-Within it, sequence author identity, body, media, actions, and replies with
-tight spacing and quiet internal dividers.
+canvas. In light mode, use the clean near-white `--skuy-surface-raised`; in dark
+mode, preserve the existing `--skuy-surface-subtle` post surface. Use a soft
+border and small radius, with no default shadow. Text, reply/repost, and media
+posts share this same outer treatment. Within it, sequence author identity,
+body, media, actions, and replies with tight spacing and quiet internal dividers.
 
 Do not nest a card around actions or carousel slides. Keep author and timestamp
 scannable, let content grow, and preserve the original post relationship in
-detail and reply contexts. Keep media within the post measure in a shared
-bounded frame, with only a restrained next-slide peek.
+detail and reply contexts. Use the same normalized responsive media viewport for
+single-image and carousel slides: 16:9 on desktop and 4:3 on mobile, with paired
+width/height bounds that preserve each frame ratio. Contain source images to
+preserve useful content, keep the viewport within the post measure, and restrain
+the next-slide peek.
 
 On wide screens, keep the post measure controlled. On mobile, stack media and
 actions, allow the body to wrap, and keep the action row from becoming a
