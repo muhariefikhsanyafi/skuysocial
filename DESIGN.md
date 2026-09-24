@@ -346,8 +346,9 @@ and a person without returning to hard-edged Neo-Brutalist geometry.
 Shape rules:
 
 - Do not make every container a pill.
-- Do not place a rounded card around every post. A feed post normally uses
-  its own spacing and a divider or change in surface, not a floating box.
+- Do not turn every post into a floating card. The main Feed uses the compact,
+  per-post surface specified below: a quiet border and subtle background, with
+  no default shadow or nested panel.
 - Use a larger shape when a surface is a deliberate focal point, such as the
   compose action or a bottom sheet. Do not reuse it as a default page radius.
 - Avatars are circular because they identify people. A status chip may be full
@@ -363,8 +364,9 @@ Shape rules:
   a menu, modal, or purposeful floating compose control.
 - The subtle surface groups related content without turning it into a card
   grid.
-- Feed posts normally sit directly on the feed surface. Use a surface change
-  for a meaningful region, not for every row.
+- Main Feed posts intentionally use individually distinguishable, compact
+  surfaces with a quiet border. This is a timeline treatment, not a floating
+  card grid; keep default shadows absent.
 
 Reason: surface contrast establishes hierarchy before shadow or ornament is
 needed.
@@ -712,15 +714,16 @@ the user to dismiss the keyboard.
 
 ### Feed post
 
-Posts usually flow directly in the feed. Use author identity, body content,
-media, actions, and replies as a natural sequence separated by spacing and
-quiet dividers. A soft boundary or surface distinction may help separate feed
-items for repeated reading; reserve shadow for a clear interaction/focus state
-or a meaningful relationship, such as a quoted post or focused detail view.
+Each main Feed post uses a compact semantic surface distinct from the workspace
+canvas: subtle background, 1px quiet border, small radius, and no default
+shadow. Text, reply/repost, and media posts share this same outer treatment.
+Within it, sequence author identity, body, media, actions, and replies with
+tight spacing and quiet internal dividers.
 
-Do not nest a card around the post and another card around each action. Keep
-the author and timestamp scannable, let content grow, and preserve the
-original post relationship in detail and reply contexts.
+Do not nest a card around actions or carousel slides. Keep author and timestamp
+scannable, let content grow, and preserve the original post relationship in
+detail and reply contexts. Keep media within the post measure in a shared
+bounded frame, with only a restrained next-slide peek.
 
 On wide screens, keep the post measure controlled. On mobile, stack media and
 actions, allow the body to wrap, and keep the action row from becoming a

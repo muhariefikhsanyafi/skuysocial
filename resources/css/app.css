@@ -4935,8 +4935,7 @@
     }
 }
 
-/* R5-V3C1: compact Feed-only composition; shared post/context surfaces remain unchanged
-   on Search, Topic, Profile, and Post Detail. */
+/* R5-V3C2: compact Feed surfaces and contained media; all post styling stays Feed-only. */
 .skuy-feed-page .skuy-feed-shell {
     width: 100%;
     max-width: none;
@@ -4953,7 +4952,7 @@
 }
 
 .skuy-feed-page .skuy-feed-list {
-    gap: 0;
+    gap: 8px;
 }
 
 .skuy-feed-page .skuy-feed-composer {
@@ -5139,17 +5138,16 @@
 }
 
 .skuy-feed-page .skuy-feed-post {
-    padding: 14px 0 16px;
-    border: 0;
-    border-bottom: 1px solid var(--skuy-border-soft);
-    border-radius: 0;
-    background: transparent;
+    padding: 12px 14px;
+    border: 1px solid var(--skuy-border-soft);
+    border-radius: var(--radius-small);
+    background: var(--skuy-surface-subtle);
     box-shadow: none;
-    transition: background-color 160ms ease;
+    transition: background-color 160ms ease, border-color 160ms ease;
 }
 
 .skuy-feed-page .skuy-feed-post:hover {
-    background: transparent;
+    background: var(--skuy-surface-subtle);
 }
 
 .skuy-feed-page .skuy-feed-post .skuy-post__body-main::before {
@@ -5216,9 +5214,14 @@
 
 .skuy-feed-page .skuy-feed-post__media {
     width: 100%;
-    margin: 4px 0 10px;
+    margin: 8px 0;
     overflow: hidden;
-    border-radius: var(--radius-medium);
+    border-radius: var(--radius-small);
+}
+
+.skuy-feed-page .skuy-feed-post__media .skuy-media-track {
+    gap: 6px;
+    padding-bottom: 0;
 }
 
 .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {
@@ -5227,16 +5230,20 @@
 
 .skuy-feed-page .skuy-feed-post__media .skuy-media-item {
     flex: 0 0 92%;
-    height: clamp(14rem, 26vw, 22rem);
+    height: clamp(13rem, 25vw, 20rem);
     aspect-ratio: auto;
-    border-color: var(--skuy-border-soft);
-    border-radius: var(--radius-medium);
-    background: var(--skuy-surface-subtle);
+    border: 0;
+    border-radius: var(--radius-small);
+    background: transparent;
 }
 
 .skuy-feed-page .skuy-feed-post__media .skuy-media-item img {
     max-height: 100%;
     object-fit: contain;
+}
+
+.skuy-feed-page .skuy-feed-post__media .skuy-media-dots {
+    margin-top: 8px;
 }
 
 .skuy-feed-page .skuy-feed-post__actions {
@@ -5441,7 +5448,7 @@
     }
 
     .skuy-feed-page .skuy-feed-post {
-        padding: 12px 0;
+        padding: 12px;
     }
 
     .skuy-feed-page .skuy-feed-post__repost {
@@ -5456,7 +5463,7 @@
     }
 
     .skuy-feed-page .skuy-feed-post__media .skuy-media-item {
-        height: clamp(11rem, 58vw, 15rem);
+        height: clamp(10rem, 52vw, 14rem);
     }
 
     .skuy-feed-page .skuy-feed-post__comment-preview,
@@ -5483,7 +5490,7 @@
 
 @media (hover: hover) and (pointer: fine) {
     .skuy-feed-page .skuy-feed-post:hover {
-        border-color: var(--skuy-border-soft);
+        border-color: var(--skuy-border-strong);
         background: var(--skuy-surface-subtle);
         box-shadow: none;
     }

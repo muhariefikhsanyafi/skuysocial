@@ -103,8 +103,12 @@ class FeedTest extends TestCase
             '@media (max-width: 767px)',
             'padding-bottom: calc(104px + env(safe-area-inset-bottom));',
             'grid-template-columns: repeat(5, minmax(0, 1fr));',
-            'height: clamp(14rem, 26vw, 22rem);',
-            'height: clamp(11rem, 58vw, 15rem);',
+            'height: clamp(13rem, 25vw, 20rem);',
+            'height: clamp(10rem, 52vw, 14rem);',
+            'gap: 6px;',
+            'margin-top: 8px;',
+            'background: var(--skuy-surface-subtle);',
+            'border: 1px solid var(--skuy-border-soft);',
             'object-fit: contain;',
             'flex: 0 0 92%;',
             'flex: 0 0 100%;',
@@ -115,17 +119,31 @@ class FeedTest extends TestCase
         }
     }
 
-    public function test_feed_composer_and_action_row_do_not_stack_visual_containers(): void
+    public function test_feed_posts_have_compact_surfaces_without_nested_action_panels(): void
     {
         $css = file_get_contents(resource_path('css/app.css'));
         $this->assertIsString($css);
 
         foreach ([
             '.skuy-feed-page .skuy-feed-post {' => [
-                'padding: 14px 0 16px;',
-                'border-bottom: 1px solid var(--skuy-border-soft);',
-                'background: transparent;',
+                'padding: 12px 14px;',
+                'border: 1px solid var(--skuy-border-soft);',
+                'border-radius: var(--radius-small);',
+                'background: var(--skuy-surface-subtle);',
                 'box-shadow: none;',
+            ],
+            '.skuy-feed-page .skuy-feed-post__media .skuy-media-track {' => [
+                'gap: 6px;',
+                'padding-bottom: 0;',
+            ],
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {' => [
+                'flex: 0 0 100%;',
+            ],
+            '.skuy-feed-page .skuy-feed-post__media .skuy-media-item {' => [
+                'border: 0;',
+                'border-radius: var(--radius-small);',
+                'background: transparent;',
+                'height: clamp(13rem, 25vw, 20rem);',
             ],
             '.skuy-feed-page .skuy-composer__topic {' => [
                 'border: 0;',
@@ -157,6 +175,26 @@ class FeedTest extends TestCase
                 );
             }
         }
+    }
+
+    public function test_feed_mobile_actions_keep_accessible_tap_targets(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        $selector = '.skuy-feed-page .skuy-feed-post__actions .skuy-action {';
+        $ruleStart = strrpos($css, $selector);
+        $this->assertIsInt($ruleStart, "Missing mobile action rule: {$selector}");
+
+        $mobileBreakpoint = strrpos(substr($css, 0, $ruleStart), '@media (max-width: 767px)');
+        $this->assertIsInt($mobileBreakpoint, 'Missing mobile Feed breakpoint before action targets');
+
+        $ruleEnd = strpos($css, '}', $ruleStart);
+        $this->assertIsInt($ruleEnd, "Unclosed mobile action rule: {$selector}");
+        $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart + 1);
+
+        $this->assertStringContainsString('min-width: 44px;', $rule);
+        $this->assertStringContainsString('min-height: 44px;', $rule);
     }
 
     public function test_feed_like_action_keeps_html_fallback_and_exposes_reactive_hooks(): void
