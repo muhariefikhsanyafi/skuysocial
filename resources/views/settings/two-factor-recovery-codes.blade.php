@@ -3,8 +3,8 @@
         <h1 class="text-2xl font-bold text-[var(--skuy-text-primary)]">{{ $heading }}</h1>
     </x-slot>
 
-    <div class="skuy-profile-page">
-        <section class="skuy-profile-shell">
+    <div class="skuy-profile-page skuy-security-page">
+        <section class="skuy-profile-shell skuy-security-shell">
             <p class="text-sm leading-6 text-[var(--skuy-text-secondary)]" role="status" aria-live="polite">{{ $description }}</p>
             <ul class="mt-6 grid gap-3 sm:grid-cols-2" aria-label="{{ __('settings.two_factor.recovery_codes_heading') }}">
                 @foreach ($recoveryCodes as $recoveryCode)

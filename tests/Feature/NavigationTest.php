@@ -23,6 +23,8 @@ class NavigationTest extends TestCase
 
         $this->assertSame(2, substr_count($html, 'href="'.route('search').'"'));
         $this->assertSame(2, substr_count($html, 'href="'.route('activity.index').'"'));
+        $this->assertStringContainsString('<div class="skuy-app-shell">', $html);
+        $this->assertStringContainsString('<div class="skuy-app-shell__workspace">', $html);
         $this->assertStringContainsString('aria-controls="mobile-navigation"', $html);
         $this->assertStringContainsString(':aria-expanded="sidebarOpen"', $html);
         $this->assertStringContainsString(":aria-label=\"sidebarOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
@@ -99,6 +101,26 @@ class NavigationTest extends TestCase
             ->assertSee('aria-current="page"', false);
 
         $this->assertSame(1, $headingCount);
+    }
+
+    public function test_authenticated_shell_uses_semantic_surfaces_and_adaptive_desktop_rails(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertIsString($css);
+        foreach ([
+            '--skuy-surface-base:',
+            '--skuy-surface-raised:',
+            '--skuy-surface-overlay:',
+            '--skuy-border-soft:',
+            '--skuy-shadow-soft:',
+            '--skuy-shell-nav-width: 250px;',
+            '.skuy-security-shell',
+            'grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);',
+            '@media (min-width: 1500px)',
+        ] as $shellRule) {
+            $this->assertStringContainsString($shellRule, $css);
+        }
     }
 
     public function test_unverified_users_are_redirected_to_the_email_verification_challenge(): void
