@@ -99,6 +99,10 @@ class NavigationTest extends TestCase
             ->assertSee('href="'.route('search').'"', false)
             ->assertSee('href="'.route('activity.index').'"', false)
             ->assertSee('href="'.route('bookmarks.index').'"', false)
+            ->assertSee('class="skuy-dashboard-route skuy-dashboard-route--feed"', false)
+            ->assertSee('class="skuy-dashboard-route skuy-dashboard-route--search"', false)
+            ->assertSee('class="skuy-dashboard-route skuy-dashboard-route--activity"', false)
+            ->assertSee('class="skuy-dashboard-route skuy-dashboard-route--saved"', false)
             ->assertSee('id="dashboard-title"', false)
             ->assertSee('aria-current="page"', false);
 
@@ -112,6 +116,27 @@ class NavigationTest extends TestCase
         $this->assertNotFalse($shortcutsPosition);
         $this->assertLessThan($accountPosition, $heroPosition);
         $this->assertLessThan($shortcutsPosition, $accountPosition);
+    }
+
+    public function test_dashboard_composition_uses_compact_modules_and_an_asymmetric_wide_bento(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertIsString($css);
+        foreach ([
+            'min-height: clamp(288px, 21vw, 344px);',
+            'justify-content: flex-start;',
+            'align-self: flex-start;',
+            'gap: clamp(12px, 1.2vw, 18px);',
+            '.skuy-dashboard-route--feed {',
+            '.skuy-dashboard-route--saved {',
+            '"feed feed feed feed feed feed search search search saved saved saved"',
+            '"feed feed feed feed feed feed activity activity activity saved saved saved";',
+        ] as $dashboardRule) {
+            $this->assertStringContainsString($dashboardRule, $css);
+        }
+
+        $this->assertStringNotContainsString('min-height: clamp(360px, 33vw, 480px);', $css);
     }
 
     public function test_authenticated_shell_uses_semantic_surfaces_and_adaptive_desktop_rails(): void
@@ -145,7 +170,8 @@ class NavigationTest extends TestCase
             '.skuy-app-nav__group + .skuy-app-nav__group',
             '.skuy-dashboard-frame--bento',
             '"routes routes";',
-            '"feed feed feed feed search search search activity activity saved saved saved";',
+            '"feed feed feed feed feed feed search search search saved saved saved"',
+            '"feed feed feed feed feed feed activity activity activity saved saved saved";',
             '@media (max-width: 1279px)',
             '@media (min-width: 768px) and (max-width: 1023px)',
             'box-shadow: var(--skuy-shadow-floating);',

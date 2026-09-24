@@ -73,7 +73,7 @@
                 </div>
 
                 <nav class="skuy-dashboard-route-list" aria-label="{{ __('home.dashboard.route_heading') }}">
-                    <a href="{{ route('feed') }}" class="skuy-dashboard-route">
+                    <a href="{{ route('feed') }}" class="skuy-dashboard-route skuy-dashboard-route--feed">
                         <span class="skuy-dashboard-route__icon" aria-hidden="true">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path></svg>
                         </span>
@@ -83,7 +83,7 @@
                         </span>
                     </a>
 
-                    <a href="{{ route('search') }}" class="skuy-dashboard-route">
+                    <a href="{{ route('search') }}" class="skuy-dashboard-route skuy-dashboard-route--search">
                         <span class="skuy-dashboard-route__icon" aria-hidden="true">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path stroke-linecap="round" d="m16 16 5 5"></path></svg>
                         </span>
@@ -93,7 +93,7 @@
                         </span>
                     </a>
 
-                    <a href="{{ route('activity.index') }}" class="skuy-dashboard-route">
+                    <a href="{{ route('activity.index') }}" class="skuy-dashboard-route skuy-dashboard-route--activity">
                         <span class="skuy-dashboard-route__icon" aria-hidden="true">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path><path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path></svg>
                         </span>
@@ -103,7 +103,7 @@
                         </span>
                     </a>
 
-                    <a href="{{ route('bookmarks.index') }}" class="skuy-dashboard-route">
+                    <a href="{{ route('bookmarks.index') }}" class="skuy-dashboard-route skuy-dashboard-route--saved">
                         <span class="skuy-dashboard-route__icon" aria-hidden="true">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4Z"></path></svg>
                         </span>
