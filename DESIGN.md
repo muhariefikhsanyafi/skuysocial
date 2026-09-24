@@ -16,9 +16,11 @@ replies/comments, profiles, search and Explore, notifications, settings,
 authentication and other public product screens, plus future messaging or
 chat product UI.
 
-The previous Neo-Brutalism public/product direction is retired. Liquid Glass
-is dropped. Do not combine either direction with SkuySocial Expressive Clean,
-and do not create a parallel design system for Filament Admin.
+The previous Neo-Brutalism public/product direction is retired. Full Liquid
+Glass remains outside the SkuySocial visual direction. Restrained
+glassmorphism-lite is permitted only for contextual overlays under the surface
+rules below; it does not create a second theme or design system. Filament Admin
+keeps its existing visual language.
 
 Existing public UI that conflicts with this document should be migrated
 intentionally over time. A migration may preserve behavior and content while
@@ -127,16 +129,17 @@ Reason: a visual idea that excludes people is an incomplete product idea.
 
 The color system uses a warm off-white and charcoal foundation, teal as the
 primary SkuySocial identity color, mint support surfaces for selected and
-highlighted states, and a restrained saffron accent for reactions and attention
-states. Red is reserved for semantic danger and error states.
+highlighted states, and saffron for appreciation, achievement, and celebratory
+reactions. Red is reserved for semantic danger and error states.
 
 - Teal identifies SkuySocial primary actions, identity, and social activity.
 - Mint supports selected navigation, tabs, filters, highlights, and other quiet
   support surfaces without competing with the primary action.
 - Warm off-white is the light-mode foundation; charcoal is the dark-mode
   foundation.
-- Saffron is reserved for reactions, warnings, and occasional emphasis where
-  a second signal is genuinely useful.
+- Saffron is reserved for appreciation, achievement, and celebratory reactions.
+  Use neutral supporting surfaces for caution notices; red remains destructive
+  and error-only.
 - Red is reserved for destructive actions, validation errors, and other
   semantic danger or error states; it is not a general brand accent.
 
@@ -152,52 +155,53 @@ page-specific color.
 
 | Token | Light | Dark | Role |
 | --- | --- | --- | --- |
-| `--color-background` | `#FFF9F2` | `#14171A` | App and page background. |
-| `--color-surface` | `#FFFFFF` | `#1C2126` | Primary reading and form surface. |
-| `--color-surface-elevated` | `#FFFFFF` | `#242A30` | Menu, modal, and intentionally lifted surface. |
-| `--color-surface-subtle` | `#F2EEE8` | `#20262B` | Quiet grouping, selected support, and skeleton base. |
-| `--color-text-primary` | `#20262E` | `#F8F1E7` | Post content, headings, and primary labels. |
-| `--color-text-secondary` | `#4A5563` | `#D0D8DE` | Supporting descriptions and secondary metadata. |
-| `--color-text-muted` | `#5F6B78` | `#AAB4BD` | Tertiary metadata and helper text that remains readable. |
-| `--color-border-subtle` | `#D6DCE1` | `#39434C` | Low-noise separators that do not define a control. |
-| `--color-border-strong` | `#788594` | `#82909B` | Input, control, media, and other visible boundaries. |
-| `--color-brand-primary` | `#0D6B65` | `#6EC9C0` | Primary SkuySocial identity, action, and social activity signal. |
-| `--color-brand-hover` | `#09524E` | `#93DED6` | Hover state for primary actions. |
-| `--color-brand-pressed` | `#063F3B` | `#4FAFA7` | Pressed state for primary actions. |
-| `--color-on-brand` | `#FFFFFF` | `#10302E` | Text and icons placed on teal brand surfaces. |
-| `--color-secondary` | `#0D6B65` | `#6EC9C0` | Teal links, focus, navigation support, and confirmation. |
-| `--color-secondary-hover` | `#09524E` | `#93DED6` | Hover state for secondary actions. |
-| `--color-on-secondary` | `#FFFFFF` | `#10302E` | Text and icons placed on secondary surfaces. |
-| `--color-accent` | `#B87400` | `#E8B94F` | Saffron attention, reaction, and warning signal. |
-| `--color-on-accent` | `#1A1B14` | `#34250D` | Text and icons placed on accent surfaces. |
-| `--color-focus` | `#0D6B65` | `#98E5DE` | Visible keyboard focus indicator. |
-| `--color-selected` | `#D7F0EC` | `#23433F` | Mint selected navigation, tab, filter, or highlight support surface. |
-| `--color-on-selected` | `#0D6B65` | `#93DED6` | Teal text and icons for mint selected support surfaces. |
-| `--color-success` | `#0D6B65` | `#6EC9C0` | Successful completion and positive status. |
-| `--color-on-success` | `#FFFFFF` | `#10302E` | Text and icons on success surfaces. |
-| `--color-warning` | `#B87400` | `#E8B94F` | Caution that needs a human-readable explanation. |
-| `--color-on-warning` | `#1A1B14` | `#34250D` | Text and icons on warning surfaces. |
-| `--color-danger` | `#B3261E` | `#FF9B92` | Destructive action and validation error signal. |
-| `--color-on-danger` | `#FFFFFF` | `#341513` | Text and icons on danger surfaces. |
-| `--color-reaction` | `#B87400` | `#E8B94F` | Active like or reaction state. |
-| `--color-on-reaction` | `#1A1B14` | `#34250D` | Text and icons on reaction surfaces. |
+| `--skuy-background` | `#FFF9F2` | `#14171A` | App and page background. |
+| `--skuy-surface` | `#FFFFFF` | `#1C2126` | Primary reading and form surface. |
+| `--skuy-surface-elevated` | `#FFFFFF` | `#242A30` | Menu, modal, and intentionally lifted surface. |
+| `--skuy-surface-subtle` | `#F2EEE8` | `#20262B` | Quiet grouping, selected support, and skeleton base. |
+| `--skuy-text-primary` | `#20262E` | `#F8F1E7` | Post content, headings, and primary labels. |
+| `--skuy-text-secondary` | `#4A5563` | `#D0D8DE` | Supporting descriptions and secondary metadata. |
+| `--skuy-text-muted` | `#5F6B78` | `#AAB4BD` | Tertiary metadata and helper text that remains readable. |
+| `--skuy-border-subtle` | `#D6DCE1` | `#39434C` | Low-noise separators that do not define a control. |
+| `--skuy-border-strong` | `#788594` | `#82909B` | Input, control, media, and other visible boundaries. |
+| `--skuy-brand` | `#0D6B65` | `#6EC9C0` | Primary SkuySocial identity, action, and social activity signal. |
+| `--skuy-brand-hover` | `#09524E` | `#93DED6` | Hover state for primary actions. |
+| `--skuy-brand-pressed` | `#063F3B` | `#4FAFA7` | Pressed state for primary actions. |
+| `--skuy-on-brand` | `#FFFFFF` | `#10302E` | Text and icons placed on teal brand surfaces. |
+| `--skuy-secondary` | `#0D6B65` | `#6EC9C0` | Teal links, focus, navigation support, confirmation, and success support. |
+| `--skuy-secondary-hover` | `#09524E` | `#93DED6` | Hover state for secondary actions. |
+| `--skuy-on-secondary` | `#FFFFFF` | `#10302E` | Text and icons placed on secondary surfaces. |
+| `--skuy-accent` | `#B87400` | `#E8B94F` | Saffron appreciation, achievement, and celebratory reaction signal. |
+| `--skuy-on-accent` | `#1A1B14` | `#34250D` | Text and icons placed on accent surfaces. |
+| `--skuy-focus` | `#0D6B65` | `#98E5DE` | Visible keyboard focus indicator. |
+| `--skuy-selected` | `#D7F0EC` | `#23433F` | Mint selected navigation, tab, filter, or highlight support surface. |
+| `--skuy-on-selected` | `#0D6B65` | `#93DED6` | Teal text and icons for mint selected support surfaces. |
+| `--skuy-danger` | `#B3261E` | `#FF9B92` | Destructive action and validation error signal. |
+| `--skuy-on-danger` | `#FFFFFF` | `#341513` | Text and icons on danger surfaces. |
+| `--skuy-reaction` | `#B87400` | `#E8B94F` | Active like or reaction state. |
+| `--skuy-on-reaction` | `#1A1B14` | `#34250D` | Text and icons on reaction surfaces. |
 
 ### Color rules
 
 - The active palette is limited to teal primary identity, mint support
-  surfaces, saffron accent and reaction states, semantic red danger/error
+  surfaces, saffron appreciation/achievement states, semantic red danger/error
   states, and warm neutral foundations. Additional colors require a semantic
   role and a one-line product reason.
 - Coral and red must not be assigned to brand-primary or selected roles. Red is
   reserved for semantic danger and error states.
 - There is no default gradient token. A gradient may be introduced only for a
   specific hierarchy or brand need, with the reason recorded beside the
-  component decision. It must not cover the page or sit behind readable text.
-- Do not use glow, neon-on-black treatments, or colored fog as default
-  decoration.
-- Use solid surfaces for the app shell, posts, menus, and forms. Transparency
-  is reserved for scrims or temporary focus effects where the underlying
-  content remains legible.
+  component decision. It must not cover the page or reduce text contrast.
+- A subtle ambient glow is allowed only at a purposeful focal point, uses a
+  semantic `--skuy-glow-*` token, and remains secondary to content. Never add a
+  glow to every card or use neon-on-black/color fog as default decoration.
+- `--skuy-glow-primary` is a low-opacity teal signal (`rgb(13 107 101 / 0.08)`
+  in light mode; `rgb(110 201 192 / 0.12)` in dark mode). It may support one
+  focal welcome/action surface; it is not a background or component default.
+- Solid surfaces remain the baseline for the shell, posts, menus, and forms.
+  Contextual translucent surfaces use `--skuy-surface-glass` only where content
+  behind the overlay is non-essential; retain an opaque fallback and readable
+  contrast in both themes.
 - Never use color as the only indicator of unread, selected, success, warning,
   danger, or reaction. Pair color with text, icon shape, weight, fill, or a
   state announcement.
@@ -280,9 +284,9 @@ visible rhythm between content groups.
 
 ### Layout discipline
 
-- The app shell uses a centered content frame on wide screens. The main feed
-  rail stays readable, normally 40rem to 44rem, with optional side context
-  only when that context serves the current page.
+- The authenticated app shell may use the full available desktop width. The
+  main feed rail stays readable, normally 40rem to 44rem, with optional side
+  context only when that context serves the current page.
 - A desktop navigation rail may occupy a stable column, but it must not push
   the feed beyond its reading measure. Secondary context yields before the
   feed becomes too narrow.
@@ -349,6 +353,21 @@ Shape rules:
 Reason: surface contrast establishes hierarchy before shadow or ornament is
 needed.
 
+Use the existing semantic surface vocabulary consistently:
+
+| Token | Light | Dark | Role |
+| --- | --- | --- | --- |
+| `--skuy-surface-base` | `#FFF9F2` | `#14171A` | Ground plane, aliased to `--skuy-background`. |
+| `--skuy-surface-raised` | `#FFFFFF` | `#1C2126` | Reading surface, aliased to `--skuy-surface`. |
+| `--skuy-surface-overlay` | `#FFFFFF` | `#242A30` | Purposefully lifted surface, aliased to `--skuy-surface-elevated`. |
+| `--skuy-surface-glass` | `rgb(255 255 255 / 0.94)` | `rgb(28 33 38 / 0.94)` | Near-opaque contextual overlay, with a solid fallback. |
+
+Glassmorphism-lite is permitted only for a temporary or sticky overlay where
+underlying content is non-essential. Keep the overlay near opaque, limit
+backdrop blur to 8px, and preserve readable text and visible boundaries in
+both themes. Prefer solid surfaces on mobile. Never use glass as the page
+foundation, behind feed posts, or as a treatment repeated across every panel.
+
 ### Borders
 
 - Use 1px borders for input boundaries, media boundaries, and clear panel
@@ -371,15 +390,24 @@ Use elevation sparingly:
   `0 4px 12px rgb(0 0 0 / 0.24)` in dark mode, for a menu or floating action.
 - `elevation-2`: `0 12px 30px rgb(24 30 36 / 0.16)` in light mode and
   `0 16px 36px rgb(0 0 0 / 0.36)` in dark mode, for a modal or sheet.
+- `--skuy-shadow-soft` and `--skuy-shadow-raised` are semantic aliases for the
+  existing `elevation-1` and `elevation-2` levels; do not introduce a second
+  shadow scale.
+  `--skuy-shadow-soft` is `0 2px 8px rgb(24 30 36 / 0.10)` in light mode and
+  `0 4px 12px rgb(0 0 0 / 0.24)` in dark mode; `--skuy-shadow-raised` uses the
+  existing `elevation-2` values above.
 - Feed posts, navigation rails, tabs, and ordinary inputs are flat unless a
-  specific interaction requires lift.
+  specific interaction or focal surface benefits from restrained lift. A
+  focused composer or dashboard welcome may use one soft shadow; do not shadow
+  or glow every card.
 
 Reason: a shadow marks an object that is temporarily above the reading plane;
 it should not make the entire app look like it is floating.
 
-Do not use blur or backdrop-filter as the default surface treatment. Solid
-surfaces are the baseline. A temporary scrim may use transparency when it
-improves focus and preserves contrast.
+Do not use blur or `backdrop-filter` as the default surface treatment. Solid
+surfaces are the baseline. Contextual translucent overlays must use the glass
+token, have an opaque fallback, and preserve contrast. A temporary scrim may
+use transparency when it improves focus and preserves contrast.
 
 ## 10. Iconography
 
@@ -543,10 +571,34 @@ they preserve the feed measure. On compact screens, recompose into a compact
 header and bottom or menu navigation. The shell owns safe-area padding and
 focus order.
 
+The authenticated shell may occupy the full desktop workspace rather than
+centering the entire application in a narrow frame. Keep the navigation
+anchored to the left, let the main column use available space while bounding
+reading measure, and place optional right context at the far edge only when
+there is room. Collapse secondary context before compressing the feed. Use
+solid shell and mobile-navigation surfaces; reserve contextual glass for a
+near-opaque desktop top-bar overlay when it improves layering.
+
+### Dashboard
+
+The dashboard is an orientation surface, not a KPI dashboard. A single welcome
+region may establish the focal point, with a compact account summary and a
+small set of real destination shortcuts arranged as selective bento groups.
+Use surface contrast and whitespace first; one restrained ambient glow or soft
+shadow may support the welcome region. Keep other sections calm, avoid
+decorative widgets, and do not wrap the page in a giant rounded panel.
+
+### Right context rail
+
+The feed context rail may group real trending topics and existing account or
+community actions into compact, clearly labeled surfaces. Keep the rail
+secondary to reading, use a modest surface/border treatment, and collapse it
+when space is constrained. Do not invent activity, counts, or utility cards.
+
 ### Desktop navigation
 
 Use a calm rail with clear labels, relevant icons, and one selected surface.
-The selected state uses `--color-selected`, `--color-on-selected`, and a
+The selected state uses `--skuy-selected`, `--skuy-on-selected`, and a
 visible icon or weight change. Keep primary destinations in a stable order and
 do not include links for unbuilt pages.
 
@@ -620,6 +672,10 @@ The composer is a primary product surface, not a decorative card. Give the
 input the strongest initial focus, show the current author identity, and keep
 the submit action close to the text entry area.
 
+The composer may use a raised surface, a soft semantic shadow, and a clear
+boundary to distinguish it from the scrolling posts. Keep the treatment
+compact and avoid ambient glow behind input text or controls.
+
 Only render controls for real supported features. Attachments, mentions,
 visibility, drafts, and scheduling require their own behavior and states.
 Validation explains the problem beside the relevant field. Submission shows a
@@ -633,8 +689,9 @@ the user to dismiss the keyboard.
 
 Posts usually flow directly in the feed. Use author identity, body content,
 media, actions, and replies as a natural sequence separated by spacing and
-quiet dividers. Use a surface or border change only when it clarifies a real
-relationship, such as a quoted post or a focused detail view.
+quiet dividers. A soft boundary or surface distinction may help separate feed
+items for repeated reading; reserve shadow for a clear interaction/focus state
+or a meaningful relationship, such as a quoted post or focused detail view.
 
 Do not nest a card around the post and another card around each action. Keep
 the author and timestamp scannable, let content grow, and preserve the
@@ -791,8 +848,10 @@ Use an inline notice when the message belongs to the current region, such as
 an offline state, permission limitation, validation summary, or retry result.
 The notice includes a concise explanation and the next action when one exists.
 
-Pair success, warning, and danger colors with a semantic icon or explicit
-label. Do not use a decorative colored stripe as the notice's only signal.
+Pair teal success and red danger/error treatments with a semantic icon or
+explicit label. Caution notices use a neutral surface, state the reason, and
+include the next action where one exists; do not use saffron or red as a generic
+attention signal.
 
 ### Notification item
 
@@ -954,8 +1013,10 @@ more content, say so only when the product has enough information to know it.
 ## 20. Dark Mode
 
 Dark mode is an intentional theme, not an inversion of light mode. It uses
-charcoal surfaces, warm light text, muted but readable supporting text, and
-lighter versions of the brand colors with dark on-color text.
+layered charcoal surfaces, warm light text, muted but readable supporting text,
+and lighter versions of the brand colors with dark on-color text. A restrained
+teal/mint ambient signal may mark a focal action or welcome surface when its
+meaning is clear; do not wash a surface with glow or translucent gray.
 
 - Keep at least two visible surface levels so menus, sheets, and content do
   not flatten into one black plane.
@@ -1062,13 +1123,19 @@ exception does not conflict with accessibility:
 
 - Generic SaaS dashboard styling, including KPI tiles in the social feed.
 - Excessive cards or card-inside-card nesting.
-- Liquid Glass, glassmorphism as a page-wide character, or blur on every
-  surface.
+- Full Liquid Glass, glassmorphism as a page-wide character, or blur on every
+  surface. Contextual glassmorphism-lite is allowed only under the near-opaque
+  overlay rules above.
+- A second design or theme system alongside SkuySocial's semantic tokens.
 - Neo-Brutalist hard black borders, hard offset shadows, and sharp geometry as
   a public/product default.
-- Random, full-page, or decorative gradients.
+- Random, full-page, or decorative gradients; excessive blur; low-contrast
+  translucent UI; muddy light-mode overlays; or glow on every card.
+- Visual noise from repeated decorative surfaces, badges, shadows, gradients, or
+  nested container layers.
 - Neon-on-black gaming aesthetics.
-- Oversized hero sections inside the core app.
+- Oversized hero sections or rounded outer containers as the default core-app
+  treatment.
 - Pill-shaped buttons, inputs, cards, menus, badges, and tabs by default.
 - Excessive badges, chips, colored dots, or notification counters.
 - Decorative blobs, generic illustrations, or assets that imply real people or
@@ -1079,9 +1146,10 @@ exception does not conflict with accessibility:
 - Excessive shadows, glows, or floating surfaces.
 - Unnecessary dividers between every row or field.
 - Animation without a state meaning, especially perpetual loops.
-- Google or Material clone appearance, including copied component rhythm,
-  palette, or visual identity. Material 3 Expressive may inform principles,
-  but SkuySocial must remain recognizably its own product.
+- Copying another product 1:1, including Sngine, or adopting a Google/Material
+  clone appearance with copied component rhythm, palette, or visual identity.
+  Reference products may inform broad principles, but SkuySocial must remain
+  recognizably its own product.
 - Generic marketing copy, unsupported claims, invented statistics, fake
   testimonials, fictional user activity, or dead navigation.
 - Any control that looks functional but has no real behavior.
@@ -1094,8 +1162,10 @@ exception does not conflict with accessibility:
 - Existing public UI that conflicts with this document should be migrated
   intentionally. Do not mix the retired Neo-Brutalist direction with the new
   system during migration.
-- Do not introduce Liquid Glass or create a parallel design system for
-  Filament Admin. Filament Admin remains outside this authority.
+- Do not introduce full Liquid Glass or create a parallel design system for
+  Filament Admin. Contextual glassmorphism-lite must follow this document's
+  contrast, restraint, and fallback rules. Filament Admin remains outside this
+  authority.
 - New public components use semantic tokens, the shared shape and spacing
   scales, the interaction-state rules, and the component behavior defined
   here.
@@ -1122,8 +1192,9 @@ exception does not conflict with accessibility:
 
 A public/product UI change is complete when:
 
-- The surface follows SkuySocial Expressive Clean and does not blend retired
-  Neo-Brutalism, Liquid Glass, or a copied product language.
+- The surface follows SkuySocial Expressive Clean, uses premium effects only
+  within the documented restraint rules, and does not blend retired
+  Neo-Brutalism, full Liquid Glass, or a copied product language.
 - The focal point and content hierarchy are clear without decorative noise.
 - Color, type, spacing, radius, borders, elevation, and icons use shared
   semantic decisions with a written reason for any exception.
