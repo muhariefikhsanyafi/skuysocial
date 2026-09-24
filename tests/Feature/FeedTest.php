@@ -37,6 +37,60 @@ class FeedTest extends TestCase
         });
     }
 
+    public function test_feed_visual_hooks_keep_composer_and_social_controls_real_and_present(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($author, ['content' => 'Feed visual regression post']);
+        $this->createComment($post, $author, 'Feed visual regression reply');
+        $this->createPost($viewer, [
+            'repost_id' => $post->id,
+            'content' => null,
+            'created_at' => now()->addMinute(),
+            'updated_at' => now()->addMinute(),
+        ]);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+        $html = (string) $response->getContent();
+
+        $response->assertOk();
+        foreach ([
+            'class="skuy-composer skuy-feed-composer"',
+            'for="feed-composer-body"',
+            'id="feed-composer-body"',
+            'id="feed-composer-images"',
+            'for="feed-composer-images"',
+            'name="images[]"',
+            'accept="image/*"',
+            'class="skuy-post skuy-feed-post cursor-pointer"',
+            'class="skuy-post__repost skuy-feed-post__repost"',
+            'class="skuy-actions skuy-feed-post__actions"',
+            'class="skuy-comment-preview skuy-feed-post__comment-preview"',
+            'class="skuy-context skuy-feed-context"',
+        ] as $markupHook) {
+            $this->assertTrue(str_contains($html, $markupHook), "Missing Feed presentation hook: {$markupHook}");
+        }
+    }
+
+    public function test_premium_feed_styles_are_scoped_and_preserve_responsive_controls(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertIsString($css);
+        foreach ([
+            '.skuy-feed-page .skuy-feed-shell',
+            '.skuy-feed-page .skuy-feed-composer',
+            '.skuy-feed-page .skuy-feed-post',
+            '.skuy-feed-page .skuy-feed-post__actions',
+            '.skuy-feed-page .skuy-feed-context-card',
+            'max-width: 52rem;',
+            'clip-path: inset(50%);',
+            '@media (hover: hover) and (pointer: fine)',
+        ] as $cssHook) {
+            $this->assertTrue(str_contains($css, $cssHook), "Missing Feed style hook: {$cssHook}");
+        }
+    }
+
     public function test_feed_like_action_keeps_html_fallback_and_exposes_reactive_hooks(): void
     {
         $user = User::factory()->create();
@@ -80,7 +134,7 @@ class FeedTest extends TestCase
             ->assertSee('name="images[]"', false)
             ->assertSee('multiple', false)
             ->assertSee('accept="image/*"', false)
-            ->assertSee('class="skuy-upload"', false)
+            ->assertSee('class="skuy-upload skuy-feed-composer__file-input"', false)
             ->assertSee('selectedImages', false)
             ->assertSee('x-ref="imagesInput"', false)
             ->assertSee('@change="handleImageSelection($event)"', false)

@@ -8,10 +8,10 @@
         data-feed-thread-key="{{ $post->uid }}"
         x-data="{ showComments: false }"
         @click="if(!$event.target.closest('button, a, form, img')) window.location='{{ route('posts.show', $displayPost->uid) }}'"
-        class="skuy-post cursor-pointer"
+        class="skuy-post skuy-feed-post cursor-pointer"
     >
         @if ($isRepost)
-            <div class="skuy-post__repost">
+            <div class="skuy-post__repost skuy-feed-post__repost">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path>
                 </svg>
@@ -132,8 +132,8 @@
 
                                 this.activeSlide = Math.round((event.target.scrollLeft / maxScroll) * maxIndex);
                             }
-                        }" class="mb-4">
-                            <div data-media-slider="true" @scroll.passive="updateDots" class="skuy-media-track">
+                        }" class="mb-4 skuy-feed-post__media">
+                            <div data-media-slider="true" @scroll.passive="updateDots" class="skuy-media-track{{ count($displayPost->images) === 1 ? ' skuy-feed-media-track--single' : '' }}">
                                 @foreach ($displayPost->images as $imgUrl)
                                     <div data-media-slide="true" @click="openLightbox(@js($postImageUrls), {{ $loop->index }})" class="skuy-media-item">
                                         <img src="{{ asset('storage/' . $imgUrl) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
@@ -212,7 +212,7 @@
                             },
                         })"
                     >
-                        <div class="skuy-actions">
+                        <div class="skuy-actions skuy-feed-post__actions">
                             <form
                                 action="{{ route('posts.like', $displayPost->uid) }}"
                                 method="POST"
@@ -297,7 +297,7 @@
                     @endphp
 
                     @if ($topComment)
-                        <div x-show="!showComments" class="skuy-comment-preview">
+                        <div x-show="!showComments" class="skuy-comment-preview skuy-feed-post__comment-preview">
                             <div class="skuy-comment">
                                 @if ($topComment->user->avatar)
                                     <div class="skuy-avatar skuy-avatar--small">
@@ -326,7 +326,7 @@
                         </div>
                     @endif
 
-                    <div id="comments-{{ $displayPost->uid }}" x-show="showComments" x-transition.opacity.duration.300ms style="display: none;" class="skuy-comments">
+                    <div id="comments-{{ $displayPost->uid }}" x-show="showComments" x-transition.opacity.duration.300ms style="display: none;" class="skuy-comments skuy-feed-post__comments">
                         <div class="space-y-4">
                             <a href="{{ route('posts.show', $displayPost->uid) }}" class="inline-flex min-h-[36px] items-center text-sm font-semibold text-[var(--skuy-secondary)] hover:underline">
                                 {{ __('threads.actions.view_full_thread') }}

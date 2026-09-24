@@ -112,8 +112,8 @@
             >
                 <h1 id="feed-title" class="sr-only">{{ __('navigation.home') }}</h1>
 
-                <div id="composer" data-composer class="skuy-composer">
-                    <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" x-data="{
+                <div id="composer" data-composer class="skuy-composer skuy-feed-composer">
+                    <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="skuy-feed-composer__form" x-data="{
                         isSubmitting: false,
                         content: '',
                         selectedImages: [],
@@ -178,14 +178,17 @@
                             @endif
 
                             <div class="skuy-composer__identity-copy">
-                                <span class="skuy-composer__username">{{ '@' . Auth::user()->username }}</span>
-                                @if (Auth::user()->is_verified)
-                                    <span class="ml-1 inline-flex align-middle text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
-                                        </svg>
-                                    </span>
-                                @endif
+                                <span class="skuy-composer__display-name">{{ Auth::user()->name }}</span>
+                                <div class="skuy-composer__identity-meta">
+                                    <span class="skuy-composer__username">{{ '@' . Auth::user()->username }}</span>
+                                    @if (Auth::user()->is_verified)
+                                        <span class="skuy-composer__verified text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
+                                            </svg>
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
@@ -223,7 +226,8 @@
                             </div>
                         </div>
 
-                        <textarea name="content" rows="2" x-model="content" class="skuy-composer__textarea" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
+                        <label for="feed-composer-body" class="sr-only">{{ __('threads.composer.content_placeholder') }}</label>
+                        <textarea id="feed-composer-body" name="content" rows="2" x-model="content" class="skuy-composer__textarea" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
 
                         @if ($errors->any())
                             <div class="skuy-form-error" role="alert">
@@ -235,9 +239,13 @@
                             </div>
                         @endif
 
-                        <div class="skuy-composer__tools">
-                            <div class="min-w-0 flex-1">
-                                <input type="file" name="images[]" multiple accept="image/*" x-ref="imagesInput" @change="handleImageSelection($event)" class="skuy-upload">
+                        <div class="skuy-composer__tools skuy-feed-composer__tools">
+                            <div class="skuy-feed-composer__attachments min-w-0 flex-1">
+                                <input id="feed-composer-images" type="file" name="images[]" multiple accept="image/*" x-ref="imagesInput" @change="handleImageSelection($event)" class="skuy-upload skuy-feed-composer__file-input">
+                                <label for="feed-composer-images" class="skuy-feed-composer__attach">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l10.61-10.61a4 4 0 0 1 5.66 5.66L9.41 17.43a2 2 0 0 1-2.83-2.83l9.9-9.9"></path></svg>
+                                    <span>{{ __('threads.media.photo') }}</span>
+                                </label>
 
                                 <div x-show="selectedImages.length > 0" style="display: none;" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="{{ __('threads.media.preview') }}">
                                     <template x-for="(image, index) in selectedImages" :key="image.identity">
@@ -297,8 +305,8 @@
                 @endif
             </section>
 
-            <aside class="skuy-context" aria-label="{{ __('threads.trending.title') }}">
-                <div class="skuy-context-card">
+            <aside class="skuy-context skuy-feed-context" aria-label="{{ __('threads.trending.title') }}">
+                <div class="skuy-context-card skuy-feed-context-card">
                     <h2 class="skuy-context-card__title">{{ __('threads.trending.title') }}</h2>
                     <div class="skuy-context-card__list">
                         @forelse($trendingHashtags ?? [] as $tag => $count)
@@ -312,7 +320,7 @@
                     </div>
                 </div>
 
-                <div class="skuy-context-card skuy-context-card--accent">
+                <div class="skuy-context-card skuy-context-card--accent skuy-feed-context-card skuy-feed-context-card--community">
                     <h2 class="skuy-context-card__title">SkuySocial</h2>
                     <p>{{ __('threads.community.message') }}</p>
                     <a href="{{ route('user.profile', auth()->user()->username) }}">
