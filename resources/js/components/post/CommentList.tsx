@@ -81,9 +81,9 @@ export function CommentList({
 }: CommentListProps) {
     return (
         <>
-            <div className="space-y-4">
+            <div className="skuy-post-detail__reply-list space-y-4">
                 {comments.data.length > 0 && (
-                    <h2 className="mb-4 border-b border-[var(--skuy-border-subtle)] pb-2 text-lg font-bold text-[var(--skuy-text-primary)]">
+                    <h2 className="skuy-post-detail__reply-heading mb-4 border-b border-[var(--skuy-border-subtle)] pb-2 text-lg font-bold text-[var(--skuy-text-primary)]">
                         {translations.replies}
                     </h2>
                 )}
@@ -195,7 +195,10 @@ function CommentItem({
     };
 
     return (
-        <div id={`${isReply ? 'reply' : 'comment'}-${comment.id}`} className="skuy-comment relative scroll-mt-20">
+        <div
+            id={`${isReply ? 'reply' : 'comment'}-${comment.id}`}
+            className={`skuy-comment skuy-post-detail__reply ${isReply ? 'skuy-post-detail__reply--nested' : 'skuy-post-detail__reply--root'} relative scroll-mt-20`}
+        >
             <div className={`flex flex-shrink-0 flex-col items-center ${isReply ? 'mt-0.5' : ''}`}>
                 <Avatar author={comment.author} size={isReply ? 'tiny' : 'small'} labelTemplate={translations.avatar_of} />
                 {!isReply && (openReply || comment.replies_count > 0) && (
@@ -208,7 +211,8 @@ function CommentItem({
 
             <div className={`skuy-comment__body ${isReply ? 'pb-1' : 'pb-4'}`}>
                 <div className="skuy-comment__identity">
-                    <span className="skuy-comment__user">{comment.author.username}</span>
+                    <span className="skuy-comment__name">{comment.author.name}</span>
+                    <span className="skuy-comment__user">@{comment.author.username}</span>
                     <time dateTime={comment.datetime} className="skuy-comment__time">{comment.display_time}</time>
                 </div>
                 <p className="skuy-comment__text mb-1">{comment.content}</p>

@@ -31,6 +31,22 @@ const media: PostMedia[] = [
 describe('MediaViewer lightbox accessibility', () => {
     afterEach(() => cleanup());
 
+    it('keeps a single detail image separate from carousel controls', () => {
+        render(<MediaViewer media={[media[0]]} translations={translations} />);
+
+        expect(document.querySelector('.skuy-post-detail__media')).not.toBeNull();
+        expect(document.querySelector('[data-media-slider="true"]')).toBeNull();
+        expect(document.querySelector('[data-media-indicator="true"]')).toBeNull();
+    });
+
+    it('uses an internal scroll track and pager for multi-image detail media', () => {
+        render(<MediaViewer media={media} translations={translations} />);
+
+        expect(document.querySelector('[data-media-slider="true"]')?.classList.contains('skuy-media-track')).toBe(true);
+        expect(document.querySelectorAll('[data-media-slide="true"]').length).toBe(media.length);
+        expect(document.querySelectorAll('[data-media-indicator-dot="true"]').length).toBe(media.length);
+    });
+
     it('traps focus, supports keyboard image navigation, and restores the trigger on close', async () => {
         render(<MediaViewer media={media} translations={translations} />);
 

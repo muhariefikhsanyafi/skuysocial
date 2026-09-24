@@ -40,8 +40,8 @@ export default function Show() {
     } = props;
 
     return (
-        <div className="skuy-feed-page">
-            <div className="skuy-feed-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+        <div className="skuy-feed-page skuy-post-detail-page">
+            <div className="skuy-feed-content skuy-post-detail__content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
                 <div className="mb-4 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
                     <a href={routes.feed} aria-label={translations.back_to_feed} className="skuy-action">
                         <ArrowLeftIcon />
@@ -56,7 +56,7 @@ export default function Show() {
                     </div>
                 )}
 
-                <article className="skuy-post mb-4">
+                <article className="skuy-post skuy-post--detail-root skuy-post-detail__root mb-4">
                     <div className="skuy-post__layout">
                         <div className="skuy-post__avatar-column">
                             <Avatar author={displayPost.author} labelTemplate={translations.avatar_of} />
@@ -65,15 +65,23 @@ export default function Show() {
                             <div className="skuy-post__body-main">
                                 <div className="skuy-post__header">
                                     <div className="skuy-post__identity">
-                                        <span className="skuy-post__display-name">{displayPost.author.username}</span>
+                                        <span className="skuy-post__display-name">{displayPost.author.name}</span>
                                         {displayPost.author.is_verified && (
                                             <span className="inline-flex text-[var(--skuy-secondary)]" title={translations.verified} aria-label={translations.verified}>
                                                 <CheckIcon />
                                             </span>
                                         )}
+                                        <span className="skuy-post__username">@{displayPost.author.username}</span>
+                                        <span className="skuy-post__meta-separator" aria-hidden="true">·</span>
                                         <time dateTime={displayPost.datetime} className="skuy-post__time">
                                             {displayPost.display_time}
                                         </time>
+                                        {displayPost.topic && (
+                                            <>
+                                                <span className="skuy-post__meta-separator" aria-hidden="true">·</span>
+                                                <span className="skuy-post__topic">#{displayPost.topic}</span>
+                                            </>
+                                        )}
                                     </div>
                                     <PostOptions
                                         uid={post.uid}
@@ -107,14 +115,16 @@ export default function Show() {
                     canPerformSocialWrites={viewer.can_perform_social_writes}
                 />
 
-                <CommentList
-                    comments={comments}
-                    expandedReplyRootId={expandedReplyRootId}
-                    expandedReplies={expandedReplies}
-                    routes={routes}
-                    translations={translations}
-                    canPerformSocialWrites={viewer.can_perform_social_writes}
-                />
+                <section className="skuy-post-detail__conversation" aria-label={translations.replies}>
+                    <CommentList
+                        comments={comments}
+                        expandedReplyRootId={expandedReplyRootId}
+                        expandedReplies={expandedReplies}
+                        routes={routes}
+                        translations={translations}
+                        canPerformSocialWrites={viewer.can_perform_social_writes}
+                    />
+                </section>
             </div>
         </div>
     );
@@ -153,7 +163,7 @@ function CommentComposer({ author, replyTo, actionUrl, translations, canPerformS
     };
 
     return (
-        <div className="skuy-composer mb-6">
+        <div className="skuy-composer skuy-post-detail__composer mb-6">
             <div className="skuy-composer__identity">
                 <Avatar author={author} size="small" labelTemplate={translations.avatar_of} />
                 <div className="skuy-composer__identity-copy">
@@ -169,6 +179,7 @@ function CommentComposer({ author, replyTo, actionUrl, translations, canPerformS
                     onChange={(event) => setContent(event.target.value)}
                     className="skuy-inline-input"
                     placeholder={translations.comments_reply_to.replace(':name', replyTo)}
+                    aria-label={translations.comments_reply_to.replace(':name', replyTo)}
                     required
                     autoComplete="off"
                     disabled={!canPerformSocialWrites || pending}

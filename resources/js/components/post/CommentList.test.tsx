@@ -114,6 +114,30 @@ describe('CommentList reply targeting', () => {
         document.body.innerHTML = '';
     });
 
+    it('exposes direct and nested reply structure for the conversation connector', () => {
+        render(
+            <CommentList
+                comments={comments}
+                expandedReplyRootId={null}
+                expandedReplies={expandedReplies}
+                routes={routes}
+                translations={translations}
+                canPerformSocialWrites={true}
+            />,
+        );
+
+        const directReply = screen.getByText('Root content').closest('.skuy-post-detail__reply--root');
+        const nestedReply = screen.getByText('Reply content').closest('.skuy-post-detail__reply--nested');
+
+        expect(directReply !== null).toBe(true);
+        expect(nestedReply !== null).toBe(true);
+        expect(nestedReply?.closest('.skuy-comment__replies') !== null).toBe(true);
+        expect(screen.getByText('Root author')).toBeTruthy();
+        expect(screen.getByText('@root-author')).toBeTruthy();
+        expect(screen.getByText('Reply author')).toBeTruthy();
+        expect(screen.getByText('@reply-author')).toBeTruthy();
+    });
+
     it('keeps replies attached to their root comment because nested parents are invalid', () => {
         render(
             <CommentList

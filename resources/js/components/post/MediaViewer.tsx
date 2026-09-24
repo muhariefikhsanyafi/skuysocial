@@ -87,7 +87,7 @@ export function MediaViewer({ media, translations }: MediaViewerProps) {
     };
 
     return (
-        <div className="mb-4">
+        <div className="skuy-post-detail__media mb-4">
             {media.length === 1 ? (
                 <button
                     ref={triggerRef}

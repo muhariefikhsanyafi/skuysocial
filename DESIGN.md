@@ -792,6 +792,23 @@ A reply must remain attached to its post context. Reply composition inherits
 the same validation, loading, error, and keyboard rules as the main composer.
 Do not bury replies inside layers of cards.
 
+### Post detail conversation
+
+Keep the Post Detail reading measure controlled to 44rem. Give the original post a
+slightly stronger near-white (light) or subtle charcoal (dark) surface than its
+replies, with a quiet border and no default shadow. Lead with display name; let
+username, time, and topic recede. Keep the root action row integrated beneath
+content and media.
+
+Keep an existing reply composer compact and distinct without stacking panels.
+Replies remain flatter than the root; use modest spacing and thin, structural
+connectors for nested context rather than a card per reply. Limit mobile
+indentation so nested text retains the available reading width.
+
+Use Feed media rules unchanged: intrinsic-ratio single images; multi-image
+slides in centered 4:5 cover frames with internal snap scrolling and a real next
+tile peek. Preserve mobile bottom-navigation clearance.
+
 ### Inputs
 
 Inputs use a visible label, a readable value, and a boundary that meets the
