@@ -1023,6 +1023,14 @@ more content, say so only when the product has enough information to know it.
   enough separation for thumb use.
 - Treat missing avatars as honest placeholders and never invent profile
   photos, follower counts, or activity.
+- Keep the public profile within a controlled reading measure. A real cover is
+  restrained; without one, use a compact semantic surface instead of reserving
+  image-sized blank space.
+- Lead with the overlapping avatar and identity, then bio and existing account
+  action. Keep statistics inline and attach the existing Threads/Likes links to
+  the identity surface rather than presenting KPI tiles or detached tabs.
+- Profile Threads and Likes reuse the Feed's quiet post surface and media
+  behavior; keep mobile identity visible early and clear the bottom navigation.
 
 ## 17. Search and Explore Rules
 

@@ -3138,9 +3138,9 @@
     }
 
     .skuy-profile-shell {
-        width: min(calc(100% - 48px), 960px);
+        width: min(calc(100% - 48px), 44rem);
         margin: 0 auto;
-        padding: 32px 0 72px;
+        padding: 24px 0 72px;
     }
 
     .skuy-profile-back {
@@ -3148,7 +3148,7 @@
         align-items: center;
         gap: 8px;
         min-height: 44px;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
         color: var(--skuy-secondary);
         font-size: 0.875rem;
         font-weight: 700;
@@ -3162,16 +3162,22 @@
     .skuy-profile-header {
         overflow: hidden;
         border: 1px solid var(--skuy-border-subtle);
-        border-radius: var(--radius-large);
-        background: var(--skuy-surface);
+        border-radius: var(--radius-medium);
+        background: var(--skuy-surface-raised);
         color: var(--skuy-text-primary);
+        box-shadow: none;
     }
 
     .skuy-profile-cover {
-        height: 168px;
+        height: 184px;
         overflow: hidden;
         border-bottom: 1px solid var(--skuy-border-subtle);
         background: var(--skuy-surface-subtle);
+    }
+
+    .skuy-profile-cover--empty {
+        height: 64px;
+        border-bottom: 0;
     }
 
     .skuy-profile-cover__image,
@@ -3186,20 +3192,18 @@
     }
 
     .skuy-profile-cover__placeholder {
-        background: var(--skuy-surface-subtle);
+        background: linear-gradient(115deg, var(--skuy-selected), var(--skuy-surface-subtle));
     }
 
     .skuy-profile-header__body {
-        padding: 0 32px 28px;
+        padding: 0 24px 16px;
     }
 
     .skuy-profile-header__top {
         display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 16px;
+        align-items: center;
         min-width: 0;
-        margin-top: -48px;
+        margin-top: -44px;
     }
 
     .skuy-profile-avatar {
@@ -3210,7 +3214,7 @@
         width: 96px;
         height: 96px;
         overflow: hidden;
-        border: 4px solid var(--skuy-surface);
+        border: 4px solid var(--skuy-surface-raised);
         border-radius: var(--radius-full);
         background: var(--skuy-selected);
         box-shadow: 0 0 0 1px var(--skuy-border-subtle);
@@ -3227,8 +3231,9 @@
     }
 
     .skuy-profile-action {
-        flex: 0 0 auto;
-        padding-bottom: 4px;
+        display: flex;
+        min-width: 0;
+        margin-top: 14px;
     }
 
     .skuy-profile-action form {
@@ -3239,6 +3244,7 @@
         border-color: var(--skuy-secondary);
         background: var(--skuy-secondary);
         color: var(--skuy-on-secondary);
+        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
     }
 
     .skuy-profile-follow-button:hover {
@@ -3247,18 +3253,20 @@
     }
 
     .skuy-profile-follow-button--following {
-        background: var(--skuy-surface);
-        color: var(--skuy-secondary);
+        border-color: var(--skuy-border-strong);
+        background: var(--skuy-surface-raised);
+        color: var(--skuy-text-primary);
     }
 
     .skuy-profile-follow-button--following:hover {
         background: var(--skuy-surface-subtle);
-        color: var(--skuy-secondary-hover);
+        color: var(--skuy-text-primary);
     }
 
     .skuy-profile-identity {
         min-width: 0;
-        margin-top: 20px;
+        margin-top: 12px;
+        overflow-wrap: anywhere;
     }
 
     .skuy-profile-title {
@@ -3296,61 +3304,68 @@
 
     .skuy-profile-bio {
         max-width: 44rem;
-        margin: 16px 0 0;
+        margin: 12px 0 0;
         color: var(--skuy-text-secondary);
-        font-size: 1rem;
+        font-size: 0.9375rem;
         line-height: 1.6;
         overflow-wrap: anywhere;
         white-space: pre-wrap;
     }
 
+    .skuy-profile-bio--empty {
+        color: var(--skuy-text-muted);
+        font-size: 0.875rem;
+    }
+
     .skuy-profile-stats {
         display: flex;
+        align-items: center;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 24px;
-        padding-top: 20px;
+        gap: 8px 16px;
+        margin-top: 16px;
+        padding-top: 12px;
         border-top: 1px solid var(--skuy-border-subtle);
     }
 
     .skuy-profile-stat {
         display: inline-flex;
-        min-width: 108px;
+        min-width: 0;
         flex-direction: column;
-        gap: 2px;
+        gap: 1px;
         min-height: 44px;
-        padding: 8px 12px;
-        border: 1px solid transparent;
-        border-radius: var(--radius-small);
+        padding: 4px 8px;
         color: var(--skuy-text-primary);
     }
 
     a.skuy-profile-stat {
-        transition: background-color 160ms ease, border-color 160ms ease;
+        transition: color 160ms ease;
     }
 
     a.skuy-profile-stat:hover {
-        border-color: var(--skuy-border-subtle);
-        background: var(--skuy-surface-subtle);
+        color: var(--skuy-secondary);
+        text-decoration: underline;
+        text-underline-offset: 3px;
     }
 
     .skuy-profile-stat__value {
-        font-size: 1.125rem;
+        font-size: 1rem;
         font-weight: 700;
-        line-height: 1.25;
+        line-height: 1.2;
     }
 
     .skuy-profile-stat__label {
         color: var(--skuy-text-muted);
-        font-size: 0.8125rem;
+        font-size: 0.75rem;
         font-weight: 600;
+        overflow-wrap: anywhere;
     }
 
     .skuy-profile-tabs {
         display: flex;
-        gap: 4px;
-        margin-top: 24px;
-        border-bottom: 1px solid var(--skuy-border-subtle);
+        gap: 0;
+        margin-top: 8px;
+        padding: 0 24px;
+        border-top: 1px solid var(--skuy-border-subtle);
     }
 
     .skuy-profile-tab {
@@ -3361,7 +3376,7 @@
         min-height: 48px;
         flex: 1 1 0;
         padding: 12px 16px;
-        border-bottom: 3px solid transparent;
+        border-bottom: 2px solid transparent;
         color: var(--skuy-text-muted);
         font-size: 0.875rem;
         font-weight: 700;
@@ -3375,36 +3390,71 @@
     }
 
     .skuy-profile-tab[aria-current='page'] {
-        border-bottom-color: var(--skuy-brand);
-        background: var(--skuy-selected);
-        color: var(--skuy-on-selected);
+        border-bottom-color: var(--skuy-secondary);
+        background: transparent;
+        color: var(--skuy-secondary);
     }
 
     .skuy-profile-content {
-        margin-top: 24px;
+        margin-top: 16px;
     }
 
     .skuy-profile-post-list {
         display: grid;
-        gap: 12px;
+        gap: 16px;
     }
 
     .skuy-profile-post__single-media {
-        max-width: 36rem;
+        width: fit-content;
+        max-width: 100%;
+        max-height: 28rem;
         overflow: hidden;
-        border: 1px solid var(--skuy-border-strong);
-        border-radius: var(--radius-medium);
-        background: var(--skuy-surface-subtle);
+        border-radius: var(--radius-small);
+        background: transparent;
     }
 
     .skuy-profile-post__single-media img {
         display: block;
-        width: 100%;
+        width: auto;
         height: auto;
+        max-width: 100%;
+        max-height: 28rem;
+        object-fit: contain;
     }
 
     .skuy-profile-post__media-slider {
-        max-width: 36rem;
+        width: 100%;
+        max-width: 42rem;
+    }
+
+    .skuy-profile-post__media-slider .skuy-media-track {
+        align-items: stretch;
+        gap: 8px;
+        padding-bottom: 0;
+        scroll-behavior: smooth;
+    }
+
+    .skuy-profile-post__media-slider .skuy-media-item {
+        flex: 0 0 min(66%, 28rem);
+        min-width: 0;
+        max-width: none;
+        height: auto;
+        aspect-ratio: 4 / 5;
+        border: 0;
+        border-radius: var(--radius-small);
+        background: transparent;
+    }
+
+    .skuy-profile-post__media-slider .skuy-media-item img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .skuy-profile-post__media-slider .skuy-media-dots {
+        margin-top: 8px;
     }
 
     .skuy-profile-post__footer {
@@ -3413,8 +3463,8 @@
         justify-content: space-between;
         gap: 12px;
         min-width: 0;
-        margin-top: 16px;
-        padding-top: 12px;
+        margin-top: 12px;
+        padding-top: 8px;
         border-top: 1px solid var(--skuy-border-subtle);
     }
 
@@ -3434,36 +3484,29 @@
     }
 
     .skuy-profile-empty {
-        padding: 40px 24px;
+        padding: 20px 16px;
         border: 1px solid var(--skuy-border-subtle);
-        border-radius: var(--radius-medium);
-        background: var(--skuy-surface-subtle);
-        text-align: center;
+        border-radius: var(--radius-small);
+        background: var(--skuy-surface-raised);
     }
 
     .skuy-profile-empty__title {
         margin: 0;
         color: var(--skuy-text-primary);
-        font-size: 1.125rem;
+        font-size: 1rem;
         font-weight: 700;
     }
 
     .skuy-profile-empty__description {
         max-width: 34rem;
-        margin: 8px auto 0;
+        margin: 6px 0 0;
         color: var(--skuy-text-secondary);
         font-size: 0.875rem;
         line-height: 1.55;
     }
 
     .skuy-profile-pagination {
-        margin-top: 24px;
-    }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-    .skuy-profile-shell {
-        width: min(calc(100% - 48px), 800px);
+        margin-top: 16px;
     }
 }
 
@@ -3473,20 +3516,24 @@
     }
 
     .skuy-profile-shell {
-        width: min(calc(100% - 32px), 720px);
-        padding: 24px 0 calc(104px + env(safe-area-inset-bottom));
+        width: min(calc(100% - 32px), 44rem);
+        padding: 16px 0 calc(108px + env(safe-area-inset-bottom));
     }
 
     .skuy-profile-cover {
-        height: 124px;
+        height: 132px;
+    }
+
+    .skuy-profile-cover--empty {
+        height: 52px;
     }
 
     .skuy-profile-header__body {
-        padding: 0 20px 24px;
+        padding: 0 16px 14px;
     }
 
     .skuy-profile-header__top {
-        margin-top: -40px;
+        margin-top: -32px;
     }
 
     .skuy-profile-avatar {
@@ -3496,27 +3543,38 @@
     }
 
     .skuy-profile-title {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
+    }
+
+    .skuy-profile-action {
+        margin-top: 12px;
     }
 
     .skuy-profile-stats {
         gap: 4px;
+        margin-top: 12px;
+        padding-top: 10px;
     }
 
     .skuy-profile-stat {
         min-width: 0;
         flex: 1 1 0;
-        padding-right: 8px;
-        padding-left: 8px;
+        align-items: center;
+        padding: 4px 2px;
         text-align: center;
     }
 
-    .skuy-profile-content {
-        margin-top: 20px;
+    .skuy-profile-tabs {
+        padding-right: 16px;
+        padding-left: 16px;
     }
 
-    .skuy-profile-post {
-        padding: 16px;
+    .skuy-profile-content {
+        margin-top: 14px;
+    }
+
+    .skuy-profile-page .skuy-profile-post {
+        padding: 12px;
     }
 
     .skuy-profile-post .skuy-post__layout {
@@ -3534,30 +3592,32 @@
     }
 
     .skuy-profile-post__footer {
-        align-items: flex-start;
+        align-items: center;
+    }
+
+    .skuy-profile-post__single-media,
+    .skuy-profile-post__single-media img {
+        max-height: 18rem;
+    }
+
+    .skuy-profile-post__media-slider .skuy-media-item {
+        flex-basis: 74%;
+    }
+
+    .skuy-profile-post__media-slider .skuy-media-dots {
+        margin-top: 6px;
     }
 }
 
 @media (max-width: 479px) {
-    .skuy-profile-header__top {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
-        align-items: end;
-    }
-
-    .skuy-profile-action {
-        grid-column: 1 / -1;
-        width: 100%;
-        padding-bottom: 0;
-    }
-
+    .skuy-profile-action,
     .skuy-profile-action form,
     .skuy-profile-action .skuy-button {
         width: 100%;
     }
 
     .skuy-profile-empty {
-        padding: 32px 18px;
+        padding: 18px 14px;
     }
 }
 
@@ -5723,4 +5783,22 @@
 
 .dark .skuy-post-detail-page .skuy-post-detail__composer {
     background: var(--skuy-surface);
+}
+
+.skuy-profile-page .skuy-profile-post .skuy-post__text {
+    margin-bottom: 8px;
+    line-height: 1.55;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .skuy-profile-page .skuy-profile-post:hover {
+        border-color: var(--skuy-border-strong);
+        background: var(--skuy-surface-raised);
+        box-shadow: none;
+    }
+}
+
+.dark .skuy-profile-page .skuy-profile-post,
+.dark .skuy-profile-page .skuy-profile-post:hover {
+    background: var(--skuy-surface-subtle);
 }

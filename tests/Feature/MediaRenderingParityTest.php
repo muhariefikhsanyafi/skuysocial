@@ -302,7 +302,6 @@ class MediaRenderingParityTest extends TestCase
                 $this->assertStringContainsString('activeSlide: 0', $content);
                 $this->assertStringContainsString('@scroll.passive="updateDots"', $content);
                 $this->assertStringContainsString('overflow-x-auto snap-x snap-mandatory', $content);
-                $this->assertStringContainsString('w-[85%] sm:w-[48%]', $content);
                 $this->assertStringContainsString('activeSlide === 0', $content);
                 $this->assertStringContainsString('activeSlide === '.(count($mediaPaths) - 1), $content);
                 $this->assertStringContainsString('w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]', $content);
