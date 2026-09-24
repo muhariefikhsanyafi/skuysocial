@@ -154,8 +154,8 @@ class FeedTest extends TestCase
             'width: max-content;',
             'min-width: 8rem;',
             'min-width: 7rem;',
-            'max-width: min(90%, 34rem);',
-            'max-width: min(90%, 24rem);',
+            'max-width: min(80%, 34rem);',
+            'max-width: min(76%, 24rem);',
             'flex: 0 0 auto;',
             'scroll-snap-type: none;',
             'margin-top: 8px;',
@@ -226,7 +226,7 @@ class FeedTest extends TestCase
             ],
             '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {' => [
                 'min-width: 8rem;',
-                'max-width: min(90%, 34rem);',
+                'max-width: min(80%, 34rem);',
                 'height: 18rem;',
             ],
             '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item img {' => [
@@ -324,7 +324,7 @@ class FeedTest extends TestCase
         $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart + 1);
 
         $this->assertStringContainsString('min-width: 7rem;', $rule);
-        $this->assertStringContainsString('max-width: min(90%, 24rem);', $rule);
+        $this->assertStringContainsString('max-width: min(76%, 24rem);', $rule);
         $this->assertStringContainsString('height: 12rem;', $rule);
         $this->assertStringNotContainsString('aspect-ratio: 4 / 3;', $rule);
 

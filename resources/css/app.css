@@ -5252,7 +5252,7 @@
 
 .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {
     min-width: 8rem;
-    max-width: min(90%, 34rem);
+    max-width: min(80%, 34rem);
     height: 18rem;
 }
 
@@ -5504,7 +5504,7 @@
 
     .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {
         min-width: 7rem;
-        max-width: min(90%, 24rem);
+        max-width: min(76%, 24rem);
         height: 12rem;
     }
 
