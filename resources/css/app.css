@@ -4935,7 +4935,7 @@
     }
 }
 
-/* R5-V3C3: Feed-only light surface and normalized media refinements. */
+/* R5-V3C4: Feed-only timeline separation and intrinsic media rows. */
 .skuy-feed-page .skuy-feed-shell {
     width: 100%;
     max-width: none;
@@ -4949,6 +4949,12 @@
     width: 100%;
     max-width: 44rem;
     margin-inline: auto;
+}
+
+.skuy-feed-page .skuy-feed-timeline {
+    display: grid;
+    min-width: 0;
+    gap: 16px;
 }
 
 .skuy-feed-page .skuy-feed-list {
@@ -5214,33 +5220,62 @@
 
 .skuy-feed-page .skuy-feed-post__media {
     width: 100%;
-    max-width: 35.5rem;
-    margin: 8px auto;
-    overflow: hidden;
-    border-radius: var(--radius-small);
+    min-width: 0;
+    margin: 8px 0;
 }
 
 .skuy-feed-page .skuy-feed-post__media .skuy-media-track {
-    gap: 4px;
+    align-items: stretch;
+    gap: 8px;
     padding-bottom: 0;
 }
 
-.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {
-    flex: 0 0 100%;
+.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single {
+    gap: 0;
+    overflow: hidden;
+    scroll-snap-type: none;
 }
 
 .skuy-feed-page .skuy-feed-post__media .skuy-media-item {
-    flex: 0 0 94%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    max-height: 20rem;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    min-width: 0;
+    aspect-ratio: auto;
+    overflow: hidden;
     border: 0;
     border-radius: var(--radius-small);
     background: transparent;
 }
 
-.skuy-feed-page .skuy-feed-post__media .skuy-media-item img {
-    max-height: 100%;
+.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {
+    min-width: 8rem;
+    max-width: min(90%, 34rem);
+    height: 18rem;
+}
+
+.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item img {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {
+    flex: 0 1 auto;
+    width: max-content;
+    max-width: 100%;
+    height: auto;
+    max-height: 28rem;
+}
+
+.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 28rem;
     object-fit: contain;
 }
 
@@ -5393,6 +5428,10 @@
         margin-inline: auto;
     }
 
+    .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {
+        height: 20rem;
+    }
+
     .skuy-feed-page .skuy-feed-context {
         display: grid;
         position: sticky;
@@ -5415,6 +5454,10 @@
     .skuy-feed-page .skuy-feed-content {
         max-width: none;
         margin-inline: 0;
+    }
+
+    .skuy-feed-page .skuy-feed-timeline {
+        gap: 8px;
     }
 
     .skuy-feed-page .skuy-feed-composer {
@@ -5459,15 +5502,19 @@
         margin-bottom: 6px;
     }
 
-    .skuy-feed-page .skuy-feed-post__media {
-        width: 100%;
-        max-width: 18.5rem;
-        margin-inline: auto;
+    .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {
+        min-width: 7rem;
+        max-width: min(90%, 24rem);
+        height: 12rem;
     }
 
-    .skuy-feed-page .skuy-feed-post__media .skuy-media-item {
-        aspect-ratio: 4 / 3;
-        max-height: 14rem;
+    .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item,
+    .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item img {
+        max-height: 18rem;
+    }
+
+    .skuy-feed-page .skuy-feed-post__media .skuy-media-dots {
+        margin-top: 6px;
     }
 
     .skuy-feed-page .skuy-feed-post__comment-preview,

@@ -124,16 +124,33 @@
                         <div x-data="{
                             activeSlide: 0,
                             updateDots(event) {
-                                const maxIndex = {{ count($displayPost->images) - 1 }};
-                                if (maxIndex === 0) return;
+                                const slider = event.target;
+                                const slides = Array.from(slider.querySelectorAll('[data-media-slide=true]'));
+                                if (slides.length < 2) return;
 
-                                const maxScroll = event.target.scrollWidth - event.target.clientWidth;
-                                if (maxScroll === 0) return;
+                                const maxScroll = slider.scrollWidth - slider.clientWidth;
+                                if (maxScroll <= 0) return;
 
-                                this.activeSlide = Math.round((event.target.scrollLeft / maxScroll) * maxIndex);
+                                const sliderLeft = slider.getBoundingClientRect().left;
+                                let nearestDistance = Number.POSITIVE_INFINITY;
+                                let nearestIndex = 0;
+
+                                slides.forEach((slide, index) => {
+                                    const slideRect = slide.getBoundingClientRect();
+                                    const slideCenter = slider.scrollLeft + slideRect.left - sliderLeft + (slideRect.width / 2);
+                                    const snapLeft = Math.max(0, Math.min(maxScroll, slideCenter - (slider.clientWidth / 2)));
+                                    const distance = Math.abs(snapLeft - slider.scrollLeft);
+
+                                    if (distance < nearestDistance) {
+                                        nearestDistance = distance;
+                                        nearestIndex = index;
+                                    }
+                                });
+
+                                this.activeSlide = nearestIndex;
                             }
-                        }" class="mb-4 skuy-feed-post__media">
-                            <div data-media-slider="true" @scroll.passive="updateDots" class="skuy-media-track{{ count($displayPost->images) === 1 ? ' skuy-feed-media-track--single' : '' }}">
+                        }" class="skuy-feed-post__media skuy-feed-post__media--{{ count($displayPost->images) === 1 ? 'single' : 'carousel' }}">
+                            <div data-media-slider="true" @scroll.passive="updateDots" class="skuy-media-track{{ count($displayPost->images) === 1 ? ' skuy-feed-media-track--single' : ' skuy-feed-media-track--carousel' }}">
                                 @foreach ($displayPost->images as $imgUrl)
                                     <div data-media-slide="true" @click="openLightbox(@js($postImageUrls), {{ $loop->index }})" class="skuy-media-item">
                                         <img src="{{ asset('storage/' . $imgUrl) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">

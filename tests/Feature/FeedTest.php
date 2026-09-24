@@ -64,6 +64,7 @@ class FeedTest extends TestCase
         $response->assertOk();
         foreach ([
             'class="skuy-composer skuy-feed-composer"',
+            'class="skuy-feed-timeline"',
             'for="feed-composer-body"',
             'id="feed-composer-body"',
             'id="feed-composer-images"',
@@ -74,8 +75,10 @@ class FeedTest extends TestCase
             'class="skuy-post__repost skuy-feed-post__repost"',
             'class="skuy-actions skuy-feed-post__actions"',
             'class="skuy-comment-preview skuy-feed-post__comment-preview"',
+            'class="skuy-feed-post__media skuy-feed-post__media--single"',
+            'class="skuy-feed-post__media skuy-feed-post__media--carousel"',
             'class="skuy-media-track skuy-feed-media-track--single"',
-            'class="skuy-media-track"',
+            'class="skuy-media-track skuy-feed-media-track--carousel"',
             'data-media-slider="true"',
             'data-media-slide="true"',
             'data-media-indicator="true"',
@@ -85,6 +88,38 @@ class FeedTest extends TestCase
         }
     }
 
+    public function test_feed_distinguishes_single_media_from_carousel_and_limits_pager_to_multiple_images(): void
+    {
+        $user = User::factory()->create();
+        $this->createPost($user, [
+            'content' => 'Feed single-media distinction',
+            'images' => ['feed-single.jpg'],
+        ]);
+
+        $singleResponse = $this->actingAs($user)->get(route('feed'));
+        $singleResponse
+            ->assertOk()
+            ->assertSee('skuy-feed-post__media--single', false)
+            ->assertSee('skuy-feed-media-track--single', false)
+            ->assertDontSee('skuy-feed-media-track--carousel', false)
+            ->assertDontSee('data-media-indicator="true"', false);
+
+        $this->createPost($user, [
+            'content' => 'Feed carousel distinction',
+            'images' => ['feed-slide-one.jpg', 'feed-slide-two.jpg', 'feed-slide-three.jpg'],
+        ]);
+
+        $carouselResponse = $this->actingAs($user)->get(route('feed'));
+        $carouselResponse
+            ->assertOk()
+            ->assertSee('skuy-feed-post__media--carousel', false)
+            ->assertSee('skuy-feed-media-track--carousel', false)
+            ->assertSee('data-media-indicator="true"', false)
+            ->assertSee('data-media-indicator-dot="true"', false)
+            ->assertSee("querySelectorAll('[data-media-slide=true]')", false)
+            ->assertSee('this.activeSlide = nearestIndex;', false);
+    }
+
     public function test_premium_feed_styles_are_scoped_and_preserve_responsive_controls(): void
     {
         $css = file_get_contents(resource_path('css/app.css'));
@@ -92,10 +127,14 @@ class FeedTest extends TestCase
         $this->assertIsString($css);
         foreach ([
             '.skuy-feed-page .skuy-feed-shell',
+            '.skuy-feed-page .skuy-feed-content',
+            '.skuy-feed-page .skuy-feed-timeline',
             '.skuy-feed-page .skuy-feed-composer',
             '.skuy-feed-page .skuy-feed-post',
             '.skuy-feed-page .skuy-feed-post__actions',
             '.skuy-feed-page .skuy-feed-context-card',
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel',
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single',
             'max-width: 44rem;',
             'padding: 14px;',
             'grid-template-columns: minmax(0, 1fr) minmax(260px, 280px);',
@@ -103,21 +142,28 @@ class FeedTest extends TestCase
             '@media (max-width: 767px)',
             'padding-bottom: calc(104px + env(safe-area-inset-bottom));',
             'grid-template-columns: repeat(5, minmax(0, 1fr));',
-            'max-height: 20rem;',
-            'max-height: 14rem;',
-            'aspect-ratio: 16 / 9;',
-            'aspect-ratio: 4 / 3;',
-            'max-width: 35.5rem;',
-            'max-width: 18.5rem;',
-            'gap: 4px;',
+            'gap: 16px;',
+            'gap: 8px;',
+            'height: 18rem;',
+            'height: 20rem;',
+            'height: 12rem;',
+            'max-height: 28rem;',
+            'max-height: 18rem;',
+            'aspect-ratio: auto;',
+            'width: fit-content;',
+            'width: max-content;',
+            'min-width: 8rem;',
+            'min-width: 7rem;',
+            'max-width: min(90%, 34rem);',
+            'max-width: min(90%, 24rem);',
+            'flex: 0 0 auto;',
+            'scroll-snap-type: none;',
             'margin-top: 8px;',
             'background: var(--skuy-surface-raised);',
             'background: var(--skuy-surface-subtle);',
             'border: 1px solid var(--skuy-border-soft);',
             'border-color: var(--skuy-border-strong);',
             'object-fit: contain;',
-            'flex: 0 0 94%;',
-            'flex: 0 0 100%;',
             'clip-path: inset(50%);',
             '@media (hover: hover) and (pointer: fine)',
         ] as $cssHook) {
@@ -131,6 +177,11 @@ class FeedTest extends TestCase
         $this->assertIsString($css);
 
         foreach ([
+            '.skuy-feed-page .skuy-feed-timeline {' => [
+                'display: grid;',
+                'min-width: 0;',
+                'gap: 16px;',
+            ],
             '.skuy-feed-page .skuy-feed-composer {' => [
                 'padding: 14px;',
                 'border-color: var(--skuy-border-strong);',
@@ -151,26 +202,51 @@ class FeedTest extends TestCase
                 'background: var(--skuy-surface-subtle);',
             ],
             '.skuy-feed-page .skuy-feed-post__media {' => [
-                'max-width: 35.5rem;',
-                'margin: 8px auto;',
+                'width: 100%;',
+                'min-width: 0;',
+                'margin: 8px 0;',
             ],
             '.skuy-feed-page .skuy-feed-post__media .skuy-media-track {' => [
-                'gap: 4px;',
+                'align-items: stretch;',
+                'gap: 8px;',
                 'padding-bottom: 0;',
             ],
-            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {' => [
-                'flex: 0 0 100%;',
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single {' => [
+                'overflow: hidden;',
+                'scroll-snap-type: none;',
             ],
             '.skuy-feed-page .skuy-feed-post__media .skuy-media-item {' => [
-                'flex: 0 0 94%;',
-                'height: auto;',
-                'aspect-ratio: 16 / 9;',
-                'max-height: 20rem;',
+                'display: flex;',
+                'flex: 0 0 auto;',
+                'width: fit-content;',
+                'aspect-ratio: auto;',
                 'border: 0;',
                 'border-radius: var(--radius-small);',
                 'background: transparent;',
             ],
-            '.skuy-feed-page .skuy-feed-post__media .skuy-media-item img {' => [
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {' => [
+                'min-width: 8rem;',
+                'max-width: min(90%, 34rem);',
+                'height: 18rem;',
+            ],
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item img {' => [
+                'width: auto;',
+                'height: 100%;',
+                'max-width: 100%;',
+                'object-fit: contain;',
+            ],
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {' => [
+                'flex: 0 1 auto;',
+                'width: max-content;',
+                'max-width: 100%;',
+                'height: auto;',
+                'max-height: 28rem;',
+            ],
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item img {' => [
+                'width: auto;',
+                'height: auto;',
+                'max-width: 100%;',
+                'max-height: 28rem;',
                 'object-fit: contain;',
             ],
             '.skuy-feed-page .skuy-composer__topic {' => [
@@ -203,6 +279,12 @@ class FeedTest extends TestCase
                 );
             }
         }
+
+        $feedCssStart = strpos($css, '/* R5-V3C4:');
+        $this->assertIsInt($feedCssStart, 'Missing V3C4 Feed CSS scope');
+        $feedCss = substr($css, $feedCssStart);
+        $this->assertStringNotContainsString('aspect-ratio: 16 / 9;', $feedCss);
+        $this->assertStringNotContainsString('aspect-ratio: 4 / 3;', $feedCss);
     }
 
     public function test_feed_mobile_actions_keep_accessible_tap_targets(): void
@@ -225,35 +307,70 @@ class FeedTest extends TestCase
         $this->assertStringContainsString('min-height: 44px;', $rule);
     }
 
-    public function test_feed_mobile_media_frames_keep_the_normalized_aspect_and_bounds(): void
+    public function test_feed_mobile_carousel_uses_common_height_and_internal_scrolling(): void
     {
         $css = file_get_contents(resource_path('css/app.css'));
         $this->assertIsString($css);
 
-        $selector = '.skuy-feed-page .skuy-feed-post__media .skuy-media-item {';
+        $selector = '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {';
         $ruleStart = strrpos($css, $selector);
-        $this->assertIsInt($ruleStart, "Missing mobile media rule: {$selector}");
+        $this->assertIsInt($ruleStart, "Missing mobile carousel item rule: {$selector}");
 
         $mobileBreakpoint = strrpos(substr($css, 0, $ruleStart), '@media (max-width: 767px)');
-        $this->assertIsInt($mobileBreakpoint, 'Missing mobile Feed breakpoint before media bounds');
+        $this->assertIsInt($mobileBreakpoint, 'Missing mobile Feed breakpoint before carousel row styles');
 
         $ruleEnd = strpos($css, '}', $ruleStart);
-        $this->assertIsInt($ruleEnd, "Unclosed mobile media rule: {$selector}");
+        $this->assertIsInt($ruleEnd, "Unclosed mobile carousel item rule: {$selector}");
         $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart + 1);
 
-        $this->assertStringContainsString('max-height: 14rem;', $rule);
-        $this->assertStringContainsString('aspect-ratio: 4 / 3;', $rule);
+        $this->assertStringContainsString('min-width: 7rem;', $rule);
+        $this->assertStringContainsString('max-width: min(90%, 24rem);', $rule);
+        $this->assertStringContainsString('height: 12rem;', $rule);
+        $this->assertStringNotContainsString('aspect-ratio: 4 / 3;', $rule);
 
-        $mediaSelector = '.skuy-feed-page .skuy-feed-post__media {';
-        $mediaRuleStart = strrpos($css, $mediaSelector);
-        $this->assertIsInt($mediaRuleStart, "Missing mobile media viewport: {$mediaSelector}");
+        $trackSelector = '.skuy-media-track {';
+        $trackStart = strpos($css, $trackSelector);
+        $this->assertIsInt($trackStart, "Missing shared media scroller: {$trackSelector}");
+        $trackEnd = strpos($css, '}', $trackStart);
+        $this->assertIsInt($trackEnd, "Unclosed shared media scroller: {$trackSelector}");
+        $trackRule = substr($css, $trackStart, $trackEnd - $trackStart + 1);
+        $this->assertStringContainsString('overflow-x: auto;', $trackRule);
+        $this->assertStringContainsString('scroll-snap-type: x mandatory;', $trackRule);
 
-        $mediaRuleEnd = strpos($css, '}', $mediaRuleStart);
-        $this->assertIsInt($mediaRuleEnd, "Unclosed mobile media viewport: {$mediaSelector}");
-        $mediaRule = substr($css, $mediaRuleStart, $mediaRuleEnd - $mediaRuleStart + 1);
+        $singleSelector = '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item,';
+        $singleRuleStart = strrpos($css, $singleSelector);
+        $this->assertIsInt($singleRuleStart, "Missing mobile single-image bound: {$singleSelector}");
+        $singleRuleEnd = strpos($css, '}', $singleRuleStart);
+        $this->assertIsInt($singleRuleEnd, "Unclosed mobile single-image rule: {$singleSelector}");
+        $singleRule = substr($css, $singleRuleStart, $singleRuleEnd - $singleRuleStart + 1);
+        $this->assertStringContainsString('max-height: 18rem;', $singleRule);
 
-        $this->assertStringContainsString('max-width: 18.5rem;', $mediaRule);
-        $this->assertStringContainsString('margin-inline: auto;', $mediaRule);
+        $timelineSelector = '.skuy-feed-page .skuy-feed-timeline {';
+        $timelineStart = strrpos($css, $timelineSelector);
+        $this->assertIsInt($timelineStart, "Missing mobile Feed timeline rule: {$timelineSelector}");
+        $timelineEnd = strpos($css, '}', $timelineStart);
+        $this->assertIsInt($timelineEnd, "Unclosed mobile Feed timeline rule: {$timelineSelector}");
+        $timelineRule = substr($css, $timelineStart, $timelineEnd - $timelineStart + 1);
+        $this->assertStringContainsString('gap: 8px;', $timelineRule);
+        $this->assertStringContainsString('padding-bottom: calc(104px + env(safe-area-inset-bottom));', $css);
+    }
+
+    public function test_feed_wide_desktop_carousel_uses_a_taller_common_row(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        $breakpoint = strrpos($css, '@media (min-width: 1500px)');
+        $this->assertIsInt($breakpoint, 'Missing wide desktop Feed breakpoint');
+
+        $selector = '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {';
+        $ruleStart = strpos($css, $selector, $breakpoint);
+        $this->assertIsInt($ruleStart, "Missing wide desktop carousel rule: {$selector}");
+
+        $ruleEnd = strpos($css, '}', $ruleStart);
+        $this->assertIsInt($ruleEnd, "Unclosed wide desktop carousel rule: {$selector}");
+        $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart + 1);
+        $this->assertStringContainsString('height: 20rem;', $rule);
     }
 
     public function test_feed_like_action_keeps_html_fallback_and_exposes_reactive_hooks(): void

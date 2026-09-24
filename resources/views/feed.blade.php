@@ -112,167 +112,169 @@
             >
                 <h1 id="feed-title" class="sr-only">{{ __('navigation.home') }}</h1>
 
-                <div id="composer" data-composer class="skuy-composer skuy-feed-composer">
-                    <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="skuy-feed-composer__form" x-data="{
-                        isSubmitting: false,
-                        content: '',
-                        selectedImages: [],
-                        mediaMessage: '',
-                        imageIdentity(file) {
-                            return [file.name, file.size, file.type, file.lastModified].join('|');
-                        },
-                        syncImageInput() {
-                            const transfer = new DataTransfer();
-                            this.selectedImages.forEach(image => transfer.items.add(image.file));
-                            this.$refs.imagesInput.files = transfer.files;
-                        },
-                        handleImageSelection(event) {
-                            const newFiles = Array.from(event.target.files || []);
-                            let skippedForLimit = false;
+                <div class="skuy-feed-timeline">
+                    <div id="composer" data-composer class="skuy-composer skuy-feed-composer">
+                        <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="skuy-feed-composer__form" x-data="{
+                            isSubmitting: false,
+                            content: '',
+                            selectedImages: [],
+                            mediaMessage: '',
+                            imageIdentity(file) {
+                                return [file.name, file.size, file.type, file.lastModified].join('|');
+                            },
+                            syncImageInput() {
+                                const transfer = new DataTransfer();
+                                this.selectedImages.forEach(image => transfer.items.add(image.file));
+                                this.$refs.imagesInput.files = transfer.files;
+                            },
+                            handleImageSelection(event) {
+                                const newFiles = Array.from(event.target.files || []);
+                                let skippedForLimit = false;
 
-                            newFiles.forEach(file => {
-                                const identity = this.imageIdentity(file);
+                                newFiles.forEach(file => {
+                                    const identity = this.imageIdentity(file);
 
-                                if (this.selectedImages.some(image => image.identity === identity)) return;
+                                    if (this.selectedImages.some(image => image.identity === identity)) return;
 
-                                if (this.selectedImages.length >= 4) {
-                                    skippedForLimit = true;
-                                    return;
-                                }
+                                    if (this.selectedImages.length >= 4) {
+                                        skippedForLimit = true;
+                                        return;
+                                    }
 
-                                this.selectedImages.push({
-                                    file,
-                                    identity,
-                                    previewUrl: URL.createObjectURL(file),
+                                    this.selectedImages.push({
+                                        file,
+                                        identity,
+                                        previewUrl: URL.createObjectURL(file),
+                                    });
                                 });
-                            });
 
-                            this.syncImageInput();
-                            this.mediaMessage = skippedForLimit ? '{{ __('threads.composer.max_images') }}' : '';
-                        },
-                        removeImage(index) {
-                            const image = this.selectedImages[index];
-                            if (!image) return;
+                                this.syncImageInput();
+                                this.mediaMessage = skippedForLimit ? '{{ __('threads.composer.max_images') }}' : '';
+                            },
+                            removeImage(index) {
+                                const image = this.selectedImages[index];
+                                if (!image) return;
 
-                            URL.revokeObjectURL(image.previewUrl);
-                            this.selectedImages.splice(index, 1);
-                            this.syncImageInput();
+                                URL.revokeObjectURL(image.previewUrl);
+                                this.selectedImages.splice(index, 1);
+                                this.syncImageInput();
 
-                            if (this.selectedImages.length < 4) this.mediaMessage = '';
-                        },
-                        cleanupImagePreviews() {
-                            this.selectedImages.forEach(image => URL.revokeObjectURL(image.previewUrl));
-                        }
-                    }" @submit="isSubmitting = true" @beforeunload.window="cleanupImagePreviews()">
-                        @csrf
+                                if (this.selectedImages.length < 4) this.mediaMessage = '';
+                            },
+                            cleanupImagePreviews() {
+                                this.selectedImages.forEach(image => URL.revokeObjectURL(image.previewUrl));
+                            }
+                        }" @submit="isSubmitting = true" @beforeunload.window="cleanupImagePreviews()">
+                            @csrf
 
-                        <div class="skuy-composer__identity">
-                            @if (Auth::user()->avatar)
-                                <div class="skuy-avatar">
-                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
+                            <div class="skuy-composer__identity">
+                                @if (Auth::user()->avatar)
+                                    <div class="skuy-avatar">
+                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
+                                    </div>
+                                @else
+                                    <div class="skuy-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
+                                        {{ substr(Auth::user()->name, 0, 1) }}
+                                    </div>
+                                @endif
+
+                                <div class="skuy-composer__identity-copy">
+                                    <span class="skuy-composer__display-name">{{ Auth::user()->name }}</span>
+                                    <div class="skuy-composer__identity-meta">
+                                        <span class="skuy-composer__username">{{ '@' . Auth::user()->username }}</span>
+                                        @if (Auth::user()->is_verified)
+                                            <span class="skuy-composer__verified text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
+                                                </svg>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
-                            @else
-                                <div class="skuy-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
-                                    {{ substr(Auth::user()->name, 0, 1) }}
+                            </div>
+
+                            <div x-data="{
+                                topicQuery: '',
+                                showSuggestions: false,
+                                availableTopics: {{ $availableTopics->toJson() }},
+                                get filteredTopics() {
+                                    if (this.topicQuery === '') return [];
+                                    return this.availableTopics.filter(topic => topic.toLowerCase().includes(this.topicQuery.toLowerCase()));
+                                },
+                                selectTopic(topic) {
+                                    this.topicQuery = topic;
+                                    this.showSuggestions = false;
+                                }
+                            }" class="skuy-composer__topic">
+                                <label for="composer-topic" class="skuy-composer__topic-label">{{ __('threads.composer.topic_placeholder') }}</label>
+                                <div class="relative min-w-0 flex-1">
+                                    <input
+                                        type="text"
+                                        id="composer-topic"
+                                        name="topic"
+                                        x-model="topicQuery"
+                                        @focus="showSuggestions = true"
+                                        @click.away="showSuggestions = false"
+                                        class="skuy-composer__topic-input"
+                                        maxlength="30"
+                                        autocomplete="off"
+                                    >
+                                    <div x-show="showSuggestions && filteredTopics.length > 0" style="display: none;" class="skuy-composer__topic-suggestions absolute left-0 top-full z-50 mt-2 w-52 max-w-[calc(100vw-4rem)]">
+                                        <template x-for="topic in filteredTopics" :key="topic">
+                                            <button type="button" @click="selectTopic(topic)" class="skuy-composer__topic-option" x-text="topic"></button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label for="feed-composer-body" class="sr-only">{{ __('threads.composer.content_placeholder') }}</label>
+                            <textarea id="feed-composer-body" name="content" rows="2" x-model="content" class="skuy-composer__textarea" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
+
+                            @if ($errors->any())
+                                <div class="skuy-form-error" role="alert">
+                                    <ul class="list-disc list-inside">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
                                 </div>
                             @endif
 
-                            <div class="skuy-composer__identity-copy">
-                                <span class="skuy-composer__display-name">{{ Auth::user()->name }}</span>
-                                <div class="skuy-composer__identity-meta">
-                                    <span class="skuy-composer__username">{{ '@' . Auth::user()->username }}</span>
-                                    @if (Auth::user()->is_verified)
-                                        <span class="skuy-composer__verified text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
-                                            </svg>
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
+                            <div class="skuy-composer__tools skuy-feed-composer__tools">
+                                <div class="skuy-feed-composer__attachments min-w-0 flex-1">
+                                    <input id="feed-composer-images" type="file" name="images[]" multiple accept="image/*" x-ref="imagesInput" @change="handleImageSelection($event)" class="skuy-upload skuy-feed-composer__file-input">
+                                    <label for="feed-composer-images" class="skuy-feed-composer__attach">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l10.61-10.61a4 4 0 0 1 5.66 5.66L9.41 17.43a2 2 0 0 1-2.83-2.83l9.9-9.9"></path></svg>
+                                        <span>{{ __('threads.media.photo') }}</span>
+                                    </label>
 
-                        <div x-data="{
-                            topicQuery: '',
-                            showSuggestions: false,
-                            availableTopics: {{ $availableTopics->toJson() }},
-                            get filteredTopics() {
-                                if (this.topicQuery === '') return [];
-                                return this.availableTopics.filter(topic => topic.toLowerCase().includes(this.topicQuery.toLowerCase()));
-                            },
-                            selectTopic(topic) {
-                                this.topicQuery = topic;
-                                this.showSuggestions = false;
-                            }
-                        }" class="skuy-composer__topic">
-                            <label for="composer-topic" class="skuy-composer__topic-label">{{ __('threads.composer.topic_placeholder') }}</label>
-                            <div class="relative min-w-0 flex-1">
-                                <input
-                                    type="text"
-                                    id="composer-topic"
-                                    name="topic"
-                                    x-model="topicQuery"
-                                    @focus="showSuggestions = true"
-                                    @click.away="showSuggestions = false"
-                                    class="skuy-composer__topic-input"
-                                    maxlength="30"
-                                    autocomplete="off"
-                                >
-                                <div x-show="showSuggestions && filteredTopics.length > 0" style="display: none;" class="skuy-composer__topic-suggestions absolute left-0 top-full z-50 mt-2 w-52 max-w-[calc(100vw-4rem)]">
-                                    <template x-for="topic in filteredTopics" :key="topic">
-                                        <button type="button" @click="selectTopic(topic)" class="skuy-composer__topic-option" x-text="topic"></button>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
+                                    <div x-show="selectedImages.length > 0" style="display: none;" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="{{ __('threads.media.preview') }}">
+                                        <template x-for="(image, index) in selectedImages" :key="image.identity">
+                                            <div class="relative aspect-square overflow-hidden rounded-[var(--radius-small)] border border-[var(--skuy-border-strong)] bg-[var(--skuy-surface-subtle)]">
+                                                <button type="button" @click="openLightbox(selectedImages.map(item => item.previewUrl), index)" :aria-label="'{{ __('threads.media.view_preview') }} ' + (index + 1)" class="skuy-preview-button block h-full w-full p-0">
+                                                    <img :src="image.previewUrl" :alt="'{{ __('threads.media.preview') }} ' + (index + 1)" class="h-full w-full object-cover">
+                                                </button>
+                                                <button type="button" @click="closeImageIfActive(image.previewUrl); removeImage(index)" :disabled="isSubmitting" :aria-label="'{{ __('threads.media.remove_image') }} ' + (index + 1)" :title="'{{ __('threads.media.remove_image') }} ' + (index + 1)" class="skuy-preview-remove absolute right-1 top-1">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
 
-                        <label for="feed-composer-body" class="sr-only">{{ __('threads.composer.content_placeholder') }}</label>
-                        <textarea id="feed-composer-body" name="content" rows="2" x-model="content" class="skuy-composer__textarea" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
-
-                        @if ($errors->any())
-                            <div class="skuy-form-error" role="alert">
-                                <ul class="list-disc list-inside">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        <div class="skuy-composer__tools skuy-feed-composer__tools">
-                            <div class="skuy-feed-composer__attachments min-w-0 flex-1">
-                                <input id="feed-composer-images" type="file" name="images[]" multiple accept="image/*" x-ref="imagesInput" @change="handleImageSelection($event)" class="skuy-upload skuy-feed-composer__file-input">
-                                <label for="feed-composer-images" class="skuy-feed-composer__attach">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l10.61-10.61a4 4 0 0 1 5.66 5.66L9.41 17.43a2 2 0 0 1-2.83-2.83l9.9-9.9"></path></svg>
-                                    <span>{{ __('threads.media.photo') }}</span>
-                                </label>
-
-                                <div x-show="selectedImages.length > 0" style="display: none;" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="{{ __('threads.media.preview') }}">
-                                    <template x-for="(image, index) in selectedImages" :key="image.identity">
-                                        <div class="relative aspect-square overflow-hidden rounded-[var(--radius-small)] border border-[var(--skuy-border-strong)] bg-[var(--skuy-surface-subtle)]">
-                                            <button type="button" @click="openLightbox(selectedImages.map(item => item.previewUrl), index)" :aria-label="'{{ __('threads.media.view_preview') }} ' + (index + 1)" class="skuy-preview-button block h-full w-full p-0">
-                                                <img :src="image.previewUrl" :alt="'{{ __('threads.media.preview') }} ' + (index + 1)" class="h-full w-full object-cover">
-                                            </button>
-                                            <button type="button" @click="closeImageIfActive(image.previewUrl); removeImage(index)" :disabled="isSubmitting" :aria-label="'{{ __('threads.media.remove_image') }} ' + (index + 1)" :title="'{{ __('threads.media.remove_image') }} ' + (index + 1)" class="skuy-preview-remove absolute right-1 top-1">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                    </template>
+                                    <div x-show="mediaMessage" x-text="mediaMessage" style="display: none;" role="status" aria-live="polite" class="mt-2 text-sm font-semibold text-[var(--skuy-danger)]"></div>
                                 </div>
 
-                                <div x-show="mediaMessage" x-text="mediaMessage" style="display: none;" role="status" aria-live="polite" class="mt-2 text-sm font-semibold text-[var(--skuy-danger)]"></div>
+                                <button type="submit" :disabled="isSubmitting || content.trim() === ''" class="skuy-button skuy-button--primary shrink-0">
+                                    <span x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
+                                    <span x-show="isSubmitting">...</span>
+                                </button>
                             </div>
+                        </form>
+                    </div>
 
-                            <button type="submit" :disabled="isSubmitting || content.trim() === ''" class="skuy-button skuy-button--primary shrink-0">
-                                <span x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
-                                <span x-show="isSubmitting">...</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div id="feed-thread-list" x-ref="feedThreads" :aria-busy="isLoadingMore.toString()" class="skuy-feed-list">
-                    @include('partials.feed-threads', ['posts' => $posts])
+                    <div id="feed-thread-list" x-ref="feedThreads" :aria-busy="isLoadingMore.toString()" class="skuy-feed-list">
+                        @include('partials.feed-threads', ['posts' => $posts])
+                    </div>
                 </div>
 
                 <div x-show="openImage" @click.self="closeImage()" @keydown.window="if (openImage && $event.key === 'ArrowLeft') previousImage(); if (openImage && $event.key === 'ArrowRight') nextImage()" @keydown.escape.window="closeImage()" style="display: none;" role="dialog" aria-modal="true" aria-label="{{ __('threads.media.photo_preview') }}" class="skuy-lightbox fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-8">

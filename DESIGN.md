@@ -702,8 +702,9 @@ the submit action close to the text entry area.
 The composer may use a raised surface, a soft semantic shadow, and a clear
 boundary to distinguish it from the scrolling posts. In the Feed, make the
 light-mode boundary clearer than ordinary post boundaries while preserving the
-compact structure and soft shadow. Avoid ambient glow behind input text or
-controls.
+compact structure and soft shadow. Keep a real canvas gap between the composer
+and timeline; borders alone do not separate adjacent surfaces. Avoid ambient
+glow behind input text or controls.
 
 Only render controls for real supported features. Attachments, mentions,
 visibility, drafts, and scheduling require their own behavior and states.
@@ -725,11 +726,12 @@ body, media, actions, and replies with tight spacing and quiet internal dividers
 
 Do not nest a card around actions or carousel slides. Keep author and timestamp
 scannable, let content grow, and preserve the original post relationship in
-detail and reply contexts. Use the same normalized responsive media viewport for
-single-image and carousel slides: 16:9 on desktop and 4:3 on mobile, with paired
-width/height bounds that preserve each frame ratio. Contain source images to
-preserve useful content, keep the viewport within the post measure, and restrain
-the next-slide peek.
+detail and reply contexts. Multi-image Feed posts use one horizontally scrollable
+row with a shared responsive height and slide widths derived from source aspect
+ratios, bounded only to keep the next item visible and tiles usable. Contain
+images when a width bound applies; do not force a shared aspect ratio. Single
+images preserve their intrinsic ratio with a separate maximum-height bound and
+no carousel peek or indicators.
 
 On wide screens, keep the post measure controlled. On mobile, stack media and
 actions, allow the body to wrap, and keep the action row from becoming a
