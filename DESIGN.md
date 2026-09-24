@@ -726,10 +726,13 @@ body, media, actions, and replies with tight spacing and quiet internal dividers
 
 Do not nest a card around actions or carousel slides. Keep author and timestamp
 scannable, let content grow, and preserve the original post relationship in
-detail and reply contexts. Multi-image Feed posts use one horizontally scrollable
-row with a shared responsive height and slide widths derived from source aspect
-ratios, bounded only to keep the next item visible and tiles usable. Contain
-images when a width bound applies; do not force a shared aspect ratio. Single
+detail and reply contexts. Multi-image Feed posts share one horizontally scrollable
+row of consistent 4:5 portrait preview frames. The preview frame is independent
+of source aspect ratio: centered `object-fit: cover` crops landscape and portrait
+sources without distortion. Keep the gap small, preserve scroll snap and pager
+behavior, and let the actual next tile form a restrained peek. Desktop tiles use
+about 66% of the media track, capped at 28rem, so roughly half of the next tile
+remains visible; mobile tiles use 74%. Single
 images preserve their intrinsic ratio with a separate maximum-height bound and
 no carousel peek or indicators.
 

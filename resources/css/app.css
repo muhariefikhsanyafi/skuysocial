@@ -3050,19 +3050,9 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        min-height: 48px;
-        margin-top: 24px;
         padding: 10px 14px;
-        border-radius: var(--radius-large);
-        background: var(--skuy-brand);
-        color: var(--skuy-on-brand);
         font-size: 0.875rem;
         font-weight: 700;
-        transition: background-color 160ms ease, transform 160ms ease;
-    }
-
-    .skuy-app-rail__compose:hover {
-        background: var(--skuy-brand-hover);
     }
 
     @media (min-width: 1280px) {
@@ -4369,12 +4359,22 @@
     margin-top: 28px;
     border: 1px solid color-mix(in srgb, var(--skuy-on-brand) 18%, var(--skuy-brand));
     border-radius: var(--radius-medium);
-    background: linear-gradient(130deg, var(--skuy-brand), var(--skuy-brand-hover));
+    background-color: var(--skuy-brand);
     box-shadow: var(--skuy-shadow-soft);
+    color: var(--skuy-on-brand);
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .skuy-app-rail__compose:hover {
-    background: var(--skuy-brand-hover);
+    background-color: var(--skuy-brand-hover);
+    color: var(--skuy-on-brand);
+}
+
+.skuy-app-rail__compose:active {
+    background-color: var(--skuy-brand-pressed);
+    color: var(--skuy-on-brand);
+    transform: translateY(1px);
 }
 
 .skuy-mobile-nav {
@@ -4935,7 +4935,7 @@
     }
 }
 
-/* R5-V3C4: Feed-only timeline separation and intrinsic media rows. */
+/* Feed-only timeline and separate single/carousel media presentation. */
 .skuy-feed-page .skuy-feed-shell {
     width: 100%;
     max-width: none;
@@ -5250,17 +5250,26 @@
     background: transparent;
 }
 
-.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {
-    min-width: 8rem;
-    max-width: min(80%, 34rem);
-    height: 18rem;
+.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel {
+    scroll-behavior: smooth;
 }
 
-.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item img {
-    width: auto;
+.skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview {
+    flex: 0 0 min(66%, 28rem);
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-small);
+}
+
+.skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview img {
+    display: block;
+    width: 100%;
     height: 100%;
-    max-width: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: center;
 }
 
 .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {
@@ -5428,10 +5437,6 @@
         margin-inline: auto;
     }
 
-    .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {
-        height: 20rem;
-    }
-
     .skuy-feed-page .skuy-feed-context {
         display: grid;
         position: sticky;
@@ -5502,10 +5507,8 @@
         margin-bottom: 6px;
     }
 
-    .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel .skuy-media-item {
-        min-width: 7rem;
-        max-width: min(76%, 24rem);
-        height: 12rem;
+    .skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview {
+        flex: 0 0 74%;
     }
 
     .skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item,

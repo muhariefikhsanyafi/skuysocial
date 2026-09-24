@@ -66,6 +66,38 @@ class NavigationTest extends TestCase
         $this->assertStringNotContainsString(route('bookmarks.index'), substr($html, $desktopDropdownStart, $mobileProfileStart - $desktopDropdownStart));
     }
 
+    public function test_create_thread_rail_cta_has_theme_safe_hover_pressed_and_focus_states(): void
+    {
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->get(route('feed'));
+        $css = file_get_contents(resource_path('css/app.css'));
+
+        $response
+            ->assertOk()
+            ->assertSee('href="'.route('feed').'#composer" class="skuy-app-rail__compose"', false)
+            ->assertSeeText(__('navigation.create_thread'));
+        $this->assertIsString($css);
+
+        preg_match_all('/\.skuy-app-rail__compose(?::(?:hover|active|focus-visible))?\s*\{[^}]*\}/', $css, $ctaRules);
+        $rules = implode("\n", $ctaRules[0]);
+
+        $this->assertStringContainsString('background-color: var(--skuy-brand);', $rules);
+        $this->assertStringContainsString('background-color: var(--skuy-brand-hover);', $rules);
+        $this->assertStringContainsString('background-color: var(--skuy-brand-pressed);', $rules);
+        $this->assertStringContainsString('color: var(--skuy-on-brand);', $rules);
+        $this->assertStringContainsString('-webkit-tap-highlight-color: transparent;', $rules);
+        $this->assertStringContainsString('transform: translateY(1px);', $rules);
+        $this->assertStringContainsString('transition: background-color 160ms ease', $rules);
+        $this->assertStringNotContainsString('background: linear-gradient(', $rules);
+        $this->assertStringNotContainsString('background: var(--skuy-brand-hover);', $rules);
+        $this->assertStringNotContainsString('background:', str_replace('background-color:', '', $rules));
+        $this->assertStringNotContainsString('background-image', $rules);
+        $this->assertDoesNotMatchRegularExpression('/background(?:-color)?:\s*(?:black|#000(?:000)?|rgb\(0\s*,\s*0\s*,\s*0)/i', $rules);
+        $this->assertStringNotContainsString('.skuy-app-rail__compose::before', $css);
+        $this->assertStringNotContainsString('.skuy-app-rail__compose::after', $css);
+        $this->assertStringContainsString('body.skuy-product :where(a, button, input, textarea, select):focus-visible', $css);
+    }
+
     public function test_authenticated_topic_uses_functional_navigation_routes(): void
     {
         $user = User::factory()->create();

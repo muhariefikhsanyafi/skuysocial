@@ -152,7 +152,7 @@
                         }" class="skuy-feed-post__media skuy-feed-post__media--{{ count($displayPost->images) === 1 ? 'single' : 'carousel' }}">
                             <div data-media-slider="true" @scroll.passive="updateDots" class="skuy-media-track{{ count($displayPost->images) === 1 ? ' skuy-feed-media-track--single' : ' skuy-feed-media-track--carousel' }}">
                                 @foreach ($displayPost->images as $imgUrl)
-                                    <div data-media-slide="true" @click="openLightbox(@js($postImageUrls), {{ $loop->index }})" class="skuy-media-item">
+                                    <div data-media-slide="true" @click="openLightbox(@js($postImageUrls), {{ $loop->index }})" class="skuy-media-item{{ count($displayPost->images) > 1 ? ' skuy-feed-media-item--portrait-preview' : '' }}">
                                         <img src="{{ asset('storage/' . $imgUrl) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
                                     </div>
                                 @endforeach
