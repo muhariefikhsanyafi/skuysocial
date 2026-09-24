@@ -41,6 +41,7 @@
                         </div>
                         <form action="{{ route('security.two-factor.confirm') }}" method="POST" class="space-y-3">
                             @csrf
+                            <input type="hidden" name="recovery_code_action_token" value="{{ $recoveryActionToken }}">
                             <label for="setup_code" class="block text-sm font-semibold text-[var(--skuy-text-primary)]">{{ __('settings.two_factor.code_label') }}</label>
                             <input id="setup_code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required aria-describedby="setup-code-help{{ $errors->has('code') ? ' setup-code-error' : '' }}" @if ($errors->has('code')) aria-invalid="true" @endif class="block min-h-[48px] w-full max-w-xs rounded-[var(--radius-small)] border border-[var(--skuy-border-strong)] bg-[var(--skuy-surface)] px-3 py-3 text-[var(--skuy-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
                             <p id="setup-code-help" class="text-sm text-[var(--skuy-text-muted)]">{{ __('settings.two_factor.code_hint') }}</p>
@@ -60,6 +61,7 @@
 
                         <form action="{{ route('security.two-factor.recovery-codes.regenerate') }}" method="POST">
                             @csrf
+                            <input type="hidden" name="recovery_code_action_token" value="{{ $recoveryActionToken }}">
                             <x-primary-button>{{ __('settings.two_factor.regenerate') }}</x-primary-button>
                         </form>
 

@@ -117,6 +117,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/pengaturan/keamanan/2fa/confirm', [TwoFactorAuthenticationController::class, 'confirmSetup'])
         ->middleware(['password.confirm.recent', 'throttle:two-factor-security'])
         ->name('security.two-factor.confirm');
+    Route::get('/pengaturan/keamanan/2fa/recovery-codes', [TwoFactorAuthenticationController::class, 'showRecoveryCodes'])
+        ->middleware('password.confirm.recent')
+        ->name('security.two-factor.recovery-codes.display');
     Route::post('/pengaturan/keamanan/2fa/recovery-codes', [TwoFactorAuthenticationController::class, 'regenerateRecoveryCodes'])
         ->middleware(['password.confirm.recent', 'throttle:two-factor-security'])
         ->name('security.two-factor.recovery-codes.regenerate');

@@ -14,6 +14,8 @@ use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Session\Store;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use PragmaRX\Google2FA\Google2FA;
@@ -444,7 +446,10 @@ class TwoFactorAuthenticationTest extends TestCase
         $security = $user->twoFactorAuthentication()->firstOrFail();
         $invalidCode = $this->guaranteedInvalidTotpCode($security->pending_secret);
 
-        $this->post('/pengaturan/keamanan/2fa/confirm', ['code' => $invalidCode])
+        $this->post('/pengaturan/keamanan/2fa/confirm', [
+            'code' => $invalidCode,
+            'recovery_code_action_token' => $this->recoveryCodeActionToken(),
+        ])
             ->assertRedirect('/pengaturan/keamanan/2fa')
             ->assertSessionHasErrors('code');
 
@@ -462,7 +467,10 @@ class TwoFactorAuthenticationTest extends TestCase
         $security->forceFill(['pending_expires_at' => now()->subSecond()])->save();
         $code = app(Google2FA::class)->oathTotp($security->pending_secret, intdiv(now()->timestamp, 30));
 
-        $this->post('/pengaturan/keamanan/2fa/confirm', ['code' => $code])
+        $this->post('/pengaturan/keamanan/2fa/confirm', [
+            'code' => $code,
+            'recovery_code_action_token' => $this->recoveryCodeActionToken(),
+        ])
             ->assertRedirect('/pengaturan/keamanan/2fa')
             ->assertSessionHasErrors('code');
 
@@ -492,21 +500,20 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->assertTrue($security->pending_expires_at->isFuture());
         $oldSessionVersion = $user->fresh()->authSessionVersion();
         $oldRememberToken = $user->fresh()->getRememberToken();
+        $actionToken = $this->recoveryCodeActionToken();
 
-        $response = $this->post('/pengaturan/keamanan/2fa/confirm', ['code' => $code])
-            ->assertOk()
+        $postResponse = $this->post('/pengaturan/keamanan/2fa/confirm', [
+            'code' => $code,
+            'recovery_code_action_token' => $actionToken,
+        ])
+            ->assertStatus(303)
             ->assertSessionHas('auth_session_version', 1)
-            ->assertHeader('Cache-Control', 'no-store, private')
-            ->assertSeeText(__('settings.two_factor.recovery_codes_heading'))
-            ->assertSee('class="skuy-profile-shell"', false)
-            ->assertSee('bg-[var(--skuy-brand)]', false)
-            ->assertSee('hover:bg-[var(--skuy-brand-hover)]', false)
-            ->assertSee('text-[var(--skuy-on-brand)]', false)
-            ->assertDontSee(
-                'rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-5 sm:p-8',
-                false,
-            )
-            ->assertDontSee('bg-[var(--skuy-brand-primary)]', false);
+            ->assertHeader('Location', route('security.two-factor.recovery-codes.display'));
+        $this->assertNoRecoveryCodes($postResponse);
+        $confirmedSessionCookie = $postResponse->getCookie(config('session.cookie'));
+        $this->assertNotNull($confirmedSessionCookie);
+        $this->withCookie(config('session.cookie'), $confirmedSessionCookie->getValue());
+        Auth::forgetGuards();
 
         $this->assertAuthenticatedAs($user);
 
@@ -515,7 +522,17 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->assertSame($oldSessionVersion + 1, $updatedUser->authSessionVersion());
         $this->assertTrue($oldRememberToken !== $updatedUser->getRememberToken());
         $recoveryCodes = $enabled->recoveryCodes()->pluck('code_hash')->all();
-        preg_match_all('/[A-F0-9]{8}(?:-[A-F0-9]{8}){3}/', $response->getContent(), $matches);
+        $this->assertCount(10, $recoveryCodes);
+        $sessionBinding = session('security.two_factor.recovery_session_binding');
+        $this->assertIsString($sessionBinding);
+        $this->assertTrue(app(TwoFactorAuthenticationService::class)->confirmSetupForDisplay($user, $code, $actionToken, $sessionBinding));
+        $this->assertSame($recoveryCodes, $enabled->fresh()->recoveryCodes()->pluck('code_hash')->all());
+
+        $displayResponse = $this->get('/pengaturan/keamanan/2fa/recovery-codes');
+        $this->assertSame(200, $displayResponse->getStatusCode(), 'Recovery display redirect: '.$displayResponse->headers->get('Location'));
+        $displayResponse->assertHeader('Cache-Control', 'no-store, private')
+            ->assertSeeText(__('settings.two_factor.recovery_codes_heading'));
+        preg_match_all('/[A-F0-9]{8}(?:-[A-F0-9]{8}){3}/', $displayResponse->getContent(), $matches);
         $shownCodes = $matches[0];
 
         $this->assertTrue($enabled->isEnabled());
@@ -523,15 +540,20 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->assertFalse(hash_equals($secret, $enabled->getRawOriginal('secret')));
         $this->assertFalse(is_string($enabled->pending_secret));
         $this->assertNull($enabled->pending_expires_at);
-        $this->assertCount(10, $recoveryCodes);
         $this->assertCount(10, $shownCodes);
         foreach ($shownCodes as $shownCode) {
             $normalizedCode = str_replace('-', '', $shownCode);
             $this->assertFalse(in_array($normalizedCode, $recoveryCodes, true));
+            $this->assertFalse(str_contains(serialize(session()->all()), $normalizedCode));
         }
 
-        $response->assertSessionMissing('recoveryCodes');
-        $this->assertFalse(str_contains($response->getContent(), $secret));
+        $this->assertFalse(str_contains($displayResponse->getContent(), $secret));
+        $this->assertNull(parse_url($postResponse->headers->get('Location'), PHP_URL_QUERY));
+        $this->assertFalse(session()->has('security.two_factor.recovery_handoff_token'));
+        $replayedDisplay = $this->get('/pengaturan/keamanan/2fa/recovery-codes')
+            ->assertRedirect('/pengaturan/keamanan/2fa');
+        $this->assertNoRecoveryCodes($replayedDisplay);
+        $this->assertSame($recoveryCodes, $enabled->fresh()->recoveryCodes()->pluck('code_hash')->all());
     }
 
     public function test_wrong_password_never_starts_a_two_factor_challenge(): void
@@ -750,27 +772,182 @@ class TwoFactorAuthenticationTest extends TestCase
         $user = User::factory()->create();
         [$secret, $oldCodes] = $this->enableTwoFactorWithRecoveryCodes($user);
         $this->authenticateWithTotp($user, $secret);
+        $hashesBeforeUnauthorizedAttempt = $user->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all();
         $this->post('/pengaturan/keamanan/2fa/recovery-codes')
             ->assertRedirect('/confirm-password');
+        $this->assertSame(
+            $hashesBeforeUnauthorizedAttempt,
+            $user->fresh()->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all(),
+        );
         $this->confirmRecentPassword('/pengaturan/keamanan/2fa');
+        $this->get('/pengaturan/keamanan/2fa')->assertOk();
+        $actionToken = $this->recoveryCodeActionToken();
+        $oldHashes = $user->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all();
 
-        $response = $this->post('/pengaturan/keamanan/2fa/recovery-codes')
+        $response = $this->post('/pengaturan/keamanan/2fa/recovery-codes', [
+            'recovery_code_action_token' => $actionToken,
+        ])
+            ->assertStatus(303)
+            ->assertHeader('Location', route('security.two-factor.recovery-codes.display'));
+        $this->assertNoRecoveryCodes($response);
+        $this->assertAuthenticatedAs($user);
+
+        $newHashes = $user->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all();
+        $this->assertCount(10, $newHashes);
+        $this->assertNotEquals($oldHashes, $newHashes);
+        $this->assertFalse(in_array(hash('sha256', $oldCodes[0]), $newHashes, true));
+        $sessionBinding = session('security.two_factor.recovery_session_binding');
+        $this->assertIsString($sessionBinding);
+        $this->assertTrue(app(TwoFactorAuthenticationService::class)->regenerateRecoveryCodes($user, $actionToken, $sessionBinding));
+        $this->assertSame($newHashes, $user->fresh()->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all());
+
+        $handoff = DB::table('user_two_factor_recovery_code_handoffs')->where('user_id', $user->id)->first();
+        $this->assertIsObject($handoff);
+        $this->assertIsString($handoff->encrypted_payload);
+        $displayCodes = json_decode(Crypt::decryptString($handoff->encrypted_payload), true, flags: JSON_THROW_ON_ERROR);
+        $this->assertCount(10, $displayCodes);
+        $handoffStorage = serialize($handoff);
+        $recoveryCodeStorage = serialize(DB::table('user_two_factor_recovery_codes')->where('user_id', $user->id)->get()->all());
+        foreach ($displayCodes as $displayCode) {
+            $this->assertFalse(str_contains($handoffStorage, $displayCode));
+            $this->assertFalse(str_contains($recoveryCodeStorage, $displayCode));
+            $this->assertFalse(in_array($displayCode, $newHashes, true));
+        }
+        $this->assertNull(parse_url($response->headers->get('Location'), PHP_URL_QUERY));
+
+        $this->post('/pengaturan/keamanan/2fa/recovery-codes', [
+            'recovery_code_action_token' => $actionToken,
+        ])->assertRedirect('/pengaturan/keamanan/2fa');
+        $this->assertSame($newHashes, $user->fresh()->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all());
+
+        $display = $this->get('/pengaturan/keamanan/2fa/recovery-codes')
             ->assertOk()
             ->assertHeader('Cache-Control', 'no-store, private')
             ->assertSeeText(__('settings.two_factor.recovery_codes_regenerated'));
-        $this->assertAuthenticatedAs($user);
-
-        preg_match_all('/[A-F0-9]{8}(?:-[A-F0-9]{8}){3}/', $response->getContent(), $matches);
+        preg_match_all('/[A-F0-9]{8}(?:-[A-F0-9]{8}){3}/', $display->getContent(), $matches);
         $newCodes = array_map(static fn (string $code): string => str_replace('-', '', $code), $matches[0]);
-        $storedHashes = $user->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all();
-
         $this->assertCount(10, $newCodes);
-        $this->assertCount(10, $storedHashes);
-        $oldHash = hash('sha256', $oldCodes[0]);
-        $this->assertFalse(in_array($oldHash, $storedHashes, true));
-        $newHash = hash('sha256', $newCodes[0]);
-        $this->assertTrue(in_array($newHash, $storedHashes, true));
-        $response->assertSessionMissing('recoveryCodes');
+        $this->assertEqualsCanonicalizing($displayCodes, $newCodes);
+        $this->assertTrue(in_array(hash('sha256', $newCodes[0]), $newHashes, true));
+        $this->assertFalse(str_contains(serialize(DB::table('user_two_factor_recovery_codes')->where('user_id', $user->id)->get()->all()), $newCodes[0]));
+        $consumedHandoff = DB::table('user_two_factor_recovery_code_handoffs')->where('user_id', $user->id)->first();
+        $this->assertNull($consumedHandoff->encrypted_payload);
+        $this->assertNotNull($consumedHandoff->consumed_at);
+
+        $replayedDisplay = $this->get('/pengaturan/keamanan/2fa/recovery-codes')
+            ->assertRedirect('/pengaturan/keamanan/2fa');
+        $this->assertNoRecoveryCodes($replayedDisplay);
+        $this->assertSame($newHashes, $user->fresh()->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all());
+    }
+
+    public function test_direct_recovery_code_display_get_without_handoff_never_generates_or_reveals_codes(): void
+    {
+        $user = User::factory()->create();
+        [$secret] = $this->enableTwoFactorWithRecoveryCodes($user);
+        $this->authenticateWithTotp($user, $secret);
+        $this->get('/pengaturan/keamanan/2fa')->assertRedirect('/confirm-password');
+        $this->confirmRecentPassword('/pengaturan/keamanan/2fa');
+        $originalHashes = $user->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all();
+
+        $replayedDisplay = $this->get('/pengaturan/keamanan/2fa/recovery-codes')
+            ->assertRedirect('/pengaturan/keamanan/2fa');
+        $this->assertNoRecoveryCodes($replayedDisplay);
+
+        $this->assertSame(
+            $originalHashes,
+            $user->fresh()->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all(),
+        );
+    }
+
+    public function test_recovery_code_display_requires_authentication(): void
+    {
+        $this->get('/pengaturan/keamanan/2fa/recovery-codes')->assertRedirect('/login');
+    }
+
+    public function test_unverified_user_cannot_access_recovery_code_display(): void
+    {
+        $unverified = User::factory()->unverified()->create();
+
+        $response = $this->actingAs($unverified)
+            ->withSession(['auth.password_confirmed_at' => now()->timestamp])
+            ->get('/pengaturan/keamanan/2fa/recovery-codes');
+
+        $this->assertSame('/verify-email', parse_url($response->headers->get('Location'), PHP_URL_PATH));
+        $this->assertNoRecoveryCodes($response);
+    }
+
+    public function test_recovery_code_display_requires_a_current_account_session(): void
+    {
+        $user = User::factory()->create();
+        $this->enableTwoFactorWithRecoveryCodes($user);
+        $this->actingAs($user)->withSession([
+            'auth_session_version' => $user->authSessionVersion(),
+            'auth.password_confirmed_at' => now()->timestamp,
+        ]);
+        $this->get('/pengaturan/keamanan/2fa')->assertOk();
+        $this->post('/pengaturan/keamanan/2fa/recovery-codes', [
+            'recovery_code_action_token' => $this->recoveryCodeActionToken(),
+        ])->assertStatus(303);
+        $user->forceFill(['auth_session_version' => $user->authSessionVersion() + 1])->save();
+
+        $staleSessionResponse = $this->get('/pengaturan/keamanan/2fa/recovery-codes')
+            ->assertRedirect('/login');
+        $this->assertNoRecoveryCodes($staleSessionResponse);
+    }
+
+    public function test_recovery_code_display_rechecks_recent_password_confirmation(): void
+    {
+        $user = User::factory()->create();
+        $this->enableTwoFactorWithRecoveryCodes($user);
+        $this->actingAs($user)->withSession([
+            'auth_session_version' => $user->authSessionVersion(),
+            'auth.password_confirmed_at' => now()->timestamp,
+        ]);
+        $this->get('/pengaturan/keamanan/2fa')->assertOk();
+        $this->post('/pengaturan/keamanan/2fa/recovery-codes', [
+            'recovery_code_action_token' => $this->recoveryCodeActionToken(),
+        ])->assertStatus(303);
+
+        $this->travel(301)->seconds();
+        $staleConfirmationResponse = $this->get('/pengaturan/keamanan/2fa/recovery-codes')
+            ->assertRedirect('/confirm-password');
+        $this->assertNoRecoveryCodes($staleConfirmationResponse);
+        $this->travelBack();
+        $this->confirmRecentPassword('/pengaturan/keamanan/2fa/recovery-codes');
+        $this->actingAs($user);
+        $displayResponse = $this->get('/pengaturan/keamanan/2fa/recovery-codes');
+        $this->assertSame(200, $displayResponse->getStatusCode(), 'Redirect location: '.$displayResponse->headers->get('Location'));
+        $displayResponse->assertSeeText(__('settings.two_factor.recovery_codes_regenerated'));
+    }
+
+    public function test_expired_recovery_code_handoff_cannot_be_displayed(): void
+    {
+        $user = User::factory()->create();
+        $this->enableTwoFactorWithRecoveryCodes($user);
+        $this->actingAs($user)->withSession([
+            'auth_session_version' => $user->authSessionVersion(),
+            'auth.password_confirmed_at' => now()->timestamp,
+        ]);
+        $this->get('/pengaturan/keamanan/2fa')->assertOk();
+        $actionToken = $this->recoveryCodeActionToken();
+        $this->post('/pengaturan/keamanan/2fa/recovery-codes', [
+            'recovery_code_action_token' => $actionToken,
+        ])->assertStatus(303);
+        $hashes = $user->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all();
+
+        $this->travel(11)->minutes();
+        $this->withSession(['auth.password_confirmed_at' => now()->timestamp]);
+        $expiredResponse = $this->get('/pengaturan/keamanan/2fa/recovery-codes')
+            ->assertRedirect('/pengaturan/keamanan/2fa');
+        $this->assertNoRecoveryCodes($expiredResponse);
+
+        $handoff = DB::table('user_two_factor_recovery_code_handoffs')->where('user_id', $user->id)->first();
+        $this->assertNull($handoff->encrypted_payload);
+        $this->assertNotNull($handoff->consumed_at);
+        $this->post('/pengaturan/keamanan/2fa/recovery-codes', [
+            'recovery_code_action_token' => $actionToken,
+        ])->assertRedirect('/pengaturan/keamanan/2fa');
+        $this->assertSame($hashes, $user->fresh()->twoFactorAuthentication()->firstOrFail()->recoveryCodes()->pluck('code_hash')->all());
     }
 
     public function test_disabling_two_factor_requires_a_new_totp_and_revokes_old_sessions_and_recallers(): void
@@ -933,6 +1110,21 @@ class TwoFactorAuthenticationTest extends TestCase
             ->first(fn ($cookie) => $cookie->getName() === $cookieName);
     }
 
+    private function assertNoRecoveryCodes(TestResponse $response): void
+    {
+        preg_match_all('/\b(?:[A-F0-9]{32}|[A-F0-9]{8}(?:-[A-F0-9]{8}){3})\b/', $response->getContent(), $matches);
+        $this->assertSame([], $matches[0]);
+    }
+
+    private function recoveryCodeActionToken(): string
+    {
+        $token = session('security.two_factor.recovery_action_token');
+        $this->assertIsString($token);
+        $this->assertSame(64, strlen($token));
+
+        return $token;
+    }
+
     private function startSetup(User $user): void
     {
         $this->post('/login', [
@@ -943,5 +1135,6 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->withSession(['auth.password_confirmed_at' => now()->timestamp])
             ->post('/pengaturan/keamanan/2fa/setup')
             ->assertRedirect('/pengaturan/keamanan/2fa');
+        $this->get('/pengaturan/keamanan/2fa')->assertOk();
     }
 }

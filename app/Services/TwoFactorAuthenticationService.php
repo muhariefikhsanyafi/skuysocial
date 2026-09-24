@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\TwoFactorAuthentication;
 use App\Models\TwoFactorRecoveryCode;
+use App\Models\TwoFactorRecoveryCodeHandoff;
 use App\Models\User;
 use DomainException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
@@ -15,6 +17,8 @@ class TwoFactorAuthenticationService
     public const SETUP_LIFETIME_MINUTES = 10;
 
     public const RECOVERY_CODE_COUNT = 10;
+
+    public const RECOVERY_CODE_HANDOFF_LIFETIME_MINUTES = 10;
 
     /** Google2FA defaults to RFC 6238 HMAC-SHA1 with six digits and a 30-second step. */
     private const TOTP_STEP_SECONDS = 30;
@@ -72,11 +76,40 @@ class TwoFactorAuthenticationService
      */
     public function confirmSetup(User $user, #[\SensitiveParameter] string $code): ?array
     {
-        return DB::transaction(function () use ($user, $code): ?array {
+        return $this->completeSetup($user, $code, null, null);
+    }
+
+    public function confirmSetupForDisplay(
+        User $user,
+        #[\SensitiveParameter] string $code,
+        #[\SensitiveParameter] string $operationToken,
+        #[\SensitiveParameter] string $sessionBinding,
+    ): bool {
+        return is_array($this->completeSetup($user, $code, $operationToken, $sessionBinding));
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    private function completeSetup(
+        User $user,
+        #[\SensitiveParameter] string $code,
+        ?string $operationToken,
+        ?string $sessionBinding,
+    ): ?array {
+        return DB::transaction(function () use ($user, $code, $operationToken, $sessionBinding): ?array {
             $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
             if (! $lockedUser->hasVerifiedEmail() || ! $lockedUser->canMaintainAuthenticatedSession()) {
                 return null;
+            }
+
+            if ($operationToken !== null && $sessionBinding !== null) {
+                $existing = $this->existingHandoffResult($lockedUser, $operationToken, $sessionBinding);
+
+                if ($existing !== null) {
+                    return $existing ? [] : null;
+                }
             }
 
             $security = TwoFactorAuthentication::query()
@@ -125,36 +158,145 @@ class TwoFactorAuthenticationService
                 'remember_token' => Str::random(60),
             ])->save();
 
+            if ($operationToken !== null && $sessionBinding !== null) {
+                $this->invalidatePendingRecoveryCodeHandoffs($lockedUser);
+                $this->createRecoveryCodeHandoff(
+                    $lockedUser,
+                    $operationToken,
+                    $sessionBinding,
+                    'setup',
+                    $recoveryCodes,
+                    $now,
+                );
+            }
+
             return $recoveryCodes;
         });
     }
 
     /**
-     * @return list<string>
+     * @return array{codes: list<string>, purpose: string}|null
      */
-    public function regenerateRecoveryCodes(User $user): array
-    {
-        return DB::transaction(function () use ($user): array {
+    public function consumeRecoveryCodeHandoff(
+        User $user,
+        #[\SensitiveParameter] string $operationToken,
+        #[\SensitiveParameter] string $sessionBinding,
+    ): ?array {
+        return DB::transaction(function () use ($user, $operationToken, $sessionBinding): ?array {
             $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
+
+            if (! $lockedUser->hasVerifiedEmail() || ! $lockedUser->canMaintainAuthenticatedSession()) {
+                return null;
+            }
+
             $security = TwoFactorAuthentication::query()
                 ->where('user_id', $lockedUser->getKey())
                 ->lockForUpdate()
                 ->first();
 
+            if (! $security instanceof TwoFactorAuthentication || ! $security->isEnabled()) {
+                return null;
+            }
+
+            $handoff = TwoFactorRecoveryCodeHandoff::query()
+                ->where('operation_digest', hash('sha256', $operationToken))
+                ->where('user_id', $lockedUser->getKey())
+                ->lockForUpdate()
+                ->first();
+
             if (
-                ! $lockedUser->hasVerifiedEmail()
-                || ! $lockedUser->canMaintainAuthenticatedSession()
-                || ! $security instanceof TwoFactorAuthentication
-                || ! $security->isEnabled()
+                ! $handoff instanceof TwoFactorRecoveryCodeHandoff
+                || ! hash_equals($handoff->session_digest, hash('sha256', $sessionBinding))
+                || $handoff->consumed_at !== null
+                || ! is_string($handoff->encrypted_payload)
             ) {
+                return null;
+            }
+
+            if ($handoff->expires_at->lessThanOrEqualTo(now())) {
+                $this->consumeAndClearHandoff($handoff);
+
+                return null;
+            }
+
+            try {
+                $codes = json_decode(
+                    Crypt::decryptString($handoff->encrypted_payload),
+                    true,
+                    flags: JSON_THROW_ON_ERROR,
+                );
+            } catch (\Illuminate\Contracts\Encryption\DecryptException|\JsonException) {
+                $this->consumeAndClearHandoff($handoff);
+
+                return null;
+            }
+
+            $invalidCodes = ! is_array($codes) || ! array_is_list($codes) || count($codes) !== self::RECOVERY_CODE_COUNT;
+
+            if (! $invalidCodes) {
+                foreach ($codes as $recoveryCode) {
+                    if (! is_string($recoveryCode) || ! preg_match('/\A[A-F0-9]{32}\z/', $recoveryCode)) {
+                        $invalidCodes = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($invalidCodes || ! in_array($handoff->purpose, ['setup', 'regeneration'], true)) {
+                $this->consumeAndClearHandoff($handoff);
+
+                return null;
+            }
+
+            $purpose = $handoff->purpose;
+            $this->consumeAndClearHandoff($handoff);
+
+            return ['codes' => $codes, 'purpose' => $purpose];
+        });
+    }
+
+    public function regenerateRecoveryCodes(
+        User $user,
+        #[\SensitiveParameter] string $operationToken,
+        #[\SensitiveParameter] string $sessionBinding,
+    ): bool {
+        return DB::transaction(function () use ($user, $operationToken, $sessionBinding): bool {
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
+
+            if (! $lockedUser->hasVerifiedEmail() || ! $lockedUser->canMaintainAuthenticatedSession()) {
+                throw new DomainException('The account is not eligible for recovery code regeneration.');
+            }
+
+            $existing = $this->existingHandoffResult($lockedUser, $operationToken, $sessionBinding);
+
+            if ($existing !== null) {
+                return $existing;
+            }
+
+            $security = TwoFactorAuthentication::query()
+                ->where('user_id', $lockedUser->getKey())
+                ->lockForUpdate()
+                ->first();
+
+            if (! $security instanceof TwoFactorAuthentication || ! $security->isEnabled()) {
                 throw new DomainException('Two-factor authentication is not enabled for this account.');
             }
 
+            $now = now();
             $codes = $this->generateRecoveryCodes();
             $security->recoveryCodes()->delete();
-            $this->persistRecoveryCodes($lockedUser, $codes, now());
+            $this->persistRecoveryCodes($lockedUser, $codes, $now);
+            $this->invalidatePendingRecoveryCodeHandoffs($lockedUser);
+            $this->createRecoveryCodeHandoff(
+                $lockedUser,
+                $operationToken,
+                $sessionBinding,
+                'regeneration',
+                $codes,
+                $now,
+            );
 
-            return $codes;
+            return true;
         });
     }
 
@@ -189,6 +331,7 @@ class TwoFactorAuthenticationService
             }
 
             $security->recoveryCodes()->delete();
+            $this->invalidatePendingRecoveryCodeHandoffs($lockedUser);
             $security->forceFill([
                 'secret' => null,
                 'pending_secret' => null,
@@ -264,5 +407,90 @@ class TwoFactorAuthenticationService
                 'updated_at' => $now,
             ]);
         }
+    }
+
+    private function existingHandoffResult(
+        User $user,
+        #[\SensitiveParameter] string $operationToken,
+        #[\SensitiveParameter] string $sessionBinding,
+    ): ?bool {
+        $handoff = TwoFactorRecoveryCodeHandoff::query()
+            ->where('operation_digest', hash('sha256', $operationToken))
+            ->lockForUpdate()
+            ->first();
+
+        if (! $handoff instanceof TwoFactorRecoveryCodeHandoff) {
+            return null;
+        }
+
+        if (
+            $handoff->user_id !== $user->getKey()
+            || ! hash_equals($handoff->session_digest, hash('sha256', $sessionBinding))
+        ) {
+            return false;
+        }
+
+        if (
+            $handoff->consumed_at !== null
+            || $handoff->expires_at->lessThanOrEqualTo(now())
+            || ! is_string($handoff->encrypted_payload)
+        ) {
+            if ($handoff->consumed_at === null && is_string($handoff->encrypted_payload)) {
+                $this->consumeAndClearHandoff($handoff);
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param  list<string>  $codes
+     */
+    private function createRecoveryCodeHandoff(
+        User $user,
+        #[\SensitiveParameter] string $operationToken,
+        #[\SensitiveParameter] string $sessionBinding,
+        string $purpose,
+        #[\SensitiveParameter] array $codes,
+        mixed $now,
+    ): void {
+        TwoFactorRecoveryCodeHandoff::query()
+            ->where('user_id', $user->getKey())
+            ->where('expires_at', '<=', $now)
+            ->delete();
+
+        TwoFactorRecoveryCodeHandoff::query()->create([
+            'user_id' => $user->getKey(),
+            'operation_digest' => hash('sha256', $operationToken),
+            'session_digest' => hash('sha256', $sessionBinding),
+            'purpose' => $purpose,
+            'encrypted_payload' => Crypt::encryptString(json_encode($codes, JSON_THROW_ON_ERROR)),
+            'expires_at' => $now->copy()->addMinutes(self::RECOVERY_CODE_HANDOFF_LIFETIME_MINUTES),
+            'consumed_at' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    private function invalidatePendingRecoveryCodeHandoffs(User $user): void
+    {
+        TwoFactorRecoveryCodeHandoff::query()
+            ->where('user_id', $user->getKey())
+            ->whereNull('consumed_at')
+            ->update([
+                'encrypted_payload' => null,
+                'consumed_at' => now(),
+                'updated_at' => now(),
+            ]);
+    }
+
+    private function consumeAndClearHandoff(TwoFactorRecoveryCodeHandoff $handoff): void
+    {
+        $handoff->forceFill([
+            'encrypted_payload' => null,
+            'consumed_at' => now(),
+        ])->save();
     }
 }
