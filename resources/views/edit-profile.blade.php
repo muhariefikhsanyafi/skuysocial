@@ -170,6 +170,16 @@
                 </form>
             </section>
 
+            <section class="rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-5 sm:p-8">
+                <header>
+                    <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ __('settings.two_factor.heading') }}</h2>
+                    <p class="mt-2 text-sm leading-6 text-[var(--skuy-text-secondary)]">{{ __('settings.two_factor.description') }}</p>
+                </header>
+                <a href="{{ route('security.two-factor.show') }}" class="mt-5 inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-medium)] border border-[var(--skuy-border-strong)] px-4 py-3 text-sm font-semibold text-[var(--skuy-text-primary)] transition-colors hover:bg-[var(--skuy-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
+                    {{ __('settings.two_factor.manage') }}
+                </a>
+            </section>
+
             <section class="rounded-[var(--radius-large)] border border-[var(--skuy-danger)] bg-[var(--skuy-surface)] p-5 sm:p-8">
                 <header>
                     <h2 class="text-xl font-bold text-[var(--skuy-danger)]">

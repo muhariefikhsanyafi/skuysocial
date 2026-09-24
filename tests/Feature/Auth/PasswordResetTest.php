@@ -3,10 +3,17 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Services\TwoFactorAuthenticationService;
+use App\Services\TwoFactorLoginChallengeService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Session\ArraySessionHandler;
+use Illuminate\Session\Store;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
@@ -145,6 +152,48 @@ class PasswordResetTest extends TestCase
             ->assertSee('aria-describedby="password-error"', false)
             ->assertSee('aria-invalid="true"', false)
             ->assertSee('id="password-error"', false);
+    }
+
+    public function test_password_reset_invalidates_pending_totp_challenges_and_old_auth_state(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create();
+        $twoFactor = app(TwoFactorAuthenticationService::class);
+        $twoFactor->beginSetup($user);
+        $secret = $user->twoFactorAuthentication()->firstOrFail()->pending_secret;
+        $setupCode = app(Google2FA::class)->oathTotp($secret, intdiv(now()->timestamp, 30));
+        $this->assertTrue(is_array($twoFactor->confirmSetup($user, $setupCode)));
+
+        $sessionVersion = $user->fresh()->authSessionVersion();
+        $session = new Store('password-reset-test', new ArraySessionHandler(10), Str::random(40));
+        $session->start();
+        $challengeRequest = Request::create('/two-factor/challenge', 'POST');
+        $challengeRequest->setLaravelSession($session);
+        $challenges = app(TwoFactorLoginChallengeService::class);
+        $challenges->begin($user, $challengeRequest, false, 'web', null);
+
+        $this->from('/forgot-password')
+            ->post('/forgot-password', ['email' => $user->email])
+            ->assertRedirect('/forgot-password');
+        $resetToken = null;
+        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use (&$resetToken): bool {
+            $resetToken = $notification->token;
+
+            return true;
+        });
+        $this->assertTrue(is_string($resetToken));
+
+        $this->post('/reset-password', [
+            'token' => $resetToken,
+            'email' => $user->email,
+            'password' => 'updated-password',
+            'password_confirmation' => 'updated-password',
+        ])->assertRedirect(route('login'));
+
+        $this->assertSame($sessionVersion + 1, $user->fresh()->authSessionVersion());
+        $this->travel(31)->seconds();
+        $code = app(Google2FA::class)->oathTotp($secret, intdiv(now()->timestamp, 30));
+        $this->assertTrue($challenges->complete($challengeRequest, $code) === null);
     }
 
     public function test_password_can_be_reset_with_valid_token(): void

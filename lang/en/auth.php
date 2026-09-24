@@ -96,6 +96,16 @@ return [
         'mail_footer' => 'SkuySocial account verification',
     ],
 
+    'two_factor' => [
+        'title' => 'Two-factor verification',
+        'intro' => 'Enter the current code from your authenticator app, or use one recovery code.',
+        'code_label' => 'Authenticator or recovery code',
+        'code_hint' => 'Each authenticator code can be used once. Recovery codes are also single-use.',
+        'verify' => 'Verify and sign in',
+        'invalid' => 'That code is invalid or expired. Check it and try again.',
+        'cancel' => 'Cancel and sign out',
+    ],
+
     'security' => [
         'verification_failed' => 'Security verification failed. Please try again.',
     ],

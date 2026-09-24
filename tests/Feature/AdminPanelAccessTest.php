@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\UserRole;
 use App\Filament\Pages\Auth\Login;
 use App\Models\User;
+use App\Services\TwoFactorAuthenticationService;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
+use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 class AdminPanelAccessTest extends TestCase
@@ -83,6 +85,34 @@ class AdminPanelAccessTest extends TestCase
 
         $this->assertGuest();
         Http::assertSentCount(1);
+    }
+
+    public function test_admin_login_enters_the_shared_two_factor_challenge_without_authenticating_first(): void
+    {
+        Config::set('services.turnstile.enabled', false);
+        Filament::setCurrentPanel('admin');
+        $administrator = User::factory()->administrator()->create();
+        $twoFactor = app(TwoFactorAuthenticationService::class);
+        $twoFactor->beginSetup($administrator);
+        $secret = $administrator->twoFactorAuthentication()->firstOrFail()->pending_secret;
+        $code = app(Google2FA::class)->oathTotp($secret, intdiv(now()->timestamp, 30));
+        $this->assertTrue(is_array($twoFactor->confirmSetup($administrator, $code)));
+        $this->get('/admin/login')->assertOk();
+
+        Livewire::test(Login::class)
+            ->set('data.email', $administrator->email)
+            ->set('data.password', 'password')
+            ->set('data.remember', true)
+            ->call('authenticate')
+            ->assertRedirect('/two-factor/challenge');
+
+        $this->assertGuest();
+        $this->assertDatabaseHas('user_two_factor_login_challenges', [
+            'user_id' => $administrator->id,
+            'source' => 'admin',
+            'intended_url' => '/admin',
+            'remember' => true,
+        ]);
     }
 
     public function test_verified_administrator_can_sign_in_through_the_admin_login(): void

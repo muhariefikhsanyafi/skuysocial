@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnforceAccountSession;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequireActiveModerationState;
+use App\Http\Middleware\RequireRecentPasswordConfirmation;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'inertia' => HandleInertiaRequests::class,
             'moderation.active' => RequireActiveModerationState::class,
+            'password.confirm.recent' => RequireRecentPasswordConfirmation::class,
         ]);
         $middleware->appendToPriorityList(StartSession::class, EnforceAccountSession::class);
         $middleware->appendToPriorityList(

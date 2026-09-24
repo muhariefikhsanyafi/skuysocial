@@ -139,6 +139,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return $this->hasOne(EmailVerificationOtp::class);
     }
 
+    public function twoFactorAuthentication(): HasOne
+    {
+        return $this->hasOne(TwoFactorAuthentication::class);
+    }
+
     public function moderationEvents(): HasMany
     {
         return $this->hasMany(ModerationEvent::class, 'target_user_id');

@@ -96,6 +96,16 @@ return [
         'mail_footer' => 'Verifikasi akun SkuySocial',
     ],
 
+    'two_factor' => [
+        'title' => 'Verifikasi dua faktor',
+        'intro' => 'Masukkan kode terbaru dari aplikasi autentikator atau gunakan satu kode pemulihan.',
+        'code_label' => 'Kode autentikator atau pemulihan',
+        'code_hint' => 'Setiap kode autentikator hanya dapat digunakan sekali. Kode pemulihan juga hanya dapat digunakan sekali.',
+        'verify' => 'Verifikasi dan masuk',
+        'invalid' => 'Kode tidak valid atau kedaluwarsa. Periksa dan coba lagi.',
+        'cancel' => 'Batalkan dan keluar',
+    ],
+
     'security' => [
         'verification_failed' => 'Verifikasi keamanan gagal. Silakan coba lagi.',
     ],

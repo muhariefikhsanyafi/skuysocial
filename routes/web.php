@@ -9,6 +9,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\TwoFactorAuthenticationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -106,6 +107,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/pengaturan/profil', [UserController::class, 'update'])
         ->middleware('moderation.active')
         ->name('user.update');
+
+    Route::get('/pengaturan/keamanan/2fa', [TwoFactorAuthenticationController::class, 'show'])
+        ->middleware('password.confirm.recent')
+        ->name('security.two-factor.show');
+    Route::post('/pengaturan/keamanan/2fa/setup', [TwoFactorAuthenticationController::class, 'startSetup'])
+        ->middleware(['password.confirm.recent', 'throttle:two-factor-security'])
+        ->name('security.two-factor.setup');
+    Route::post('/pengaturan/keamanan/2fa/confirm', [TwoFactorAuthenticationController::class, 'confirmSetup'])
+        ->middleware(['password.confirm.recent', 'throttle:two-factor-security'])
+        ->name('security.two-factor.confirm');
+    Route::post('/pengaturan/keamanan/2fa/recovery-codes', [TwoFactorAuthenticationController::class, 'regenerateRecoveryCodes'])
+        ->middleware(['password.confirm.recent', 'throttle:two-factor-security'])
+        ->name('security.two-factor.recovery-codes.regenerate');
+    Route::delete('/pengaturan/keamanan/2fa', [TwoFactorAuthenticationController::class, 'disable'])
+        ->middleware(['password.confirm.recent', 'throttle:two-factor-security'])
+        ->name('security.two-factor.disable');
 });
 
 Route::fallback(static function (Request $request): never {

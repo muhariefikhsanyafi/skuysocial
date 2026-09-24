@@ -3,22 +3,26 @@
 namespace Tests\Feature\Auth;
 
 use App\Enums\ModerationState;
+use App\Http\Middleware\EnforceAccountSession;
 use App\Models\EmailVerificationOtp;
 use App\Models\User;
 use App\Notifications\EmailVerificationCode;
 use App\Services\EmailVerificationOtpCodeGenerator;
 use App\Services\EmailVerificationOtpResult;
 use App\Services\EmailVerificationOtpService;
+use App\Services\TwoFactorAuthenticationService;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Session\Store;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use LogicException;
 use Mockery;
+use PragmaRX\Google2FA\Google2FA;
 use Symfony\Component\HttpFoundation\Cookie;
 use Tests\TestCase;
 
@@ -544,6 +548,82 @@ class EmailOtpVerificationTest extends TestCase
                 ->assertSeeText($copy['resend'])
                 ->assertDontSee($user->email);
         }
+    }
+
+    public function test_email_otp_verification_precedes_totp_and_revokes_the_password_only_session(): void
+    {
+        Config::set('session.driver', 'database');
+        $user = User::factory()->create();
+        $twoFactor = app(TwoFactorAuthenticationService::class);
+        $twoFactor->beginSetup($user);
+        $secret = $user->twoFactorAuthentication()->firstOrFail()->pending_secret;
+        $totp = app(Google2FA::class)->oathTotp($secret, intdiv(now()->timestamp, 30));
+        $this->assertTrue(is_array($twoFactor->confirmSetup($user, $totp)));
+
+        $user->forceFill(['email_verified_at' => null])->save();
+        $emailCode = $this->issueCode($user);
+        $versionBeforeVerification = $user->fresh()->authSessionVersion();
+        $loginResponse = $this->withSession(['url.intended' => '/feed'])
+            ->post('/login', [
+                'email' => $user->email,
+                'password' => 'password',
+                'remember' => '1',
+            ])
+            ->assertRedirect(route('verification.notice'));
+
+        $this->assertFalse($this->hasRememberCookie($loginResponse));
+        $this->assertDatabaseCount('user_two_factor_login_challenges', 0);
+        $oldSessionCookie = $loginResponse->getCookie(config('session.cookie'));
+        $this->assertTrue($oldSessionCookie !== null);
+        $parallelSession = new Store(
+            config('session.cookie'),
+            app('session')->driver('database')->getHandler(),
+            Str::random(40),
+        );
+        $parallelSession->start();
+        $parallelSession->put(Auth::guard('web')->getName(), $user->getAuthIdentifier());
+        $parallelSession->put(EnforceAccountSession::SESSION_VERSION_KEY, $versionBeforeVerification);
+        $parallelSession->save();
+        $parallelSessionId = $parallelSession->getId();
+        $this->withCookie(config('session.cookie'), $oldSessionCookie->getValue());
+        Auth::forgetGuards();
+
+        $verificationResponse = $this->post(route('verification.verify'), ['code' => $emailCode])
+            ->assertRedirect(route('two-factor.challenge'));
+        $this->assertGuest();
+        $this->assertFalse($this->hasRememberCookie($verificationResponse));
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+        $this->assertSame($versionBeforeVerification + 1, $user->fresh()->authSessionVersion());
+        $this->assertDatabaseHas('user_two_factor_login_challenges', [
+            'user_id' => $user->id,
+            'remember' => false,
+            'intended_url' => '/feed',
+            'source' => 'web',
+        ]);
+
+        $challengeCookie = $verificationResponse->getCookie(config('session.cookie'));
+        $this->assertTrue($challengeCookie !== null);
+        foreach ([$oldSessionCookie->getValue(), $parallelSessionId] as $oldSessionId) {
+            $this->withCookie(config('session.cookie'), $oldSessionId);
+            Auth::forgetGuards();
+            $this->get('/feed')->assertRedirect('/login');
+            $this->assertGuest();
+        }
+
+        $this->withCookie(config('session.cookie'), $challengeCookie->getValue());
+        Auth::forgetGuards();
+        $this->travel(31)->seconds();
+        $currentCode = app(Google2FA::class)->oathTotp($secret, intdiv(now()->timestamp, 30));
+        $completeResponse = $this->post('/two-factor/challenge', ['code' => $currentCode])
+            ->assertRedirect('/feed');
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertFalse($this->hasRememberCookie($completeResponse));
+    }
+
+    private function hasRememberCookie($response): bool
+    {
+        return $this->cookie($response, Auth::guard('web')->getRecallerName()) !== null;
     }
 
     private function issueCode(User $user): string

@@ -103,7 +103,7 @@ class EmailVerificationOtpService
         }
     }
 
-    public function verify(User $user, string $code): EmailVerificationOtpResult
+    public function verify(User $user, #[\SensitiveParameter] string $code): EmailVerificationOtpResult
     {
         $verifiedUser = null;
         $result = DB::transaction(function () use ($user, $code, &$verifiedUser): EmailVerificationOtpResult {

@@ -5,12 +5,16 @@ namespace App\Http\Requests\Auth;
 use App\Enums\ModerationState;
 use App\Models\User;
 use App\Services\TurnstileVerifier;
+use Illuminate\Auth\Events\Attempting;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
+use Illuminate\Auth\Events\Validated;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Support\Timebox;
 use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
@@ -38,27 +42,50 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Validate the primary credential without creating a session.
      *
      * @throws ValidationException
      */
-    public function authenticate(): void
+    public function authenticate(): User
     {
         $this->ensureIsNotRateLimited();
 
         app(TurnstileVerifier::class)->validate($this->input('cf-turnstile-response'), 'login');
 
+        $credentials = $this->loginCredentials();
+        $remember = $this->shouldRemember();
         $validatedModerationState = null;
+        $provider = Auth::guard('web')->getProvider();
 
-        if (! Auth::attemptWhen(
-            $this->loginCredentials(),
-            function (User $user) use (&$validatedModerationState): bool {
-                $validatedModerationState = $user->moderationState();
+        $user = app(Timebox::class)->call(
+            function (Timebox $timebox) use ($provider, $credentials, $remember, &$validatedModerationState): ?User {
+                event(new Attempting('web', $credentials, $remember));
 
-                return $validatedModerationState?->allowsAuthentication() ?? false;
+                $candidate = $provider->retrieveByCredentials($credentials);
+
+                if (! $candidate instanceof User || ! $provider->validateCredentials($candidate, $credentials)) {
+                    event(new Failed('web', $candidate, $credentials));
+
+                    return null;
+                }
+
+                $validatedModerationState = $candidate->moderationState();
+
+                if (! $validatedModerationState?->allowsAuthentication()) {
+                    event(new Failed('web', $candidate, $credentials));
+
+                    return null;
+                }
+
+                event(new Validated('web', $candidate));
+                $timebox->returnEarly();
+
+                return $candidate;
             },
-            $this->shouldRemember(),
-        )) {
+            (int) config('auth.timebox_duration', 200000),
+        );
+
+        if (! $user instanceof User) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -71,9 +98,11 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        return $user;
     }
 
-    private function shouldRemember(): bool
+    public function shouldRemember(): bool
     {
         if (! $this->boolean('remember')) {
             return false;

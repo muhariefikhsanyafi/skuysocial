@@ -8,6 +8,7 @@ use App\Services\TurnstileVerifier;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -45,14 +46,26 @@ class NewPasswordController extends Controller
         // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+            function (User $user) use ($request): void {
+                $updatedUser = DB::transaction(function () use ($user, $request): User {
+                    $lockedUser = User::query()->lockForUpdate()->findOrFail($user->getKey());
+                    $sessionVersion = $lockedUser->authSessionVersion();
 
-                event(new PasswordReset($user));
-            }
+                    if ($sessionVersion === null || $sessionVersion === PHP_INT_MAX) {
+                        throw new \LogicException('The account authentication state is invalid.');
+                    }
+
+                    $lockedUser->forceFill([
+                        'password' => Hash::make($request->string('password')->toString()),
+                        'remember_token' => Str::random(60),
+                        'auth_session_version' => $sessionVersion + 1,
+                    ])->save();
+
+                    return $lockedUser;
+                });
+
+                event(new PasswordReset($updatedUser));
+            },
         );
 
         // If the password was successfully reset, we will redirect the user back to
