@@ -33,6 +33,22 @@ class TwoFactorAuthenticationTest extends TestCase
             ->assertSessionHas('url.intended', '/pengaturan/keamanan/2fa');
     }
 
+    public function test_two_factor_setup_screen_uses_a_flat_content_section(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->withSession(['auth.password_confirmed_at' => now()->timestamp])
+            ->get('/pengaturan/keamanan/2fa')
+            ->assertOk();
+
+        $response->assertSee('<section>', false)
+            ->assertDontSee(
+                'rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-5 sm:p-8',
+                false,
+            );
+    }
+
     public function test_invalid_and_malformed_codes_are_generic_rate_limited_and_not_locked_permanently(): void
     {
         Config::set('session.driver', 'database');
@@ -481,7 +497,16 @@ class TwoFactorAuthenticationTest extends TestCase
             ->assertOk()
             ->assertSessionHas('auth_session_version', 1)
             ->assertHeader('Cache-Control', 'no-store, private')
-            ->assertSeeText(__('settings.two_factor.recovery_codes_heading'));
+            ->assertSeeText(__('settings.two_factor.recovery_codes_heading'))
+            ->assertSee('class="skuy-profile-shell"', false)
+            ->assertSee('bg-[var(--skuy-brand)]', false)
+            ->assertSee('hover:bg-[var(--skuy-brand-hover)]', false)
+            ->assertSee('text-[var(--skuy-on-brand)]', false)
+            ->assertDontSee(
+                'rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-5 sm:p-8',
+                false,
+            )
+            ->assertDontSee('bg-[var(--skuy-brand-primary)]', false);
 
         $this->assertAuthenticatedAs($user);
 

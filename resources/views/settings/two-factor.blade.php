@@ -8,7 +8,7 @@
 
     <div class="skuy-profile-page">
         <div class="skuy-profile-shell space-y-6">
-            <section class="rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-5 sm:p-8">
+            <section>
                 <h2 class="text-lg font-bold text-[var(--skuy-text-primary)]">{{ __('settings.two_factor.status_heading') }}</h2>
                 <p class="mt-3 text-sm font-semibold text-[var(--skuy-text-secondary)]" role="status">
                     {{ $enabled ? __('settings.two_factor.enabled') : __('settings.two_factor.disabled') }}
