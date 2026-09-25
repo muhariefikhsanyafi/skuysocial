@@ -26,6 +26,13 @@
                     @foreach ($notifications as $notification)
                         @php
                             $data = $notification->data;
+                            $message = match ($data['type'] ?? null) {
+                                'like' => __('activity.messages.like'),
+                                'comment' => __('activity.messages.comment'),
+                                'follow' => __('activity.messages.follow'),
+                                'repost' => __('activity.messages.repost'),
+                                default => $data['message'] ?? '',
+                            };
                             $postRouteKey = $data['post_slug'] ?? null;
                             $postTargetUrl = null;
                             $isUnread = $notification->read_at === null;
@@ -51,7 +58,7 @@
                                     <a href="{{ route('user.profile', $data['username']) }}" class="skuy-activity-item__actor">
                                         {{ $data['name'] }}
                                     </a>
-                                    {{ $data['message'] }}
+                                    {{ $message }}
                                 </p>
                                 <div class="skuy-activity-item__meta">
                                     <time datetime="{{ $notification->created_at->toIso8601String() }}">
