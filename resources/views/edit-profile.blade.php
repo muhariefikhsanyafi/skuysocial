@@ -7,7 +7,7 @@
                 </svg>
             </a>
             <div>
-                <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">
+                <h2 class="text-2xl font-bold text-[var(--skuy-text-primary)]">
                     {{ __('profile.edit') }}
                 </h2>
                 <p class="mt-1 text-sm text-[var(--skuy-text-secondary)]">
@@ -34,10 +34,10 @@
                       isSubmitting: false
                   }"
                   @submit="isSubmitting = true"
-                  class="overflow-hidden rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)]">
+                  class="skuy-settings-panel skuy-settings-panel--flush">
                 @csrf
 
-                <div class="group relative h-32 overflow-hidden border-b border-[var(--skuy-border-subtle)] bg-[var(--skuy-selected)] sm:h-44">
+                <div class="group relative h-24 overflow-hidden border-b border-[var(--skuy-border-subtle)] bg-[var(--skuy-selected)] sm:h-32">
                     <template x-if="coverPreview">
                         <img :src="coverPreview" alt="{{ __('profile.media.cover_preview') }}" class="absolute inset-0 h-full w-full object-cover">
                     </template>
@@ -62,15 +62,15 @@
                     </div>
                 </div>
 
-                <div class="relative px-5 pb-8 sm:px-8">
-                    <div class="relative z-10 -mt-12 mb-8 flex items-end justify-between sm:-mt-16">
+                <div class="relative px-4 pb-6 sm:px-6">
+                    <div class="relative z-10 -mt-10 mb-6 flex items-end justify-between sm:-mt-12">
                         <div class="group relative cursor-pointer">
                             <div class="flex-shrink-0">
                                 <template x-if="avatarPreview">
-                                    <img :src="avatarPreview" alt="{{ __('profile.media.avatar_preview') }}" class="relative z-10 h-24 w-24 rounded-full border-2 border-[var(--skuy-surface)] bg-[var(--skuy-surface)] object-cover ring-1 ring-[var(--skuy-border-subtle)] sm:h-28 sm:w-28">
+                                    <img :src="avatarPreview" alt="{{ __('profile.media.avatar_preview') }}" class="relative z-10 h-20 w-20 rounded-full border-2 border-[var(--skuy-surface)] bg-[var(--skuy-surface)] object-cover ring-1 ring-[var(--skuy-border-subtle)] sm:h-24 sm:w-24">
                                 </template>
                                 <template x-if="!avatarPreview">
-                                    <div class="relative z-10 flex h-24 w-24 items-center justify-center rounded-full border-2 border-[var(--skuy-surface)] bg-[var(--skuy-selected)] text-4xl font-bold text-[var(--skuy-on-selected)] ring-1 ring-[var(--skuy-border-subtle)] sm:h-28 sm:w-28 sm:text-5xl">
+                                    <div class="relative z-10 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[var(--skuy-surface)] bg-[var(--skuy-selected)] text-3xl font-bold text-[var(--skuy-on-selected)] ring-1 ring-[var(--skuy-border-subtle)] sm:h-24 sm:w-24 sm:text-4xl">
                                         {{ substr($user->name, 0, 1) }}
                                     </div>
                                 </template>
@@ -124,7 +124,7 @@
                 </div>
             </form>
 
-            <section class="rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-5 sm:p-8">
+            <section class="skuy-settings-panel">
                 <header>
                     <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">
                         {{ __('settings.password.heading') }}
@@ -134,7 +134,7 @@
                     </p>
                 </header>
 
-                <form action="{{ route('password.update') }}" method="POST" class="mt-8 space-y-6">
+                <form action="{{ route('password.update') }}" method="POST" class="mt-6 space-y-5">
                     @csrf
                     @method('put')
 
@@ -170,7 +170,7 @@
                 </form>
             </section>
 
-            <section class="rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-5 sm:p-8">
+            <section class="skuy-settings-panel">
                 <header>
                     <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ __('settings.two_factor.heading') }}</h2>
                     <p class="mt-2 text-sm leading-6 text-[var(--skuy-text-secondary)]">{{ __('settings.two_factor.description') }}</p>
@@ -180,7 +180,7 @@
                 </a>
             </section>
 
-            <section class="rounded-[var(--radius-large)] border border-[var(--skuy-danger)] bg-[var(--skuy-surface)] p-5 sm:p-8">
+            <section class="skuy-settings-panel skuy-settings-panel--danger">
                 <header>
                     <h2 class="text-xl font-bold text-[var(--skuy-danger)]">
                         {{ __('settings.delete.heading') }}
@@ -190,7 +190,7 @@
                     </p>
                 </header>
 
-                <form action="{{ route('profile.destroy') }}" method="POST" class="mt-8 space-y-6">
+                <form action="{{ route('profile.destroy') }}" method="POST" class="mt-6 space-y-5">
                     @csrf
                     @method('delete')
 

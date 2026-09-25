@@ -3175,6 +3175,31 @@
         padding: 24px 0 72px;
     }
 
+    .skuy-security-shell {
+        width: min(calc(100% - 48px), 44rem);
+        margin-inline: auto;
+        padding: 24px 0 72px;
+    }
+
+    .skuy-settings-panel {
+        min-width: 0;
+        border: 1px solid var(--skuy-border-subtle);
+        border-radius: var(--radius-medium);
+        background: var(--skuy-surface);
+    }
+
+    .skuy-settings-panel:not(.skuy-settings-panel--flush) {
+        padding: 20px;
+    }
+
+    .skuy-settings-panel--flush {
+        overflow: hidden;
+    }
+
+    .skuy-settings-panel--danger {
+        border-color: var(--skuy-danger);
+    }
+
     .skuy-profile-back {
         display: inline-flex;
         align-items: center;
@@ -3550,6 +3575,15 @@
     .skuy-profile-shell {
         width: min(calc(100% - 32px), 44rem);
         padding: 16px 0 calc(108px + env(safe-area-inset-bottom));
+    }
+
+    .skuy-security-shell {
+        width: min(calc(100% - 32px), 44rem);
+        padding: 16px 0 calc(108px + env(safe-area-inset-bottom));
+    }
+
+    .skuy-settings-panel:not(.skuy-settings-panel--flush) {
+        padding: 16px;
     }
 
     .skuy-profile-cover {
@@ -4854,12 +4888,6 @@
     width: 100%;
     max-width: 44rem;
     margin-inline: auto;
-}
-
-.skuy-security-shell {
-    width: min(100%, 64rem);
-    margin-inline: auto;
-    padding: clamp(24px, 3vw, 40px) var(--skuy-shell-gutter) 72px;
 }
 
 @media (min-width: 1280px) {

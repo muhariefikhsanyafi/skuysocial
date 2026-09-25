@@ -7,8 +7,8 @@
     </x-slot>
 
     <div class="skuy-profile-page skuy-security-page">
-        <div class="skuy-profile-shell skuy-security-shell space-y-6">
-            <section>
+        <div class="skuy-security-shell space-y-6">
+            <section class="skuy-settings-panel">
                 <h2 class="text-lg font-bold text-[var(--skuy-text-primary)]">{{ __('settings.two_factor.status_heading') }}</h2>
                 <p class="mt-3 text-sm font-semibold text-[var(--skuy-text-secondary)]" role="status">
                     {{ $enabled ? __('settings.two_factor.enabled') : __('settings.two_factor.disabled') }}
