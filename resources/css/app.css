@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.skuy-fa-icon {
+    flex: 0 0 auto;
+    width: 1em;
+}
+
 @layer base {
     :root {
         color-scheme: light;
@@ -1178,7 +1183,8 @@
         font-weight: 700;
     }
 
-    .skuy-action svg {
+    .skuy-action svg,
+    .skuy-action .skuy-fa-icon {
         width: 20px;
         height: 20px;
         flex: 0 0 auto;
@@ -1783,9 +1789,14 @@
         white-space: nowrap;
     }
 
-    .skuy-action svg {
+    .skuy-action svg,
+    .skuy-action .skuy-fa-icon {
         width: 18px;
         height: 18px;
+    }
+
+    .skuy-action .skuy-fa-icon {
+        font-size: 18px;
     }
 
     .skuy-action--dense-count {
@@ -1793,9 +1804,14 @@
         font-size: 0.625rem;
     }
 
-    .skuy-action--dense-count svg {
+    .skuy-action--dense-count svg,
+    .skuy-action--dense-count .skuy-fa-icon {
         width: 14px;
         height: 14px;
+    }
+
+    .skuy-action--dense-count .skuy-fa-icon {
+        font-size: 14px;
     }
 
     .skuy-action span:not(.sr-only) {
@@ -2180,6 +2196,7 @@
     .skuy-auth-password-icon {
         width: 20px;
         height: 20px;
+        font-size: 20px;
         flex: 0 0 auto;
     }
 
@@ -3050,6 +3067,9 @@
         flex: 0 0 auto;
         width: 21px;
         height: 21px;
+        font-size: 21px;
+        line-height: 1;
+        text-align: center;
     }
 
     .skuy-app-nav__label {
@@ -3726,9 +3746,11 @@
         font-weight: 800;
     }
 
-    .skuy-discovery-header__icon svg {
+    .skuy-discovery-header__icon svg,
+    .skuy-discovery-header__icon .skuy-fa-icon {
         width: 22px;
         height: 22px;
+        font-size: 22px;
     }
 
     .skuy-discovery-eyebrow {
@@ -3878,9 +3900,11 @@
         font-weight: 800;
     }
 
-    .skuy-discovery-section__icon svg {
+    .skuy-discovery-section__icon svg,
+    .skuy-discovery-section__icon .skuy-fa-icon {
         width: 17px;
         height: 17px;
+        font-size: 17px;
     }
 
     .skuy-discovery-section__title {
@@ -3967,9 +3991,11 @@
         font-weight: 800;
     }
 
-    .skuy-discovery-link__mark svg {
+    .skuy-discovery-link__mark svg,
+    .skuy-discovery-link__mark .skuy-fa-icon {
         width: 16px;
         height: 16px;
+        font-size: 16px;
     }
 
     .skuy-discovery-link__text {
@@ -3984,6 +4010,7 @@
         flex: 0 0 auto;
         width: 18px;
         height: 18px;
+        font-size: 18px;
         color: var(--skuy-text-muted);
     }
 
@@ -4020,9 +4047,11 @@
         color: var(--skuy-on-selected);
     }
 
-    .skuy-discovery-empty__mark svg {
+    .skuy-discovery-empty__mark svg,
+    .skuy-discovery-empty__mark .skuy-fa-icon {
         width: 22px;
         height: 22px;
+        font-size: 22px;
     }
 
     .skuy-discovery-empty__title,
@@ -4054,9 +4083,11 @@
         font-weight: 700;
     }
 
-    .skuy-discovery-back svg {
+    .skuy-discovery-back svg,
+    .skuy-discovery-back .skuy-fa-icon {
         width: 18px;
         height: 18px;
+        font-size: 18px;
     }
 
     .skuy-discovery-context {
@@ -5351,7 +5382,8 @@
     line-height: 1.4;
 }
 
-.skuy-feed-page .skuy-feed-post__repost svg {
+.skuy-feed-page .skuy-feed-post__repost svg,
+.skuy-feed-page .skuy-feed-post__repost .skuy-fa-icon {
     flex: 0 0 auto;
     color: var(--skuy-secondary);
 }
@@ -5927,9 +5959,15 @@
     color: var(--skuy-text-secondary);
 }
 
-.skuy-social-empty__mark svg {
+.skuy-social-empty__mark svg,
+.skuy-social-empty__mark .skuy-fa-icon {
     width: 20px;
     height: 20px;
+    font-size: 20px;
+}
+
+.skuy-activity-item__type .skuy-fa-icon {
+    font-size: 16px;
 }
 
 .skuy-social-empty__title {

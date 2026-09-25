@@ -187,7 +187,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                         disabled={!canPerformSocialWrites || pendingAction !== null}
                         className={`skuy-action skuy-action--selected disabled:cursor-not-allowed disabled:opacity-50${post.interactions.reposted ? ' !border-[var(--skuy-secondary)] !bg-[var(--skuy-secondary)] !text-[var(--skuy-on-secondary)]' : ''}`}
                     >
-                        <RepostIcon />
+                        <RepostIcon active={post.interactions.reposted} />
                         {post.interactions.repost_count > 0 && <span className="text-xs font-semibold">{post.interactions.repost_count}</span>}
                     </button>
                 </form>

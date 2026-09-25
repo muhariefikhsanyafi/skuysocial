@@ -3,7 +3,7 @@
         <div class="skuy-feed-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <div class="mb-6 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
                 <a href="{{ route('user.profile', $profileUser) }}" aria-label="{{ __('navigation.back_to_profile') }}" class="skuy-action">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19 3 12l7-7M3 12h18"></path></svg>
+                    <x-fa-icon name="arrow-left-long" class="text-xl" />
                 </a>
                 <div class="min-w-0">
                     <h1 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ $title }}</h1>

@@ -244,7 +244,7 @@
                                 <div class="skuy-feed-composer__attachments min-w-0 flex-1">
                                     <input id="feed-composer-images" type="file" name="images[]" multiple accept="image/*" x-ref="imagesInput" @change="handleImageSelection($event)" class="skuy-upload skuy-feed-composer__file-input">
                                     <label for="feed-composer-images" class="skuy-feed-composer__attach">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l10.61-10.61a4 4 0 0 1 5.66 5.66L9.41 17.43a2 2 0 0 1-2.83-2.83l9.9-9.9"></path></svg>
+                                        <x-fa-icon name="image" class="text-base" />
                                         <span>{{ __('threads.media.photo') }}</span>
                                     </label>
 
@@ -280,13 +280,13 @@
                 <div x-show="openImage" @click.self="closeImage()" @keydown.window="if (openImage && $event.key === 'ArrowLeft') previousImage(); if (openImage && $event.key === 'ArrowRight') nextImage()" @keydown.escape.window="closeImage()" style="display: none;" role="dialog" aria-modal="true" aria-label="{{ __('threads.media.photo_preview') }}" class="skuy-lightbox fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-8">
                     <div x-show="lightboxImages.length > 1" x-text="(lightboxIndex + 1) + ' / ' + lightboxImages.length" class="skuy-lightbox__counter"></div>
                     <button type="button" x-show="lightboxImages.length > 1" @click.stop="previousImage()" aria-label="{{ __('threads.media.previous_image') }}" class="skuy-lightbox__control absolute left-3 top-1/2 -translate-y-1/2 sm:left-8">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m15 18-6-6 6-6"></path></svg>
+                        <x-fa-icon name="chevron-left" class="text-2xl" />
                     </button>
                     <button type="button" x-show="lightboxImages.length > 1" @click.stop="nextImage()" aria-label="{{ __('threads.media.next_image') }}" class="skuy-lightbox__control absolute right-3 top-1/2 -translate-y-1/2 sm:right-8">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6"></path></svg>
+                        <x-fa-icon name="chevron-right" class="text-2xl" />
                     </button>
                     <button type="button" @click="closeImage()" aria-label="{{ __('threads.media.close_preview') }}" class="skuy-lightbox__control absolute right-3 top-3 sm:right-8 sm:top-8">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12M18 6 6 18"></path></svg>
+                        <x-fa-icon name="xmark" weight="solid" class="text-2xl" />
                     </button>
                     <img :src="activeImage" alt="{{ __('threads.media.full_photo') }}" class="skuy-lightbox__image">
                 </div>

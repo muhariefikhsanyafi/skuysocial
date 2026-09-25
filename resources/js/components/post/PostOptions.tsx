@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { PostDetailTranslations } from '../../types/post';
-import { DotsIcon } from './icons';
+import { DotsIcon, PencilIcon, TrashIcon } from './icons';
 
 interface PostOptionsProps {
     uid: string;
@@ -110,21 +110,5 @@ export function PostOptions({ uid, editUrl, deleteUrl, translations }: PostOptio
                 </div>
             )}
         </div>
-    );
-}
-
-function PencilIcon() {
-    return (
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
-        </svg>
-    );
-}
-
-function TrashIcon() {
-    return (
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M10 11v6m4-6v6M9 7V4h6v3m-9 0 1 13h10l1-13" />
-        </svg>
     );
 }

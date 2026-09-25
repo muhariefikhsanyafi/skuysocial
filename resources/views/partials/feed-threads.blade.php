@@ -12,9 +12,7 @@
     >
         @if ($isRepost)
             <div class="skuy-post__repost skuy-feed-post__repost">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path>
-                </svg>
+                <x-fa-icon name="retweet" class="text-base" />
                 <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
             </div>
         @endif
@@ -88,21 +86,19 @@
                                 class="skuy-action"
                                 aria-haspopup="menu"
                             >
-                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle>
-                                </svg>
+                                <x-fa-icon name="ellipsis" class="text-xl" />
                             </button>
 
                             <div id="post-options-{{ $post->uid }}" x-show="openOptions" @click.away="closeOptions()" style="display: none;" role="menu" aria-labelledby="post-options-trigger-{{ $post->uid }}" class="skuy-menu-surface absolute right-0 z-50 mt-2 w-44">
                                 <a href="{{ route('posts.edit', $displayPost->uid) }}" class="skuy-menu-link flex items-center gap-2" role="menuitem">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
+                                    <x-fa-icon name="pen-to-square" class="text-base" />
                                     {{ __('threads.actions.edit') }}
                                 </a>
                                 <form action="{{ route('posts.destroy', $displayPost->uid) }}" method="POST" data-confirm="{{ __('threads.confirm_delete') }}" onsubmit="return confirm(this.dataset.confirm);">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="skuy-menu-link flex items-center gap-2 text-[var(--skuy-danger)]" role="menuitem">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6m4-6v6M9 7V4h6v3m-9 0 1 13h10l1-13"></path></svg>
+                                        <x-fa-icon name="trash-can" weight="solid" class="text-base" />
                                         {{ __('threads.actions.delete') }}
                                     </button>
                                 </form>
@@ -250,7 +246,7 @@
                                 class="skuy-action skuy-action--reaction{{ $likeActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
                                 :class="liked ? '!border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : ''"
                             >
-                                <svg x-ref="likeIcon" class="h-5 w-5 {{ $displayPost->liked_by_me ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path></svg>
+                                <x-fa-icon x-ref="likeIcon" name="heart" :weight="$displayPost->liked_by_me ? 'solid' : 'regular'" class="text-xl" />
                                 <span
                                     x-show="likeDisplayCount()"
                                     x-text="likeDisplayCount()"
@@ -260,14 +256,14 @@
                         </form>
 
                         <button @click="showComments = !showComments" type="button" aria-label="{{ $commentActionLabel }}" title="{{ $commentActionLabel }}" :aria-expanded="showComments.toString()" aria-controls="comments-{{ $displayPost->uid }}" class="skuy-action{{ $commentActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.4 8.4 0 0 1-3.5-.75L4 20l1.35-3.6A7.3 7.3 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"></path></svg>
+                            <x-fa-icon name="comment" class="text-xl" />
                             <span>{{ $commentDisplayCount }}</span>
                         </button>
 
                         <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
                             @csrf
                             <button type="submit" aria-label="{{ $repostActionLabel }}" title="{{ $repostActionLabel }}" aria-pressed="{{ $displayPost->reposted_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--selected{{ $repostActionCountIsDense ? ' skuy-action--dense-count' : '' }}{{ $displayPost->reposted_by_me ? ' !border-[var(--skuy-secondary)] !bg-[var(--skuy-secondary)] !text-[var(--skuy-on-secondary)]' : '' }}">
-                                <svg class="h-5 w-5 {{ $displayPost->reposted_by_me ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path></svg>
+                                <x-fa-icon name="retweet" :weight="$displayPost->reposted_by_me ? 'solid' : 'regular'" class="text-xl" />
                                 @if ($repostDisplayCount !== '')
                                     <span>{{ $repostDisplayCount }}</span>
                                 @endif
@@ -279,20 +275,20 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark !border-[var(--skuy-secondary)] !bg-[var(--skuy-selected)] !text-[var(--skuy-on-selected)]">
-                                    <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                    <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
                                 </button>
                             </form>
                         @else
                             <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
                                 @csrf
                                 <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
-                                    <svg class="h-5 w-5 fill-none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                    <x-fa-icon name="bookmark" class="text-xl" />
                                 </button>
                             </form>
                         @endif
 
                         <button @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', '{{ __('threads.thread_link_copied') }}')" type="button" aria-label="{{ __('threads.actions.share') }}" title="{{ __('threads.actions.share') }}" class="skuy-action">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m12 3 9 18-9-3-9 3 9-18Zm0 0v15"></path></svg>
+                            <x-fa-icon name="share-nodes" class="text-xl" />
                         </button>
                         </div>
                         <div class="min-h-5">

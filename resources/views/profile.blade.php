@@ -6,9 +6,7 @@
     <div class="skuy-profile-page">
         <div class="skuy-profile-shell">
             <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-profile-back">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19 3 12l7-7M3 12h18"></path>
-                </svg>
+                <x-fa-icon name="arrow-left-long" class="text-xl" />
                 <span>{{ __('navigation.back_to_feed') }}</span>
             </a>
 
@@ -125,9 +123,7 @@
                             >
                                 @if ($isRepost)
                                     <div class="skuy-post__repost">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path>
-                                        </svg>
+                                        <x-fa-icon name="retweet" class="text-base" />
                                         <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
                                     </div>
                                 @endif
@@ -216,14 +212,14 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
-                                                        <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                        <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
                                                     </button>
                                                 </form>
                                             @else
                                                 <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
                                                     @csrf
                                                     <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
-                                                        <svg class="h-5 w-5 fill-none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                        <x-fa-icon name="bookmark" class="text-xl" />
                                                     </button>
                                                 </form>
                                             @endif

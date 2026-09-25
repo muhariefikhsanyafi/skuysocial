@@ -39,10 +39,14 @@
         aria-label="{{ __('localization.choose_language') }}"
         class="{{ $isAppVariant ? 'skuy-icon-button' : 'skuy-guest-language-trigger' }}"
     >
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-            <circle cx="12" cy="12" r="9"></circle>
-            <path stroke-linecap="square" d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9S14.5 18.5 12 21M12 3c-2.5 2.5-3.5 5.5-3.5 9S9.5 18.5 12 21"></path>
-        </svg>
+        @if ($isAppVariant)
+            <x-fa-icon name="globe" class="text-xl" />
+        @else
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path stroke-linecap="square" d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9S14.5 18.5 12 21M12 3c-2.5 2.5-3.5 5.5-3.5 9S9.5 18.5 12 21"></path>
+            </svg>
+        @endif
         <span class="sr-only">{{ __('localization.choose_language') }}</span>
     </button>
 
@@ -86,9 +90,13 @@
                         <span>{{ $choiceName }}</span>
 
                         @if ($isActive)
-                            <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                                <path stroke-linecap="square" stroke-linejoin="miter" d="m5 12 4 4L19 6"></path>
-                            </svg>
+                            @if ($isAppVariant)
+                                <x-fa-icon name="check" weight="solid" class="shrink-0 text-base" />
+                            @else
+                                <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                                    <path stroke-linecap="square" stroke-linejoin="miter" d="m5 12 4 4L19 6"></path>
+                                </svg>
+                            @endif
                         @endif
                     </button>
                 </form>

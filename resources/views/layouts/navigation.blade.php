@@ -11,15 +11,15 @@
     $navigationItems = [];
 
     if ($showDashboardNavigation) {
-        $navigationItems[] = ['key' => 'dashboard', 'href' => route('dashboard'), 'label' => __('navigation.dashboard'), 'active' => $isDashboard, 'icon' => 'dashboard'];
+        $navigationItems[] = ['key' => 'dashboard', 'href' => route('dashboard'), 'label' => __('navigation.dashboard'), 'active' => $isDashboard, 'icon' => 'gauge'];
     }
 
     $navigationItems = array_merge($navigationItems, [
-        ['key' => 'feed', 'href' => route('feed'), 'label' => __('navigation.feed'), 'active' => request()->routeIs('feed'), 'icon' => 'home'],
-        ['key' => 'search', 'href' => route('search'), 'label' => __('navigation.search'), 'active' => request()->routeIs('search'), 'icon' => 'search'],
-        ['key' => 'activity', 'href' => route('activity.index'), 'label' => __('navigation.activity'), 'active' => request()->routeIs('activity.index'), 'icon' => 'activity'],
-        ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'saved'],
-        ['key' => 'profile', 'href' => $profileUrl, 'label' => __('navigation.profile'), 'active' => request()->routeIs('user.profile') && request()->route('username') === $user->username, 'icon' => 'profile'],
+        ['key' => 'feed', 'href' => route('feed'), 'label' => __('navigation.feed'), 'active' => request()->routeIs('feed'), 'icon' => 'house'],
+        ['key' => 'search', 'href' => route('search'), 'label' => __('navigation.search'), 'active' => request()->routeIs('search'), 'icon' => 'magnifying-glass'],
+        ['key' => 'activity', 'href' => route('activity.index'), 'label' => __('navigation.activity'), 'active' => request()->routeIs('activity.index'), 'icon' => 'bell'],
+        ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'bookmark'],
+        ['key' => 'profile', 'href' => $profileUrl, 'label' => __('navigation.profile'), 'active' => request()->routeIs('user.profile') && request()->route('username') === $user->username, 'icon' => 'user'],
     ]);
     $navigationGroups = [
         array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['dashboard', 'feed', 'search'], true)),
@@ -28,6 +28,7 @@
     $bottomHomeIsDashboard = $isDashboard;
     $bottomHomeHref = $bottomHomeIsDashboard ? route('dashboard') : route('feed');
     $bottomHomeLabel = $bottomHomeIsDashboard ? __('navigation.dashboard') : __('navigation.feed');
+    $bottomHomeIcon = $bottomHomeIsDashboard ? 'gauge' : 'house';
     $bottomHomeCurrent = $bottomHomeIsDashboard || $isFeed;
     $composerHref = $isFeed ? '#composer' : route('feed').'#composer';
 @endphp
@@ -58,9 +59,7 @@
                 type="button"
                 class="skuy-icon-button skuy-navigation-trigger xl:hidden"
             >
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h10"></path>
-                </svg>
+                <x-fa-icon name="bars" weight="solid" class="text-xl" />
                 <span class="sr-only">{{ __('navigation.open_navigation_menu') }}</span>
             </button>
 
@@ -79,13 +78,8 @@
                 type="button"
                 class="skuy-icon-button"
             >
-                <svg x-show="!darkMode" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646Z"></path>
-                </svg>
-                <svg x-show="darkMode" style="display: none;" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M3 12h2m14 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
-                    <circle cx="12" cy="12" r="4"></circle>
-                </svg>
+                <x-fa-icon x-show="!darkMode" name="moon" class="text-xl" />
+                <x-fa-icon x-show="darkMode" style="display: none;" name="sun" class="text-xl" />
                 <span class="sr-only" x-text="darkMode ? '{{ __('navigation.dark') }}' : '{{ __('navigation.light') }}'"></span>
             </button>
 
@@ -103,9 +97,7 @@
                             aria-controls="desktop-profile-menu"
                         >
                             <span class="skuy-profile-trigger__name">{{ Auth::user()->name }}</span>
-                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m7 10 5 5 5-5"></path>
-                            </svg>
+                            <x-fa-icon name="chevron-down" class="text-base" />
                         </button>
                     </x-slot>
 
@@ -137,13 +129,8 @@
                     type="button"
                     class="skuy-icon-button"
                 >
-                    <svg class="skuy-profile-icon h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                        <g x-show="!open">
-                            <circle cx="12" cy="8" r="3.5" stroke-width="1.8"></circle>
-                            <path stroke-linecap="round" stroke-width="1.8" d="M5 21a7 7 0 0 1 14 0"></path>
-                        </g>
-                        <path x-show="open" style="display: none;" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m6 6 12 12M18 6 6 18"></path>
-                    </svg>
+                    <x-fa-icon x-show="!open" name="user" class="skuy-profile-icon text-xl" />
+                    <x-fa-icon x-show="open" style="display: none;" name="xmark" weight="solid" class="skuy-profile-icon text-xl" />
                 </button>
             </div>
         </div>
@@ -199,22 +186,7 @@
                                 @click="sidebarOpen = false"
                                 class="skuy-app-nav__link"
                             >
-                                <svg class="skuy-app-nav__icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                    @if ($item['icon'] === 'dashboard' || $item['icon'] === 'home')
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path>
-                                    @elseif ($item['icon'] === 'search')
-                                        <circle cx="11" cy="11" r="6.5"></circle>
-                                        <path stroke-linecap="round" d="m16 16 5 5"></path>
-                                    @elseif ($item['icon'] === 'activity')
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path>
-                                    @elseif ($item['icon'] === 'saved')
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4Z"></path>
-                                    @else
-                                        <circle cx="12" cy="8" r="3.5"></circle>
-                                        <path stroke-linecap="round" d="M5 21a7 7 0 0 1 14 0"></path>
-                                    @endif
-                                </svg>
+                                <x-fa-icon :name="$item['icon']" :weight="$item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
                                 <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
 
                                 @if ($item['key'] === 'activity' && isset($unreadNotificationCount) && $unreadNotificationCount > 0)
@@ -229,9 +201,7 @@
 
         @if ($user->canPerformSocialWrites())
             <a href="{{ route('feed') }}#composer" class="skuy-app-rail__compose">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" d="M12 5v14M5 12h14"></path>
-                </svg>
+                <x-fa-icon name="plus" weight="solid" class="text-xl" />
                 <span>{{ __('navigation.create_thread') }}</span>
             </a>
         @endif
@@ -240,34 +210,34 @@
 
 <nav class="skuy-mobile-nav" aria-label="{{ __('home.public.primary_navigation') }}">
     <a href="{{ $bottomHomeHref }}" aria-label="{{ $bottomHomeLabel }}" aria-current="{{ $bottomHomeCurrent ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path></svg>
+        <x-fa-icon :name="$bottomHomeIcon" :weight="$bottomHomeCurrent ? 'solid' : 'regular'" class="text-xl" />
         <span>{{ $bottomHomeLabel }}</span>
     </a>
 
     <a href="{{ route('search') }}" aria-label="{{ __('navigation.search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path stroke-linecap="round" d="m16 16 5 5"></path></svg>
+        <x-fa-icon name="magnifying-glass" :weight="request()->routeIs('search') ? 'solid' : 'regular'" class="text-xl" />
         <span>{{ __('navigation.search') }}</span>
     </a>
 
     @if ($user->canPerformSocialWrites())
         <a href="{{ $composerHref }}" aria-label="{{ __('navigation.create_thread') }}" class="skuy-mobile-nav__item skuy-mobile-nav__item--compose">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 5v14M5 12h14"></path></svg>
+            <x-fa-icon name="plus" weight="solid" class="text-xl" />
             <span class="sr-only">{{ __('navigation.create_thread') }}</span>
         </a>
     @else
         <a href="{{ route('feed') }}" aria-label="{{ __('navigation.feed') }}" class="skuy-mobile-nav__item">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"></path></svg>
+            <x-fa-icon name="house" :weight="request()->routeIs('feed') ? 'solid' : 'regular'" class="text-xl" />
             <span>{{ __('navigation.feed') }}</span>
         </a>
     @endif
 
     <a href="{{ route('activity.index') }}" aria-label="{{ __('navigation.activity') }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 1 1-2.34-5.66"></path><path stroke-linecap="round" stroke-linejoin="round" d="M20 4v6h-6"></path></svg>
+        <x-fa-icon name="bell" :weight="request()->routeIs('activity.index') ? 'solid' : 'regular'" class="text-xl" />
         <span>{{ __('navigation.activity') }}</span>
     </a>
 
     <a href="{{ $profileUrl }}" aria-label="{{ __('navigation.profile') }}" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === $user->username ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path stroke-linecap="round" d="M5 21a7 7 0 0 1 14 0"></path></svg>
+        <x-fa-icon name="user" :weight="request()->routeIs('user.profile') && request()->route('username') === $user->username ? 'solid' : 'regular'" class="text-xl" />
         <span>{{ __('navigation.profile') }}</span>
     </a>
 </nav>

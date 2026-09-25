@@ -2,9 +2,7 @@
     <x-slot name="header">
         <div class="flex items-start gap-3">
             <a href="{{ route('user.profile', $user->username) }}" aria-label="{{ __('navigation.back_to_profile') }}" class="inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-medium)] px-3 text-[var(--skuy-secondary)] transition-colors hover:bg-[var(--skuy-surface-subtle)] hover:text-[var(--skuy-secondary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19 3 12l7-7M3 12h18"></path>
-                </svg>
+                <x-fa-icon name="arrow-left-long" class="text-xl" />
             </a>
             <div>
                 <h2 class="text-2xl font-bold text-[var(--skuy-text-primary)]">
@@ -43,19 +41,13 @@
                     </template>
                     <template x-if="!coverPreview">
                         <div class="flex h-full w-full items-center justify-center bg-[var(--skuy-selected)] text-[var(--skuy-on-selected)]" aria-hidden="true">
-                            <svg class="h-10 w-10" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-                            </svg>
+                            <x-fa-icon name="camera" class="text-[40px]" />
                         </div>
                     </template>
 
                     <div class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100" style="background: color-mix(in srgb, var(--skuy-text-primary) 50%, transparent);">
                         <x-primary-button type="button" @click="$refs.coverInput.click()" aria-label="{{ __('settings.profile.change_cover') }}" class="cursor-pointer gap-2">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-                            </svg>
+                            <x-fa-icon name="camera" class="text-base" />
                             {{ __('settings.profile.change_cover') }}
                         </x-primary-button>
                         <input id="cover" x-ref="coverInput" type="file" name="cover" class="hidden" accept="image/*" @change="updateCover">
@@ -77,10 +69,7 @@
                             </div>
 
                             <button type="button" @click="$refs.avatarInput.click()" aria-label="{{ __('settings.profile.change_avatar') }}" class="absolute inset-0 z-20 inline-flex items-center justify-center rounded-full border-0 text-[var(--skuy-on-secondary)] opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]" style="background: color-mix(in srgb, var(--skuy-text-primary) 50%, transparent);">
-                                <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-                                </svg>
+                                <x-fa-icon name="camera" weight="solid" class="text-[28px]" />
                             </button>
                             <input id="avatar" x-ref="avatarInput" type="file" name="avatar" class="hidden" accept="image/*" @change="updateAvatar">
                         </div>

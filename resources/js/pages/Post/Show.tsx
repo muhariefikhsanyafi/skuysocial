@@ -51,7 +51,7 @@ export default function Show() {
 
                 {post.is_repost && post.reposted_by && (
                     <div className="skuy-post__repost">
-                        <RepostContextIcon className="h-4 w-4" />
+                        <RepostContextIcon className="text-base" />
                         <span>{translations.reposted_by.replace(':username', post.reposted_by.username)}</span>
                     </div>
                 )}

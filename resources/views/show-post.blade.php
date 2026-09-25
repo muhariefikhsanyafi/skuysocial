@@ -8,7 +8,7 @@
             <!-- Header Kembali -->
             <div class="mb-4 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
                 <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <x-fa-icon name="arrow-left-long" class="text-xl" />
                 </a>
                 <h1 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ __('threads.labels.thread') }}</h1>
             </div>
@@ -16,7 +16,7 @@
             <!-- Postingan utama -->
             @if ($isRepost)
                 <div class="skuy-post__repost">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <x-fa-icon name="retweet" class="text-base" />
                     <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
                 </div>
             @endif
@@ -76,7 +76,7 @@
                         <!-- Modal Gambar Layar Penuh -->
                         <div x-show="openImage" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center p-2 bg-black/90 backdrop-blur-sm">
                             <button @click="openImage = false" aria-label="{{ __('threads.media.close_preview') }}" class="absolute right-4 top-4 z-[110] rounded-full border border-white bg-black/50 p-1 text-white">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                <x-fa-icon name="xmark" weight="solid" class="text-[32px]" />
                             </button>
                             <img @click.away="openImage = false" :src="activeImage" alt="{{ __('threads.media.full_photo') }}" class="max-h-[90vh] max-w-full border border-white object-contain">
                         </div>
@@ -112,7 +112,7 @@
                         <!-- Modal Gambar Layar Penuh -->
                         <div x-show="openImage" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center p-2 bg-black/90 backdrop-blur-sm">
                             <button @click="openImage = false" aria-label="{{ __('threads.media.close_preview') }}" class="absolute right-4 top-4 z-[110] rounded-full border border-white bg-black/50 p-1 text-white">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                <x-fa-icon name="xmark" weight="solid" class="text-[32px]" />
                             </button>
                             <img @click.away="openImage = false" :src="activeImage" alt="{{ __('threads.media.full_photo') }}" class="max-h-[90vh] max-w-full border border-white object-contain">
                         </div>
@@ -127,20 +127,20 @@
                     <form action="{{ route('posts.like', $displayPost->uid) }}" method="POST">
                         @csrf
                         <button type="submit" aria-pressed="{{ $displayPost->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction{{ $displayPost->liked_by_current_user ? ' !border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : '' }}" title="{{ __('threads.labels.like') }}">
-                            <svg class="h-5 w-5 {{ $displayPost->liked_by_current_user ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path></svg>
+                            <x-fa-icon name="heart" :weight="$displayPost->liked_by_current_user ? 'solid' : 'regular'" class="text-xl" />
                             <span class="text-xs font-semibold">{{ $displayPost->likes_count > 0 ? $displayPost->likes_count : '' }}</span>
                         </button>
                     </form>
                     <!-- Tombol Komentar -->
                     <div class="skuy-action cursor-default" aria-label="{{ __('threads.actions.reply') }}" title="{{ __('threads.actions.reply') }}">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.4 8.4 0 0 1-3.5-.75L4 20l1.35-3.6A7.3 7.3 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"></path></svg>
+                        <x-fa-icon name="comment" class="text-xl" />
                         <span class="text-xs font-semibold">{{ $displayPost->comments_count > 0 ? $displayPost->comments_count : '' }}</span>
                     </div>
                     <!-- Tombol Repost (Berfungsi) -->
                     <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
                         @csrf
                         <button type="submit" aria-pressed="{{ $displayPost->reposted_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--selected{{ $displayPost->reposted_by_current_user ? ' !border-[var(--skuy-secondary)] !bg-[var(--skuy-secondary)] !text-[var(--skuy-on-secondary)]' : '' }}" title="{{ __('threads.actions.repost') }}">
-                            <svg class="h-5 w-5 {{ $displayPost->reposted_by_current_user ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path></svg>
+                            <x-fa-icon name="retweet" :weight="$displayPost->reposted_by_current_user ? 'solid' : 'regular'" class="text-xl" />
                             <!-- Angka Jumlah Repost -->
                             @if($displayPost->reposts_count > 0)
                                 <span class="text-xs font-semibold">{{ $displayPost->reposts_count }}</span>
@@ -152,20 +152,20 @@
                             @csrf
                             @method('DELETE')
                             <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark !border-[var(--skuy-secondary)] !bg-[var(--skuy-selected)] !text-[var(--skuy-on-selected)]">
-                                <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
                             </button>
                         </form>
                     @else
                         <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
                             @csrf
                             <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
-                                <svg class="h-5 w-5 fill-none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                <x-fa-icon name="bookmark" class="text-xl" />
                             </button>
                         </form>
                     @endif
                     <!-- Tombol Share (Berfungsi) -->
                     <button @click="copyAndToast('{{ url()->current() }}', '{{ __('threads.thread_link_copied') }}')" type="button" class="skuy-action" title="{{ __('threads.actions.share') }}" aria-label="{{ __('threads.actions.share') }}">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m12 3 9 18-9-3-9 3 9-18Zm0 0v15"></path></svg>
+                        <x-fa-icon name="share-nodes" class="text-xl" />
                     </button>
                         </div>
                     </div>
@@ -196,7 +196,7 @@
                     <input type="text" name="content" x-model="content" class="skuy-inline-input" placeholder="{{ __('threads.comments.reply_to', ['name' => $displayPost->user->username]) }}" required autocomplete="off">
 
                     <button type="button" class="skuy-action shrink-0" title="{{ __('threads.image_coming_soon') }}" aria-label="{{ __('threads.image_coming_soon') }}">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <x-fa-icon name="image" class="text-xl" />
                     </button>
                     <!-- Tombol Post Muncul Jika Ada Teks -->
                     <button type="submit" x-show="content.trim().length > 0" :disabled="isSubmitting" class="skuy-button skuy-button--primary min-h-[40px] shrink-0 px-3 py-1 text-xs" style="display: none;">
@@ -247,7 +247,7 @@
                                 <form action="{{ route('comments.like', $comment->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" aria-pressed="{{ $comment->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction{{ $comment->liked_by_current_user ? ' !border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : '' }}" title="{{ __('threads.labels.like') }}">
-                                        <svg class="h-4 w-4 {{ $comment->liked_by_current_user ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        <x-fa-icon name="heart" :weight="$comment->liked_by_current_user ? 'solid' : 'regular'" class="text-base" />
                                         <!-- Angka Like -->
                                         @if($comment->likes_count > 0)
                                             <span class="text-[10px] font-semibold">{{ $comment->likes_count }}</span>
@@ -257,17 +257,17 @@
 
                                 <!-- 2. Ikon Balas (Membuka Form) -->
                                 <button @click="openReply = !openReply" type="button" class="skuy-action" title="{{ __('threads.actions.reply') }}" aria-label="{{ __('threads.actions.reply') }}">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                    <x-fa-icon name="comment-dots" class="text-base" />
                                 </button>
                                 
                                 <!-- 3. Ikon Repost (Visual Only untuk saat ini) -->
                                 <button type="button" class="skuy-action" title="{{ __('threads.repost_coming_soon') }}" aria-label="{{ __('threads.repost_coming_soon') }}">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    <x-fa-icon name="retweet" class="text-base" />
                                 </button>
 
                                 <!-- 4. Ikon Share (Berfungsi Copy Link URL Postingan) -->
                                 <button @click="copyAndToast('{{ url()->current() }}#comment-{{ $comment->id }}', '{{ __('threads.comment_link_copied') }}')" type="button" class="skuy-action" title="{{ __('threads.actions.share') }}" aria-label="{{ __('threads.actions.share') }}">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                                    <x-fa-icon name="share-nodes" class="text-base" />
                                 </button>
                             </div>
                             
@@ -314,7 +314,7 @@
                                                     <form action="{{ route('comments.like', $reply->id) }}" method="POST">
                                                         @csrf
                                                         <button type="submit" aria-pressed="{{ $reply->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction{{ $reply->liked_by_current_user ? ' !border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : '' }}" title="{{ __('threads.labels.like') }}">
-                                                            <svg class="h-3.5 w-3.5 {{ $reply->liked_by_current_user ? 'fill-current' : 'fill-none' }}" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                                            <x-fa-icon name="heart" :weight="$reply->liked_by_current_user ? 'solid' : 'regular'" class="text-sm" />
                                                             @if($reply->likes_count > 0)
                                                                 <span class="text-[9px] font-semibold">{{ $reply->likes_count }}</span>
                                                             @endif
@@ -322,14 +322,14 @@
                                                     </form>
                                                     
                                                     <button @click="openReply = !openReply" type="button" class="skuy-action" title="{{ __('threads.actions.reply') }}" aria-label="{{ __('threads.actions.reply') }}">
-                                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                                        <x-fa-icon name="comment-dots" class="text-sm" />
                                                     </button>
                                                     <button type="button" class="skuy-action" title="{{ __('threads.repost_coming_soon') }}" aria-label="{{ __('threads.repost_coming_soon') }}">
-                                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                                        <x-fa-icon name="retweet" class="text-sm" />
                                                     </button>
                                                     <!-- Share Link -->
                                                     <button @click="copyAndToast(@js(request()->fullUrl().'#reply-'.$reply->id), @js(__('threads.reply_link_copied')))" type="button" class="skuy-action" title="{{ __('threads.actions.share') }}" aria-label="{{ __('threads.actions.share') }}">
-                                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                                                        <x-fa-icon name="share-nodes" class="text-sm" />
                                                     </button>
                                                 </div>
                                             </div>

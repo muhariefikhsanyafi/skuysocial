@@ -3,7 +3,7 @@
         <div class="skuy-feed-content skuy-saved-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <header class="skuy-list-page-header">
                 <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19 3 12l7-7M3 12h18"></path></svg>
+                    <x-fa-icon name="arrow-left-long" class="text-xl" />
                 </a>
                 <div class="min-w-0">
                     <h1 class="skuy-list-page-header__title">{{ __('saved.title') }}</h1>
@@ -14,9 +14,7 @@
             @if ($posts->isEmpty())
                 <div class="skuy-social-empty" role="status">
                     <span class="skuy-social-empty__mark" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4Z"></path>
-                        </svg>
+                        <x-fa-icon name="bookmark" />
                     </span>
                     <h2 class="skuy-social-empty__title">{{ __('saved.empty') }}</h2>
                 </div>
@@ -45,7 +43,7 @@
                         <article class="skuy-post">
                             @if ($isRepost)
                                 <div class="skuy-post__repost">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h13m-3-3 3 3-3 3M20 17H7m3 3-3-3 3-3"></path></svg>
+                                    <x-fa-icon name="retweet" class="text-base" />
                                     <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
                                 </div>
                             @endif
@@ -114,7 +112,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
-                                                <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
                                             </button>
                                         </form>
                                     </footer>

@@ -15,6 +15,11 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
 
+        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/regular.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/solid.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/brands.min.css') }}">
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="skuy-product antialiased">
@@ -61,9 +66,7 @@
             class="skuy-toast"
         >
             <span class="skuy-toast__mark" aria-hidden="true">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m5 13 4 4L19 7"></path>
-                </svg>
+                <x-fa-icon name="check" weight="solid" class="text-base" />
             </span>
             <span class="skuy-toast__message" x-text="toastMessage"></span>
         </div>

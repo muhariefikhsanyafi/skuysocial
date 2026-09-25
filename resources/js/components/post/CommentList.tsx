@@ -227,7 +227,7 @@ function CommentItem({
                             disabled={!canPerformSocialWrites || pending}
                             className={`skuy-action skuy-action--reaction disabled:cursor-not-allowed disabled:opacity-50${comment.liked ? ' !border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : ''}`}
                         >
-                            <HeartIcon className={isReply ? 'h-3.5 w-3.5' : 'h-4 w-4'} filled={comment.liked} />
+                            <HeartIcon className={isReply ? 'text-sm' : 'text-base'} filled={comment.liked} />
                             {comment.like_count > 0 && <span className="text-[10px] font-semibold">{comment.like_count}</span>}
                         </button>
                     </form>
@@ -248,7 +248,7 @@ function CommentItem({
                         aria-label={translations.reply}
                         aria-expanded={isReply ? rootReplyOpen : openReply}
                     >
-                        <CommentIcon className={isReply ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
+                        <CommentIcon className={isReply ? 'text-sm' : 'text-base'} />
                     </button>
 
                     <button
@@ -267,7 +267,7 @@ function CommentItem({
                         title={translations.share}
                         aria-label={translations.share}
                     >
-                        <ShareIcon className={isReply ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
+                        <ShareIcon className={isReply ? 'text-sm' : 'text-base'} />
                     </button>
                 </div>
 

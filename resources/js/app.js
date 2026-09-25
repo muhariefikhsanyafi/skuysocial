@@ -43,8 +43,8 @@ Alpine.data('likeControl', (config = {}) => ({
     syncLikePresentation() {
         const icon = this.$refs.likeIcon;
         if (icon) {
-            icon.classList.toggle('fill-current', this.liked);
-            icon.classList.toggle('fill-none', !this.liked);
+            icon.classList.toggle('fa-solid', this.liked);
+            icon.classList.toggle('fa-regular', !this.liked);
         }
 
         const button = this.$refs.likeButton;

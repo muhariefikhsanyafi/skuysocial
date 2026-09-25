@@ -9,10 +9,7 @@
             <header class="skuy-discovery-header" aria-labelledby="search-page-title">
                 <div class="skuy-discovery-header__identity">
                     <span class="skuy-discovery-header__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <circle cx="11" cy="11" r="6.5"></circle>
-                            <path stroke-linecap="round" d="m16 16 5 5"></path>
-                        </svg>
+                        <x-fa-icon name="magnifying-glass" />
                     </span>
                     <div>
                         <p class="skuy-discovery-eyebrow">{{ __('navigation.search') }}</p>
@@ -58,10 +55,7 @@
                     <section class="skuy-discovery-section" aria-labelledby="search-users-heading">
                         <div class="skuy-discovery-section__heading">
                             <span class="skuy-discovery-section__icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <circle cx="9" cy="8" r="3"></circle>
-                                    <path stroke-linecap="round" d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.5a2.5 2.5 0 0 1 0 5M16 13a5 5 0 0 1 4.5 4.5"></path>
-                                </svg>
+                                <x-fa-icon name="users" />
                             </span>
                             <h2 id="search-users-heading" class="skuy-discovery-section__title">{{ __('search.sections.users') }}</h2>
                         </div>
@@ -108,12 +102,10 @@
                                 @foreach ($hashtags as $hashtag)
                                     <a href="{{ route('tags.show', $hashtag->name) }}" class="skuy-discovery-link" role="listitem">
                                         <span class="skuy-discovery-link__mark" aria-hidden="true">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h10M4 17h7"></path></svg>
+                                            <x-fa-icon name="hashtag" />
                                         </span>
                                         <span class="skuy-discovery-link__text">#{{ $hashtag->name }}</span>
-                                        <svg class="skuy-discovery-link__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7"></path>
-                                        </svg>
+                                        <x-fa-icon name="arrow-right" class="skuy-discovery-link__arrow" />
                                     </a>
                                 @endforeach
                             </div>
@@ -124,9 +116,7 @@
                         <section class="skuy-discovery-section" aria-labelledby="search-topics-heading">
                             <div class="skuy-discovery-section__heading">
                                 <span class="skuy-discovery-section__icon" aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" d="M5 7h14M5 12h10M5 17h7"></path>
-                                    </svg>
+                                    <x-fa-icon name="hashtag" />
                                 </span>
                                 <h2 id="search-topics-heading" class="skuy-discovery-section__title">{{ __('search.sections.topics') }}</h2>
                             </div>
@@ -134,12 +124,10 @@
                                 @foreach ($topics as $topic)
                                     <a href="{{ route('topik.show', ['topic' => $topic]) }}" class="skuy-discovery-link" role="listitem">
                                         <span class="skuy-discovery-link__mark" aria-hidden="true">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h10M4 17h7"></path></svg>
+                                            <x-fa-icon name="hashtag" />
                                         </span>
                                         <span class="skuy-discovery-link__text">#{{ $topic }}</span>
-                                        <svg class="skuy-discovery-link__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7"></path>
-                                        </svg>
+                                        <x-fa-icon name="arrow-right" class="skuy-discovery-link__arrow" />
                                     </a>
                                 @endforeach
                             </div>
@@ -149,9 +137,7 @@
                     <section class="skuy-discovery-section" aria-labelledby="search-threads-heading">
                         <div class="skuy-discovery-section__heading">
                             <span class="skuy-discovery-section__icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 6.5h14M5 12h14M5 17.5h9"></path>
-                                </svg>
+                                <x-fa-icon name="comment-lines" />
                             </span>
                             <h2 id="search-threads-heading" class="skuy-discovery-section__title">{{ __('search.sections.threads') }}</h2>
                         </div>
@@ -159,9 +145,7 @@
                         @if ($posts->isEmpty())
                             <div class="skuy-discovery-empty" role="status">
                                 <span class="skuy-discovery-empty__mark" aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 6.5h14M5 12h10M5 17.5h6"></path>
-                                    </svg>
+                                    <x-fa-icon name="comment-lines" />
                                 </span>
                                 <h3 class="skuy-discovery-empty__title">{{ __('search.empty.threads') }}</h3>
                             </div>
@@ -219,14 +203,14 @@
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
-                                                                <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                                <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
                                                             </button>
                                                         </form>
                                                     @else
                                                         <form action="{{ route('bookmarks.store', $post->uid) }}" method="POST">
                                                             @csrf
                                                             <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
-                                                                <svg class="h-5 w-5 fill-none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12a1 1 0 0 1 1 1v17l-7-3.5L5 21V4a1 1 0 0 1 1-1Z"></path></svg>
+                                                                <x-fa-icon name="bookmark" class="text-xl" />
                                                             </button>
                                                         </form>
                                                     @endif
@@ -248,10 +232,7 @@
             @elseif (! $errors->has('q'))
                 <section class="skuy-discovery-empty skuy-discovery-empty--initial" aria-labelledby="search-empty-title" role="status">
                     <span class="skuy-discovery-empty__mark" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <circle cx="11" cy="11" r="6.5"></circle>
-                            <path stroke-linecap="round" d="m16 16 5 5"></path>
-                        </svg>
+                        <x-fa-icon name="magnifying-glass" />
                     </span>
                     <h2 id="search-empty-title" class="skuy-discovery-empty__title">{{ __('search.empty.initial_title') }}</h2>
                     <p class="skuy-discovery-empty__description">{{ __('search.empty.initial_description') }}</p>

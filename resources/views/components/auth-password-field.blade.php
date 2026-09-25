@@ -35,15 +35,8 @@
             x-bind:aria-label="visible ? $el.dataset.hideLabel : $el.dataset.showLabel"
             x-bind:aria-pressed="visible"
         >
-            <svg x-show="! visible" class="skuy-auth-password-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z" />
-                <circle cx="12" cy="12" r="2.75" />
-            </svg>
-            <svg x-show="visible" style="display: none;" class="skuy-auth-password-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m3 3 18 18" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.58 10.58a2 2 0 0 0 2.84 2.84" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.88 4.24A10.94 10.94 0 0 1 12 4.04c6 0 9.75 6.75 9.75 6.75a17.4 17.4 0 0 1-3.06 3.77M6.23 6.23C3.77 8.1 2.25 12 2.25 12S6 18.75 12 18.75a10.7 10.7 0 0 0 4.1-.82" />
-            </svg>
+            <x-fa-icon x-show="! visible" name="eye" class="skuy-auth-password-icon" />
+            <x-fa-icon x-show="visible" style="display: none;" name="eye-slash" weight="solid" class="skuy-auth-password-icon" />
         </button>
     </div>
 
