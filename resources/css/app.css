@@ -2947,6 +2947,14 @@
         padding: 0;
     }
 
+    .skuy-shell-notice--profile {
+        padding-top: 0;
+    }
+
+    .skuy-shell-notice--profile > div {
+        padding-top: 20px;
+    }
+
     .skuy-shell-notice aside {
         max-width: none !important;
         padding: 14px 16px !important;
@@ -3118,6 +3126,14 @@
 
     .skuy-shell-notice {
         padding: 16px 16px 0;
+    }
+
+    .skuy-shell-notice--profile {
+        padding-top: 0;
+    }
+
+    .skuy-shell-notice--profile > div {
+        padding-top: 16px;
     }
 
     .skuy-app-rail {

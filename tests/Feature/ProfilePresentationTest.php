@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ModerationState;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,6 +13,50 @@ use Tests\TestCase;
 class ProfilePresentationTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_public_profile_marks_the_empty_outer_notice_without_duplicate_profile_content(): void
+    {
+        $owner = User::factory()->create();
+        $response = $this->actingAs($owner)->get(route('user.profile', $owner));
+        $html = $response->getContent();
+
+        $response->assertOk();
+        $this->assertSame(1, preg_match(
+            '~<div class="skuy-shell-notice skuy-shell-notice--profile">(?<notice>.*?)</div>\\s*<main id="main-content"~s',
+            $html,
+            $matches,
+        ));
+        $this->assertSame('', trim($matches['notice']));
+        $this->assertStringNotContainsString('skuy-profile-cover', $matches['notice']);
+
+        $positions = [
+            strpos($html, '<main id="main-content"'),
+            strpos($html, '<div class="skuy-profile-page">'),
+            strpos($html, 'class="skuy-profile-back"'),
+            strpos($html, '<section class="skuy-profile-header"'),
+            strpos($html, 'class="skuy-profile-cover '),
+        ];
+        $this->assertNotContains(false, $positions);
+        $sortedPositions = $positions;
+        sort($sortedPositions);
+        $this->assertSame($sortedPositions, $positions);
+    }
+
+    public function test_profile_shell_preserves_the_existing_restricted_notice(): void
+    {
+        $owner = User::factory()->create();
+        $owner->forceFill(['moderation_state' => ModerationState::Restricted->value])->save();
+
+        $response = $this->actingAs($owner)->get(route('user.profile', $owner));
+
+        $response
+            ->assertOk()
+            ->assertSee('class="skuy-shell-notice skuy-shell-notice--profile"', false)
+            ->assertSee('id="restricted-account-notice-title"', false)
+            ->assertSee(__('moderation.restricted.notice_title'))
+            ->assertSee(__('moderation.restricted.notice_body'))
+            ->assertSee('skuy-profile-cover', false);
+    }
 
     public function test_owner_profile_orders_identity_actions_stats_and_tabs_with_existing_routes(): void
     {

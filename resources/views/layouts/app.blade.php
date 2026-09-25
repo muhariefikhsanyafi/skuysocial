@@ -24,7 +24,7 @@
             <div class="skuy-app-shell__workspace">
                 <a href="#main-content" class="skuy-skip-link">{{ __('navigation.skip_to_content') }}</a>
 
-                <div class="skuy-shell-notice">
+                <div class="skuy-shell-notice{{ request()->routeIs('user.profile') ? ' skuy-shell-notice--profile' : '' }}">
                     <x-restricted-account-notice />
                 </div>
 
