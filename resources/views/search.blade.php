@@ -1,4 +1,9 @@
 <x-app-layout>
+    @php
+        $searchValue = old('q');
+        $searchValue = is_string($searchValue) ? $searchValue : $query;
+    @endphp
+
     <div class="skuy-discovery-page">
         <div class="skuy-discovery-shell">
             <header class="skuy-discovery-header" aria-labelledby="search-page-title">
@@ -25,15 +30,22 @@
                         id="discovery-search-input"
                         type="search"
                         name="q"
-                        value="{{ $query }}"
+                        value="{{ $searchValue }}"
                         placeholder="{{ __('search.placeholder') }}"
                         autocomplete="off"
+                        @error('q')
+                            aria-invalid="true"
+                            aria-describedby="discovery-search-error"
+                        @enderror
                         class="skuy-discovery-search__input"
                     >
                     <button type="submit" class="skuy-button skuy-button--primary skuy-discovery-search__submit">
                         {{ __('search.submit') }}
                     </button>
                 </div>
+                @error('q')
+                    <p id="discovery-search-error" class="skuy-discovery-search__error" role="alert">{{ $message }}</p>
+                @enderror
             </form>
 
             @if ($query !== '')
@@ -70,7 +82,14 @@
                                             @endif
                                         </span>
                                         <span class="skuy-discovery-user__identity">
-                                            <span class="skuy-discovery-user__name">{{ $user->name }}</span>
+                                            <span class="skuy-discovery-user__name-line">
+                                                <span class="skuy-discovery-user__name">{{ $user->name }}</span>
+                                                @if ($user->is_verified)
+                                                    <span class="skuy-discovery-verified" role="img" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
+                                                    </span>
+                                                @endif
+                                            </span>
                                             <span class="skuy-discovery-user__username">{{ '@' . $user->username }}</span>
                                         </span>
                                     </a>
@@ -168,6 +187,11 @@
                                                             <a id="search-post-{{ $post->uid }}" href="{{ route('user.profile', $post->user->username) }}" class="skuy-post__display-name">
                                                                 {{ $post->user->name }}
                                                             </a>
+                                                            @if ($post->user->is_verified)
+                                                                <span class="skuy-discovery-verified" role="img" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
+                                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
+                                                                </span>
+                                                            @endif
                                                             <a href="{{ route('user.profile', $post->user->username) }}" class="skuy-post__username">
                                                                 <span aria-hidden="true">@</span>{{ $post->user->username }}
                                                             </a>
@@ -221,7 +245,7 @@
                         @endif
                     </section>
                 </div>
-            @else
+            @elseif (! $errors->has('q'))
                 <section class="skuy-discovery-empty skuy-discovery-empty--initial" aria-labelledby="search-empty-title" role="status">
                     <span class="skuy-discovery-empty__mark" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
