@@ -16,7 +16,7 @@ class SearchActivitySavedPresentationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_search_activity_and_saved_scope_the_empty_shell_notice(): void
+    public function test_search_activity_and_saved_omit_the_empty_shell_notice(): void
     {
         $viewer = User::factory()->create();
         $urls = [
@@ -30,10 +30,7 @@ class SearchActivitySavedPresentationTest extends TestCase
             $response->assertOk();
 
             $html = $response->getContent();
-            $this->assertTrue(
-                str_contains($html, 'class="skuy-shell-notice skuy-shell-notice--content"'),
-                'The target social surface should scope the empty shell notice: '.$url,
-            );
+            $this->assertStringNotContainsString('class="skuy-shell-notice', $html);
             $this->assertTrue(str_contains($html, 'aria-current="page"'), 'The active authenticated navigation item should remain selected.');
         }
     }

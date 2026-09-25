@@ -39,9 +39,7 @@
             <div class="skuy-app-shell__workspace">
                 <a href="#main-content" class="skuy-skip-link">{{ __('navigation.skip_to_content') }}</a>
 
-                <div class="skuy-shell-notice">
-                    <x-restricted-account-notice />
-                </div>
+                <x-restricted-account-notice />
 
                 <main id="main-content" tabindex="-1">
                     @inertia

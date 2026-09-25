@@ -14,20 +14,14 @@ class ProfilePresentationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_public_profile_marks_the_empty_outer_notice_without_duplicate_profile_content(): void
+    public function test_public_profile_omits_the_empty_shell_notice_without_duplicate_profile_content(): void
     {
         $owner = User::factory()->create();
         $response = $this->actingAs($owner)->get(route('user.profile', $owner));
         $html = $response->getContent();
 
         $response->assertOk();
-        $this->assertSame(1, preg_match(
-            '~<div class="skuy-shell-notice skuy-shell-notice--profile">(?<notice>.*?)</div>\\s*<main id="main-content"~s',
-            $html,
-            $matches,
-        ));
-        $this->assertSame('', trim($matches['notice']));
-        $this->assertStringNotContainsString('skuy-profile-cover', $matches['notice']);
+        $this->assertStringNotContainsString('class="skuy-shell-notice', $html);
 
         $positions = [
             strpos($html, '<main id="main-content"'),
@@ -40,6 +34,18 @@ class ProfilePresentationTest extends TestCase
         $sortedPositions = $positions;
         sort($sortedPositions);
         $this->assertSame($sortedPositions, $positions);
+    }
+
+    public function test_settings_pages_omit_the_empty_shell_notice(): void
+    {
+        $viewer = User::factory()->create();
+
+        foreach ([route('profile.edit'), route('user.edit')] as $url) {
+            $response = $this->actingAs($viewer)->get($url);
+
+            $response->assertOk();
+            $this->assertStringNotContainsString('class="skuy-shell-notice', $response->getContent());
+        }
     }
 
     public function test_profile_shell_preserves_the_existing_restricted_notice(): void

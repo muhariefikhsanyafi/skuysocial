@@ -24,9 +24,7 @@
             <div class="skuy-app-shell__workspace">
                 <a href="#main-content" class="skuy-skip-link">{{ __('navigation.skip_to_content') }}</a>
 
-                <div class="skuy-shell-notice{{ request()->routeIs('user.profile') ? ' skuy-shell-notice--profile' : '' }}{{ request()->routeIs('search', 'activity.index', 'bookmarks.index') ? ' skuy-shell-notice--content' : '' }}">
-                    <x-restricted-account-notice />
-                </div>
+                <x-restricted-account-notice class="{{ request()->routeIs('user.profile') ? 'skuy-shell-notice--profile' : '' }}{{ request()->routeIs('search', 'activity.index', 'bookmarks.index') ? ' skuy-shell-notice--content' : '' }}" />
 
             @isset($header)
                     <header class="skuy-app-page-header">
