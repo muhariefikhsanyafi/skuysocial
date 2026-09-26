@@ -246,7 +246,7 @@
                                 <!-- 1. Tombol Like (Berfungsi) -->
                                 <form action="{{ route('comments.like', $comment->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" aria-pressed="{{ $comment->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction{{ $comment->liked_by_current_user ? ' !border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : '' }}" title="{{ __('threads.labels.like') }}">
+                                    <button type="submit" aria-pressed="{{ $comment->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction" title="{{ __('threads.labels.like') }}">
                                         <x-fa-icon name="heart" :weight="$comment->liked_by_current_user ? 'solid' : 'regular'" class="text-base" />
                                         <!-- Angka Like -->
                                         @if($comment->likes_count > 0)
@@ -313,7 +313,7 @@
                                                     <!-- Tombol Like Anak -->
                                                     <form action="{{ route('comments.like', $reply->id) }}" method="POST">
                                                         @csrf
-                                                        <button type="submit" aria-pressed="{{ $reply->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction{{ $reply->liked_by_current_user ? ' !border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : '' }}" title="{{ __('threads.labels.like') }}">
+                                                        <button type="submit" aria-pressed="{{ $reply->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction" title="{{ __('threads.labels.like') }}">
                                                             <x-fa-icon name="heart" :weight="$reply->liked_by_current_user ? 'solid' : 'regular'" class="text-sm" />
                                                             @if($reply->likes_count > 0)
                                                                 <span class="text-[9px] font-semibold">{{ $reply->likes_count }}</span>

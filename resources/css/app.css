@@ -6271,15 +6271,15 @@
     min-width: 44px;
     min-height: 44px;
     height: 44px;
-    gap: 4px;
+    gap: 3px;
     padding: 0 2px;
     border-radius: var(--radius-small, 8px);
 }
 
 .skuy-actions.skuy-actions--primary .skuy-fa-icon {
-    width: 24px;
-    height: 24px;
-    font-size: 24px;
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
 }
 
 .skuy-actions.skuy-actions--primary .skuy-action > span:not(.sr-only):empty {
@@ -6287,8 +6287,8 @@
 }
 
 .skuy-actions.skuy-actions--primary .skuy-action > span:not(.sr-only) {
-    font-size: var(--skuy-type-meta);
-    line-height: var(--skuy-leading-meta);
+    font-size: 0.75rem;
+    line-height: 1.2;
     font-variant-numeric: tabular-nums;
 }
 
@@ -6307,24 +6307,32 @@
 }
 
 .skuy-actions--primary .skuy-action,
+.skuy-comment .skuy-actions .skuy-action,
 .skuy-action--bookmark[aria-pressed='true'] {
     border-color: transparent;
     background: transparent;
     box-shadow: none;
 }
 
-.skuy-actions--primary .skuy-action {
+.skuy-actions--primary .skuy-action,
+.skuy-comment .skuy-actions .skuy-action {
     color: var(--skuy-text-muted);
     font-weight: 600;
 }
 
+.skuy-comment .skuy-actions .skuy-action {
+    gap: 4px;
+}
+
 .skuy-actions--primary .skuy-action[aria-pressed='true'],
+.skuy-comment .skuy-actions .skuy-action[aria-pressed='true'],
 .skuy-action--bookmark[aria-pressed='true'] {
     color: var(--skuy-text-muted);
     font-weight: 600;
 }
 
 .skuy-actions--primary .skuy-action:hover,
+.skuy-comment .skuy-actions .skuy-action:hover,
 .skuy-action--bookmark[aria-pressed='true']:hover {
     border-color: transparent;
     background: transparent;
@@ -6333,13 +6341,19 @@
 
 .skuy-actions--primary .skuy-action--reaction[aria-pressed='true'] > .skuy-fa-icon,
 .skuy-actions--primary .skuy-action--reaction[aria-pressed='true'] > svg,
-.skuy-actions--primary .skuy-action--reaction[aria-pressed='true'] > span:not(.sr-only) {
+.skuy-actions--primary .skuy-action--reaction[aria-pressed='true'] > span:not(.sr-only),
+.skuy-comment .skuy-actions .skuy-action--reaction[aria-pressed='true'] > .skuy-fa-icon,
+.skuy-comment .skuy-actions .skuy-action--reaction[aria-pressed='true'] > svg,
+.skuy-comment .skuy-actions .skuy-action--reaction[aria-pressed='true'] > span:not(.sr-only) {
     color: var(--skuy-danger);
 }
 
 .skuy-actions--primary .skuy-action--selected[aria-pressed='true'] > .skuy-fa-icon,
 .skuy-actions--primary .skuy-action--selected[aria-pressed='true'] > svg,
 .skuy-actions--primary .skuy-action--selected[aria-pressed='true'] > span:not(.sr-only),
+.skuy-comment .skuy-actions .skuy-action--selected[aria-pressed='true'] > .skuy-fa-icon,
+.skuy-comment .skuy-actions .skuy-action--selected[aria-pressed='true'] > svg,
+.skuy-comment .skuy-actions .skuy-action--selected[aria-pressed='true'] > span:not(.sr-only),
 .skuy-action--bookmark[aria-pressed='true'] > .skuy-fa-icon,
 .skuy-action--bookmark[aria-pressed='true'] > svg,
 .skuy-action--bookmark[aria-pressed='true'] > span:not(.sr-only) {
