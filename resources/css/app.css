@@ -6409,3 +6409,10 @@
 .skuy-action--bookmark[aria-pressed='true'] > span:not(.sr-only) {
     color: var(--skuy-secondary);
 }
+
+/* Card surfaces match the subtle capsule; lift only primary interaction states in dark mode. */
+.dark .skuy-feed-page .skuy-actions--primary .skuy-action:hover:not(:disabled),
+.dark .skuy-feed-page .skuy-actions--primary .skuy-action:focus-visible,
+.dark .skuy-feed-page .skuy-actions--primary .skuy-action:active:not(:disabled) {
+    background: var(--skuy-surface-elevated);
+}
