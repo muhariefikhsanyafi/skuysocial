@@ -166,7 +166,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                         aria-pressed={liked}
                         title={liked ? translations.unlike : translations.like}
                         disabled={!canPerformSocialWrites || likePending}
-                        className={`skuy-action skuy-action--reaction disabled:cursor-not-allowed disabled:opacity-50${liked ? ' !border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : ''}`}
+                        className="skuy-action skuy-action--reaction disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <HeartIcon filled={liked} />
                         <span className="text-xs font-semibold">{likeCount > 0 ? likeCount : ''}</span>
@@ -185,7 +185,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                         aria-pressed={post.interactions.reposted}
                         title={translations.repost}
                         disabled={!canPerformSocialWrites || pendingAction !== null}
-                        className={`skuy-action skuy-action--selected disabled:cursor-not-allowed disabled:opacity-50${post.interactions.reposted ? ' !border-[var(--skuy-secondary)] !bg-[var(--skuy-secondary)] !text-[var(--skuy-on-secondary)]' : ''}`}
+                        className="skuy-action skuy-action--selected disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <RepostIcon active={post.interactions.reposted} />
                         {post.interactions.repost_count > 0 && <span className="text-xs font-semibold">{post.interactions.repost_count}</span>}
@@ -200,7 +200,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                             title={bookmarkLabel}
                             aria-pressed="true"
                             disabled={!canPerformSocialWrites || pendingAction !== null}
-                            className="skuy-action skuy-action--bookmark disabled:cursor-not-allowed disabled:opacity-50 !border-[var(--skuy-secondary)] !bg-[var(--skuy-selected)] !text-[var(--skuy-on-selected)]"
+                            className="skuy-action skuy-action--bookmark disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <BookmarkIcon filled />
                         </button>

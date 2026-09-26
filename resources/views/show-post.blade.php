@@ -126,7 +126,7 @@
                     <!-- Tombol Like -->
                     <form action="{{ route('posts.like', $displayPost->uid) }}" method="POST">
                         @csrf
-                        <button type="submit" aria-pressed="{{ $displayPost->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction{{ $displayPost->liked_by_current_user ? ' !border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : '' }}" title="{{ __('threads.labels.like') }}">
+                        <button type="submit" aria-pressed="{{ $displayPost->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction" title="{{ __('threads.labels.like') }}">
                             <x-fa-icon name="heart" :weight="$displayPost->liked_by_current_user ? 'solid' : 'regular'" class="text-xl" />
                             <span class="text-xs font-semibold">{{ $displayPost->likes_count > 0 ? $displayPost->likes_count : '' }}</span>
                         </button>
@@ -139,7 +139,7 @@
                     <!-- Tombol Repost (Berfungsi) -->
                     <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
                         @csrf
-                        <button type="submit" aria-pressed="{{ $displayPost->reposted_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--selected{{ $displayPost->reposted_by_current_user ? ' !border-[var(--skuy-secondary)] !bg-[var(--skuy-secondary)] !text-[var(--skuy-on-secondary)]' : '' }}" title="{{ __('threads.actions.repost') }}">
+                        <button type="submit" aria-pressed="{{ $displayPost->reposted_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--selected" title="{{ __('threads.actions.repost') }}">
                             <x-fa-icon name="retweet" :weight="$displayPost->reposted_by_current_user ? 'solid' : 'regular'" class="text-xl" />
                             <!-- Angka Jumlah Repost -->
                             @if($displayPost->reposts_count > 0)
@@ -151,7 +151,7 @@
                         <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark !border-[var(--skuy-secondary)] !bg-[var(--skuy-selected)] !text-[var(--skuy-on-selected)]">
+                            <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
                                 <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
                             </button>
                         </form>

@@ -244,7 +244,6 @@
                                 :aria-busy="isLikeRequestInFlight.toString()"
                                 :disabled="isLikeRequestInFlight"
                                 class="skuy-action skuy-action--reaction{{ $likeActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
-                                :class="liked ? '!border-[var(--skuy-reaction)] !bg-[var(--skuy-reaction)] !text-[var(--skuy-on-reaction)]' : ''"
                             >
                                 <x-fa-icon x-ref="likeIcon" name="heart" :weight="$displayPost->liked_by_me ? 'solid' : 'regular'" class="text-xl" />
                                 <span
@@ -262,7 +261,7 @@
 
                         <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
                             @csrf
-                            <button type="submit" aria-label="{{ $repostActionLabel }}" title="{{ $repostActionLabel }}" aria-pressed="{{ $displayPost->reposted_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--selected{{ $repostActionCountIsDense ? ' skuy-action--dense-count' : '' }}{{ $displayPost->reposted_by_me ? ' !border-[var(--skuy-secondary)] !bg-[var(--skuy-secondary)] !text-[var(--skuy-on-secondary)]' : '' }}">
+                            <button type="submit" aria-label="{{ $repostActionLabel }}" title="{{ $repostActionLabel }}" aria-pressed="{{ $displayPost->reposted_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--selected{{ $repostActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
                                 <x-fa-icon name="retweet" :weight="$displayPost->reposted_by_me ? 'solid' : 'regular'" class="text-xl" />
                                 @if ($repostDisplayCount !== '')
                                     <span>{{ $repostDisplayCount }}</span>
@@ -274,7 +273,7 @@
                             <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark !border-[var(--skuy-secondary)] !bg-[var(--skuy-selected)] !text-[var(--skuy-on-selected)]">
+                                <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
                                     <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
                                 </button>
                             </form>
