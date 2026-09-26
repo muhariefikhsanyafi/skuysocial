@@ -6409,3 +6409,10 @@
 .skuy-action--bookmark[aria-pressed='true'] > span:not(.sr-only) {
     color: var(--skuy-secondary);
 }
+
+/* Feed cards use the subtle surface themselves, so raise dark-mode capsule feedback. */
+.dark .skuy-feed-page .skuy-feed-post__actions .skuy-action:hover:not(:disabled),
+.dark .skuy-feed-page .skuy-feed-post__actions .skuy-action:focus-visible,
+.dark .skuy-feed-page .skuy-feed-post__actions .skuy-action:active:not(:disabled) {
+    background: var(--skuy-surface-raised);
+}
