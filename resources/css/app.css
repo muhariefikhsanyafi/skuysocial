@@ -6243,7 +6243,7 @@
     align-items: center;
     justify-content: flex-start;
     flex-wrap: nowrap;
-    gap: 0;
+    gap: 8px;
     width: fit-content;
     max-width: 100%;
 }
@@ -6273,8 +6273,8 @@
     min-height: 44px;
     height: 44px;
     gap: 6px;
-    padding: 0 2px;
-    border-radius: var(--radius-small, 8px);
+    padding: 0 6px;
+    border-radius: var(--radius-full, 9999px);
 }
 
 .skuy-actions.skuy-actions--primary .skuy-action > svg,
@@ -6310,7 +6310,7 @@
     align-items: center;
     justify-content: flex-start;
     flex-wrap: wrap;
-    gap: 0;
+    gap: 8px;
     width: fit-content;
     max-width: 100%;
 }
@@ -6321,7 +6321,8 @@
     min-height: 44px;
     height: 44px;
     gap: 6px;
-    padding: 0 2px;
+    padding: 0 6px;
+    border-radius: var(--radius-full, 9999px);
 }
 
 .skuy-comment .skuy-actions .skuy-action > svg,
@@ -6363,7 +6364,7 @@
 }
 
 .skuy-comment .skuy-actions .skuy-action {
-    gap: 4px;
+    gap: 6px;
 }
 
 .skuy-actions--primary .skuy-action[aria-pressed='true'],
@@ -6373,11 +6374,18 @@
     font-weight: 600;
 }
 
-.skuy-actions--primary .skuy-action:hover,
-.skuy-comment .skuy-actions .skuy-action:hover,
-.skuy-action--bookmark[aria-pressed='true']:hover {
+.skuy-actions--primary .skuy-action:hover:not(:disabled),
+.skuy-actions--primary .skuy-action:focus-visible,
+.skuy-actions--primary .skuy-action:active:not(:disabled),
+.skuy-comment .skuy-actions .skuy-action:hover:not(:disabled),
+.skuy-comment .skuy-actions .skuy-action:focus-visible,
+.skuy-comment .skuy-actions .skuy-action:active:not(:disabled),
+.skuy-action--bookmark[aria-pressed='true']:hover:not(:disabled),
+.skuy-action--bookmark[aria-pressed='true']:focus-visible,
+.skuy-action--bookmark[aria-pressed='true']:active:not(:disabled) {
     border-color: transparent;
-    background: transparent;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--skuy-surface-subtle);
     color: var(--skuy-text-primary);
 }
 
