@@ -6295,3 +6295,17 @@
     line-height: var(--skuy-leading-meta);
     font-variant-numeric: tabular-nums;
 }
+
+@media (max-width: 379px) {
+    .skuy-actions.skuy-actions--primary {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 359px) {
+    .skuy-topbar__inner {
+        width: 100%;
+        padding-inline: 12px;
+    }
+}
