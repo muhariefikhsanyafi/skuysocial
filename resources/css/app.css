@@ -6409,10 +6409,3 @@
 .skuy-action--bookmark[aria-pressed='true'] > span:not(.sr-only) {
     color: var(--skuy-secondary);
 }
-
-/* Dark primary rails sit on subtle cards; use the base surface for visible feedback. */
-.dark .skuy-feed-page .skuy-actions--primary .skuy-action:hover:not(:disabled),
-.dark .skuy-feed-page .skuy-actions--primary .skuy-action:focus-visible,
-.dark .skuy-feed-page .skuy-actions--primary .skuy-action:active:not(:disabled) {
-    background: var(--skuy-surface-base);
-}
