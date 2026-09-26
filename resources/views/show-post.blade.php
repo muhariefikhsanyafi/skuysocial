@@ -122,7 +122,7 @@
                         </div>
 
                         <!-- Ikon Interaksi Postingan Utama -->
-                        <div class="skuy-actions mt-4 border-t border-[var(--skuy-border-subtle)] pt-3">
+                        <div class="skuy-actions skuy-actions--primary mt-4 border-t border-[var(--skuy-border-subtle)] pt-3">
                     <!-- Tombol Like -->
                     <form action="{{ route('posts.like', $displayPost->uid) }}" method="POST">
                         @csrf

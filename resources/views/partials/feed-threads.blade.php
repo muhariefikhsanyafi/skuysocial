@@ -225,7 +225,7 @@
                             },
                         })"
                     >
-                        <div class="skuy-actions skuy-feed-post__actions">
+                        <div class="skuy-actions skuy-actions--primary skuy-feed-post__actions">
                             <form
                                 action="{{ route('posts.like', $displayPost->uid) }}"
                                 method="POST"

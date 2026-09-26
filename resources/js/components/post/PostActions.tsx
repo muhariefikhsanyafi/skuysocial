@@ -158,7 +158,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
 
     return (
         <>
-            <div className="skuy-actions mt-4 border-t border-[var(--skuy-border-subtle)] pt-3">
+            <div className="skuy-actions skuy-actions--primary mt-4 border-t border-[var(--skuy-border-subtle)] pt-3">
                 <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleLike(); }}>
                     <button
                         type="submit"

@@ -78,8 +78,8 @@
                 type="button"
                 class="skuy-icon-button"
             >
-                <x-fa-icon x-show="!darkMode" name="moon" class="text-xl" />
-                <x-fa-icon x-show="darkMode" style="display: none;" name="sun" class="text-xl" />
+                <x-fa-icon x-show="!darkMode" name="moon" weight="solid" class="text-xl" />
+                <x-fa-icon x-show="darkMode" style="display: none;" name="sun" weight="solid" class="text-xl" />
                 <span class="sr-only" x-text="darkMode ? '{{ __('navigation.dark') }}' : '{{ __('navigation.light') }}'"></span>
             </button>
 

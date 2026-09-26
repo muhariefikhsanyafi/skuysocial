@@ -148,7 +148,7 @@
                                                 @endif
                                             </div>
 
-                                            <div class="skuy-actions skuy-discovery-post__actions">
+                                            <div class="skuy-actions skuy-actions--primary skuy-discovery-post__actions">
                                                 <form action="{{ route('posts.like', $post->uid) }}" method="POST">
                                                     @csrf
                                                     <button type="submit" aria-label="{{ $likeLabel }}" title="{{ $likeLabel }}" aria-pressed="{{ $post->liked_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction">
