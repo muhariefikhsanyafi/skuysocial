@@ -362,7 +362,7 @@ class ModerationSocialWriteTest extends TestCase
         $user = $this->restrictedUser();
 
         $this->actingAs($user)->get('/dashboard')->assertOk();
-        $this->actingAs($user)->get(route('profile.edit'))->assertOk();
+        $this->actingAs($user)->get(route('profile.edit', $user->username))->assertOk();
         $this->actingAs($user)->get(route('user.profile', $user))->assertOk();
     }
 

@@ -403,7 +403,7 @@ class EmailOtpVerificationTest extends TestCase
         $user = User::factory()->unverified()->create();
         $code = $this->issueCode($user);
 
-        foreach ([route('dashboard'), route('feed'), route('search'), route('profile.edit')] as $url) {
+        foreach ([route('dashboard'), route('feed'), route('search'), route('profile.edit', $user->username)] as $url) {
             $this->actingAs($user)->get($url)->assertRedirect(route('verification.notice'));
         }
 

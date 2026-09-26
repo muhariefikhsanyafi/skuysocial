@@ -180,7 +180,7 @@ class LanguageSwitcherTest extends TestCase
     public function test_each_authenticated_settings_surface_uses_the_same_switcher(): void
     {
         $user = User::factory()->create(['locale' => 'en']);
-        $settingsUrls = [route('profile.edit'), route('user.edit')];
+        $settingsUrls = [route('profile.edit', $user->username), route('user.edit', $user->username)];
 
         foreach ($settingsUrls as $settingsUrl) {
             $response = $this->actingAs($user)->get($settingsUrl);

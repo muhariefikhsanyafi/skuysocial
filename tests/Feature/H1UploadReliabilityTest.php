@@ -213,7 +213,7 @@ class H1UploadReliabilityTest extends TestCase
         $response->assertSessionHasNoErrors();
         $response->assertRedirect(
             $routeName === 'profile.update'
-                ? route('profile.edit')
+                ? route('profile.edit', $user->username)
                 : route('user.profile', $user),
         );
 

@@ -48,7 +48,7 @@
 
                     <div class="skuy-profile-action">
                         @if (auth()->id() === $user->id)
-                            <a href="{{ route('user.edit') }}" class="skuy-button skuy-button--primary">
+                            <a href="{{ route('user.edit', $user->username) }}" class="skuy-button skuy-button--primary">
                                 {{ __('profile.edit') }}
                             </a>
                         @else

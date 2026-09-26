@@ -15,7 +15,7 @@ use Throwable;
 class UserController extends Controller
 {
     // 1. Menampilkan Halaman Profil
-    public function show(Request $request, $username)
+    public function show(Request $request, string $username)
     {
         // Cari user berdasarkan username, jika tidak ada, tampilkan 404
         $user = User::query()
@@ -176,9 +176,11 @@ class UserController extends Controller
     }
 	
 	// Menampilkan Halaman Edit Profil
-    public function edit()
+    public function edit(Request $request, string $username)
     {
-        $user = auth()->user();
+        $user = $request->user();
+        abort_unless($username === $user->username, 404);
+
         return view('edit-profile', compact('user'));
     }
 
@@ -243,6 +245,6 @@ class UserController extends Controller
         ]);
         $disk->delete(array_values(array_unique($obsoletePaths)));
 
-        return redirect()->route('user.profile', $user->username);
+        return redirect()->route('user.profile', ['username' => $user->username]);
     }
 }

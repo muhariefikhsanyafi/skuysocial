@@ -58,7 +58,7 @@
                     </div>
                 </dl>
 
-                <a href="{{ route('profile.edit') }}" class="skuy-dashboard-account__link">
+                <a href="{{ route('profile.edit', $user->username) }}" class="skuy-dashboard-account__link">
                     {{ __('home.dashboard.account_settings') }}
                 </a>
             </aside>

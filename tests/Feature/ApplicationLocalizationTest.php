@@ -206,12 +206,12 @@ class ApplicationLocalizationTest extends TestCase
         foreach ($cases as $locale => $copy) {
             $user = User::factory()->create(['locale' => $locale]);
 
-            $profileSettings = $this->localizedResponse($user, $locale, route('profile.edit'));
+            $profileSettings = $this->localizedResponse($user, $locale, route('profile.edit', $user->username));
             foreach ($copy['profile'] as $expected) {
                 $profileSettings->assertSeeText($expected);
             }
 
-            $userSettings = $this->localizedResponse($user, $locale, route('user.edit'));
+            $userSettings = $this->localizedResponse($user, $locale, route('user.edit', $user->username));
             foreach ($copy['user'] as $expected) {
                 $userSettings->assertSeeText($expected);
             }

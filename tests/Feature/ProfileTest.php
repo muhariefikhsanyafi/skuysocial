@@ -12,13 +12,13 @@ class ProfileTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_profile_page_is_displayed(): void
+    public function test_account_settings_page_is_displayed_on_the_canonical_route(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($user)
-            ->get('/profile');
+            ->get(route('profile.edit', $user->username));
 
         $response->assertOk();
     }
@@ -29,7 +29,7 @@ class ProfileTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->get(route('user.edit'));
+            ->get(route('user.edit', $user->username));
 
         $html = $response->getContent();
         $customFormStart = strpos($html, '<form action="'.route('user.update').'"');
@@ -84,7 +84,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.edit', ['username' => 'updated_user']));
 
         $user->refresh();
 
@@ -110,7 +110,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.edit', $user->username));
 
         $this->assertSame($bio, $user->refresh()->bio);
     }
@@ -183,7 +183,7 @@ class ProfileTest extends TestCase
 
         $this
             ->actingAs($user)
-            ->get('/user/routeprofileuser')
+            ->get(route('user.profile', ['username' => $user->fresh()->username]))
             ->assertOk()
             ->assertSee('routeprofileuser');
     }
@@ -202,7 +202,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.edit', $user->username));
 
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
@@ -224,7 +224,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.edit', $user->username));
 
         $user->refresh();
 
@@ -307,7 +307,7 @@ class ProfileTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->from(route('user.edit'))
+            ->from(route('user.edit', $user->username))
             ->post(route('user.update'), [
                 'name' => $user->name,
                 'bio' => str_repeat('b', 256),
@@ -315,7 +315,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasErrors('bio')
-            ->assertRedirect(route('user.edit'));
+            ->assertRedirect(route('user.edit', $user->username));
 
         $this->assertSame('Existing bio', $user->refresh()->bio);
     }

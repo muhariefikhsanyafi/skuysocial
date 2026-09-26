@@ -106,7 +106,7 @@
                             <x-dropdown-link :href="route('user.profile', auth()->user()->username)" class="skuy-menu-link" role="menuitem">
                                 {{ __('navigation.my_profile') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('profile.edit')" class="skuy-menu-link" role="menuitem">
+                            <x-dropdown-link :href="route('profile.edit', $user->username)" class="skuy-menu-link" role="menuitem">
                                 {{ __('navigation.settings') }}
                             </x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
@@ -150,7 +150,7 @@
                 <a href="{{ route('bookmarks.index') }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('bookmarks.index') ? 'page' : 'false' }}">
                     {{ __('navigation.saved') }}
                 </a>
-                <a href="{{ route('profile.edit') }}" class="skuy-menu-link">
+                <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link">
                     {{ __('navigation.settings') }}
                 </a>
                 <form method="POST" action="{{ route('logout') }}">

@@ -40,7 +40,7 @@ class ProfilePresentationTest extends TestCase
     {
         $viewer = User::factory()->create();
 
-        foreach ([route('profile.edit'), route('user.edit')] as $url) {
+        foreach ([route('profile.edit', $viewer->username), route('user.edit', $viewer->username)] as $url) {
             $response = $this->actingAs($viewer)->get($url);
 
             $response->assertOk();
@@ -92,7 +92,7 @@ class ProfilePresentationTest extends TestCase
             ->assertSee('Profile Owner with a Long Display Name')
             ->assertSee('@profile.owner')
             ->assertSee('A thoughtful profile bio.')
-            ->assertSee('href="'.route('user.edit').'"', false)
+            ->assertSee('href="'.route('user.edit', $owner->username).'"', false)
             ->assertSee('href="'.route('user.followers', $owner).'"', false)
             ->assertSee('href="'.route('user.following', $owner).'"', false)
             ->assertSee(route('posts.show', $post), false)
@@ -115,7 +115,7 @@ class ProfilePresentationTest extends TestCase
         $sortedPositions = $positions;
         sort($sortedPositions);
         $this->assertSame($sortedPositions, $positions);
-        $this->assertSame('user/{username}', Route::getRoutes()->getByName('user.profile')?->uri());
+        $this->assertSame('@{username}', Route::getRoutes()->getByName('user.profile')?->uri());
     }
 
     public function test_other_verified_profile_preserves_follow_state_and_tab_navigation(): void
@@ -178,7 +178,7 @@ class ProfilePresentationTest extends TestCase
             ->assertSee('skuy-profile-cover--empty', false)
             ->assertSee('skuy-profile-cover__placeholder', false)
             ->assertSee(__('profile.no_bio'))
-            ->assertSee('href="'.route('user.edit').'"', false)
+            ->assertSee('href="'.route('user.edit', $owner->username).'"', false)
             ->assertDontSee('class="skuy-profile-follow-button', false)
             ->assertDontSee('class="skuy-profile-verified"', false);
     }
@@ -219,5 +219,67 @@ class ProfilePresentationTest extends TestCase
             ->assertSee('media/first.jpg', false)
             ->assertSee('media/second.jpg', false)
             ->assertSee(route('posts.show', $post), false);
+    }
+
+    public function test_profile_and_settings_named_routes_use_the_canonical_username_urls(): void
+    {
+        $owner = User::factory()->create(['username' => 'canonical.owner']);
+
+        $this->assertSame('/@canonical.owner', route('user.profile', $owner->username, false));
+        $this->assertSame('/@canonical.owner/pengaturan-profil', route('user.edit', $owner->username, false));
+        $this->assertSame('/@canonical.owner/pengaturan-akun', route('profile.edit', $owner->username, false));
+    }
+
+    public function test_canonical_settings_only_resolve_for_the_authenticated_users_username(): void
+    {
+        $owner = User::factory()->create(['username' => 'canonical.owner']);
+        User::factory()->create(['username' => 'other.owner']);
+
+        $this->actingAs($owner)
+            ->get('/@canonical.owner/pengaturan-profil')
+            ->assertOk()
+            ->assertViewIs('edit-profile');
+
+        $this->actingAs($owner)
+            ->get('/@canonical.owner/pengaturan-akun')
+            ->assertOk()
+            ->assertViewIs('profile.edit');
+
+        $this->actingAs($owner)
+            ->get('/@other.owner/pengaturan-profil')
+            ->assertNotFound();
+
+        $this->actingAs($owner)
+            ->get('/@other.owner/pengaturan-akun')
+            ->assertNotFound();
+    }
+
+    public function test_guests_keep_the_existing_login_flow_for_private_settings_routes(): void
+    {
+        foreach ([
+            '/@canonical.owner/pengaturan-profil',
+            '/@canonical.owner/pengaturan-akun',
+            '/profile',
+            '/pengaturan/profil',
+        ] as $url) {
+            $this->get($url)->assertRedirect(route('login'));
+        }
+    }
+
+    public function test_legacy_profile_routes_redirect_to_canonical_urls_with_query_strings(): void
+    {
+        $owner = User::factory()->create(['username' => 'canonical.owner']);
+
+        $this->actingAs($owner)
+            ->get('/user/canonical.owner?tab=likes')
+            ->assertRedirect(route('user.profile', ['username' => $owner->username, 'tab' => 'likes']));
+
+        $this->actingAs($owner)
+            ->get('/profile?section=security')
+            ->assertRedirect(route('profile.edit', ['username' => $owner->username, 'section' => 'security']));
+
+        $this->actingAs($owner)
+            ->get('/pengaturan/profil?section=details')
+            ->assertRedirect(route('user.edit', ['username' => $owner->username, 'section' => 'details']));
     }
 }

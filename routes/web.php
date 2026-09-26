@@ -26,7 +26,10 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/@{username}/pengaturan-akun', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', static function (Request $request) {
+        return redirect()->route('profile.edit', ['username' => $request->user()->username] + $request->query());
+    })->name('profile.legacy-edit');
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->middleware('moderation.active')
         ->name('profile.update');
@@ -48,7 +51,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/user/{user}/following', [UserController::class, 'following'])->name('user.following');
 
     // Rute untuk Halaman Profil
-    Route::get('/user/{username}', [UserController::class, 'show'])->name('user.profile');
+    Route::get('/@{username}', [UserController::class, 'show'])->name('user.profile');
+    Route::get('/user/{username}', static function (Request $request, string $username) {
+        return redirect()->route('user.profile', ['username' => $username] + $request->query());
+    })->name('user.profile.legacy');
 });
 
 require __DIR__.'/auth.php';
@@ -103,7 +109,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('posts.destroy');
 
     // Rute Pengaturan/Edit Profil
-    Route::get('/pengaturan/profil', [UserController::class, 'edit'])->name('user.edit');
+    Route::get('/@{username}/pengaturan-profil', [UserController::class, 'edit'])->name('user.edit');
+    Route::get('/pengaturan/profil', static function (Request $request) {
+        return redirect()->route('user.edit', ['username' => $request->user()->username] + $request->query());
+    })->name('user.edit.legacy');
     Route::post('/pengaturan/profil', [UserController::class, 'update'])
         ->middleware('moderation.active')
         ->name('user.update');

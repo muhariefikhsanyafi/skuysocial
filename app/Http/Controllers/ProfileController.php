@@ -18,10 +18,13 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): View
+    public function edit(Request $request, string $username): View
     {
+        $user = $request->user();
+        abort_unless($username === $user->username, 404);
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
         ]);
     }
 
@@ -103,7 +106,8 @@ class ProfileController extends Controller
         ]);
         $disk->delete(array_values(array_unique($obsoletePaths)));
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('profile.edit', ['username' => $request->user()->username])
+            ->with('status', 'profile-updated');
     }
 
     /**

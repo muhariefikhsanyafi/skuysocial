@@ -231,7 +231,7 @@ class AdminPanelAccessTest extends TestCase
                 'role' => UserRole::Administrator->value,
             ])
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.edit', $user->username));
 
         $this->assertSame(UserRole::User->value, $user->refresh()->role);
     }
