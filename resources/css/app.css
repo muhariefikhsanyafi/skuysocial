@@ -6410,9 +6410,9 @@
     color: var(--skuy-secondary);
 }
 
-/* Feed cards use the subtle surface themselves, so raise dark-mode capsule feedback. */
-.dark .skuy-feed-page .skuy-feed-post__actions .skuy-action:hover:not(:disabled),
-.dark .skuy-feed-page .skuy-feed-post__actions .skuy-action:focus-visible,
-.dark .skuy-feed-page .skuy-feed-post__actions .skuy-action:active:not(:disabled) {
-    background: var(--skuy-surface-raised);
+/* Dark primary rails sit on subtle cards; use the base surface for visible feedback. */
+.dark .skuy-feed-page .skuy-actions--primary .skuy-action:hover:not(:disabled),
+.dark .skuy-feed-page .skuy-actions--primary .skuy-action:focus-visible,
+.dark .skuy-feed-page .skuy-actions--primary .skuy-action:active:not(:disabled) {
+    background: var(--skuy-surface-base);
 }
