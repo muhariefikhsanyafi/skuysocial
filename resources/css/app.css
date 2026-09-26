@@ -6241,10 +6241,11 @@
 .skuy-actions.skuy-actions--primary {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     flex-wrap: nowrap;
-    gap: 6px;
-    width: 100%;
+    gap: 0;
+    width: fit-content;
+    max-width: 100%;
 }
 
 .skuy-actions.skuy-actions--primary > form,
@@ -6257,7 +6258,7 @@
 }
 
 .skuy-actions.skuy-actions--primary > form {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
 }
 
 .skuy-actions.skuy-actions--primary > button,
@@ -6271,15 +6272,20 @@
     min-width: 44px;
     min-height: 44px;
     height: 44px;
-    gap: 3px;
+    gap: 6px;
     padding: 0 2px;
     border-radius: var(--radius-small, 8px);
 }
 
-.skuy-actions.skuy-actions--primary .skuy-fa-icon {
-    width: 22px;
-    height: 22px;
-    font-size: 22px;
+.skuy-actions.skuy-actions--primary .skuy-action > svg,
+.skuy-actions.skuy-actions--primary .skuy-action > .skuy-fa-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+}
+
+.skuy-actions.skuy-actions--primary .skuy-action > .skuy-fa-icon {
+    font-size: 20px;
 }
 
 .skuy-actions.skuy-actions--primary .skuy-action > span:not(.sr-only):empty {
@@ -6287,7 +6293,7 @@
 }
 
 .skuy-actions.skuy-actions--primary .skuy-action > span:not(.sr-only) {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     line-height: 1.2;
     font-variant-numeric: tabular-nums;
 }
@@ -6295,8 +6301,44 @@
 @media (max-width: 379px) {
     .skuy-actions.skuy-actions--primary {
         justify-content: flex-start;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
+}
+
+.skuy-comment .skuy-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.skuy-comment .skuy-actions .skuy-action {
+    box-sizing: border-box;
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
+    gap: 6px;
+    padding: 0 2px;
+}
+
+.skuy-comment .skuy-actions .skuy-action > svg,
+.skuy-comment .skuy-actions .skuy-action > .skuy-fa-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+}
+
+.skuy-comment .skuy-actions .skuy-action > .skuy-fa-icon {
+    font-size: 20px;
+}
+
+.skuy-comment .skuy-actions .skuy-action > span:not(.sr-only) {
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 359px) {
