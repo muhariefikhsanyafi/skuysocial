@@ -8,6 +8,8 @@ return [
     'threads' => 'Utas',
     'likes' => 'Suka',
     'no_bio' => 'Pengguna belum menulis bio.',
+    'links' => 'Tautan profil',
+    'opens_new_tab' => 'Dibuka di tab baru',
 
     'media' => [
         'cover_of' => 'Sampul profil :name',

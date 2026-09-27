@@ -51,11 +51,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/user/{user}/following', [UserController::class, 'following'])->name('user.following');
 
     // Rute untuk Halaman Profil
-    Route::get('/@{username}', [UserController::class, 'show'])->name('user.profile');
     Route::get('/user/{username}', static function (Request $request, string $username) {
         return redirect()->route('user.profile', ['username' => $username] + $request->query());
     })->name('user.profile.legacy');
 });
+
+Route::get('/@{username}', [UserController::class, 'show'])->name('user.profile');
 
 require __DIR__.'/auth.php';
 

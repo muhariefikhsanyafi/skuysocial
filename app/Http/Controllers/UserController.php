@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProfileVisibility;
+use App\Http\Requests\ProfilePresentationUpdateRequest;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,11 +21,17 @@ class UserController extends Controller
     {
         // Cari user berdasarkan username, jika tidak ada, tampilkan 404
         $user = User::query()
-            ->withCount(['followings', 'followers'])
             ->where('username', $username)
             ->firstOrFail();
 
-        $viewerId = $request->user()->getKey();
+        $viewer = $request->user();
+
+        if ($user->profile_visibility === ProfileVisibility::MembersOnly && $viewer === null) {
+            return redirect()->guest(route('login'));
+        }
+
+        $user->load('profileLinks')->loadCount(['followings', 'followers']);
+        $viewerId = $viewer?->getKey();
         $bookmarkState = [
             'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
         ];
@@ -31,8 +39,9 @@ class UserController extends Controller
             ->with('user')
             ->withExists($bookmarkState);
 
-        $isFollowing = auth()->id() !== $user->id
-            && auth()->user()->isFollowing($user);
+        $isFollowing = $viewer !== null
+            && $viewer->isNot($user)
+            && $viewer->isFollowing($user);
         $followersCount = (int) $user->followers_count;
         $followingsCount = (int) $user->followings_count;
         
@@ -180,24 +189,22 @@ class UserController extends Controller
     {
         $user = $request->user();
         abort_unless($username === $user->username, 404);
+        $user->load('profileLinks');
 
         return view('edit-profile', compact('user'));
     }
 
-    public function update(Request $request)
+    public function update(ProfilePresentationUpdateRequest $request)
     {
-        $user = auth()->user();
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:50',
-            'bio' => 'nullable|string|max:255',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'cover' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        $user = $request->user();
+        $validated = $request->validated();
 
         $user->name = $validated['name'];
         if (array_key_exists('bio', $validated)) {
             $user->bio = $validated['bio'];
+        }
+        if (array_key_exists('profile_visibility', $validated)) {
+            $user->profile_visibility = $validated['profile_visibility'];
         }
 
         $disk = Storage::disk('public');
@@ -228,9 +235,26 @@ class UserController extends Controller
                 $user->cover = $newCover;
             }
 
-            DB::transaction(function () use ($user): void {
+            DB::transaction(function () use ($user, $validated): void {
                 if (! $user->save()) {
                     throw new RuntimeException('Failed to save profile changes.');
+                }
+
+                $replaceProfileLinks = array_key_exists('profile_links', $validated)
+                    || array_key_exists('profile_links_present', $validated);
+
+                if (! $replaceProfileLinks) {
+                    return;
+                }
+
+                $user->profileLinks()->delete();
+
+                foreach (array_values($validated['profile_links'] ?? []) as $sortOrder => $link) {
+                    $user->profileLinks()->create([
+                        'label' => $link['label'],
+                        'url' => $link['url'],
+                        'sort_order' => $sortOrder,
+                    ]);
                 }
             });
         } catch (Throwable $exception) {

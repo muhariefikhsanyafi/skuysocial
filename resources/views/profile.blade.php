@@ -46,12 +46,26 @@
 
                     <p class="skuy-profile-bio{{ filled(trim($user->bio ?? '')) ? '' : ' skuy-profile-bio--empty' }}">{{ filled(trim($user->bio ?? '')) ? $user->bio : __('profile.no_bio') }}</p>
 
+                    @if ($user->profileLinks->isNotEmpty())
+                        <ul class="mt-3 flex flex-wrap gap-x-2 gap-y-1" aria-label="{{ __('profile.links') }}">
+                            @foreach ($user->profileLinks as $profileLink)
+                                <li class="min-w-0 max-w-full">
+                                    <a href="{{ $profileLink->url }}" target="_blank" rel="noopener noreferrer nofollow ugc" class="inline-flex min-h-[44px] max-w-full items-center gap-2 break-all rounded-[var(--radius-small)] px-2 text-sm font-semibold text-[var(--skuy-secondary)] transition-colors hover:bg-[var(--skuy-surface-subtle)] hover:text-[var(--skuy-secondary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
+                                        <x-fa-icon name="link" class="shrink-0 text-sm" />
+                                        <span>{{ $profileLink->label }}</span>
+                                        <span class="sr-only">{{ __('profile.opens_new_tab') }}</span>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
                     <div class="skuy-profile-action">
                         @if (auth()->id() === $user->id)
                             <a href="{{ route('user.edit', $user->username) }}" class="skuy-button skuy-button--primary">
                                 {{ __('profile.edit') }}
                             </a>
-                        @else
+                        @elseif (auth()->check())
                             <form action="{{ route('user.follow', $user->username) }}" method="POST">
                                 @csrf
                                 <button
@@ -207,7 +221,7 @@
                                                 {{ __('threads.actions.view_thread') }}
                                             </a>
 
-                                            @if ($displayPost->bookmarked_by_me)
+                                            @if (auth()->check() && $displayPost->bookmarked_by_me)
                                                 <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                                                     @csrf
                                                     @method('DELETE')
@@ -215,7 +229,7 @@
                                                         <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
                                                     </button>
                                                 </form>
-                                            @else
+                                            @elseif (auth()->check())
                                                 <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
                                                     @csrf
                                                     <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">

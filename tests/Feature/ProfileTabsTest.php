@@ -156,11 +156,11 @@ class ProfileTabsTest extends TestCase
             ->assertDontSee('Pengguna ini belum membuat utas apa pun.');
     }
 
-    public function test_guest_cannot_access_profile_tabs(): void
+    public function test_guest_can_view_public_profile_tabs(): void
     {
         $user = User::factory()->create();
 
-        $this->get(route('user.profile', $user).'?tab=likes')->assertRedirect('/login');
+        $this->get(route('user.profile', $user).'?tab=likes')->assertOk();
     }
 
     public function test_threads_tab_keeps_profile_posts_and_ordering(): void

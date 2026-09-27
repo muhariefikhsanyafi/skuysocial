@@ -24,25 +24,34 @@
     </head>
     <body class="skuy-product antialiased">
         <div class="skuy-app-shell">
-            @include('layouts.navigation')
+            @if (auth()->check())
+                @include('layouts.navigation')
+                <div class="skuy-app-shell__workspace">
+            @else
+                <x-guest-header :action-url="route('login')" :action-label="__('home.public.sign_in')" />
+            @endif
 
-            <div class="skuy-app-shell__workspace">
-                <a href="#main-content" class="skuy-skip-link">{{ __('navigation.skip_to_content') }}</a>
+            <a href="#main-content" class="skuy-skip-link">{{ __('navigation.skip_to_content') }}</a>
 
+            @if (auth()->check())
                 <x-restricted-account-notice class="{{ request()->routeIs('user.profile') ? 'skuy-shell-notice--profile' : '' }}{{ request()->routeIs('search', 'activity.index', 'bookmarks.index') ? ' skuy-shell-notice--content' : '' }}" />
+            @endif
 
             @isset($header)
-                    <header class="skuy-app-page-header">
-                        <div class="skuy-app-page-header__inner">
+                <header class="skuy-app-page-header">
+                    <div class="skuy-app-page-header__inner">
                         {{ $header }}
-                        </div>
-                    </header>
+                    </div>
+                </header>
             @endisset
 
-                <main id="main-content" tabindex="-1">
+            <main id="main-content" tabindex="-1">
                 {{ $slot }}
-                </main>
-            </div>
+            </main>
+
+            @if (auth()->check())
+                </div>
+            @endif
         </div>
 
         <div

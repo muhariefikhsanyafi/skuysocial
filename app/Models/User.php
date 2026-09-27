@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ModerationState;
+use App\Enums\ProfileVisibility;
 use App\Enums\UserRole;
 use App\Services\EmailVerificationOtpService;
 use App\Services\LocalePreference;
@@ -19,12 +20,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'username', 'email', 'password', 'avatar', 'cover', 'bio'])]
+#[Fillable(['name', 'username', 'email', 'password', 'avatar', 'cover', 'bio', 'profile_visibility'])]
 #[Hidden(['password', 'remember_token', 'auth_session_version', 'moderation_state_version'])]
 class User extends Authenticatable implements FilamentUser, HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    protected $attributes = [
+        'profile_visibility' => 'public',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -37,6 +42,7 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
             'email_verified_at' => 'datetime',
             'moderation_state_changed_at' => 'datetime',
             'password' => 'hashed',
+            'profile_visibility' => ProfileVisibility::class,
         ];
     }
 
@@ -132,6 +138,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function profileLinks(): HasMany
+    {
+        return $this->hasMany(UserProfileLink::class)->orderBy('sort_order');
     }
 
     public function emailVerificationOtp(): HasOne
