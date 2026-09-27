@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import { acquireFeedPostActionLock } from './feedPostActionLock';
 
 window.Alpine = Alpine;
 
@@ -338,6 +339,10 @@ Alpine.data('likeControl', (config = {}) => ({
         }));
     },
 
+    acquireActionLock(action) {
+        return acquireFeedPostActionLock(this.postUid, action);
+    },
+
     setFeedback(message, isError) {
         this.feedbackMessage = message;
         this.feedbackIsError = isError;
@@ -428,6 +433,8 @@ Alpine.data('likeControl', (config = {}) => ({
     async toggleLike(event) {
         event?.preventDefault();
         if (this.isLikeRequestInFlight) return;
+        const releaseActionLock = this.acquireActionLock('like');
+        if (!releaseActionLock) return;
 
         const desiredLiked = !this.liked;
         this.feedbackMessage = '';
@@ -457,12 +464,15 @@ Alpine.data('likeControl', (config = {}) => ({
             this.setFeedback(this.feedbackForError(error), true);
         } finally {
             this.isLikeRequestInFlight = false;
+            releaseActionLock();
         }
     },
 
     async toggleRepost(event) {
         event?.preventDefault();
         if (this.isRepostRequestInFlight) return;
+        const releaseActionLock = this.acquireActionLock('repost');
+        if (!releaseActionLock) return;
 
         this.feedbackMessage = '';
         this.feedbackIsError = false;
@@ -490,12 +500,15 @@ Alpine.data('likeControl', (config = {}) => ({
             this.setFeedback(this.feedbackForError(error), true);
         } finally {
             this.isRepostRequestInFlight = false;
+            releaseActionLock();
         }
     },
 
     async toggleBookmark(event) {
         event?.preventDefault();
         if (this.isBookmarkRequestInFlight) return;
+        const releaseActionLock = this.acquireActionLock('bookmark');
+        if (!releaseActionLock) return;
 
         const desiredBookmarked = !this.bookmarked;
         this.feedbackMessage = '';
@@ -524,6 +537,7 @@ Alpine.data('likeControl', (config = {}) => ({
             this.setFeedback(this.feedbackForError(error), true);
         } finally {
             this.isBookmarkRequestInFlight = false;
+            releaseActionLock();
         }
     },
 }));

@@ -177,4 +177,21 @@ describe('PostActions like state', () => {
             expect(screen.getByRole('alert').textContent).toContain('connection failed');
         });
     });
+
+    it('reports forbidden actions as restricted and rolls back the like state', async () => {
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ message: 'Forbidden' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+        }));
+        vi.stubGlobal('fetch', fetchMock);
+
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} commentCount={post.interactions.comment_count} />);
+        const button = screen.getByRole('button', { name: /Like/ });
+        fireEvent.click(button);
+
+        await waitFor(() => {
+            expect(button.getAttribute('aria-pressed')).toBe('false');
+            expect(screen.getByRole('alert').textContent).toBe(translations.feedback.restricted);
+        });
+    });
 });

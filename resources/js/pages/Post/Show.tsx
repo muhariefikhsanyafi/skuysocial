@@ -49,8 +49,11 @@ export default function Show() {
     }, [displayPost.uid, displayPost.interactions.comment_count]);
 
     const handleCommentCreated = (response: ReactiveCommentCreationResponse) => {
+        const scrollX = window.scrollX;
+        const scrollY = window.scrollY;
         setCommentCount((current) => Math.max(current, response.comment_count));
         setCreatedComments((current) => [...current, response].slice(-100));
+        requestAnimationFrame(() => window.scrollTo(scrollX, scrollY));
     };
 
     return (

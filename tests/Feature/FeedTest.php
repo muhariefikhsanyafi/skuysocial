@@ -63,6 +63,11 @@ class FeedTest extends TestCase
         $html = (string) $response->getContent();
 
         $response->assertOk();
+        $this->assertGreaterThanOrEqual(
+            2,
+            substr_count($html, 'data-feed-post-uid="'.$post->uid.'"'),
+            'The original post and its repost should exercise duplicate Feed instances.',
+        );
         foreach ([
             'class="skuy-composer skuy-feed-composer"',
             'class="skuy-feed-timeline"',
@@ -75,9 +80,13 @@ class FeedTest extends TestCase
             'class="skuy-post skuy-feed-post cursor-pointer"',
             'class="skuy-post__repost skuy-feed-post__repost"',
             'class="skuy-actions skuy-actions--primary skuy-feed-post__actions"',
+            "@click=\"if(!\$event.target.closest('button, a, form, img, input, textarea, select, [contenteditable]')) window.location=",
             'toggleLike($event)',
             'toggleRepost($event)',
             'toggleBookmark($event)',
+            'data-feed-post-action="like"',
+            'data-feed-post-action="repost"',
+            'data-feed-post-action="bookmark"',
             'bookmarkFormAction()',
             'isRepostRequestInFlight',
             'isBookmarkRequestInFlight',

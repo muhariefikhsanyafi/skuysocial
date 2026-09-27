@@ -53,11 +53,7 @@ async function requestAction(
     }
 
     if (response.status === 403) {
-        throw new Error(
-            payload && payload.code === 'moderation_state_forbids_social_write'
-                ? translations.feedback.restricted
-                : translations.feedback.failed,
-        );
+        throw new Error(translations.feedback.restricted);
     }
 
     if (!response.ok) {

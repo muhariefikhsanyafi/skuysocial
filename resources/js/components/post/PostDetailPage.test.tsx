@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PostDetailPageProps } from '../../types/post';
 import Show from '../../pages/Post/Show';
@@ -132,11 +132,21 @@ const props = {
 } as PostDetailPageProps;
 
 describe('Post detail composition', () => {
+    let scrollXDescriptor: PropertyDescriptor | undefined;
+    let scrollYDescriptor: PropertyDescriptor | undefined;
+
     beforeEach(() => {
+        scrollXDescriptor = Object.getOwnPropertyDescriptor(window, 'scrollX');
+        scrollYDescriptor = Object.getOwnPropertyDescriptor(window, 'scrollY');
         usePageMock.mockReturnValue({ props });
     });
 
-    afterEach(() => cleanup());
+    afterEach(() => {
+        cleanup();
+        vi.unstubAllGlobals();
+        if (scrollXDescriptor) Object.defineProperty(window, 'scrollX', scrollXDescriptor);
+        if (scrollYDescriptor) Object.defineProperty(window, 'scrollY', scrollYDescriptor);
+    });
 
     it('separates root post, reply composer, and conversation while leading with author identity', () => {
         render(<Show />);
@@ -157,5 +167,57 @@ describe('Post detail composition', () => {
 
         const conversation = screen.getByRole('region', { name: 'Replies' });
         expect(conversation.classList.contains('skuy-post-detail__conversation')).toBe(true);
+    });
+
+    it('preserves the current scroll position after creating a comment reactively', async () => {
+        const createdComment = {
+            post_uid: 'detail-post',
+            comment_count: 1,
+            root_comment_count: 1,
+            parent_reply_count: null,
+            comment: {
+                id: 91,
+                post_uid: 'detail-post',
+                parent_id: null,
+                content: 'Created without page movement',
+                datetime: '2026-09-25T00:01:00+00:00',
+                display_time: 'now',
+                author,
+                like_count: 0,
+                liked: false,
+                replies_count: 0,
+                replies: [],
+                actions: {
+                    like_url: '/comments/91/like',
+                    reply_url: '/posts/detail-post/comments',
+                    share_url: '/post/detail-post#comment-91',
+                },
+                reply_expansion_url: null,
+            },
+        };
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 201,
+            redirected: false,
+            json: async () => createdComment,
+        });
+        const scrollToMock = vi.fn();
+        vi.stubGlobal('fetch', fetchMock);
+        vi.stubGlobal('scrollTo', scrollToMock);
+        vi.stubGlobal('requestAnimationFrame', ((callback: FrameRequestCallback) => {
+            callback(0);
+            return 1;
+        }) as typeof window.requestAnimationFrame);
+        Object.defineProperty(window, 'scrollX', { configurable: true, value: 12 });
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 480 });
+
+        render(<Show />);
+        const input = screen.getByRole('textbox', { name: 'Reply to display_person...' });
+        fireEvent.change(input, { target: { value: 'Created without page movement' } });
+        fireEvent.submit(input.closest('form') as HTMLFormElement);
+
+        await waitFor(() => expect(screen.getByText('Created without page movement')).toBeTruthy());
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(scrollToMock).toHaveBeenCalledWith(12, 480);
     });
 });

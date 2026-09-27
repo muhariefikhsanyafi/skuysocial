@@ -17,7 +17,7 @@
             moreCommentsLabel: @js(trans_choice('threads.comments.more', 2, ['count' => '__COUNT__'])),
         })"
         @feed-comment-created="commentCreated($event)"
-        @click="if(!$event.target.closest('button, a, form, img')) window.location='{{ route('posts.show', $displayPost->uid) }}'"
+        @click="if(!$event.target.closest('button, a, form, img, input, textarea, select, [contenteditable]')) window.location='{{ route('posts.show', $displayPost->uid) }}'"
         class="skuy-post skuy-feed-post cursor-pointer"
     >
         @if ($isRepost)
@@ -257,6 +257,7 @@
                                 @csrf
                                 <button
                                     x-ref="likeButton"
+                                    data-feed-post-action="like"
                                     type="submit"
                                     aria-label="{{ $likeActionLabel }}"
                                     title="{{ $likeActionLabel }}"
@@ -290,6 +291,7 @@
                                 @csrf
                                 <button
                                     x-ref="repostButton"
+                                    data-feed-post-action="repost"
                                     type="submit"
                                     aria-label="{{ $repostActionLabel }}"
                                     title="{{ $repostActionLabel }}"
@@ -326,6 +328,7 @@
                                 >
                                 <button
                                     x-ref="bookmarkButton"
+                                    data-feed-post-action="bookmark"
                                     type="submit"
                                     aria-label="{{ $displayPost->bookmarked_by_me ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}"
                                     title="{{ $displayPost->bookmarked_by_me ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}"
