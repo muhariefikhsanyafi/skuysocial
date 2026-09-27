@@ -25,6 +25,8 @@
                     {{ __('settings.two_factor.manage') }}
                 </a>
             </section>
+
+            @include('profile.partials.delete-user-form')
         </div>
     </div>
 </x-app-layout>

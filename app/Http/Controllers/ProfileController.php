@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ModerationState;
+use App\Enums\UserRole;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -50,15 +55,52 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
-
         $user = $request->user();
 
-        Auth::logout();
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'string', 'current_password'],
+            'username_confirmation' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::in([$user->username]),
+            ],
+        ], [
+            'username_confirmation.in' => __('settings.delete.username_mismatch'),
+        ], [
+            'password' => __('settings.delete.password'),
+            'username_confirmation' => __('settings.delete.username_confirmation'),
+        ]);
 
-        $user->delete();
+        $deleted = DB::transaction(function () use ($user): bool {
+            if ($user->isUsableAdministrator()) {
+                $usableAdministrators = User::query()
+                    ->where('role', UserRole::Administrator->value)
+                    ->whereNotNull('email_verified_at')
+                    ->where('moderation_state', ModerationState::Active->value)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get(['id']);
+
+                if ($usableAdministrators->count() <= 1) {
+                    return false;
+                }
+            }
+
+            if (! $user->delete()) {
+                throw new RuntimeException('Failed to delete account.');
+            }
+
+            return true;
+        });
+
+        if (! $deleted) {
+            return Redirect::back()->withErrors([
+                'username_confirmation' => __('settings.delete.only_usable_administrator'),
+            ], 'userDeletion');
+        }
+
+        Auth::logoutCurrentDevice();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
