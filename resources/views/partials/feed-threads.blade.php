@@ -210,11 +210,22 @@
                         x-data="likeControl({
                             liked: @js((bool) $displayPost->liked_by_me),
                             likeCount: @js($likeCount),
+                            reposted: @js((bool) $displayPost->reposted_by_me),
+                            repostCount: @js($repostCount),
+                            bookmarked: @js((bool) $displayPost->bookmarked_by_me),
                             postUid: @js((string) $displayPost->uid),
-                            url: @js(route('posts.like', $displayPost->uid)),
+                            urls: {
+                                like: @js(route('posts.like', $displayPost->uid)),
+                                repost: @js(route('posts.repost', $displayPost->uid)),
+                                bookmarkStore: @js(route('bookmarks.store', $displayPost->uid)),
+                                bookmarkDestroy: @js(route('bookmarks.destroy', $displayPost->uid)),
+                            },
                             labels: {
                                 like: @js(__('threads.labels.like')),
                                 unlike: @js(__('threads.actions.unlike')),
+                                repost: @js(__('threads.actions.repost')),
+                                save: @js(__('threads.actions.save')),
+                                removeFromSaved: @js(__('threads.actions.remove_from_saved')),
                                 liked: @js(__('threads.feedback.liked')),
                                 unliked: @js(__('threads.feedback.unliked')),
                                 sessionExpired: @js(__('threads.feedback.session_expired')),
@@ -224,6 +235,7 @@
                                 network: @js(__('threads.feedback.network')),
                             },
                         })"
+                        @skuy-post-action-state.window="syncPeerState($event)"
                     >
                         <div class="skuy-actions skuy-actions--primary skuy-feed-post__actions">
                             <form
@@ -231,64 +243,96 @@
                                 method="POST"
                                 @submit.prevent="toggleLike($event)"
                             >
-                            @csrf
-                            <button
-                                x-ref="likeButton"
-                                type="submit"
-                                aria-label="{{ $likeActionLabel }}"
-                                title="{{ $likeActionLabel }}"
-                                :aria-label="likeButtonLabel()"
-                                :title="likeButtonLabel()"
-                                aria-pressed="{{ $displayPost->liked_by_me ? 'true' : 'false' }}"
-                                :aria-pressed="liked.toString()"
-                                :aria-busy="isLikeRequestInFlight.toString()"
-                                :disabled="isLikeRequestInFlight"
-                                class="skuy-action skuy-action--reaction{{ $likeActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
+                                @csrf
+                                <button
+                                    x-ref="likeButton"
+                                    type="submit"
+                                    aria-label="{{ $likeActionLabel }}"
+                                    title="{{ $likeActionLabel }}"
+                                    :aria-label="likeButtonLabel()"
+                                    :title="likeButtonLabel()"
+                                    aria-pressed="{{ $displayPost->liked_by_me ? 'true' : 'false' }}"
+                                    :aria-pressed="liked.toString()"
+                                    :aria-busy="isLikeRequestInFlight.toString()"
+                                    :disabled="isLikeRequestInFlight"
+                                    class="skuy-action skuy-action--reaction{{ $likeActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
+                                >
+                                    <x-fa-icon x-ref="likeIcon" name="heart" :weight="$displayPost->liked_by_me ? 'solid' : 'regular'" class="text-xl" />
+                                    <span
+                                        x-show="likeDisplayCount()"
+                                        x-text="likeDisplayCount()"
+                                        @if ($likeDisplayCount === '') style="display: none;" @endif
+                                    >{{ $likeDisplayCount }}</span>
+                                </button>
+                            </form>
+
+                            <button @click="showComments = !showComments" type="button" aria-label="{{ $commentActionLabel }}" title="{{ $commentActionLabel }}" :aria-expanded="showComments.toString()" aria-controls="comments-{{ $displayPost->uid }}" class="skuy-action{{ $commentActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
+                                <x-fa-icon name="comment" class="text-xl" />
+                                <span>{{ $commentDisplayCount }}</span>
+                            </button>
+
+                            <form
+                                action="{{ route('posts.repost', $displayPost->uid) }}"
+                                method="POST"
+                                @submit.prevent="toggleRepost($event)"
                             >
-                                <x-fa-icon x-ref="likeIcon" name="heart" :weight="$displayPost->liked_by_me ? 'solid' : 'regular'" class="text-xl" />
-                                <span
-                                    x-show="likeDisplayCount()"
-                                    x-text="likeDisplayCount()"
-                                    @if ($likeDisplayCount === '') style="display: none;" @endif
-                                >{{ $likeDisplayCount }}</span>
-                            </button>
-                        </form>
-
-                        <button @click="showComments = !showComments" type="button" aria-label="{{ $commentActionLabel }}" title="{{ $commentActionLabel }}" :aria-expanded="showComments.toString()" aria-controls="comments-{{ $displayPost->uid }}" class="skuy-action{{ $commentActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
-                            <x-fa-icon name="comment" class="text-xl" />
-                            <span>{{ $commentDisplayCount }}</span>
-                        </button>
-
-                        <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
-                            @csrf
-                            <button type="submit" aria-label="{{ $repostActionLabel }}" title="{{ $repostActionLabel }}" aria-pressed="{{ $displayPost->reposted_by_me ? 'true' : 'false' }}" class="skuy-action skuy-action--selected{{ $repostActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
-                                <x-fa-icon name="retweet" :weight="$displayPost->reposted_by_me ? 'solid' : 'regular'" class="text-xl" />
-                                @if ($repostDisplayCount !== '')
-                                    <span>{{ $repostDisplayCount }}</span>
-                                @endif
-                            </button>
-                        </form>
-
-                        @if ($displayPost->bookmarked_by_me)
-                            <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                                 @csrf
-                                @method('DELETE')
-                                <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
-                                    <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
+                                <button
+                                    x-ref="repostButton"
+                                    type="submit"
+                                    aria-label="{{ $repostActionLabel }}"
+                                    title="{{ $repostActionLabel }}"
+                                    :aria-label="repostButtonLabel()"
+                                    :title="repostButtonLabel()"
+                                    aria-pressed="{{ $displayPost->reposted_by_me ? 'true' : 'false' }}"
+                                    :aria-pressed="reposted.toString()"
+                                    :aria-busy="isRepostRequestInFlight.toString()"
+                                    :disabled="isRepostRequestInFlight"
+                                    class="skuy-action skuy-action--selected{{ $repostActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
+                                >
+                                    <x-fa-icon x-ref="repostIcon" name="retweet" :weight="$displayPost->reposted_by_me ? 'solid' : 'regular'" class="text-xl" />
+                                    <span
+                                        x-show="repostDisplayCount() !== ''"
+                                        x-text="repostDisplayCount()"
+                                        @if ($repostDisplayCount === '') style="display: none;" @endif
+                                    >{{ $repostDisplayCount }}</span>
                                 </button>
                             </form>
-                        @else
-                            <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
+
+                            <form
+                                action="{{ $displayPost->bookmarked_by_me ? route('bookmarks.destroy', $displayPost->uid) : route('bookmarks.store', $displayPost->uid) }}"
+                                method="POST"
+                                :action="bookmarkFormAction()"
+                                @submit.prevent="toggleBookmark($event)"
+                            >
                                 @csrf
-                                <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
-                                    <x-fa-icon name="bookmark" class="text-xl" />
+                                <input
+                                    type="hidden"
+                                    name="_method"
+                                    value="DELETE"
+                                    x-bind:disabled="!bookmarked"
+                                    @if (! $displayPost->bookmarked_by_me) disabled @endif
+                                >
+                                <button
+                                    x-ref="bookmarkButton"
+                                    type="submit"
+                                    aria-label="{{ $displayPost->bookmarked_by_me ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}"
+                                    title="{{ $displayPost->bookmarked_by_me ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}"
+                                    :aria-label="bookmarkButtonLabel()"
+                                    :title="bookmarkButtonLabel()"
+                                    aria-pressed="{{ $displayPost->bookmarked_by_me ? 'true' : 'false' }}"
+                                    :aria-pressed="bookmarked.toString()"
+                                    :aria-busy="isBookmarkRequestInFlight.toString()"
+                                    :disabled="isBookmarkRequestInFlight"
+                                    class="skuy-action skuy-action--bookmark"
+                                >
+                                    <x-fa-icon x-ref="bookmarkIcon" name="bookmark" :weight="$displayPost->bookmarked_by_me ? 'solid' : 'regular'" class="text-xl" />
                                 </button>
                             </form>
-                        @endif
 
-                        <button @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', '{{ __('threads.thread_link_copied') }}')" type="button" aria-label="{{ __('threads.actions.share') }}" title="{{ __('threads.actions.share') }}" class="skuy-action">
-                            <x-fa-icon name="share-nodes" class="text-xl" />
-                        </button>
+                            <button @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', '{{ __('threads.thread_link_copied') }}')" type="button" aria-label="{{ __('threads.actions.share') }}" title="{{ __('threads.actions.share') }}" class="skuy-action">
+                                <x-fa-icon name="share-nodes" class="text-xl" />
+                            </button>
                         </div>
                         <div class="min-h-5">
                             <p

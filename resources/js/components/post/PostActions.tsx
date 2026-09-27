@@ -1,5 +1,4 @@
-import { router } from '@inertiajs/react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { DisplayPost, PostDetailRoutes, PostDetailTranslations } from '../../types/post';
 import { BookmarkIcon, CommentIcon, HeartIcon, RepostIcon, ShareIcon } from './icons';
 
@@ -10,121 +9,210 @@ interface PostActionsProps {
     canPerformSocialWrites: boolean;
 }
 
-interface LikePayload {
-    post_uid: string;
-    liked: boolean;
-    like_count: number;
+interface JsonActionPayload {
+    code?: unknown;
+    post_uid?: unknown;
+    liked?: unknown;
+    like_count?: unknown;
+    reposted?: unknown;
+    repost_count?: unknown;
+    bookmarked?: unknown;
 }
 
 function csrfToken(): string {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 }
 
-function actionOptions() {
-    return {
-        preserveScroll: true,
-        headers: {
-            'X-CSRF-TOKEN': csrfToken(),
-        },
+async function requestAction(
+    url: string,
+    method: 'POST' | 'DELETE',
+    body: Record<string, boolean> | null,
+    translations: PostDetailTranslations,
+): Promise<unknown> {
+    const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': csrfToken(),
+        'X-Requested-With': 'XMLHttpRequest',
     };
+
+    if (body !== null) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(url, {
+        method,
+        credentials: 'same-origin',
+        headers,
+        body: body === null ? undefined : JSON.stringify(body),
+    });
+    const payload = await response.json().catch(() => null) as JsonActionPayload | null;
+
+    if (response.redirected || response.status === 401 || response.status === 419) {
+        throw new Error(translations.feedback.session_expired);
+    }
+
+    if (response.status === 403) {
+        throw new Error(
+            payload && payload.code === 'moderation_state_forbids_social_write'
+                ? translations.feedback.restricted
+                : translations.feedback.failed,
+        );
+    }
+
+    if (!response.ok) {
+        throw new Error(response.status === 422 ? translations.feedback.invalid : translations.feedback.failed);
+    }
+
+    return payload;
+}
+
+function feedbackForError(error: unknown, translations: PostDetailTranslations): string {
+    const knownFeedback = Object.values(translations.feedback);
+
+    return error instanceof Error && knownFeedback.includes(error.message)
+        ? error.message
+        : translations.feedback.network;
+}
+
+function isActionPayload(payload: unknown): payload is JsonActionPayload {
+    return typeof payload === 'object' && payload !== null;
 }
 
 export function PostActions({ post, routes, translations, canPerformSocialWrites }: PostActionsProps) {
     const [liked, setLiked] = useState(post.interactions.liked);
     const [likeCount, setLikeCount] = useState(post.interactions.like_count);
+    const [reposted, setReposted] = useState(post.interactions.reposted);
+    const [repostCount, setRepostCount] = useState(post.interactions.repost_count);
+    const [bookmarked, setBookmarked] = useState(post.interactions.bookmarked);
     const [likePending, setLikePending] = useState(false);
-    const [pendingAction, setPendingAction] = useState<string | null>(null);
+    const [repostPending, setRepostPending] = useState(false);
+    const [bookmarkPending, setBookmarkPending] = useState(false);
+    const likeInFlightRef = useRef(false);
+    const repostInFlightRef = useRef(false);
+    const bookmarkInFlightRef = useRef(false);
     const [statusMessage, setStatusMessage] = useState('');
+    const [statusIsError, setStatusIsError] = useState(false);
 
     useEffect(() => {
         setLiked(post.interactions.liked);
         setLikeCount(post.interactions.like_count);
-    }, [post.interactions.like_count, post.interactions.liked]);
+        setReposted(post.interactions.reposted);
+        setRepostCount(post.interactions.repost_count);
+        setBookmarked(post.interactions.bookmarked);
+    }, [
+        post.interactions.bookmarked,
+        post.interactions.like_count,
+        post.interactions.liked,
+        post.interactions.repost_count,
+        post.interactions.reposted,
+    ]);
 
     const setErrorStatus = (message: string) => {
         setStatusMessage(message);
+        setStatusIsError(true);
     };
 
     const toggleLike = async () => {
-        if (!canPerformSocialWrites || likePending) return;
+        if (!canPerformSocialWrites || likePending || likeInFlightRef.current) return;
 
+        likeInFlightRef.current = true;
         const previousLiked = liked;
         const previousCount = likeCount;
         const desiredLiked = !liked;
         setLikePending(true);
         setStatusMessage('');
+        setStatusIsError(false);
         setLiked(desiredLiked);
         setLikeCount(Math.max(0, previousCount + (desiredLiked ? 1 : -1)));
 
         try {
-            const response = await fetch(routes.like, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken(),
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ liked: desiredLiked }),
-            });
-            const payload = await response.json().catch(() => null) as LikePayload | { code?: string } | null;
-
-            if (response.redirected || response.status === 401 || response.status === 419) {
-                throw new Error(translations.feedback.session_expired);
-            }
-
-            if (response.status === 403) {
-                throw new Error(
-                    payload && 'code' in payload && payload.code === 'moderation_state_forbids_social_write'
-                        ? translations.feedback.restricted
-                        : translations.feedback.failed,
-                );
-            }
+            const payload = await requestAction(routes.like, 'POST', { liked: desiredLiked }, translations);
 
             if (
-                !response.ok
-                || !payload
-                || !('post_uid' in payload)
+                !isActionPayload(payload)
                 || payload.post_uid !== post.uid
                 || typeof payload.liked !== 'boolean'
                 || !Number.isInteger(payload.like_count)
-                || payload.like_count < 0
+                || Number(payload.like_count) < 0
             ) {
-                throw new Error(response.status === 422 ? translations.feedback.invalid : translations.feedback.failed);
+                throw new Error(translations.feedback.invalid);
             }
 
             setLiked(payload.liked);
-            setLikeCount(payload.like_count);
+            setLikeCount(Number(payload.like_count));
             setStatusMessage(payload.liked ? translations.feedback.liked : translations.feedback.unliked);
         } catch (error) {
             setLiked(previousLiked);
             setLikeCount(previousCount);
-            const knownFeedback = Object.values(translations.feedback);
-            const message = error instanceof Error && knownFeedback.includes(error.message)
-                ? error.message
-                : translations.feedback.network;
-            setErrorStatus(message);
+            setErrorStatus(feedbackForError(error, translations));
         } finally {
+            likeInFlightRef.current = false;
             setLikePending(false);
         }
     };
 
-    const submitPostAction = (key: string, method: 'post' | 'delete', url: string) => {
-        if (!canPerformSocialWrites || pendingAction !== null) return;
+    const toggleRepost = async () => {
+        if (!canPerformSocialWrites || repostPending || repostInFlightRef.current) return;
 
-        setPendingAction(key);
+        repostInFlightRef.current = true;
+        setRepostPending(true);
         setStatusMessage('');
-        const options = {
-            ...actionOptions(),
-            onError: () => setErrorStatus(translations.feedback.failed),
-            onFinish: () => setPendingAction(null),
-        };
+        setStatusIsError(false);
 
-        if (method === 'delete') {
-            router.delete(url, options);
-        } else {
-            router.post(url, {}, options);
+        try {
+            const payload = await requestAction(routes.repost, 'POST', { reposted: !reposted }, translations);
+
+            if (
+                !isActionPayload(payload)
+                || payload.post_uid !== post.uid
+                || typeof payload.reposted !== 'boolean'
+                || !Number.isInteger(payload.repost_count)
+                || Number(payload.repost_count) < 0
+            ) {
+                throw new Error(translations.feedback.invalid);
+            }
+
+            setReposted(payload.reposted);
+            setRepostCount(Number(payload.repost_count));
+        } catch (error) {
+            setErrorStatus(feedbackForError(error, translations));
+        } finally {
+            repostInFlightRef.current = false;
+            setRepostPending(false);
+        }
+    };
+
+    const toggleBookmark = async () => {
+        if (!canPerformSocialWrites || bookmarkPending || bookmarkInFlightRef.current) return;
+
+        bookmarkInFlightRef.current = true;
+        const desiredBookmarked = !bookmarked;
+        setBookmarkPending(true);
+        setStatusMessage('');
+        setStatusIsError(false);
+
+        try {
+            const payload = await requestAction(
+                desiredBookmarked ? routes.bookmark_store : routes.bookmark_destroy,
+                desiredBookmarked ? 'POST' : 'DELETE',
+                null,
+                translations,
+            );
+
+            if (
+                !isActionPayload(payload)
+                || payload.post_uid !== post.uid
+                || typeof payload.bookmarked !== 'boolean'
+            ) {
+                throw new Error(translations.feedback.invalid);
+            }
+
+            setBookmarked(payload.bookmarked);
+        } catch (error) {
+            setErrorStatus(feedbackForError(error, translations));
+        } finally {
+            bookmarkInFlightRef.current = false;
+            setBookmarkPending(false);
         }
     };
 
@@ -147,14 +235,13 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 }
             }
             setStatusMessage(translations.thread_link_copied);
+            setStatusIsError(false);
         } catch {
-            setStatusMessage(translations.feedback.network);
+            setErrorStatus(translations.feedback.network);
         }
     };
 
-    const bookmarkLabel = post.interactions.bookmarked
-        ? translations.remove_from_saved
-        : translations.save;
+    const bookmarkLabel = bookmarked ? translations.remove_from_saved : translations.save;
 
     return (
         <>
@@ -164,6 +251,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                         type="submit"
                         aria-label={`${liked ? translations.unlike : translations.like}${likeCount > 0 ? ` (${likeCount})` : ''}`}
                         aria-pressed={liked}
+                        aria-busy={likePending}
                         title={liked ? translations.unlike : translations.like}
                         disabled={!canPerformSocialWrites || likePending}
                         className="skuy-action skuy-action--reaction disabled:cursor-not-allowed disabled:opacity-50"
@@ -178,47 +266,34 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                     <span className="text-xs font-semibold">{post.interactions.comment_count > 0 ? post.interactions.comment_count : ''}</span>
                 </div>
 
-                <form onSubmit={(event: FormEvent) => { event.preventDefault(); submitPostAction('repost', 'post', routes.repost); }}>
+                <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleRepost(); }}>
                     <button
                         type="submit"
                         aria-label={translations.repost}
-                        aria-pressed={post.interactions.reposted}
+                        aria-pressed={reposted}
+                        aria-busy={repostPending}
                         title={translations.repost}
-                        disabled={!canPerformSocialWrites || pendingAction !== null}
+                        disabled={!canPerformSocialWrites || repostPending}
                         className="skuy-action skuy-action--selected disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <RepostIcon active={post.interactions.reposted} />
-                        {post.interactions.repost_count > 0 && <span className="text-xs font-semibold">{post.interactions.repost_count}</span>}
+                        <RepostIcon active={reposted} />
+                        {repostCount > 0 && <span className="text-xs font-semibold">{repostCount}</span>}
                     </button>
                 </form>
 
-                {post.interactions.bookmarked ? (
-                    <form onSubmit={(event: FormEvent) => { event.preventDefault(); submitPostAction('bookmark', 'delete', routes.bookmark_destroy); }}>
-                        <button
-                            type="submit"
-                            aria-label={bookmarkLabel}
-                            title={bookmarkLabel}
-                            aria-pressed="true"
-                            disabled={!canPerformSocialWrites || pendingAction !== null}
-                            className="skuy-action skuy-action--bookmark disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <BookmarkIcon filled />
-                        </button>
-                    </form>
-                ) : (
-                    <form onSubmit={(event: FormEvent) => { event.preventDefault(); submitPostAction('bookmark', 'post', routes.bookmark_store); }}>
-                        <button
-                            type="submit"
-                            aria-label={bookmarkLabel}
-                            title={bookmarkLabel}
-                            aria-pressed="false"
-                            disabled={!canPerformSocialWrites || pendingAction !== null}
-                            className="skuy-action skuy-action--bookmark disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <BookmarkIcon />
-                        </button>
-                    </form>
-                )}
+                <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleBookmark(); }}>
+                    <button
+                        type="submit"
+                        aria-label={bookmarkLabel}
+                        title={bookmarkLabel}
+                        aria-pressed={bookmarked}
+                        aria-busy={bookmarkPending}
+                        disabled={!canPerformSocialWrites || bookmarkPending}
+                        className="skuy-action skuy-action--bookmark disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <BookmarkIcon filled={bookmarked} />
+                    </button>
+                </form>
 
                 <button
                     type="button"
@@ -231,7 +306,11 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 </button>
             </div>
             {statusMessage && (
-                <p className="text-xs font-semibold text-[var(--skuy-text-muted)]" role="status" aria-live="polite">
+                <p
+                    className={`text-xs font-semibold ${statusIsError ? 'text-[var(--skuy-danger)]' : 'text-[var(--skuy-text-muted)]'}`}
+                    role={statusIsError ? 'alert' : 'status'}
+                    aria-live={statusIsError ? 'assertive' : 'polite'}
+                >
                     {statusMessage}
                 </p>
             )}

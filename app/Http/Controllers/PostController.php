@@ -568,28 +568,46 @@ class PostController extends Controller
     public function repost(Request $request, Post $post)
     {
         $targetPost = $post->interactionTarget();
+        $actorId = $request->user()->getKey();
+        $isJson = $request->expectsJson();
+        $desiredReposted = null;
 
-        // Cari apakah user sudah merepost postingan ini sebelumnya
-        $actorId = auth()->id();
-        $existingRepost = Post::where('user_id', $actorId)
-            ->where('repost_id', $targetPost->id)
+        if ($isJson && $request->exists('reposted')) {
+            $desiredReposted = (bool) $request->validate([
+                'reposted' => ['required', 'boolean'],
+            ])['reposted'];
+        }
+
+        $existingRepost = Post::query()
+            ->where('user_id', $actorId)
+            ->where('repost_id', $targetPost->getKey())
             ->first();
+        $shouldBeReposted = $desiredReposted ?? ! $existingRepost;
 
-        if ($existingRepost) {
-            // Jika sudah diklik, maka batalkan (hapus data repost)
-            $existingRepost->delete();
-        } else {
-            // Jika belum, ciptakan postingan baru sebagai repost
+        if ($shouldBeReposted && ! $existingRepost) {
             try {
-                auth()->user()->posts()->create([
-                    'repost_id' => $targetPost->id,
-                    'content' => null, // Teks dikosongkan karena ini murni repost
+                $request->user()->posts()->create([
+                    'repost_id' => $targetPost->getKey(),
+                    'content' => null,
                 ]);
             } catch (QueryException $exception) {
                 if (! $this->isDuplicateRepostConflict($exception)) {
                     throw $exception;
                 }
             }
+        } elseif (! $shouldBeReposted && $existingRepost) {
+            $existingRepost->delete();
+        }
+
+        if ($isJson) {
+            return response()->json([
+                'post_uid' => (string) $targetPost->uid,
+                'reposted' => Post::query()
+                    ->where('user_id', $actorId)
+                    ->where('repost_id', $targetPost->getKey())
+                    ->exists(),
+                'repost_count' => $targetPost->reposts()->count(),
+            ]);
         }
 
         if ($request->header('X-Inertia')) {
