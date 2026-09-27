@@ -3,9 +3,15 @@
 return [
     'title' => 'Pengaturan Akun',
 
+    'account' => [
+        'description' => 'Kelola email dan keamanan akun Anda.',
+        'email_heading' => 'Email Akun',
+        'email_description' => 'Perbarui alamat email yang terhubung ke akun Anda. Alamat baru harus diverifikasi.',
+    ],
+
     'profile' => [
-        'heading' => 'Informasi Profil',
-        'description' => 'Perbarui informasi profil dan alamat email akun Anda.',
+        'heading' => 'Pengaturan Profil',
+        'description' => 'Kelola tampilan profil publik Anda melalui nama, foto profil, sampul, dan bio.',
         'name' => 'Nama',
         'display_name' => 'Nama Tampilan',
         'username' => 'Nama pengguna',

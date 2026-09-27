@@ -194,12 +194,12 @@ class ApplicationLocalizationTest extends TestCase
     {
         $cases = [
             'id' => [
-                'profile' => ['Pengaturan Akun', 'Informasi Profil', 'Perbarui Kata Sandi', 'Hapus Akun'],
-                'user' => ['Edit Profil', 'Nama Tampilan', 'Nama pengguna (tidak dapat diubah)', 'Simpan Perubahan'],
+                'profile' => ['Pengaturan Akun', 'Email Akun', 'Perbarui Kata Sandi', 'Autentikasi dua faktor', 'Kelola autentikasi dua faktor'],
+                'user' => ['Pengaturan Profil', 'Nama Tampilan', 'Nama pengguna (tidak dapat diubah)', 'Simpan Perubahan'],
             ],
             'en' => [
-                'profile' => ['Account Settings', 'Profile Information', 'Update Password', 'Delete Account'],
-                'user' => ['Edit Profile', 'Display Name', 'Username (cannot be changed)', 'Save Changes'],
+                'profile' => ['Account Settings', 'Account Email', 'Update Password', 'Two-factor authentication', 'Manage two-factor authentication'],
+                'user' => ['Profile Settings', 'Display Name', 'Username (cannot be changed)', 'Save Changes'],
             ],
         ];
 

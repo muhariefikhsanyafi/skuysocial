@@ -3,9 +3,15 @@
 return [
     'title' => 'Account Settings',
 
+    'account' => [
+        'description' => 'Manage your account email and security settings.',
+        'email_heading' => 'Account Email',
+        'email_description' => 'Update the email address linked to your account. A new address must be verified.',
+    ],
+
     'profile' => [
-        'heading' => 'Profile Information',
-        'description' => "Update your account's profile information and email address.",
+        'heading' => 'Profile Settings',
+        'description' => 'Manage your public profile appearance with a display name, profile photo, cover, and bio.',
         'name' => 'Name',
         'display_name' => 'Display Name',
         'username' => 'Username',

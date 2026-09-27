@@ -70,122 +70,62 @@ class ProfileTest extends TestCase
         $this->assertNotSame($users[0]->username, $users[1]->username);
     }
 
-    public function test_profile_information_can_be_updated(): void
+    public function test_public_profile_presentation_can_be_updated_from_profile_settings(): void
     {
         $user = User::factory()->create();
+        $username = $user->username;
 
         $response = $this
             ->actingAs($user)
-            ->patch('/profile', [
+            ->post(route('user.update'), [
                 'name' => 'Test User',
-                'username' => 'updated_user',
-                'email' => 'test@example.com',
+                'bio' => 'Public profile bio',
             ]);
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('profile.edit', ['username' => 'updated_user']));
+            ->assertRedirect(route('user.profile', $user));
 
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
-        $this->assertSame('updated_user', $user->username);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
+        $this->assertSame($username, $user->username);
+        $this->assertSame('Public profile bio', $user->bio);
     }
 
-    public function test_standard_profile_update_accepts_bio_up_to_255_characters(): void
+    public function test_settings_updates_ignore_username_changes(): void
     {
-        $user = User::factory()->create();
-        $bio = str_repeat('s', 255);
+        $user = User::factory()->create(['username' => 'read.only']);
 
-        $response = $this
-            ->actingAs($user)
-            ->patch('/profile', [
-                'name' => $user->name,
-                'username' => $user->username,
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
                 'email' => $user->email,
-                'bio' => $bio,
-            ]);
-
-        $response
+                'username' => 'ChangedAccountName',
+            ])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('profile.edit', $user->username));
 
-        $this->assertSame($bio, $user->refresh()->bio);
-    }
-
-    public function test_mixed_case_unused_username_is_stored_in_lowercase(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->patch('/profile', [
+        $this->actingAs($user)
+            ->post(route('user.update'), [
                 'name' => $user->name,
-                'username' => 'NewProfileUser',
-                'email' => $user->email,
-            ]);
-
-        $response->assertSessionHasNoErrors();
-        $this->assertSame('newprofileuser', $user->refresh()->username);
-    }
-
-    public function test_changing_only_username_capitalization_keeps_own_canonical_username(): void
-    {
-        $user = User::factory()->create(['username' => 'arief']);
-
-        $response = $this
-            ->actingAs($user)
-            ->patch('/profile', [
-                'name' => $user->name,
-                'username' => 'ArIeF',
-                'email' => $user->email,
-            ]);
-
-        $response->assertSessionHasNoErrors();
-        $this->assertSame('arief', $user->refresh()->username);
-    }
-
-    public function test_case_variant_of_another_users_username_is_rejected_by_validation(): void
-    {
-        $user = User::factory()->create(['username' => 'profile-owner']);
-        User::factory()->create(['username' => 'taken_user']);
-
-        $response = $this
-            ->actingAs($user)
-            ->from('/profile')
-            ->patch('/profile', [
-                'name' => $user->name,
-                'username' => 'Taken_User',
-                'email' => $user->email,
-            ]);
-
-        $response
-            ->assertSessionHasErrors('username')
-            ->assertRedirect('/profile');
-
-        $this->assertSame('profile-owner', $user->refresh()->username);
-    }
-
-    public function test_normalized_username_route_binding_continues_to_resolve_profile(): void
-    {
-        $user = User::factory()->create();
-
-        $this
-            ->actingAs($user)
-            ->patch('/profile', [
-                'name' => $user->name,
-                'username' => 'RouteProfileUser',
-                'email' => $user->email,
+                'bio' => $user->bio,
+                'username' => 'ChangedProfileName',
             ])
-            ->assertSessionHasNoErrors();
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('user.profile', $user));
+
+        $this->assertSame('read.only', $user->refresh()->username);
+    }
+
+    public function test_current_username_route_binding_continues_to_resolve_profile(): void
+    {
+        $user = User::factory()->create(['username' => 'routeprofileuser']);
 
         $this
             ->actingAs($user)
-            ->get(route('user.profile', ['username' => $user->fresh()->username]))
+            ->get(route('user.profile', ['username' => $user->username]))
             ->assertOk()
-            ->assertSee('routeprofileuser');
+            ->assertSee('@routeprofileuser');
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
@@ -195,8 +135,6 @@ class ProfileTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->patch('/profile', [
-                'name' => 'Test User',
-                'username' => $user->username,
                 'email' => $user->email,
             ]);
 
@@ -214,17 +152,16 @@ class ProfileTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->patch('/profile', [
+            ->post(route('user.update'), [
                 'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email,
+                'bio' => $user->bio,
                 'avatar' => UploadedFile::fake()->image('avatar.jpg'),
                 'cover' => UploadedFile::fake()->image('cover.jpg'),
             ]);
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('profile.edit', $user->username));
+            ->assertRedirect(route('user.profile', $user));
 
         $user->refresh();
 
@@ -244,17 +181,16 @@ class ProfileTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->from('/profile')
-            ->patch('/profile', [
+            ->from(route('user.edit', $user->username))
+            ->post(route('user.update'), [
                 'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email,
+                'bio' => $user->bio,
                 'cover' => UploadedFile::fake()->create('cover.txt', 10, 'text/plain'),
             ]);
 
         $response
             ->assertSessionHasErrors('cover')
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('user.edit', $user->username));
 
         $this->assertSame($existingCover, $user->refresh()->cover);
         Storage::disk('public')->assertExists($existingCover);
@@ -267,17 +203,16 @@ class ProfileTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->from('/profile')
-            ->patch('/profile', [
+            ->from(route('user.edit', $user->username))
+            ->post(route('user.update'), [
                 'name' => $user->name,
-                'username' => $user->username,
-                'email' => $user->email,
+                'bio' => $user->bio,
                 'cover' => UploadedFile::fake()->image('cover.jpg')->size(2049),
             ]);
 
         $response
             ->assertSessionHasErrors('cover')
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('user.edit', $user->username));
 
         $this->assertNull($user->refresh()->cover);
     }
@@ -318,6 +253,33 @@ class ProfileTest extends TestCase
             ->assertRedirect(route('user.edit', $user->username));
 
         $this->assertSame('Existing bio', $user->refresh()->bio);
+    }
+
+    public function test_account_email_update_does_not_change_public_profile_fields(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'email_verified_at' => now(),
+            'name' => 'Public Name',
+            'username' => 'public.name',
+            'bio' => 'Public bio',
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch(route('profile.update'), ['email' => 'new@example.com']);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('profile.edit', $user->username));
+
+        $user->refresh();
+
+        $this->assertSame('new@example.com', $user->email);
+        $this->assertNull($user->email_verified_at);
+        $this->assertSame('Public Name', $user->name);
+        $this->assertSame('public.name', $user->username);
+        $this->assertSame('Public bio', $user->bio);
     }
 
     public function test_user_can_delete_their_account(): void

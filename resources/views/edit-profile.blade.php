@@ -6,7 +6,7 @@
             </a>
             <div>
                 <h2 class="text-2xl font-bold text-[var(--skuy-text-primary)]">
-                    {{ __('profile.edit') }}
+                    {{ __('settings.profile.heading') }}
                 </h2>
                 <p class="mt-1 text-sm text-[var(--skuy-text-secondary)]">
                     {{ __('settings.profile.description') }}
@@ -113,87 +113,6 @@
                 </div>
             </form>
 
-            <section class="skuy-settings-panel">
-                <header>
-                    <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">
-                        {{ __('settings.password.heading') }}
-                    </h2>
-                    <p class="mt-2 text-sm leading-6 text-[var(--skuy-text-secondary)]">
-                        {{ __('settings.password.description') }}
-                    </p>
-                </header>
-
-                <form action="{{ route('password.update') }}" method="POST" class="mt-6 space-y-5">
-                    @csrf
-                    @method('put')
-
-                    <div class="space-y-2">
-                        <x-input-label for="custom_current_password" :value="__('settings.password.current')" />
-                        <x-text-input id="custom_current_password" type="password" name="current_password" class="mt-1" autocomplete="current-password" />
-                        <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
-                    </div>
-
-                    <div class="space-y-2">
-                        <x-input-label for="custom_new_password" :value="__('settings.password.new')" />
-                        <x-text-input id="custom_new_password" type="password" name="password" class="mt-1" autocomplete="new-password" />
-                        <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
-                    </div>
-
-                    <div class="space-y-2">
-                        <x-input-label for="custom_password_confirmation" :value="__('settings.password.confirmation')" />
-                        <x-text-input id="custom_password_confirmation" type="password" name="password_confirmation" class="mt-1" autocomplete="new-password" />
-                        <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
-                    </div>
-
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <x-primary-button>
-                            {{ __('settings.password.save') }}
-                        </x-primary-button>
-
-                        @if (session('status') === 'password-updated')
-                            <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)" class="text-sm font-semibold text-[var(--skuy-secondary)]" role="status" aria-live="polite">
-                                {{ __('settings.password.saved') }}
-                            </p>
-                        @endif
-                    </div>
-                </form>
-            </section>
-
-            <section class="skuy-settings-panel">
-                <header>
-                    <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ __('settings.two_factor.heading') }}</h2>
-                    <p class="mt-2 text-sm leading-6 text-[var(--skuy-text-secondary)]">{{ __('settings.two_factor.description') }}</p>
-                </header>
-                <a href="{{ route('security.two-factor.show') }}" class="mt-5 inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-medium)] border border-[var(--skuy-border-strong)] px-4 py-3 text-sm font-semibold text-[var(--skuy-text-primary)] transition-colors hover:bg-[var(--skuy-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
-                    {{ __('settings.two_factor.manage') }}
-                </a>
-            </section>
-
-            <section class="skuy-settings-panel skuy-settings-panel--danger">
-                <header>
-                    <h2 class="text-xl font-bold text-[var(--skuy-danger)]">
-                        {{ __('settings.delete.heading') }}
-                    </h2>
-                    <p class="mt-2 text-sm leading-6 text-[var(--skuy-text-secondary)]">
-                        {{ __('settings.delete.short_description') }}
-                    </p>
-                </header>
-
-                <form action="{{ route('profile.destroy') }}" method="POST" class="mt-6 space-y-5">
-                    @csrf
-                    @method('delete')
-
-                    <div class="space-y-2">
-                        <x-input-label for="custom_delete_password" :value="__('settings.delete.password')" />
-                        <x-text-input id="custom_delete_password" type="password" name="password" class="mt-1" placeholder="{{ __('settings.delete.password_placeholder') }}" required />
-                        <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
-                    </div>
-
-                    <x-danger-button type="submit" data-confirm="{{ __('settings.delete.browser_confirmation') }}" onclick="return confirm(this.dataset.confirm)">
-                        {{ __('settings.delete.button') }}
-                    </x-danger-button>
-                </form>
-            </section>
         </div>
     </div>
 </x-app-layout>

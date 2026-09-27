@@ -1,4 +1,4 @@
-<section>
+<section class="skuy-settings-panel">
     <header>
         <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">
             {{ __('settings.password.heading') }}

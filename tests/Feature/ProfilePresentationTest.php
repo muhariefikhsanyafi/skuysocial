@@ -282,4 +282,40 @@ class ProfilePresentationTest extends TestCase
             ->get('/pengaturan/profil?section=details')
             ->assertRedirect(route('user.edit', ['username' => $owner->username, 'section' => 'details']));
     }
+
+    public function test_profile_and_account_settings_show_only_their_responsibility_areas(): void
+    {
+        $owner = User::factory()->create(['username' => 'settings.owner']);
+
+        $profileSettings = $this->actingAs($owner)
+            ->get(route('user.edit', $owner->username))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('name="name"', $profileSettings);
+        $this->assertMatchesRegularExpression('/<input(?=[^>]*id="username")(?=[^>]*disabled)[^>]*>/', $profileSettings);
+        $this->assertStringContainsString('name="bio"', $profileSettings);
+        $this->assertStringContainsString('name="avatar"', $profileSettings);
+        $this->assertStringContainsString('name="cover"', $profileSettings);
+        $this->assertStringNotContainsString('name="email"', $profileSettings);
+        $this->assertStringNotContainsString('name="current_password"', $profileSettings);
+        $this->assertStringNotContainsString(route('security.two-factor.show'), $profileSettings);
+        $this->assertStringNotContainsString('name="_method" value="delete"', $profileSettings);
+
+        $accountSettings = $this->actingAs($owner)
+            ->get(route('profile.edit', $owner->username))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('name="email"', $accountSettings);
+        $this->assertStringContainsString(route('verification.send'), $accountSettings);
+        $this->assertStringContainsString('name="current_password"', $accountSettings);
+        $this->assertStringContainsString(route('security.two-factor.show'), $accountSettings);
+        $this->assertStringNotContainsString('name="name"', $accountSettings);
+        $this->assertStringNotContainsString('name="username"', $accountSettings);
+        $this->assertStringNotContainsString('name="bio"', $accountSettings);
+        $this->assertStringNotContainsString('name="avatar"', $accountSettings);
+        $this->assertStringNotContainsString('name="cover"', $accountSettings);
+        $this->assertStringNotContainsString('name="_method" value="delete"', $accountSettings);
+    }
 }

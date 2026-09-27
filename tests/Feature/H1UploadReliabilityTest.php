@@ -14,19 +14,9 @@ class H1UploadReliabilityTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_standard_profile_save_false_preserves_media_and_cleans_new_files(): void
-    {
-        $this->assertProfileSaveFalseIsAtomic('profile.update', 'patch');
-    }
-
     public function test_custom_profile_save_false_preserves_media_and_cleans_new_files(): void
     {
         $this->assertProfileSaveFalseIsAtomic('user.update', 'post');
-    }
-
-    public function test_standard_profile_post_write_event_failure_rolls_back_media_update(): void
-    {
-        $this->assertProfilePostWriteFailureIsAtomic('profile.update', 'patch');
     }
 
     public function test_custom_profile_post_write_event_failure_rolls_back_media_update(): void
@@ -34,24 +24,10 @@ class H1UploadReliabilityTest extends TestCase
         $this->assertProfilePostWriteFailureIsAtomic('user.update', 'post');
     }
 
-    public function test_standard_profile_avatar_only_failure_preserves_cover(): void
-    {
-        $this->assertProfileUploadFailureIsAtomic('profile.update', 'patch', [
-            'avatar' => UploadedFile::fake()->image('new-avatar.jpg'),
-        ]);
-    }
-
     public function test_custom_profile_avatar_only_failure_preserves_cover(): void
     {
         $this->assertProfileUploadFailureIsAtomic('user.update', 'post', [
             'avatar' => UploadedFile::fake()->image('new-avatar.jpg'),
-        ]);
-    }
-
-    public function test_standard_profile_cover_only_failure_preserves_avatar(): void
-    {
-        $this->assertProfileUploadFailureIsAtomic('profile.update', 'patch', [
-            'cover' => UploadedFile::fake()->image('new-cover.jpg'),
         ]);
     }
 
@@ -62,19 +38,9 @@ class H1UploadReliabilityTest extends TestCase
         ]);
     }
 
-    public function test_standard_profile_avatar_replacement_removes_old_file_after_success(): void
-    {
-        $this->assertSuccessfulProfileReplacement('profile.update', 'patch', 'avatar');
-    }
-
     public function test_custom_profile_avatar_replacement_removes_old_file_after_success(): void
     {
         $this->assertSuccessfulProfileReplacement('user.update', 'post', 'avatar');
-    }
-
-    public function test_standard_profile_cover_replacement_removes_old_file_after_success(): void
-    {
-        $this->assertSuccessfulProfileReplacement('profile.update', 'patch', 'cover');
     }
 
     public function test_custom_profile_cover_replacement_removes_old_file_after_success(): void

@@ -44,7 +44,7 @@ class TwoFactorAuthenticationTest extends TestCase
             ->get('/pengaturan/keamanan/2fa')
             ->assertOk();
 
-        $response->assertSee('<section>', false)
+        $response->assertSee('<section class="skuy-settings-panel">', false)
             ->assertDontSee(
                 'rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] p-5 sm:p-8',
                 false,
