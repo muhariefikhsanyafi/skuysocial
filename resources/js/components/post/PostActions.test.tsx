@@ -57,6 +57,13 @@ const translations: PostDetailTranslations = {
         failed: 'The like could not be updated.',
         network: 'The connection failed.',
     },
+    comment_feedback: {
+        session_expired: 'Comment session expired.',
+        restricted: 'Commenting is restricted.',
+        invalid: 'The comment action was rejected.',
+        failed: 'Comment action failed.',
+        network: 'Comment connection failed.',
+    },
 };
 
 const post: DisplayPost = {
@@ -122,7 +129,7 @@ describe('PostActions like state', () => {
         );
         vi.stubGlobal('fetch', fetchMock);
 
-        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} />);
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} commentCount={post.interactions.comment_count} />);
         const button = screen.getByRole('button', { name: /Like/ });
 
         fireEvent.click(button);
@@ -148,7 +155,7 @@ describe('PostActions like state', () => {
             },
         };
 
-        render(<PostActions post={restrictedPost} routes={routes} translations={translations} canPerformSocialWrites={false} />);
+        render(<PostActions post={restrictedPost} routes={routes} translations={translations} canPerformSocialWrites={false} commentCount={restrictedPost.interactions.comment_count} />);
 
         expect((screen.getByRole('button', { name: /Like/ }) as HTMLButtonElement).disabled).toBe(true);
         expect((screen.getByRole('button', { name: 'Repost' }) as HTMLButtonElement).disabled).toBe(true);
@@ -159,7 +166,7 @@ describe('PostActions like state', () => {
     it('rolls optimistic state back when the like request fails', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
 
-        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} />);
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} commentCount={post.interactions.comment_count} />);
         const button = screen.getByRole('button', { name: /Like/ });
 
         fireEvent.click(button);
@@ -167,7 +174,7 @@ describe('PostActions like state', () => {
 
         await waitFor(() => {
             expect(button.getAttribute('aria-pressed')).toBe('false');
-            expect(screen.getByRole('status').textContent).toContain('connection failed');
+            expect(screen.getByRole('alert').textContent).toContain('connection failed');
         });
     });
 });

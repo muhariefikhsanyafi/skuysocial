@@ -1,12 +1,20 @@
-import { Link, router } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { Link } from '@inertiajs/react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type {
     CommentPagination,
     ExpandedReplies,
     PostDetailComment,
     PostDetailRoutes,
     PostDetailTranslations,
+    ReactiveCommentCreationResponse,
 } from '../../types/post';
+import {
+    CommentMutationError,
+    commentMutationMessage,
+    isCommentLikeResponse,
+    isReactiveCommentCreationResponse,
+    requestCommentMutation,
+} from './commentMutations';
 import { Avatar } from './Avatar';
 import { CommentIcon, HeartIcon, RepostIcon, ShareIcon } from './icons';
 
@@ -14,6 +22,9 @@ interface CommentListProps {
     comments: CommentPagination;
     expandedReplyRootId: number | null;
     expandedReplies: ExpandedReplies | null;
+    postUid: string;
+    createdComments: ReactiveCommentCreationResponse[];
+    onCommentCreated: (response: ReactiveCommentCreationResponse) => void;
     routes: PostDetailRoutes;
     translations: PostDetailTranslations;
     canPerformSocialWrites: boolean;
@@ -24,6 +35,8 @@ interface CommentItemProps {
     isReply?: boolean;
     expandedReplyRootId: number | null;
     expandedReplies: ExpandedReplies | null;
+    postUid: string;
+    onCommentCreated: (response: ReactiveCommentCreationResponse) => void;
     routes: PostDetailRoutes;
     translations: PostDetailTranslations;
     canPerformSocialWrites: boolean;
@@ -32,19 +45,6 @@ interface CommentItemProps {
     replyTargetName?: string;
     onReplyRequest?: () => void;
     rootReplyOpen?: boolean;
-}
-
-function csrfToken(): string {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-
-function actionOptions() {
-    return {
-        preserveScroll: true,
-        headers: {
-            'X-CSRF-TOKEN': csrfToken(),
-        },
-    };
 }
 
 function interpolate(template: string, name: string): string {
@@ -75,25 +75,83 @@ export function CommentList({
     comments,
     expandedReplyRootId,
     expandedReplies,
+    postUid,
+    createdComments,
+    onCommentCreated,
     routes,
     translations,
     canPerformSocialWrites,
 }: CommentListProps) {
+    const [visibleComments, setVisibleComments] = useState(comments.data);
+    const [visibleExpandedReplies, setVisibleExpandedReplies] = useState(expandedReplies);
+    const processedCommentIds = useRef(new Set<number>());
+
+    useEffect(() => {
+        setVisibleComments(comments.data);
+    }, [comments.data]);
+
+    useEffect(() => {
+        setVisibleExpandedReplies(expandedReplies);
+    }, [expandedReplies]);
+
+    useEffect(() => {
+        const pageSize = Math.max(1, comments.per_page);
+
+        for (const creation of createdComments) {
+            const comment = creation.comment;
+            if (creation.post_uid !== postUid || processedCommentIds.current.has(comment.id)) continue;
+
+            processedCommentIds.current.add(comment.id);
+
+            if (comment.parent_id === null) {
+                setVisibleComments((current) => [
+                    comment,
+                    ...current.filter((item) => item.id !== comment.id),
+                ].slice(0, pageSize));
+                continue;
+            }
+
+            const parentId = comment.parent_id;
+            const parentReplyCount = creation.parent_reply_count;
+            setVisibleComments((current) => current.map((root) => root.id === parentId
+                ? {
+                    ...root,
+                    replies_count: parentReplyCount ?? root.replies_count + 1,
+                    replies: [comment, ...root.replies.filter((reply) => reply.id !== comment.id)],
+                }
+                : root));
+
+            if (expandedReplyRootId === parentId && parentReplyCount !== null) {
+                setVisibleExpandedReplies((current) => {
+                    if (current === null) return current;
+
+                    return {
+                        ...current,
+                        data: [comment, ...current.data.filter((reply) => reply.id !== comment.id)]
+                            .slice(0, current.per_page),
+                    };
+                });
+            }
+        }
+    }, [createdComments, comments.per_page, expandedReplyRootId, postUid]);
+
     return (
         <>
             <div className="skuy-post-detail__reply-list space-y-4">
-                {comments.data.length > 0 && (
+                {visibleComments.length > 0 && (
                     <h2 className="skuy-post-detail__reply-heading mb-4 border-b border-[var(--skuy-border-subtle)] pb-2 text-lg font-bold text-[var(--skuy-text-primary)]">
                         {translations.replies}
                     </h2>
                 )}
 
-                {comments.data.map((comment) => (
+                {visibleComments.map((comment) => (
                     <CommentItem
                         key={comment.id}
                         comment={comment}
                         expandedReplyRootId={expandedReplyRootId}
-                        expandedReplies={expandedReplies}
+                        expandedReplies={visibleExpandedReplies}
+                        postUid={postUid}
+                        onCommentCreated={onCommentCreated}
                         routes={routes}
                         translations={translations}
                         canPerformSocialWrites={canPerformSocialWrites}
@@ -124,6 +182,8 @@ function CommentItem({
     isReply = false,
     expandedReplyRootId,
     expandedReplies,
+    postUid,
+    onCommentCreated,
     routes,
     translations,
     canPerformSocialWrites,
@@ -135,8 +195,16 @@ function CommentItem({
 }: CommentItemProps) {
     const [openReply, setOpenReply] = useState(false);
     const [replyContent, setReplyContent] = useState('');
-    const [pending, setPending] = useState(false);
+    const [replyPending, setReplyPending] = useState(false);
+    const [likePending, setLikePending] = useState(false);
+    const [liked, setLiked] = useState(comment.liked);
+    const [likeCount, setLikeCount] = useState(comment.like_count);
+    const [replyError, setReplyError] = useState('');
+    const [likeError, setLikeError] = useState('');
     const [statusMessage, setStatusMessage] = useState('');
+    const [statusIsError, setStatusIsError] = useState(false);
+    const replyInFlightRef = useRef(false);
+    const likeInFlightRef = useRef(false);
     const isExpanded = !isReply && expandedReplyRootId === comment.id && expandedReplies !== null;
     const visibleReplies = isExpanded ? expandedReplies.data : comment.replies;
     const replyParentId = replyParentIdOverride ?? comment.id;
@@ -148,49 +216,74 @@ function CommentItem({
         ? expandedReplies.next_url ? `${expandedReplies.next_url}#comment-${comment.id}` : null
         : comment.reply_expansion_url ?? null;
 
-    const submitReply = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (!canPerformSocialWrites || pending || replyContent.trim() === '') return;
+    useEffect(() => {
+        setLiked(comment.liked);
+        setLikeCount(comment.like_count);
+    }, [comment.id, comment.liked, comment.like_count]);
 
-        setPending(true);
-        setStatusMessage('');
-        router.post(
-            routes.comment,
-            {
+    const submitReply = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!canPerformSocialWrites || replyInFlightRef.current || replyContent.trim() === '') return;
+
+        replyInFlightRef.current = true;
+        setReplyPending(true);
+        setReplyError('');
+
+        try {
+            const payload = await requestCommentMutation(routes.comment, {
                 content: replyContent,
                 parent_id: replyParentId,
-            },
-            {
-                ...actionOptions(),
-                onSuccess: () => {
-                    setReplyContent('');
-                    setOpenReply(false);
-                },
-                onError: () => setStatusMessage(translations.feedback.failed),
-                onFinish: () => setPending(false),
-            },
-        );
+            });
+            if (!isReactiveCommentCreationResponse(payload, postUid, replyParentId)) {
+                throw new CommentMutationError('invalid');
+            }
+
+            onCommentCreated(payload);
+            setReplyContent('');
+            setOpenReply(false);
+        } catch (error) {
+            setReplyError(commentMutationMessage(error, translations.comment_feedback));
+        } finally {
+            replyInFlightRef.current = false;
+            setReplyPending(false);
+        }
     };
 
-    const toggleCommentLike = (event: FormEvent<HTMLFormElement>) => {
+    const toggleCommentLike = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!canPerformSocialWrites || pending) return;
+        if (!canPerformSocialWrites || likeInFlightRef.current) return;
 
-        setPending(true);
-        router.post(comment.actions.like_url, {}, {
-            ...actionOptions(),
-            onError: () => setStatusMessage(translations.feedback.failed),
-            onFinish: () => setPending(false),
-        });
+        likeInFlightRef.current = true;
+        setLikePending(true);
+        setLikeError('');
+        setStatusMessage('');
+        setStatusIsError(false);
+
+        try {
+            const payload = await requestCommentMutation(comment.actions.like_url, { liked: !liked });
+            if (!isCommentLikeResponse(payload, comment.id)) {
+                throw new CommentMutationError('invalid');
+            }
+
+            setLiked(payload.liked);
+            setLikeCount(payload.like_count);
+        } catch (error) {
+            setLikeError(commentMutationMessage(error, translations.comment_feedback));
+        } finally {
+            likeInFlightRef.current = false;
+            setLikePending(false);
+        }
     };
 
     const shareComment = async () => {
         try {
             if (await copyText(comment.actions.share_url)) {
                 setStatusMessage(isReply ? translations.reply_link_copied : translations.comment_link_copied);
+                setStatusIsError(false);
             }
         } catch {
             setStatusMessage(translations.feedback.network);
+            setStatusIsError(true);
         }
     };
 
@@ -221,14 +314,15 @@ function CommentItem({
                     <form onSubmit={toggleCommentLike}>
                         <button
                             type="submit"
-                            aria-label={comment.liked ? translations.unlike : translations.like}
-                            aria-pressed={comment.liked}
-                            title={comment.liked ? translations.unlike : translations.like}
-                            disabled={!canPerformSocialWrites || pending}
+                            aria-label={liked ? translations.unlike : translations.like}
+                            aria-pressed={liked}
+                            aria-busy={likePending}
+                            title={liked ? translations.unlike : translations.like}
+                            disabled={!canPerformSocialWrites || likePending}
                             className="skuy-action skuy-action--reaction disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <HeartIcon className={isReply ? 'text-sm' : 'text-base'} filled={comment.liked} />
-                            {comment.like_count > 0 && <span className="text-[10px] font-semibold">{comment.like_count}</span>}
+                            <HeartIcon className={isReply ? 'text-sm' : 'text-base'} filled={liked} />
+                            {likeCount > 0 && <span className="text-[10px] font-semibold">{likeCount}</span>}
                         </button>
                     </form>
 
@@ -281,17 +375,37 @@ function CommentItem({
                             className="skuy-inline-input"
                             placeholder={interpolate(translations.comments_reply_to, replyTargetName)}
                             required
+                            maxLength={500}
                             autoComplete="off"
-                            disabled={!canPerformSocialWrites || pending}
+                            disabled={!canPerformSocialWrites || replyPending}
                         />
-                        <button type="submit" disabled={!canPerformSocialWrites || pending || replyContent.trim() === ''} className="skuy-button skuy-button--primary min-h-[40px] shrink-0 px-3 py-1 text-xs">
-                            {translations.send}
+                        <button
+                            type="submit"
+                            disabled={!canPerformSocialWrites || replyPending || replyContent.trim() === ''}
+                            aria-busy={replyPending}
+                            className="skuy-button skuy-button--primary min-h-[40px] shrink-0 px-3 py-1 text-xs"
+                        >
+                            {replyPending ? '...' : translations.send}
                         </button>
                     </form>
                 )}
 
+                {likeError && (
+                    <p className="mt-2 text-xs font-semibold text-[var(--skuy-danger)]" role="alert" aria-live="assertive">
+                        {likeError}
+                    </p>
+                )}
+                {replyError && (
+                    <p className="mt-2 text-xs font-semibold text-[var(--skuy-danger)]" role="alert" aria-live="assertive">
+                        {replyError}
+                    </p>
+                )}
                 {statusMessage && (
-                    <p className="mt-2 text-xs font-semibold text-[var(--skuy-danger)]" role="status" aria-live="polite">
+                    <p
+                        className={`mt-2 text-xs font-semibold ${statusIsError ? 'text-[var(--skuy-danger)]' : 'text-[var(--skuy-text-muted)]'}`}
+                        role={statusIsError ? 'alert' : 'status'}
+                        aria-live={statusIsError ? 'assertive' : 'polite'}
+                    >
                         {statusMessage}
                     </p>
                 )}
@@ -305,6 +419,8 @@ function CommentItem({
                                 isReply
                                 expandedReplyRootId={null}
                                 expandedReplies={null}
+                                postUid={postUid}
+                                onCommentCreated={onCommentCreated}
                                 routes={routes}
                                 translations={translations}
                                 canPerformSocialWrites={canPerformSocialWrites}

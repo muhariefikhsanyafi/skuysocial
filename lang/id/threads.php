@@ -45,6 +45,14 @@ return [
         'network' => 'Koneksi gagal. Suka tidak diperbarui.',
     ],
 
+    'comment_feedback' => [
+        'session_expired' => 'Sesi Anda berakhir. Masuk kembali sebelum mengubah komentar.',
+        'restricted' => 'Akun Anda tidak dapat membuat atau menyukai komentar.',
+        'invalid' => 'Aksi komentar ditolak. Periksa komentar Anda lalu coba lagi.',
+        'failed' => 'Aksi komentar tidak dapat diselesaikan. Coba lagi.',
+        'network' => 'Koneksi gagal. Aksi komentar tidak diperbarui.',
+    ],
+
     'composer' => [
         'topic_placeholder' => 'Topik Utas',
         'content_placeholder' => 'Mulai utas baru...',

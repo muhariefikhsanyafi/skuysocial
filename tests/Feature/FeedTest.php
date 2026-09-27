@@ -42,7 +42,8 @@ class FeedTest extends TestCase
         $author = User::factory()->create();
         $viewer = User::factory()->create();
         $post = $this->createPost($author, ['content' => 'Feed visual regression post']);
-        $this->createComment($post, $author, 'Feed visual regression reply');
+        $rootComment = $this->createComment($post, $author, 'Feed visual regression root');
+        $this->createComment($post, $author, 'Feed visual regression reply', ['parent_id' => $rootComment->id]);
         $this->createPost($author, [
             'content' => 'Feed visual regression media post',
             'images' => ['feed-visual-regression.jpg'],
@@ -81,6 +82,14 @@ class FeedTest extends TestCase
             'isRepostRequestInFlight',
             'isBookmarkRequestInFlight',
             'syncPeerState($event)',
+            'feedCommentControl({',
+            '@feed-comment-created="commentCreated($event)"',
+            'feedCommentComposer({',
+            'data-feed-created-roots',
+            'data-feed-comment-id=',
+            'data-feed-reply-list',
+            'data-feed-comment-count',
+            'data-feed-more-comments',
             'class="skuy-comment-preview skuy-feed-post__comment-preview"',
             'class="skuy-feed-post__media skuy-feed-post__media--single"',
             'class="skuy-feed-post__media skuy-feed-post__media--carousel"',

@@ -58,6 +58,8 @@ export interface CommentActions {
 
 export interface PostDetailComment {
     id: number;
+    post_uid?: string;
+    parent_id?: number | null;
     content: string;
     datetime: string;
     display_time: string;
@@ -67,7 +69,22 @@ export interface PostDetailComment {
     replies_count: number;
     replies: PostDetailComment[];
     actions: CommentActions;
-    reply_expansion_url?: string;
+    reply_expansion_url?: string | null;
+}
+
+export interface ReactiveCommentCreationResponse {
+    post_uid: string;
+    comment_count: number;
+    root_comment_count: number;
+    parent_reply_count: number | null;
+    comment: PostDetailComment & { post_uid: string; parent_id: number | null };
+    feed_html?: string;
+}
+
+export interface CommentLikeResponse {
+    comment_id: number;
+    liked: boolean;
+    like_count: number;
 }
 
 export interface CommentPagination {
@@ -110,6 +127,14 @@ export interface PostDetailFeedbackTranslations {
     network: string;
 }
 
+export interface CommentFeedbackTranslations {
+    session_expired: string;
+    restricted: string;
+    invalid: string;
+    failed: string;
+    network: string;
+}
+
 export interface PostDetailTranslations {
     back_to_feed: string;
     thread: string;
@@ -144,6 +169,7 @@ export interface PostDetailTranslations {
     pagination_previous: string;
     pagination_next: string;
     feedback: PostDetailFeedbackTranslations;
+    comment_feedback: CommentFeedbackTranslations;
 }
 
 export interface PostDetailPageProps extends SharedProps {

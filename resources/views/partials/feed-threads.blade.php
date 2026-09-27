@@ -6,7 +6,17 @@
 
     <article
         data-feed-thread-key="{{ $post->uid }}"
-        x-data="{ showComments: false }"
+        data-feed-post-uid="{{ $displayPost->uid }}"
+        data-feed-comment-count-value="{{ (int) ($displayPost->comments_count ?? 0) }}"
+        data-feed-root-comment-count-value="{{ (int) ($displayPost->root_comments_count ?? 0) }}"
+        x-data="feedCommentControl({
+            postUid: @js((string) $displayPost->uid),
+            commentCount: @js((int) ($displayPost->comments_count ?? 0)),
+            rootCommentCount: @js((int) ($displayPost->root_comments_count ?? 0)),
+            replyLabel: @js(__('threads.actions.reply')),
+            moreCommentsLabel: @js(trans_choice('threads.comments.more', 2, ['count' => '__COUNT__'])),
+        })"
+        @feed-comment-created="commentCreated($event)"
         @click="if(!$event.target.closest('button, a, form, img')) window.location='{{ route('posts.show', $displayPost->uid) }}'"
         class="skuy-post skuy-feed-post cursor-pointer"
     >
@@ -223,6 +233,7 @@
                             labels: {
                                 like: @js(__('threads.labels.like')),
                                 unlike: @js(__('threads.actions.unlike')),
+                                reply: @js(__('threads.actions.reply')),
                                 repost: @js(__('threads.actions.repost')),
                                 save: @js(__('threads.actions.save')),
                                 removeFromSaved: @js(__('threads.actions.remove_from_saved')),
@@ -266,9 +277,9 @@
                                 </button>
                             </form>
 
-                            <button @click="showComments = !showComments" type="button" aria-label="{{ $commentActionLabel }}" title="{{ $commentActionLabel }}" :aria-expanded="showComments.toString()" aria-controls="comments-{{ $displayPost->uid }}" class="skuy-action{{ $commentActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
+                            <button data-feed-comment-action @click="showComments = !showComments" type="button" aria-label="{{ $commentActionLabel }}" title="{{ $commentActionLabel }}" :aria-expanded="showComments.toString()" aria-controls="comments-{{ $displayPost->uid }}" class="skuy-action{{ $commentActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
                                 <x-fa-icon name="comment" class="text-xl" />
-                                <span>{{ $commentDisplayCount }}</span>
+                                <span data-feed-comment-count @if ($commentDisplayCount === '') style="display: none;" @endif>{{ $commentDisplayCount }}</span>
                             </button>
 
                             <form
@@ -372,11 +383,15 @@
                                     </div>
                                     <p class="skuy-comment__text">{{ $topComment->content }}</p>
 
-                                    @if ($displayPost->root_comments_count > 1)
-                                        <button @click="showComments = true" type="button" class="skuy-comment__reply">
-                                            {{ trans_choice('threads.comments.more', $displayPost->root_comments_count - 1, ['count' => $displayPost->root_comments_count - 1]) }}
-                                        </button>
-                                    @endif
+                                    <button
+                                        data-feed-more-comments
+                                        @if ($displayPost->root_comments_count <= 1) style="display: none;" @endif
+                                        @click="showComments = true"
+                                        type="button"
+                                        class="skuy-comment__reply"
+                                    >
+                                        {{ trans_choice('threads.comments.more', max(1, $displayPost->root_comments_count - 1), ['count' => max(1, $displayPost->root_comments_count - 1)]) }}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -388,8 +403,10 @@
                                 {{ __('threads.actions.view_full_thread') }}
                             </a>
 
+                            <div data-feed-created-roots></div>
+
                             @foreach ($displayPost->feedComments as $comment)
-                                <div x-data="{ openReply: false, isSubmitting: false }" class="skuy-comment">
+                                <div x-data="{ openReply: false }" data-feed-comment-id="{{ $comment->id }}" class="skuy-comment">
                                     @if ($comment->user->avatar)
                                         <div class="skuy-avatar skuy-avatar--small">
                                             <img src="{{ asset('storage/' . $comment->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $comment->user->name]) }}">
@@ -411,21 +428,49 @@
                                         </button>
 
                                         <div x-show="openReply" style="display: none;" class="mt-2">
-                                            <form action="{{ route('comments.store', $displayPost->uid) }}" method="POST" class="skuy-inline-form" @submit="isSubmitting = true">
+                                            <form
+                                                action="{{ route('comments.store', $displayPost->uid) }}"
+                                                method="POST"
+                                                class="skuy-inline-form"
+                                                x-data="feedCommentComposer({
+                                                    url: @js(route('comments.store', $displayPost->uid)),
+                                                    postUid: @js((string) $displayPost->uid),
+                                                    parentId: @js((int) $comment->id),
+                                                    labels: {
+                                                        sessionExpired: @js(__('threads.comment_feedback.session_expired')),
+                                                        restricted: @js(__('moderation.denials.social_write')),
+                                                        invalid: @js(__('threads.comment_feedback.invalid')),
+                                                        failed: @js(__('threads.comment_feedback.failed')),
+                                                        network: @js(__('threads.comment_feedback.network')),
+                                                    },
+                                                })"
+                                                @submit.prevent="submit($event)"
+                                            >
                                                 @csrf
                                                 <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                                                <input type="text" name="content" class="skuy-inline-input" placeholder="{{ __('threads.comments.reply_to', ['name' => $comment->user->name]) }}" required>
-                                                <button type="submit" :disabled="isSubmitting" class="skuy-button skuy-button--primary min-h-[40px] px-3 py-1 text-xs">
-                                                    <span x-show="!isSubmitting">{{ __('threads.actions.send') }}</span>
-                                                    <span x-show="isSubmitting">...</span>
+                                                <input
+                                                    x-model="content"
+                                                    type="text"
+                                                    name="content"
+                                                    class="skuy-inline-input"
+                                                    placeholder="{{ __('threads.comments.reply_to', ['name' => $comment->user->name]) }}"
+                                                    required
+                                                    maxlength="500"
+                                                    autocomplete="off"
+                                                    :disabled="pending"
+                                                >
+                                                <button type="submit" :disabled="pending || content.trim() === ''" :aria-busy="pending.toString()" class="skuy-button skuy-button--primary min-h-[40px] px-3 py-1 text-xs">
+                                                    <span x-show="!pending">{{ __('threads.actions.send') }}</span>
+                                                    <span x-show="pending">...</span>
                                                 </button>
+                                                <p x-show="error" x-text="error" style="display: none;" class="basis-full text-xs font-semibold text-[var(--skuy-danger)]" role="alert" aria-live="assertive"></p>
                                             </form>
                                         </div>
 
                                         @if ($comment->feedReplies->count() > 0)
-                                            <div class="skuy-comment__replies">
+                                            <div class="skuy-comment__replies" data-feed-reply-list>
                                                 @foreach ($comment->feedReplies as $reply)
-                                                    <div class="skuy-comment">
+                                                    <div data-feed-comment-id="{{ $reply->id }}" class="skuy-comment">
                                                         @if ($reply->user->avatar)
                                                             <div class="skuy-avatar skuy-avatar--tiny">
                                                                 <img src="{{ asset('storage/' . $reply->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $reply->user->name]) }}">
@@ -452,7 +497,7 @@
                             @endforeach
                         </div>
 
-                        <div x-data="{ isSubmitting: false }" class="skuy-inline-form">
+                        <div class="skuy-inline-form">
                             @if (Auth::user()->avatar)
                                 <div class="skuy-avatar skuy-avatar--small">
                                     <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
@@ -463,13 +508,41 @@
                                 </div>
                             @endif
 
-                            <form action="{{ route('comments.store', $displayPost->uid) }}" method="POST" class="flex min-w-0 flex-1 items-center gap-2" @submit="isSubmitting = true">
+                            <form
+                                action="{{ route('comments.store', $displayPost->uid) }}"
+                                method="POST"
+                                class="flex min-w-0 flex-1 items-center gap-2"
+                                x-data="feedCommentComposer({
+                                    url: @js(route('comments.store', $displayPost->uid)),
+                                    postUid: @js((string) $displayPost->uid),
+                                    parentId: null,
+                                    labels: {
+                                        sessionExpired: @js(__('threads.comment_feedback.session_expired')),
+                                        restricted: @js(__('moderation.denials.social_write')),
+                                        invalid: @js(__('threads.comment_feedback.invalid')),
+                                        failed: @js(__('threads.comment_feedback.failed')),
+                                        network: @js(__('threads.comment_feedback.network')),
+                                    },
+                                })"
+                                @submit.prevent="submit($event)"
+                            >
                                 @csrf
-                                <input type="text" name="content" class="skuy-inline-input" placeholder="{{ __('threads.comments.add') }}" required>
-                                <button type="submit" :disabled="isSubmitting" class="skuy-button skuy-button--primary min-h-[40px] px-3 py-1 text-xs">
-                                    <span x-show="!isSubmitting">{{ __('threads.actions.send') }}</span>
-                                    <span x-show="isSubmitting">...</span>
+                                <input
+                                    x-model="content"
+                                    type="text"
+                                    name="content"
+                                    class="skuy-inline-input"
+                                    placeholder="{{ __('threads.comments.add') }}"
+                                    required
+                                    maxlength="500"
+                                    autocomplete="off"
+                                    :disabled="pending"
+                                >
+                                <button type="submit" :disabled="pending || content.trim() === ''" :aria-busy="pending.toString()" class="skuy-button skuy-button--primary min-h-[40px] px-3 py-1 text-xs">
+                                    <span x-show="!pending">{{ __('threads.actions.send') }}</span>
+                                    <span x-show="pending">...</span>
                                 </button>
+                                <p x-show="error" x-text="error" style="display: none;" class="basis-full text-xs font-semibold text-[var(--skuy-danger)]" role="alert" aria-live="assertive"></p>
                             </form>
                         </div>
                     </div>

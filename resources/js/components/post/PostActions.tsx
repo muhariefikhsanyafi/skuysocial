@@ -7,6 +7,7 @@ interface PostActionsProps {
     routes: PostDetailRoutes;
     translations: PostDetailTranslations;
     canPerformSocialWrites: boolean;
+    commentCount: number;
 }
 
 interface JsonActionPayload {
@@ -78,7 +79,7 @@ function isActionPayload(payload: unknown): payload is JsonActionPayload {
     return typeof payload === 'object' && payload !== null;
 }
 
-export function PostActions({ post, routes, translations, canPerformSocialWrites }: PostActionsProps) {
+export function PostActions({ post, routes, translations, canPerformSocialWrites, commentCount }: PostActionsProps) {
     const [liked, setLiked] = useState(post.interactions.liked);
     const [likeCount, setLikeCount] = useState(post.interactions.like_count);
     const [reposted, setReposted] = useState(post.interactions.reposted);
@@ -263,7 +264,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
 
                 <div className="skuy-action cursor-default" aria-label={translations.reply} title={translations.reply}>
                     <CommentIcon />
-                    <span className="text-xs font-semibold">{post.interactions.comment_count > 0 ? post.interactions.comment_count : ''}</span>
+                    <span className="text-xs font-semibold">{commentCount > 0 ? commentCount : ''}</span>
                 </div>
 
                 <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleRepost(); }}>

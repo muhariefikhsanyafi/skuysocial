@@ -1,16 +1,18 @@
-import { router, usePage } from '@inertiajs/react';
-import { useState, type FormEvent, type ReactNode } from 'react';
-import type { PostDetailPageProps } from '../../types/post';
+import { usePage } from '@inertiajs/react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import type { PostDetailPageProps, ReactiveCommentCreationResponse } from '../../types/post';
 import { Avatar } from '../../components/post/Avatar';
 import { CommentList } from '../../components/post/CommentList';
 import { ArrowLeftIcon, CheckIcon, ImageIcon, RepostContextIcon } from '../../components/post/icons';
 import { MediaViewer } from '../../components/post/MediaViewer';
 import { PostActions } from '../../components/post/PostActions';
 import { PostOptions } from '../../components/post/PostOptions';
-
-function csrfToken(): string {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
+import {
+    CommentMutationError,
+    commentMutationMessage,
+    isReactiveCommentCreationResponse,
+    requestCommentMutation,
+} from '../../components/post/commentMutations';
 
 function renderContent(content: string, tagsBaseUrl: string): ReactNode[] {
     return content.split(/(#[a-zA-Z0-9_]+)/g).map((part, index) => {
@@ -38,6 +40,18 @@ export default function Show() {
         routes,
         translations,
     } = props;
+    const [commentCount, setCommentCount] = useState(displayPost.interactions.comment_count);
+    const [createdComments, setCreatedComments] = useState<ReactiveCommentCreationResponse[]>([]);
+
+    useEffect(() => {
+        setCommentCount(displayPost.interactions.comment_count);
+        setCreatedComments([]);
+    }, [displayPost.uid, displayPost.interactions.comment_count]);
+
+    const handleCommentCreated = (response: ReactiveCommentCreationResponse) => {
+        setCommentCount((current) => Math.max(current, response.comment_count));
+        setCreatedComments((current) => [...current, response].slice(-100));
+    };
 
     return (
         <div className="skuy-feed-page skuy-post-detail-page">
@@ -102,6 +116,7 @@ export default function Show() {
                                 routes={routes}
                                 translations={translations}
                                 canPerformSocialWrites={viewer.can_perform_social_writes}
+                                commentCount={commentCount}
                             />
                         </div>
                     </div>
@@ -111,6 +126,9 @@ export default function Show() {
                     author={viewer.author}
                     replyTo={displayPost.author.username}
                     actionUrl={routes.comment}
+                    postUid={displayPost.uid}
+                    commentFeedback={translations.comment_feedback}
+                    onCommentCreated={handleCommentCreated}
                     translations={translations}
                     canPerformSocialWrites={viewer.can_perform_social_writes}
                 />
@@ -120,6 +138,9 @@ export default function Show() {
                         comments={comments}
                         expandedReplyRootId={expandedReplyRootId}
                         expandedReplies={expandedReplies}
+                        postUid={displayPost.uid}
+                        createdComments={createdComments}
+                        onCommentCreated={handleCommentCreated}
                         routes={routes}
                         translations={translations}
                         canPerformSocialWrites={viewer.can_perform_social_writes}
@@ -134,32 +155,50 @@ interface CommentComposerProps {
     author: PostDetailPageProps['viewer']['author'];
     replyTo: string;
     actionUrl: string;
+    postUid: string;
+    commentFeedback: PostDetailPageProps['translations']['comment_feedback'];
+    onCommentCreated: (response: ReactiveCommentCreationResponse) => void;
     translations: PostDetailPageProps['translations'];
     canPerformSocialWrites: boolean;
 }
 
-function CommentComposer({ author, replyTo, actionUrl, translations, canPerformSocialWrites }: CommentComposerProps) {
+export function CommentComposer({
+    author,
+    replyTo,
+    actionUrl,
+    postUid,
+    commentFeedback,
+    onCommentCreated,
+    translations,
+    canPerformSocialWrites,
+}: CommentComposerProps) {
     const [content, setContent] = useState('');
     const [pending, setPending] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
+    const inFlightRef = useRef(false);
 
-    const submitComment = (event: FormEvent<HTMLFormElement>) => {
+    const submitComment = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!canPerformSocialWrites || pending || content.trim() === '') return;
+        if (!canPerformSocialWrites || inFlightRef.current || content.trim() === '') return;
 
+        inFlightRef.current = true;
         setPending(true);
         setStatusMessage('');
-        router.post(
-            actionUrl,
-            { content },
-            {
-                preserveScroll: true,
-                headers: { 'X-CSRF-TOKEN': csrfToken() },
-                onSuccess: () => setContent(''),
-                onError: () => setStatusMessage(translations.feedback.failed),
-                onFinish: () => setPending(false),
-            },
-        );
+
+        try {
+            const payload = await requestCommentMutation(actionUrl, { content });
+            if (!isReactiveCommentCreationResponse(payload, postUid, null)) {
+                throw new CommentMutationError('invalid');
+            }
+
+            onCommentCreated(payload);
+            setContent('');
+        } catch (error) {
+            setStatusMessage(commentMutationMessage(error, commentFeedback));
+        } finally {
+            inFlightRef.current = false;
+            setPending(false);
+        }
     };
 
     return (
@@ -181,6 +220,7 @@ function CommentComposer({ author, replyTo, actionUrl, translations, canPerformS
                     placeholder={translations.comments_reply_to.replace(':name', replyTo)}
                     aria-label={translations.comments_reply_to.replace(':name', replyTo)}
                     required
+                    maxLength={500}
                     autoComplete="off"
                     disabled={!canPerformSocialWrites || pending}
                 />
@@ -194,7 +234,7 @@ function CommentComposer({ author, replyTo, actionUrl, translations, canPerformS
                 )}
             </form>
             {statusMessage && (
-                <p className="mt-2 text-xs font-semibold text-[var(--skuy-danger)]" role="status" aria-live="polite">
+                <p className="mt-2 text-xs font-semibold text-[var(--skuy-danger)]" role="alert" aria-live="assertive">
                     {statusMessage}
                 </p>
             )}

@@ -45,6 +45,14 @@ return [
         'network' => 'The connection failed. Your like was not updated.',
     ],
 
+    'comment_feedback' => [
+        'session_expired' => 'Your session expired. Sign in again before changing comments.',
+        'restricted' => 'Your account cannot create comments or like them.',
+        'invalid' => 'The comment action was rejected. Check your comment and try again.',
+        'failed' => 'The comment action could not be completed. Try again.',
+        'network' => 'The connection failed. Your comment action was not updated.',
+    ],
+
     'composer' => [
         'topic_placeholder' => 'Thread topic',
         'content_placeholder' => 'Start a new Thread...',

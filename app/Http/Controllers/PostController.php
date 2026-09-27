@@ -561,6 +561,13 @@ class PostController extends Controller
                 'failed' => __('threads.feedback.failed'),
                 'network' => __('threads.feedback.network'),
             ],
+            'comment_feedback' => [
+                'session_expired' => __('threads.comment_feedback.session_expired'),
+                'restricted' => __('threads.comment_feedback.restricted'),
+                'invalid' => __('threads.comment_feedback.invalid'),
+                'failed' => __('threads.comment_feedback.failed'),
+                'network' => __('threads.comment_feedback.network'),
+            ],
         ];
     }
 

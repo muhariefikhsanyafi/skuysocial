@@ -121,6 +121,13 @@ const props = {
             failed: 'The like could not be updated.',
             network: 'The connection failed.',
         },
+        comment_feedback: {
+            session_expired: 'Comment session expired.',
+            restricted: 'Commenting is restricted.',
+            invalid: 'The comment action was rejected.',
+            failed: 'Comment action failed.',
+            network: 'Comment connection failed.',
+        },
     },
 } as PostDetailPageProps;
 
