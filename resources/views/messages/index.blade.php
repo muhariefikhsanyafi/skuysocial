@@ -27,8 +27,10 @@
                         <li>
                             <a
                                 href="{{ route('messages.show', $row['conversation_id']) }}"
-                                aria-label="{{ __('messages.open_conversation_with', ['name' => $counterpart?->name ?? __('messages.deleted_account')]) }}"
-                                class="skuy-message-row"
+                                aria-label="{{ __('messages.open_conversation_with', ['name' => $counterpart?->name ?? __('messages.deleted_account')]) }}{{ $row['unread_count'] > 0
+                                    ? ', ' . __('navigation.unread_messages_count', ['count' => $row['unread_count']])
+                                    : '' }}"
+                                @class(['skuy-message-row', 'skuy-message-row--unread' => $row['unread_count'] > 0])
                             >
                                 <div class="skuy-avatar skuy-message-row__avatar" aria-hidden="true">
                                     @if ($counterpart && filled($counterpart->avatar))
@@ -56,6 +58,15 @@
                                         <span class="skuy-message-row__username">{{ '@' . $counterpart->username }}</span>
                                     @else
                                         <span class="skuy-message-row__name">{{ __('messages.deleted_account') }}</span>
+                                    @endif
+
+                                    @if ($row['unread_count'] > 0)
+                                        @php($displayUnreadCount = $row['unread_count'] > 99 ? '99+' : $row['unread_count'])
+                                        <span
+                                            class="skuy-feed-nav__badge skuy-message-row__unread-badge"
+                                            data-conversation-unread-badge
+                                            aria-label="{{ __('navigation.unread_messages_count', ['count' => $row['unread_count']]) }}"
+                                        >{{ $displayUnreadCount }}</span>
                                     @endif
                                 </div>
 

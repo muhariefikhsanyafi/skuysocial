@@ -9,6 +9,16 @@ class ConversationParticipant extends Model
 {
     protected $fillable = ['conversation_id', 'user_id'];
 
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'last_read_message_id' => 'integer',
+        ];
+    }
+
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class);

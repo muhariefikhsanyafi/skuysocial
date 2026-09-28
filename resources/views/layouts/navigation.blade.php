@@ -4,8 +4,16 @@
     $isDashboard = request()->routeIs('dashboard');
     $isFeed = request()->routeIs('feed');
     $showDashboardNavigation = $user->hasVerifiedEmail() || $isDashboard;
-    $unreadNotificationCount = $unreadNotificationCount
-        ?? ($isFeed ? $user->unreadNotifications()->count() : null);
+    $unreadNotificationCount = (int) ($unreadNotificationCount ?? 0);
+    $unreadMessageCount = (int) ($unreadMessageCount ?? 0);
+    $displayUnreadNotificationCount = $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount;
+    $displayUnreadMessageCount = $unreadMessageCount > 99 ? '99+' : $unreadMessageCount;
+    $activityMobileLabel = $unreadNotificationCount > 0
+        ? __('navigation.activity') . ', ' . __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount])
+        : __('navigation.activity');
+    $messagesMobileLabel = $unreadMessageCount > 0
+        ? __('navigation.messages') . ', ' . __('navigation.unread_messages_count', ['count' => $unreadMessageCount])
+        : __('navigation.messages');
     $brandHref = $showDashboardNavigation ? route('dashboard') : route('feed');
     $brandLabel = $showDashboardNavigation ? __('navigation.dashboard') : __('navigation.feed');
     $navigationItems = [];
@@ -193,8 +201,18 @@
                                 <x-fa-icon :name="$item['icon']" :weight="$item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
                                 <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
 
-                                @if ($item['key'] === 'activity' && isset($unreadNotificationCount) && $unreadNotificationCount > 0)
-                                    <span class="skuy-feed-nav__badge" aria-label="{{ $unreadNotificationCount }} {{ $item['label'] }}">{{ $unreadNotificationCount }}</span>
+                                @if ($item['key'] === 'activity' && $unreadNotificationCount > 0)
+                                    <span
+                                        class="skuy-feed-nav__badge"
+                                        data-unread-notifications-badge
+                                        aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}"
+                                    >{{ $displayUnreadNotificationCount }}</span>
+                                @elseif ($item['key'] === 'messages' && $unreadMessageCount > 0)
+                                    <span
+                                        class="skuy-feed-nav__badge"
+                                        data-unread-messages-badge
+                                        aria-label="{{ __('navigation.unread_messages_count', ['count' => $unreadMessageCount]) }}"
+                                    >{{ $displayUnreadMessageCount }}</span>
                                 @endif
                             </a>
                         @endforeach
@@ -213,18 +231,18 @@
 </aside>
 
 <nav class="skuy-mobile-nav" aria-label="{{ __('home.public.primary_navigation') }}">
-    <a href="{{ $bottomHomeHref }}" aria-label="{{ $bottomHomeLabel }}" aria-current="{{ $bottomHomeCurrent ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
+    <a href="{{ $bottomHomeHref }}" aria-label="{{ $bottomHomeLabel }}" aria-current="{{ $bottomHomeCurrent ? 'page' : 'false' }}" class="skuy-mobile-nav__item" data-mobile-nav-key="home">
         <x-fa-icon :name="$bottomHomeIcon" :weight="$bottomHomeCurrent ? 'solid' : 'regular'" class="text-xl" />
         <span>{{ $bottomHomeLabel }}</span>
     </a>
 
-    <a href="{{ route('search') }}" aria-label="{{ __('navigation.search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
+    <a href="{{ route('search') }}" aria-label="{{ __('navigation.search') }}" aria-current="{{ request()->routeIs('search') ? 'page' : 'false' }}" class="skuy-mobile-nav__item" data-mobile-nav-key="search">
         <x-fa-icon name="magnifying-glass" :weight="request()->routeIs('search') ? 'solid' : 'regular'" class="text-xl" />
         <span>{{ __('navigation.search') }}</span>
     </a>
 
     @if ($user->canPerformSocialWrites())
-        <a href="{{ $composerHref }}" aria-label="{{ __('navigation.create_thread') }}" class="skuy-mobile-nav__item skuy-mobile-nav__item--compose">
+        <a href="{{ $composerHref }}" aria-label="{{ __('navigation.create_thread') }}" class="skuy-mobile-nav__item skuy-mobile-nav__item--compose" data-mobile-nav-key="create">
             <x-fa-icon name="plus" weight="solid" class="text-xl" />
             <span class="sr-only">{{ __('navigation.create_thread') }}</span>
         </a>
@@ -235,14 +253,32 @@
         </a>
     @endif
 
-    <a href="{{ route('activity.index') }}" aria-label="{{ __('navigation.activity') }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-        <x-fa-icon name="bell" :weight="request()->routeIs('activity.index') ? 'solid' : 'regular'" class="text-xl" />
+    <a href="{{ route('activity.index') }}" aria-label="{{ $activityMobileLabel }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="skuy-mobile-nav__item" data-mobile-nav-key="activity">
+        <span class="skuy-mobile-nav__icon-wrap">
+            <x-fa-icon name="bell" :weight="request()->routeIs('activity.index') ? 'solid' : 'regular'" class="text-xl" />
+            @if ($unreadNotificationCount > 0)
+                <span
+                    class="skuy-feed-nav__badge skuy-mobile-nav__badge"
+                    data-unread-notifications-badge
+                    aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}"
+                >{{ $displayUnreadNotificationCount }}</span>
+            @endif
+        </span>
         <span>{{ __('navigation.activity') }}</span>
     </a>
 
-    <a href="{{ $profileUrl }}" aria-label="{{ __('navigation.profile') }}" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === $user->username ? 'page' : 'false' }}" class="skuy-mobile-nav__item">
-        <x-fa-icon name="user" :weight="request()->routeIs('user.profile') && request()->route('username') === $user->username ? 'solid' : 'regular'" class="text-xl" />
-        <span>{{ __('navigation.profile') }}</span>
+    <a href="{{ route('messages.index') }}" aria-label="{{ $messagesMobileLabel }}" aria-current="{{ request()->routeIs('messages.*') ? 'page' : 'false' }}" class="skuy-mobile-nav__item" data-mobile-nav-key="messages">
+        <span class="skuy-mobile-nav__icon-wrap">
+            <x-fa-icon name="comment-lines" :weight="request()->routeIs('messages.*') ? 'solid' : 'regular'" class="text-xl" />
+            @if ($unreadMessageCount > 0)
+                <span
+                    class="skuy-feed-nav__badge skuy-mobile-nav__badge"
+                    data-unread-messages-badge
+                    aria-label="{{ __('navigation.unread_messages_count', ['count' => $unreadMessageCount]) }}"
+                >{{ $displayUnreadMessageCount }}</span>
+            @endif
+        </span>
+        <span>{{ __('navigation.messages') }}</span>
     </a>
 </nav>
 </div>

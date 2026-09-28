@@ -7,6 +7,8 @@ return [
     'search' => 'Search',
     'activity' => 'Activity',
     'messages' => 'Messages',
+    'unread_messages_count' => 'Unread messages: :count',
+    'unread_notifications_count' => 'Unread notifications: :count',
     'saved' => 'Saved',
     'profile' => 'Profile',
     'my_profile' => 'My Profile',

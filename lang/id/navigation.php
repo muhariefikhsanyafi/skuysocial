@@ -7,6 +7,8 @@ return [
     'search' => 'Cari',
     'activity' => 'Aktivitas',
     'messages' => 'Pesan',
+    'unread_messages_count' => 'Pesan belum dibaca: :count',
+    'unread_notifications_count' => 'Notifikasi belum dibaca: :count',
     'saved' => 'Tersimpan',
     'profile' => 'Profil',
     'my_profile' => 'Profil Saya',

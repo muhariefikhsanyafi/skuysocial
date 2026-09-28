@@ -131,6 +131,7 @@ describe('direct-message composer progressive enhancement', () => {
         expect(button.textContent).toBe('Send');
         expect(feedback.textContent).toBe('Message sent.');
         expect(feedback.hidden).toBe(false);
+        expect(feedback.dataset.state).toBe('success');
         expect(scrollIntoView).toHaveBeenCalledTimes(1);
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:3000/pesan/17');
@@ -155,6 +156,7 @@ describe('direct-message composer progressive enhancement', () => {
         submit(form);
 
         await vi.waitFor(() => expect(feedback.textContent).toBe('Write a message before sending.'));
+        expect(feedback.dataset.state).toBe('error');
         expect(input.value).toBe('Keep this draft');
         expect(input.getAttribute('aria-invalid')).toBe('true');
         expect(button.disabled).toBe(false);
@@ -178,6 +180,7 @@ describe('direct-message composer progressive enhancement', () => {
         submit(form);
 
         await vi.waitFor(() => expect(feedback.textContent).toBe(message));
+        expect(feedback.dataset.state).toBe('error');
         expect(input.value).toBe('Retain on server error');
         expect(button.disabled).toBe(false);
         expect(history.querySelector('[data-message-id]')).toBeNull();
@@ -193,6 +196,7 @@ describe('direct-message composer progressive enhancement', () => {
         submit(form);
 
         await vi.waitFor(() => expect(feedback.textContent).toBe('Connection failed.'));
+        expect(feedback.dataset.state).toBe('error');
         expect(input.value).toBe('Retain while offline');
         expect(button.disabled).toBe(false);
         expect(button.textContent).toBe('Send');

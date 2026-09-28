@@ -13,6 +13,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL; // <--- Wajib dipanggil untuk fitur HTTPS
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +31,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::composer('layouts.navigation', static function (\Illuminate\View\View $view): void {
+            $user = auth()->user();
+
+            if (! $user instanceof User) {
+                return;
+            }
+
+            $view->with('unreadNotificationCount', $user->unreadNotifications()->count())
+                ->with('unreadMessageCount', $user->unreadMessageCount());
+        });
+
         RateLimiter::for('two-factor-login', function (Request $request): array {
             $state = $request->session()->get(TwoFactorLoginChallengeService::SESSION_KEY);
             $userId = is_array($state) && is_numeric($state['user_id'] ?? null)

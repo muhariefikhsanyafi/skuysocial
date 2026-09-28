@@ -81,9 +81,17 @@ function bindComposer(form: HTMLFormElement): void {
     form.dataset.messageComposerBound = 'true';
     let inFlight = false;
 
-    const setFeedback = (message: string, invalid = false): void => {
+    const setFeedback = (
+        message: string,
+        invalid = false,
+        state: 'success' | 'error' = 'error',
+    ): void => {
         feedback.textContent = message;
         feedback.hidden = message.length === 0;
+
+        if (message.length > 0) feedback.dataset.state = state;
+        else delete feedback.dataset.state;
+
         input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
     };
 
@@ -167,7 +175,7 @@ function bindComposer(form: HTMLFormElement): void {
             const newMessage = appendMessage(history, payload.message);
             input.value = '';
             newMessage.scrollIntoView?.({ behavior: 'smooth', block: 'end' });
-            setFeedback(form.dataset.sentLabel ?? '');
+            setFeedback(form.dataset.sentLabel ?? '', false, 'success');
         } catch {
             setFeedback(form.dataset.failed ?? '');
         } finally {

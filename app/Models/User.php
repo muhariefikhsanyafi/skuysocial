@@ -14,6 +14,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -149,6 +150,26 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
     public function conversations(): BelongsToMany
     {
         return $this->belongsToMany(Conversation::class, 'conversation_participants')->withTimestamps();
+    }
+
+    public function unreadMessageCount(): int
+    {
+        $userId = $this->getKey();
+
+        return Message::query()
+            ->join('conversation_participants as viewer_participant', 'viewer_participant.conversation_id', '=', 'messages.conversation_id')
+            ->join('conversations', 'conversations.id', '=', 'messages.conversation_id')
+            ->where('conversations.type', Conversation::TYPE_DIRECT)
+            ->where('viewer_participant.user_id', $userId)
+            ->where(static function (Builder $query) use ($userId): void {
+                $query->whereNull('messages.sender_id')
+                    ->orWhere('messages.sender_id', '<>', $userId);
+            })
+            ->where(static function (Builder $query): void {
+                $query->whereNull('viewer_participant.last_read_message_id')
+                    ->orWhereColumn('messages.id', '>', 'viewer_participant.last_read_message_id');
+            })
+            ->count();
     }
 
     public function messages(): HasMany

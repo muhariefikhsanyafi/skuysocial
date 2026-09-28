@@ -513,7 +513,7 @@ class SearchActivityPerformanceTest extends TestCase
 
     public function test_feed_badge_counts_only_unread_notifications(): void
     {
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->create(['locale' => 'en']);
         $actor = User::factory()->create();
         $post = $this->createPost($actor, 'Badge post');
 
@@ -526,9 +526,10 @@ class SearchActivityPerformanceTest extends TestCase
         $response = $this->actingAs($recipient)->get(route('feed'));
 
         $response->assertOk();
-        $this->assertSame(2, $response->viewData('unreadNotificationCount'));
-        $response->assertSee('skuy-feed-nav__badge', false);
-        $response->assertSee('2', false);
+        $html = $response->getContent();
+        $this->assertSame(2, $recipient->unreadNotifications()->count());
+        $this->assertSame(2, substr_count($html, 'data-unread-notifications-badge'));
+        $this->assertSame(2, substr_count($html, 'aria-label="Unread notifications: 2"'));
     }
 
     private function createPost(User $user, string $content, array $attributes = []): Post

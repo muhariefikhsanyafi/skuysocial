@@ -25,7 +25,10 @@ class MessagesInboxTest extends TestCase
         $response = $this->actingAs($user)->get(route('messages.index'));
         $response->assertOk()
             ->assertSeeText('Pesan')
-            ->assertSeeText('Belum ada pesan');
+            ->assertSeeText('Belum ada pesan')
+            ->assertDontSee('data-unread-messages-badge', false)
+            ->assertDontSee('data-unread-notifications-badge', false)
+            ->assertDontSee('data-conversation-unread-badge', false);
 
         $html = $response->getContent();
         $inboxUrl = preg_quote(route('messages.index'), '/');

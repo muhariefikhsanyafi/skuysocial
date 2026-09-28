@@ -4639,6 +4639,28 @@
     transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
+.skuy-mobile-nav__icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.skuy-mobile-nav__badge {
+    position: absolute;
+    top: -5px;
+    right: -14px;
+    min-width: 18px;
+    min-height: 18px;
+    margin: 0;
+    padding: 0 4px;
+    font-size: 0.625rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 .skuy-mobile-nav__item:hover,
 .skuy-mobile-nav__item[aria-current='page'] {
     border-color: color-mix(in srgb, var(--skuy-secondary) 25%, var(--skuy-border-soft));
@@ -6101,6 +6123,23 @@ a.skuy-message-row:focus-visible {
     outline-offset: 2px;
 }
 
+.skuy-message-row--unread {
+    background: color-mix(in srgb, var(--skuy-selected) 22%, var(--skuy-surface-raised));
+}
+
+.skuy-message-row--unread .skuy-message-row__preview {
+    color: var(--skuy-text-primary);
+    font-weight: 600;
+}
+
+.skuy-message-row__unread-badge {
+    flex: 0 0 auto;
+    min-width: 20px;
+    min-height: 20px;
+    margin-left: auto;
+    padding: 0 5px;
+}
+
 .skuy-message-row__avatar {
     grid-area: avatar;
 }
@@ -6792,6 +6831,10 @@ a.skuy-message-row:focus-visible {
     font-weight: 600;
     line-height: var(--skuy-leading-meta);
     overflow-wrap: anywhere;
+}
+
+.skuy-direct-chat-feedback[data-state='success'] {
+    color: var(--skuy-secondary);
 }
 
 .skuy-direct-chat-composer__actions {

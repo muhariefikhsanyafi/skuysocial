@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\FindOrCreateDirectConversation;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
+use App\Models\Message;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -21,9 +22,27 @@ class MessagesController extends Controller
     public function index(Request $request): View
     {
         $viewerId = (int) $request->user()->getKey();
+        $unreadMessageCount = Message::query()
+            ->selectRaw('COUNT(*)')
+            ->whereColumn('messages.conversation_id', 'conversations.id')
+            ->where(static function (Builder $query) use ($viewerId): void {
+                $query->whereNull('messages.sender_id')
+                    ->orWhere('messages.sender_id', '<>', $viewerId);
+            })
+            ->whereExists(static function ($query) use ($viewerId): void {
+                $query->selectRaw('1')
+                    ->from('conversation_participants as unread_participant')
+                    ->whereColumn('unread_participant.conversation_id', 'messages.conversation_id')
+                    ->where('unread_participant.user_id', $viewerId)
+                    ->where(static function ($query): void {
+                        $query->whereNull('unread_participant.last_read_message_id')
+                            ->orWhereColumn('messages.id', '>', 'unread_participant.last_read_message_id');
+                    });
+            });
 
         $conversations = Conversation::query()
             ->direct()
+            ->addSelect(['unread_message_count' => $unreadMessageCount])
             ->whereHas(
                 'participants',
                 static fn (Builder $query): Builder => $query->where('user_id', $viewerId),
@@ -61,6 +80,7 @@ class MessagesController extends Controller
                     ? __('messages.you_prefix')
                     : null,
                 'activity_at' => $conversation->last_message_at ?? $latestMessage?->created_at ?? $conversation->created_at,
+                'unread_count' => (int) $conversation->unread_message_count,
             ];
         });
 
@@ -144,6 +164,19 @@ class MessagesController extends Controller
         Gate::authorize('view', $conversation);
 
         $viewer = $request->user();
+        $latestMessageId = '(SELECT MAX(messages.id) FROM messages WHERE messages.conversation_id = conversation_participants.conversation_id)';
+
+        DB::table('conversation_participants')
+            ->where('conversation_id', $conversation->getKey())
+            ->where('user_id', $viewer->getKey())
+            ->whereExists(static function ($query): void {
+                $query->selectRaw('1')
+                    ->from('messages')
+                    ->whereColumn('messages.conversation_id', 'conversation_participants.conversation_id');
+            })
+            ->whereRaw('(last_read_message_id IS NULL OR last_read_message_id < '.$latestMessageId.')')
+            ->update(['last_read_message_id' => DB::raw($latestMessageId)]);
+
         $participants = $conversation->participants()
             ->select(['id', 'conversation_id', 'user_id'])
             ->with([

@@ -85,8 +85,6 @@ class PostController extends Controller
                 ->header('Vary', 'X-Feed-Fragment');
         }
 
-        $unreadNotificationCount = $request->user()->unreadNotifications()->count();
-
         $availableTopics = Post::query()
             ->whereNotNull('topic')
             ->where('topic', '<>', '')
@@ -113,7 +111,6 @@ class PostController extends Controller
         return view('feed', compact(
             'posts',
             'trendingHashtags',
-            'unreadNotificationCount',
             'availableTopics',
         ));
     }
