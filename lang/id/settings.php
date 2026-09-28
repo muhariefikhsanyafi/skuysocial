@@ -96,10 +96,10 @@ return [
     'delete' => [
         'danger_heading' => 'Zona Berbahaya',
         'heading' => 'Hapus Akun',
-        'description' => 'Penghapusan akun bersifat permanen dan tidak dapat dibatalkan. Akun dan catatan konten yang terkait akan dihapus. Sebagian catatan audit moderasi, notifikasi, token reset kata sandi, sesi, atau berkas media yang diunggah mungkin tetap tersimpan.',
+        'description' => 'Penghapusan akun bersifat permanen dan tidak dapat dibatalkan. Akun dan catatan konten yang terkait akan dihapus. Pesan yang Anda kirim dalam percakapan langsung dapat tetap tersedia bagi peserta lain, tanpa akun Anda lagi tercatat sebagai pengirim. Sebagian catatan audit moderasi, notifikasi, token reset kata sandi, sesi, atau berkas media yang diunggah mungkin tetap tersimpan.',
         'short_description' => 'Penghapusan akun tidak dapat dibatalkan. Masukkan kata sandi saat ini dan nama pengguna yang tepat untuk mengonfirmasi.',
         'confirmation_heading' => 'Konfirmasi penghapusan akun',
-        'confirmation_description' => 'Tindakan ini permanen dan tidak dapat dibatalkan. Masukkan kata sandi saat ini dan nama pengguna yang tepat untuk melanjutkan. Sebagian catatan moderasi atau operasional mungkin tetap tersimpan.',
+        'confirmation_description' => 'Tindakan ini permanen dan tidak dapat dibatalkan. Masukkan kata sandi saat ini dan nama pengguna yang tepat untuk melanjutkan. Pesan yang Anda kirim dalam percakapan langsung mungkin tetap tersimpan bagi peserta lain, tanpa akun Anda lagi tercatat sebagai pengirim. Sebagian catatan moderasi atau operasional mungkin tetap tersimpan.',
         'password' => 'Kata Sandi Saat Ini',
         'password_placeholder' => 'Masukkan kata sandi saat ini...',
         'username_confirmation' => 'Konfirmasi nama pengguna',
