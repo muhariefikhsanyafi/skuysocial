@@ -194,11 +194,12 @@ class DirectMessagingFoundationTest extends TestCase
                     $route->getActionName(),
                 ])));
 
-                return str_contains($identity, 'message') || str_contains($identity, 'conversation');
+                return str_contains($identity, '/pesan')
+                    || str_starts_with($route->getName() ?? '', 'messages.');
             });
 
         $this->assertEqualsCanonicalizing(
-            ['messages.index', 'messages.start', 'messages.store', 'messages.show'],
+            ['messages.index', 'messages.start', 'messages.store', 'messages.show', 'messages.block', 'messages.unblock'],
             $messagingRoutes->pluck('action.as')->all(),
         );
         $this->assertCount(0, $messagingRoutes->filter(

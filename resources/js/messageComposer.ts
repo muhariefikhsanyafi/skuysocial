@@ -9,6 +9,7 @@ interface DirectMessage {
 
 interface DirectMessageResponse {
     message?: unknown;
+    code?: unknown;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -140,7 +141,13 @@ function bindComposer(form: HTMLFormElement): void {
             }
 
             if (response.status === 403) {
-                setFeedback(form.dataset.restricted ?? '');
+                const payload = await response.json().catch(() => null) as DirectMessageResponse | null;
+                const isModerationRestriction = isRecord(payload)
+                    && payload.code === 'moderation_state_forbids_social_write';
+
+                setFeedback(isModerationRestriction
+                    ? form.dataset.restricted ?? ''
+                    : form.dataset.unavailable ?? '');
                 return;
             }
 

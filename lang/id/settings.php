@@ -53,6 +53,23 @@ return [
         'cancel' => 'Batal',
     ],
 
+    'messaging' => [
+        'heading' => 'Privasi pesan',
+        'description' => 'Pilih siapa yang dapat memulai atau mengirim pesan langsung kepada Anda. Pengaturan ini tidak menghapus percakapan atau pesan yang sudah ada.',
+        'options' => [
+            'everyone' => 'Semua orang',
+            'people_i_follow' => 'Orang yang saya ikuti',
+            'nobody' => 'Tidak seorang pun',
+        ],
+        'descriptions' => [
+            'everyone' => 'Semua anggota yang memenuhi syarat dapat mengirim pesan, kecuali salah satu akun memblokir pesan.',
+            'people_i_follow' => 'Hanya orang yang Anda ikuti yang dapat memulai atau mengirim pesan kepada Anda.',
+            'nobody' => 'Anggota lain tidak dapat memulai atau mengirim pesan kepada Anda.',
+        ],
+        'save' => 'Simpan privasi',
+        'saved' => 'Privasi pesan diperbarui.',
+    ],
+
     'two_factor' => [
         'heading' => 'Autentikasi dua faktor',
         'description' => 'Tambahkan aplikasi autentikator sebagai langkah kedua saat masuk.',

@@ -78,7 +78,7 @@
                             </form>
                         @endif
 
-                        @can('startDirectConversation', $user)
+                        @if ($canStartConversation)
                             <form action="{{ route('messages.start', $user->username) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="skuy-button skuy-profile-message-button">
@@ -86,7 +86,7 @@
                                     <span>{{ __('messages.message') }}</span>
                                 </button>
                             </form>
-                        @endcan
+                        @endif
                     </div>
 
                     <div class="skuy-profile-stats" role="group" aria-label="{{ __('profile.threads') }}, {{ __('profile.followers') }}, {{ __('profile.following') }}">

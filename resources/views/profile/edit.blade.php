@@ -13,6 +13,7 @@
     <div class="skuy-profile-page">
         <div class="skuy-profile-shell space-y-6">
             @include('profile.partials.update-profile-information-form')
+            @include('profile.partials.update-message-privacy-form')
 
             @include('profile.partials.update-password-form')
 

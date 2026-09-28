@@ -22,6 +22,10 @@ return [
     'read_only' => 'Your account is read-only. You can view this conversation but cannot send messages.',
     'deleted_unavailable' => 'This conversation is read-only because the other account was deleted.',
     'unavailable' => 'Messaging is unavailable in this conversation.',
+    'block_messages' => 'Block messages',
+    'unblock_messages' => 'Unblock',
+    'blocked_by_you' => 'You blocked this account. Unblock to send messages.',
+    'self_block_forbidden' => 'You cannot block your own account.',
     'message_sent' => 'Message sent.',
     'validation' => [
         'required' => 'Write a message before sending.',

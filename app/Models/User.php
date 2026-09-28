@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MessagePrivacy;
 use App\Enums\ModerationState;
 use App\Enums\ProfileVisibility;
 use App\Enums\UserRole;
@@ -30,6 +31,7 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
     use HasFactory, Notifiable;
 
     protected $attributes = [
+        'message_privacy' => 'everyone',
         'profile_visibility' => 'public',
     ];
 
@@ -42,6 +44,7 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
     {
         return [
             'email_verified_at' => 'datetime',
+            'message_privacy' => MessagePrivacy::class,
             'moderation_state_changed_at' => 'datetime',
             'password' => 'hashed',
             'profile_visibility' => ProfileVisibility::class,
@@ -140,6 +143,16 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function messageBlocks(): HasMany
+    {
+        return $this->hasMany(MessageBlock::class, 'blocker_id');
+    }
+
+    public function blockedByMessageBlocks(): HasMany
+    {
+        return $this->hasMany(MessageBlock::class, 'blocked_id');
     }
 
     public function conversationParticipants(): HasMany

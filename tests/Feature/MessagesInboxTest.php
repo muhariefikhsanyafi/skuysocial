@@ -224,7 +224,7 @@ class MessagesInboxTest extends TestCase
             });
 
         $this->assertEqualsCanonicalizing(
-            ['messages.index', 'messages.start', 'messages.store', 'messages.show'],
+            ['messages.index', 'messages.start', 'messages.store', 'messages.show', 'messages.block', 'messages.unblock'],
             $routes->pluck('action.as')->all(),
         );
         $this->assertCount(0, $routes->filter(
@@ -243,6 +243,13 @@ class MessagesInboxTest extends TestCase
             $this->assertContains('auth', $route->gatherMiddleware());
             $this->assertContains('verified', $route->gatherMiddleware());
             $this->assertContains('moderation.active', $route->gatherMiddleware());
+        }
+
+        foreach (['messages.block', 'messages.unblock'] as $name) {
+            $route = Route::getRoutes()->getByName($name);
+            $this->assertContains('auth', $route->gatherMiddleware());
+            $this->assertContains('verified', $route->gatherMiddleware());
+            $this->assertNotContains('moderation.active', $route->gatherMiddleware());
         }
 
         $routeNamesInOrder = collect(Route::getRoutes()->getRoutes())

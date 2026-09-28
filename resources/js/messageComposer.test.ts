@@ -36,6 +36,7 @@ function mountComposer(): {
                 data-sent-label="Message sent."
                 data-session-expired="Your session expired."
                 data-restricted="Messaging is restricted."
+                data-unavailable="Messaging is unavailable for this conversation."
                 data-validation="Check the message."
                 data-failed="Message failed."
                 data-network="Connection failed."
@@ -167,7 +168,7 @@ describe('direct-message composer progressive enhancement', () => {
     it.each([
         [401, false, 'Your session expired.'],
         [419, false, 'Your session expired.'],
-        [403, false, 'Messaging is restricted.'],
+        [403, false, 'Messaging is unavailable for this conversation.'],
         [200, true, 'Your session expired.'],
         [500, false, 'Message failed.'],
     ])('shows the expected feedback for status %i and redirect=%s', async (status, redirected, message) => {
@@ -184,6 +185,20 @@ describe('direct-message composer progressive enhancement', () => {
         expect(input.value).toBe('Retain on server error');
         expect(button.disabled).toBe(false);
         expect(history.querySelector('[data-message-id]')).toBeNull();
+    });
+
+    it('uses read-only feedback only for the server moderation denial code', async () => {
+        const fetchMock = vi.mocked(fetch);
+        fetchMock.mockResolvedValue(response({ code: 'moderation_state_forbids_social_write' }, 403));
+        const { form, input, feedback } = mountComposer();
+        input.value = 'Retain this draft';
+        initializeMessageComposers(document);
+
+        submit(form);
+
+        await vi.waitFor(() => expect(feedback.textContent).toBe('Messaging is restricted.'));
+        expect(input.value).toBe('Retain this draft');
+        expect(feedback.dataset.state).toBe('error');
     });
 
     it('retains the draft and releases the pending state after a network error', async () => {

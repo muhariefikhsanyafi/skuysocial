@@ -7,8 +7,9 @@
                     <span>{{ __('messages.back_to_inbox') }}</span>
                 </a>
 
-                <div class="skuy-direct-chat-identity">
-                    <div class="skuy-avatar skuy-direct-chat-avatar" aria-hidden="true">
+                <div class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="skuy-direct-chat-identity">
+                        <div class="skuy-avatar skuy-direct-chat-avatar" aria-hidden="true">
                         @if ($counterpart && filled($counterpart->avatar))
                             <img src="{{ asset('storage/' . $counterpart->avatar) }}" alt="">
                         @elseif ($counterpart)
@@ -38,6 +39,28 @@
                             <p class="skuy-direct-chat-username">{{ '@' . $counterpart->username }}</p>
                         @endif
                     </div>
+                </div>
+
+                @if ($counterpart)
+                    @if ($isBlockingCounterpart)
+                        <form action="{{ route('messages.unblock', $conversation) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" aria-label="{{ __('messages.unblock_messages') }}" class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[var(--radius-medium)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] px-4 py-2 text-sm font-semibold text-[var(--skuy-text-primary)] transition-colors hover:bg-[var(--skuy-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)] sm:w-auto">
+                                <x-fa-icon name="lock-open" weight="solid" />
+                                <span>{{ __('messages.unblock_messages') }}</span>
+                            </button>
+                        </form>
+                    @else
+                        <form action="{{ route('messages.block', $conversation) }}" method="POST">
+                            @csrf
+                            <button type="submit" aria-label="{{ __('messages.block_messages') }}" class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[var(--radius-medium)] border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] px-4 py-2 text-sm font-semibold text-[var(--skuy-danger)] transition-colors hover:bg-[var(--skuy-surface-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)] sm:w-auto">
+                                <x-fa-icon name="ban" weight="solid" />
+                                <span>{{ __('messages.block_messages') }}</span>
+                            </button>
+                        </form>
+                    @endif
+                @endif
                 </div>
             </header>
 
@@ -81,6 +104,7 @@
                     data-sent-label="{{ __('messages.message_sent') }}"
                     data-session-expired="{{ __('messages.feedback.session_expired') }}"
                     data-restricted="{{ __('messages.feedback.restricted') }}"
+                    data-unavailable="{{ __('messages.unavailable') }}"
                     data-validation="{{ __('messages.feedback.validation') }}"
                     data-failed="{{ __('messages.feedback.failed') }}"
                     data-network="{{ __('messages.feedback.network') }}"

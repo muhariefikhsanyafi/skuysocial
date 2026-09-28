@@ -22,6 +22,10 @@ return [
     'read_only' => 'Akun Anda hanya dapat membaca. Anda dapat melihat percakapan ini, tetapi tidak dapat mengirim pesan.',
     'deleted_unavailable' => 'Percakapan ini hanya dapat dibaca karena akun lawan bicara telah dihapus.',
     'unavailable' => 'Pesan tidak tersedia dalam percakapan ini.',
+    'block_messages' => 'Blokir pesan',
+    'unblock_messages' => 'Buka blokir',
+    'blocked_by_you' => 'Anda memblokir akun ini. Buka blokir untuk mengirim pesan.',
+    'self_block_forbidden' => 'Anda tidak dapat memblokir akun sendiri.',
     'message_sent' => 'Pesan terkirim.',
     'validation' => [
         'required' => 'Tulis pesan sebelum mengirim.',

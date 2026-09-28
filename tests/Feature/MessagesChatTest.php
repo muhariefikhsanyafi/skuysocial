@@ -351,6 +351,7 @@ class MessagesChatTest extends TestCase
             ->assertSeeText('History remains after account deletion.')
             ->assertDontSee('data-message-composer', false)
             ->assertDontSee($deletedProfileUrl, false)
+            ->assertDontSeeText(__('messages.block_messages'))
             ->assertSee('skuy-direct-chat-message-row--other', false);
 
         $this->postJson('/pesan/'.$conversation->getKey(), ['body' => 'Cannot send to deleted account'])

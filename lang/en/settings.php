@@ -53,6 +53,23 @@ return [
         'cancel' => 'Cancel',
     ],
 
+    'messaging' => [
+        'heading' => 'Messaging privacy',
+        'description' => 'Choose who can start or send direct messages to you. This does not remove existing conversations or messages.',
+        'options' => [
+            'everyone' => 'Everyone',
+            'people_i_follow' => 'People I follow',
+            'nobody' => 'Nobody',
+        ],
+        'descriptions' => [
+            'everyone' => 'Any eligible member can message you unless either account has blocked messaging.',
+            'people_i_follow' => 'Only people you follow can start or send messages to you.',
+            'nobody' => 'Other members cannot start or send messages to you.',
+        ],
+        'save' => 'Save privacy',
+        'saved' => 'Messaging privacy updated.',
+    ],
+
     'two_factor' => [
         'heading' => 'Two-factor authentication',
         'description' => 'Add an authenticator app to provide a second step when signing in.',

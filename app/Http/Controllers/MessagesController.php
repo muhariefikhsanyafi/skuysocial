@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Actions\FindOrCreateDirectConversation;
+use App\Actions\ManageMessageBlocks;
+use App\Enums\MessageEligibility;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\MessagingEligibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -90,8 +93,11 @@ class MessagesController extends Controller
         ]);
     }
 
-    public function store(Request $request, Conversation $conversation): JsonResponse|RedirectResponse
-    {
+    public function store(
+        Request $request,
+        Conversation $conversation,
+        MessagingEligibility $eligibility,
+    ): JsonResponse|RedirectResponse {
         Gate::authorize('send', $conversation);
 
         $validated = $request->validate([
@@ -111,13 +117,26 @@ class MessagesController extends Controller
         ]);
 
         $sender = $request->user();
-        $message = DB::transaction(function () use ($conversation, $sender, $validated) {
+        $message = DB::transaction(function () use ($conversation, $sender, $validated, $eligibility) {
             $lockedConversation = Conversation::query()
                 ->whereKey($conversation->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
 
             Gate::authorize('send', $lockedConversation);
+
+            $counterpart = $lockedConversation->participants()
+                ->where('user_id', '<>', $sender->getKey())
+                ->with('user')
+                ->first()
+                ?->user;
+
+            abort_if(
+                $counterpart === null
+                    || $eligibility->evaluate($sender, $counterpart) !== MessageEligibility::Allowed,
+                JsonResponse::HTTP_FORBIDDEN,
+                __('messages.unavailable'),
+            );
 
             $message = $lockedConversation->messages()->create([
                 'sender_id' => $sender->getKey(),
@@ -147,19 +166,54 @@ class MessagesController extends Controller
         ], JsonResponse::HTTP_CREATED);
     }
 
+    public function block(
+        Request $request,
+        Conversation $conversation,
+        ManageMessageBlocks $messageBlocks,
+    ): RedirectResponse {
+        Gate::authorize('view', $conversation);
+
+        $viewer = $request->user();
+        $counterpart = $this->counterpartFor($viewer, $conversation);
+        $messageBlocks->block($viewer, $counterpart);
+
+        return redirect()->route('messages.show', $conversation);
+    }
+
+    public function unblock(
+        Request $request,
+        Conversation $conversation,
+        ManageMessageBlocks $messageBlocks,
+    ): RedirectResponse {
+        Gate::authorize('view', $conversation);
+
+        $viewer = $request->user();
+        $counterpart = $this->counterpartFor($viewer, $conversation);
+        $messageBlocks->unblock($viewer, $counterpart);
+
+        return redirect()->route('messages.show', $conversation);
+    }
+
     public function start(
         Request $request,
         User $user,
         FindOrCreateDirectConversation $findOrCreate,
+        MessagingEligibility $eligibility,
     ): RedirectResponse {
         Gate::authorize('startDirectConversation', $user);
+
+        abort_if(
+            $eligibility->evaluate($request->user(), $user) !== MessageEligibility::Allowed,
+            JsonResponse::HTTP_FORBIDDEN,
+            __('messages.unavailable'),
+        );
 
         $conversation = $findOrCreate->handle($request->user(), $user);
 
         return redirect()->route('messages.show', $conversation);
     }
 
-    public function show(Request $request, Conversation $conversation): View
+    public function show(Request $request, Conversation $conversation, MessagingEligibility $eligibility): View
     {
         Gate::authorize('view', $conversation);
 
@@ -205,7 +259,13 @@ class MessagesController extends Controller
             ->simplePaginate(50);
         $messages->setCollection($messages->getCollection()->reverse()->values());
 
-        $canSend = $counterpart !== null && $viewer->can('send', $conversation);
+        $eligibilityStatus = $counterpart === null
+            ? MessageEligibility::RecipientUnavailable
+            : $eligibility->evaluate($viewer, $counterpart);
+        $isBlockingCounterpart = $counterpart !== null && $eligibility->hasBlock($viewer, $counterpart);
+        $canSend = $counterpart !== null
+            && $eligibilityStatus === MessageEligibility::Allowed
+            && $viewer->can('send', $conversation);
 
         return view('messages.show', [
             'conversation' => $conversation,
@@ -217,7 +277,27 @@ class MessagesController extends Controller
                 ? __('messages.deleted_unavailable')
                 : (! $viewer->canPerformSocialWrites()
                     ? __('messages.read_only')
-                    : (! $canSend ? __('messages.unavailable') : null)),
+                    : ($isBlockingCounterpart
+                        ? __('messages.blocked_by_you')
+                        : (! $canSend ? __('messages.unavailable') : null))),
+            'isBlockingCounterpart' => $isBlockingCounterpart,
         ]);
+    }
+
+    private function counterpartFor(User $viewer, Conversation $conversation): User
+    {
+        $participants = $conversation->participants()
+            ->with('user')
+            ->get();
+
+        abort_unless($participants->count() === 2, 404);
+
+        $counterpart = $participants
+            ->first(static fn (ConversationParticipant $participant): bool => (int) $participant->user_id !== (int) $viewer->getKey())
+            ?->user;
+
+        abort_if($counterpart === null || $counterpart->is($viewer), 404);
+
+        return $counterpart;
     }
 }

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MessageEligibility;
 use App\Enums\ProfileVisibility;
 use App\Http\Requests\ProfilePresentationUpdateRequest;
 use App\Models\Post;
 use App\Models\User;
+use App\Services\MessagingEligibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -17,7 +19,7 @@ use Throwable;
 class UserController extends Controller
 {
     // 1. Menampilkan Halaman Profil
-    public function show(Request $request, string $username)
+    public function show(Request $request, string $username, MessagingEligibility $eligibility)
     {
         // Cari user berdasarkan username, jika tidak ada, tampilkan 404
         $user = User::query()
@@ -42,9 +44,11 @@ class UserController extends Controller
         $isFollowing = $viewer !== null
             && $viewer->isNot($user)
             && $viewer->isFollowing($user);
+        $canStartConversation = $viewer !== null
+            && $eligibility->evaluate($viewer, $user) === MessageEligibility::Allowed;
         $followersCount = (int) $user->followers_count;
         $followingsCount = (int) $user->followings_count;
-        
+
         $activeTab = $request->query('tab') === 'likes' ? 'likes' : 'threads';
 
         if ($activeTab === 'likes') {
@@ -79,6 +83,7 @@ class UserController extends Controller
             'posts',
             'activeTab',
             'isFollowing',
+            'canStartConversation',
             'followersCount',
             'followingsCount',
         ));

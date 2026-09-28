@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\MessagePrivacyController;
 use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
@@ -28,6 +29,8 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/@{username}/pengaturan-akun', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/pengaturan/messaging-privacy', [MessagePrivacyController::class, 'update'])
+        ->name('settings.messaging-privacy.update');
     Route::get('/profile', static function (Request $request) {
         return redirect()->route('profile.edit', ['username' => $request->user()->username] + $request->query());
     })->name('profile.legacy-edit');
@@ -48,6 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('moderation.active')
         ->name('messages.store');
     Route::get('/pesan/{conversation}', [MessagesController::class, 'show'])->name('messages.show');
+    Route::post('/pesan/{conversation}/blokir', [MessagesController::class, 'block'])->name('messages.block');
+    Route::delete('/pesan/{conversation}/blokir', [MessagesController::class, 'unblock'])->name('messages.unblock');
 
     // Rute untuk aksi Follow/Unfollow
     Route::post('/user/{user}/follow', [UserController::class, 'toggleFollow'])

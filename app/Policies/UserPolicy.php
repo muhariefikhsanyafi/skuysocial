@@ -20,8 +20,7 @@ class UserPolicy
     public function startDirectConversation(User $sender, User $recipient): bool
     {
         return $sender->canPerformSocialWrites()
-            && $sender->isNot($recipient)
-            && $recipient->canMaintainAuthenticatedSession();
+            && $sender->isNot($recipient);
     }
 
     public function moderate(User $actor, User $target): bool
