@@ -18,12 +18,13 @@
         ['key' => 'feed', 'href' => route('feed'), 'label' => __('navigation.feed'), 'active' => request()->routeIs('feed'), 'icon' => 'house'],
         ['key' => 'search', 'href' => route('search'), 'label' => __('navigation.search'), 'active' => request()->routeIs('search'), 'icon' => 'magnifying-glass'],
         ['key' => 'activity', 'href' => route('activity.index'), 'label' => __('navigation.activity'), 'active' => request()->routeIs('activity.index'), 'icon' => 'bell'],
+        ['key' => 'messages', 'href' => route('messages.index'), 'label' => __('navigation.messages'), 'active' => request()->routeIs('messages.index'), 'icon' => 'comment-lines'],
         ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'bookmark'],
         ['key' => 'profile', 'href' => $profileUrl, 'label' => __('navigation.profile'), 'active' => request()->routeIs('user.profile') && request()->route('username') === $user->username, 'icon' => 'user'],
     ]);
     $navigationGroups = [
         array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['dashboard', 'feed', 'search'], true)),
-        array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['activity', 'saved', 'profile'], true)),
+        array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['activity', 'messages', 'saved', 'profile'], true)),
     ];
     $bottomHomeIsDashboard = $isDashboard;
     $bottomHomeHref = $bottomHomeIsDashboard ? route('dashboard') : route('feed');
@@ -149,6 +150,9 @@
                 </a>
                 <a href="{{ route('bookmarks.index') }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('bookmarks.index') ? 'page' : 'false' }}">
                     {{ __('navigation.saved') }}
+                </a>
+                <a href="{{ route('messages.index') }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('messages.index') ? 'page' : 'false' }}">
+                    {{ __('navigation.messages') }}
                 </a>
                 <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link">
                     {{ __('navigation.settings') }}

@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
@@ -39,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rute untuk Pencarian
     Route::get('/cari', [SearchController::class, 'index'])->name('search');
+    Route::get('/pesan', [MessagesController::class, 'index'])->name('messages.index');
 
     // Rute untuk aksi Follow/Unfollow
     Route::post('/user/{user}/follow', [UserController::class, 'toggleFollow'])

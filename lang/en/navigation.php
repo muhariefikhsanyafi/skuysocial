@@ -6,6 +6,7 @@ return [
     'feed' => 'Feed',
     'search' => 'Search',
     'activity' => 'Activity',
+    'messages' => 'Messages',
     'saved' => 'Saved',
     'profile' => 'Profile',
     'my_profile' => 'My Profile',

@@ -6,6 +6,7 @@ return [
     'feed' => 'Utas',
     'search' => 'Cari',
     'activity' => 'Aktivitas',
+    'messages' => 'Pesan',
     'saved' => 'Tersimpan',
     'profile' => 'Profil',
     'my_profile' => 'Profil Saya',
