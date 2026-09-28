@@ -41,6 +41,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rute untuk Pencarian
     Route::get('/cari', [SearchController::class, 'index'])->name('search');
     Route::get('/pesan', [MessagesController::class, 'index'])->name('messages.index');
+    Route::post('/pesan/mulai/{user:username}', [MessagesController::class, 'start'])
+        ->middleware('moderation.active')
+        ->name('messages.start');
+    Route::post('/pesan/{conversation}', [MessagesController::class, 'store'])
+        ->middleware('moderation.active')
+        ->name('messages.store');
+    Route::get('/pesan/{conversation}', [MessagesController::class, 'show'])->name('messages.show');
 
     // Rute untuk aksi Follow/Unfollow
     Route::post('/user/{user}/follow', [UserController::class, 'toggleFollow'])

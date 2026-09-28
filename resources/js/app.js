@@ -1,7 +1,9 @@
 import Alpine from 'alpinejs';
 import { acquireFeedPostActionLock } from './feedPostActionLock';
+import { initializeMessageComposers } from './messageComposer';
 
 window.Alpine = Alpine;
+initializeMessageComposers();
 
 Alpine.data('feedCommentControl', (config = {}) => ({
     showComments: false,

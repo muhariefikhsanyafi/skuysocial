@@ -184,7 +184,7 @@ class DirectMessagingFoundationTest extends TestCase
         $this->assertNull($message->fresh()->sender);
     }
 
-    public function test_no_messaging_ui_or_routes_are_exposed_in_the_foundation_milestone(): void
+    public function test_direct_messaging_uses_web_routes_and_no_separate_react_page(): void
     {
         $messagingRoutes = collect(Route::getRoutes()->getRoutes())
             ->filter(function ($route): bool {
@@ -197,10 +197,15 @@ class DirectMessagingFoundationTest extends TestCase
                 return str_contains($identity, 'message') || str_contains($identity, 'conversation');
             });
 
-        $this->assertCount(0, $messagingRoutes);
+        $this->assertEqualsCanonicalizing(
+            ['messages.index', 'messages.start', 'messages.store', 'messages.show'],
+            $messagingRoutes->pluck('action.as')->all(),
+        );
+        $this->assertCount(0, $messagingRoutes->filter(
+            static fn ($route): bool => str_starts_with($route->uri(), 'api/'),
+        ));
         $this->assertFileDoesNotExist(app_path('Http/Controllers/MessageController.php'));
         $this->assertFileDoesNotExist(app_path('Http/Controllers/ConversationController.php'));
-        $this->assertDirectoryDoesNotExist(resource_path('views/messages'));
         $this->assertDirectoryDoesNotExist(resource_path('js/pages/Messages'));
     }
 }

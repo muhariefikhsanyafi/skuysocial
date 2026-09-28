@@ -77,6 +77,16 @@
                                 </button>
                             </form>
                         @endif
+
+                        @can('startDirectConversation', $user)
+                            <form action="{{ route('messages.start', $user->username) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="skuy-button skuy-profile-message-button">
+                                    <x-fa-icon name="comment-lines" />
+                                    <span>{{ __('messages.message') }}</span>
+                                </button>
+                            </form>
+                        @endcan
                     </div>
 
                     <div class="skuy-profile-stats" role="group" aria-label="{{ __('profile.threads') }}, {{ __('profile.followers') }}, {{ __('profile.following') }}">

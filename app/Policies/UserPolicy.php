@@ -17,6 +17,13 @@ class UserPolicy
         return $this->isVerifiedAdministrator($user);
     }
 
+    public function startDirectConversation(User $sender, User $recipient): bool
+    {
+        return $sender->canPerformSocialWrites()
+            && $sender->isNot($recipient)
+            && $recipient->canMaintainAuthenticatedSession();
+    }
+
     public function moderate(User $actor, User $target): bool
     {
         return $actor->isUsableAdministrator()

@@ -58,13 +58,14 @@ class MessagesInboxTest extends TestCase
         $unrelatedCounterpart = User::factory()->create(['name' => 'Private Other Counterpart']);
         $findOrCreate = app(FindOrCreateDirectConversation::class);
 
-        $findOrCreate->handle($viewer, $counterpart);
+        $ownedConversation = $findOrCreate->handle($viewer, $counterpart);
         $findOrCreate->handle($unrelatedOwner, $unrelatedCounterpart);
 
         $response = $this->actingAs($viewer)->get(route('messages.index'));
         $response->assertOk()
             ->assertSeeText($counterpart->name)
-            ->assertDontSeeText($unrelatedCounterpart->name);
+            ->assertDontSeeText($unrelatedCounterpart->name)
+            ->assertSee('href="'.route('messages.show', $ownedConversation).'"', false);
 
         $this->assertSame('No messages yet', $response->viewData('rows')->first()['preview']);
 
@@ -107,7 +108,7 @@ class MessagesInboxTest extends TestCase
             'avatar' => 'avatars/verified-friend.webp',
             'is_verified' => true,
         ]);
-        app(FindOrCreateDirectConversation::class)->handle($viewer, $counterpart);
+        $conversation = app(FindOrCreateDirectConversation::class)->handle($viewer, $counterpart);
 
         $response = $this->actingAs($viewer)->get(route('messages.index'));
 
@@ -116,7 +117,7 @@ class MessagesInboxTest extends TestCase
             ->assertSeeText('@verified_friend')
             ->assertSee('src="'.asset('storage/avatars/verified-friend.webp').'"', false)
             ->assertSee(__('threads.verified'))
-            ->assertSee(route('user.profile', 'verified_friend'), false);
+            ->assertSee(route('messages.show', $conversation), false);
     }
 
     public function test_conversations_are_ordered_by_activity_with_a_stable_creation_fallback(): void
@@ -209,34 +210,44 @@ class MessagesInboxTest extends TestCase
             ->assertSee('skuy-shell-notice--content', false);
     }
 
-    public function test_inbox_route_is_the_only_messaging_surface_and_is_read_only(): void
+    public function test_messaging_routes_are_authenticated_web_routes_with_scoped_write_middleware(): void
     {
-        $route = Route::getRoutes()->getByName('messages.index');
+        $routes = collect(Route::getRoutes()->getRoutes())
+            ->filter(static function ($route): bool {
+                $uri = strtolower($route->uri());
+                $name = strtolower($route->getName() ?? '');
 
-        $this->assertNotNull($route);
-        $this->assertSame('pesan', $route->uri());
-        $this->assertEqualsCanonicalizing(['GET', 'HEAD'], $route->methods());
+                return str_contains($uri, 'pesan') || str_contains($name, 'messages');
+            });
 
-        $middleware = $route->gatherMiddleware();
-        $this->assertContains('auth', $middleware);
-        $this->assertContains('verified', $middleware);
-        $this->assertNotContains('moderation.active', $middleware);
+        $this->assertEqualsCanonicalizing(
+            ['messages.index', 'messages.start', 'messages.store', 'messages.show'],
+            $routes->pluck('action.as')->all(),
+        );
+        $this->assertCount(0, $routes->filter(
+            static fn ($route): bool => str_starts_with($route->uri(), 'api/'),
+        ));
 
-        $messagingRoutes = collect(Route::getRoutes()->getRoutes())
-            ->filter(static function ($registeredRoute): bool {
-                $uri = strtolower($registeredRoute->uri());
-                $name = strtolower($registeredRoute->getName() ?? '');
+        foreach (['messages.index', 'messages.show'] as $name) {
+            $route = Route::getRoutes()->getByName($name);
+            $this->assertContains('auth', $route->gatherMiddleware());
+            $this->assertContains('verified', $route->gatherMiddleware());
+            $this->assertNotContains('moderation.active', $route->gatherMiddleware());
+        }
 
-                return str_contains($uri, 'pesan')
-                    || str_contains($uri, 'message')
-                    || str_contains($uri, 'conversation')
-                    || str_contains($name, 'messages')
-                    || str_contains($name, 'conversation');
-            })
+        foreach (['messages.start', 'messages.store'] as $name) {
+            $route = Route::getRoutes()->getByName($name);
+            $this->assertContains('auth', $route->gatherMiddleware());
+            $this->assertContains('verified', $route->gatherMiddleware());
+            $this->assertContains('moderation.active', $route->gatherMiddleware());
+        }
+
+        $routeNamesInOrder = collect(Route::getRoutes()->getRoutes())
             ->pluck('action.as')
+            ->filter(static fn (?string $name): bool => in_array($name, ['messages.start', 'messages.show'], true))
+            ->values()
             ->all();
-
-        $this->assertSame(['messages.index'], $messagingRoutes);
+        $this->assertSame(['messages.start', 'messages.show'], $routeNamesInOrder);
     }
 
     public function test_inbox_uses_twenty_conversation_pages(): void

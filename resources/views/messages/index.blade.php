@@ -25,7 +25,11 @@
                         @php($counterpart = $row['counterpart'])
 
                         <li>
-                            <article class="skuy-message-row">
+                            <a
+                                href="{{ route('messages.show', $row['conversation_id']) }}"
+                                aria-label="{{ __('messages.open_conversation_with', ['name' => $counterpart?->name ?? __('messages.deleted_account')]) }}"
+                                class="skuy-message-row"
+                            >
                                 <div class="skuy-avatar skuy-message-row__avatar" aria-hidden="true">
                                     @if ($counterpart && filled($counterpart->avatar))
                                         <img
@@ -41,9 +45,7 @@
 
                                 <div class="skuy-message-row__identity">
                                     @if ($counterpart)
-                                        <a href="{{ route('user.profile', $counterpart->username) }}" class="skuy-message-row__name">
-                                            {{ $counterpart->name }}
-                                        </a>
+                                        <span class="skuy-message-row__name">{{ $counterpart->name }}</span>
                                         @if ($counterpart->is_verified)
                                             <span class="skuy-profile-verified" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
                                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
@@ -67,7 +69,7 @@
                                     @endif
                                     <span>{{ $row['preview'] }}</span>
                                 </p>
-                            </article>
+                            </a>
                         </li>
                     @endforeach
                 </ul>
