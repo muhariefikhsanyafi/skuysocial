@@ -13,6 +13,7 @@
     data-state-denied="{{ __('settings.push.state.denied') }}"
     data-state-not-requested="{{ __('settings.push.state.not_requested') }}"
     data-state-enabled="{{ __('settings.push.state.enabled') }}"
+    data-state-action-failed="{{ __('settings.push.action_failed') }}"
     data-enable-label="{{ __('settings.push.enable') }}"
     data-disable-label="{{ __('settings.push.disable') }}"
 >
@@ -28,6 +29,8 @@
     <p data-push-status role="status" aria-live="polite" aria-atomic="true" class="text-sm leading-6 text-[var(--skuy-text-secondary)]">
         {{ $oneSignalClientAvailable ? __('settings.push.state.checking') : __('settings.push.state.unavailable') }}
     </p>
+
+    <p data-push-action-error hidden role="alert" class="text-sm leading-6 text-[var(--skuy-danger)]"></p>
 
     <p data-push-denied-help hidden class="text-sm leading-6 text-[var(--skuy-text-secondary)]">
         {{ __('settings.push.denied_help') }}

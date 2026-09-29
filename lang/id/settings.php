@@ -82,6 +82,7 @@ return [
             'enabled' => 'Notifikasi push aktif di perangkat ini.',
         ],
         'denied_help' => 'Izinkan notifikasi di pengaturan browser atau situs, lalu muat ulang halaman ini.',
+        'action_failed' => 'Notifikasi push di perangkat ini tidak dapat diperbarui. Silakan coba lagi.',
         'javascript_required' => 'Kontrol notifikasi perangkat memerlukan JavaScript. SkuySocial tetap dapat digunakan tanpanya.',
         'enable' => 'Aktifkan notifikasi di perangkat ini',
         'disable' => 'Nonaktifkan notifikasi di perangkat ini',

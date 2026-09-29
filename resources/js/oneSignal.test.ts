@@ -6,7 +6,8 @@ interface FakeOneSignal {
     login: ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn>;
     Notifications: {
-        permission: 'default' | 'granted' | 'denied';
+        permission: boolean;
+        permissionNative: 'default' | 'granted' | 'denied';
         isPushSupported: ReturnType<typeof vi.fn>;
         requestPermission: ReturnType<typeof vi.fn>;
         addEventListener: ReturnType<typeof vi.fn>;
@@ -29,6 +30,7 @@ function mountPushSettings(configured = true): {
     deniedHelp: HTMLElement;
     enable: HTMLButtonElement;
     disable: HTMLButtonElement;
+    error: HTMLElement;
     logoutForm: HTMLFormElement;
 } {
     document.head.innerHTML = '';
@@ -42,10 +44,12 @@ function mountPushSettings(configured = true): {
             data-state-denied="Notifications are blocked in browser settings."
             data-state-not-requested="Notifications are off on this device."
             data-state-enabled="Notifications are enabled on this device."
+            data-state-action-failed="Could not update notifications on this device. Please try again."
             data-enable-label="Enable notifications on this device"
             data-disable-label="Disable notifications on this device"
         >
             <p data-push-status role="status" aria-live="polite"></p>
+            <p data-push-action-error hidden role="alert"></p>
             <p data-push-denied-help hidden>Change notification permission in your browser or site settings.</p>
             <button type="button" data-push-enable hidden>Enable</button>
             <button type="button" data-push-disable hidden>Disable</button>
@@ -64,6 +68,7 @@ function mountPushSettings(configured = true): {
         deniedHelp: settings.querySelector<HTMLElement>('[data-push-denied-help]')!,
         enable: settings.querySelector<HTMLButtonElement>('[data-push-enable]')!,
         disable: settings.querySelector<HTMLButtonElement>('[data-push-disable]')!,
+        error: settings.querySelector<HTMLElement>('[data-push-action-error]')!,
         logoutForm: document.querySelector<HTMLFormElement>('[data-onesignal-logout]')!,
     };
 }
@@ -74,7 +79,8 @@ function fakeOneSignal(overrides: Partial<FakeOneSignal> = {}): FakeOneSignal {
         login: vi.fn().mockResolvedValue(undefined),
         logout: vi.fn().mockResolvedValue(undefined),
         Notifications: {
-            permission: 'default',
+            permission: false,
+            permissionNative: 'default',
             isPushSupported: vi.fn().mockResolvedValue(true),
             requestPermission: vi.fn(),
             addEventListener: vi.fn(),
@@ -100,17 +106,29 @@ async function resolveSdk(api: FakeOneSignal): Promise<void> {
     await queue![0](api);
 }
 
+function setBrowserPermission(permission: NotificationPermission): void {
+    vi.stubGlobal('Notification', { permission });
+}
+
+function setGrantedPermissions(api: FakeOneSignal): void {
+    setBrowserPermission('granted');
+    api.Notifications.permission = true;
+    api.Notifications.permissionNative = 'granted';
+}
+
 describe('OneSignal device opt-in foundation', () => {
     let formSubmit: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
         vi.useFakeTimers();
+        setBrowserPermission('default');
     });
 
     afterEach(() => {
         formSubmit?.mockRestore();
         vi.clearAllTimers();
         vi.useRealTimers();
+        vi.unstubAllGlobals();
         document.head.innerHTML = '';
         document.body.innerHTML = '';
         delete (window as Window & { OneSignalDeferred?: unknown }).OneSignalDeferred;
@@ -132,9 +150,44 @@ describe('OneSignal device opt-in foundation', () => {
             serviceWorkerParam: { scope: '/onesignal/' },
         });
         expect(api.login).toHaveBeenCalledWith('skuysocial-user:24');
+        expect(api.User.PushSubscription.addEventListener).toHaveBeenCalledTimes(1);
         expect(api.User.PushSubscription.optIn).not.toHaveBeenCalled();
         expect(api.Notifications.requestPermission).not.toHaveBeenCalled();
         expect(document.querySelector<HTMLElement>('[data-push-status]')?.textContent).toBe('Notifications are off on this device.');
+    });
+
+    it('renders enabled after a hard refresh when the browser and OneSignal report a subscribed device', async () => {
+        const { settings, status, enable, disable } = mountPushSettings();
+        initializeOneSignal();
+        const api = fakeOneSignal();
+        setGrantedPermissions(api);
+        api.User.PushSubscription.optedIn = true;
+        api.User.PushSubscription.id = 'subscription-id';
+        api.User.PushSubscription.token = 'push-token';
+
+        await resolveSdk(api);
+
+        expect(api.login).toHaveBeenCalledWith('skuysocial-user:24');
+        expect(settings.dataset.pushState).toBe('enabled');
+        expect(status.textContent).toBe('Notifications are enabled on this device.');
+        expect(status.textContent).not.toBe('Notifications are off on this device.');
+        expect(enable.hidden).toBe(true);
+        expect(disable.hidden).toBe(false);
+    });
+
+    it('renders off when permissions are granted but the subscription is opted out', async () => {
+        const { status, enable } = mountPushSettings();
+        initializeOneSignal();
+        const api = fakeOneSignal();
+        setGrantedPermissions(api);
+        api.User.PushSubscription.id = 'subscription-id';
+        api.User.PushSubscription.token = 'push-token';
+        api.User.PushSubscription.optedIn = false;
+
+        await resolveSdk(api);
+
+        expect(status.textContent).toBe('Notifications are off on this device.');
+        expect(enable.hidden).toBe(false);
     });
 
     it('does not load the SDK and reports unavailable when config is absent', () => {
@@ -145,12 +198,12 @@ describe('OneSignal device opt-in foundation', () => {
         expect(status.textContent).toBe('Push notifications are unavailable.');
     });
 
-    it('calls opt-in only after an explicit click and enables only with a usable subscription', async () => {
+    it('requests permission and opts in only after an explicit click', async () => {
         const { enable, disable, status } = mountPushSettings();
         initializeOneSignal();
         const api = fakeOneSignal();
+        api.Notifications.requestPermission.mockImplementation(async () => setGrantedPermissions(api));
         api.User.PushSubscription.optIn.mockImplementation(async () => {
-            api.Notifications.permission = 'granted';
             api.User.PushSubscription.optedIn = true;
             api.User.PushSubscription.id = 'subscription-id';
             api.User.PushSubscription.token = 'push-token';
@@ -158,35 +211,89 @@ describe('OneSignal device opt-in foundation', () => {
         await resolveSdk(api);
 
         expect(api.User.PushSubscription.optIn).not.toHaveBeenCalled();
+        expect(api.Notifications.requestPermission).not.toHaveBeenCalled();
+        expect(api.User.PushSubscription.addEventListener).toHaveBeenCalledTimes(1);
         expect(status.textContent).toBe('Notifications are off on this device.');
         expect(enable.hidden).toBe(false);
 
         enable.click();
         await vi.waitFor(() => expect(status.textContent).toBe('Notifications are enabled on this device.'));
 
+        expect(api.Notifications.requestPermission).toHaveBeenCalledTimes(1);
         expect(api.User.PushSubscription.optIn).toHaveBeenCalledTimes(1);
         expect(disable.hidden).toBe(false);
     });
 
-    it('does not claim enabled until both subscription ID and push token are available', async () => {
+    it('does not request permission again when the browser already grants it', async () => {
         const { enable, status } = mountPushSettings();
         initializeOneSignal();
         const api = fakeOneSignal();
-        api.Notifications.permission = 'granted';
+        setGrantedPermissions(api);
+        api.User.PushSubscription.optIn.mockImplementation(async () => {
+            api.User.PushSubscription.optedIn = true;
+        });
+        await resolveSdk(api);
+
+        enable.click();
+        await vi.waitFor(() => expect(status.textContent).toBe('Notifications are enabled on this device.'));
+
+        expect(api.Notifications.requestPermission).not.toHaveBeenCalled();
+        expect(api.User.PushSubscription.optIn).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows localized feedback when an explicit enable attempt fails', async () => {
+        const { enable, error } = mountPushSettings();
+        initializeOneSignal();
+        const api = fakeOneSignal();
+        api.Notifications.requestPermission.mockImplementation(async () => setGrantedPermissions(api));
+        api.User.PushSubscription.optIn.mockRejectedValue(new Error('synthetic SDK error'));
+        await resolveSdk(api);
+
+        enable.click();
+        await vi.waitFor(() => expect(error.hidden).toBe(false));
+
+        expect(error.textContent).toBe('Could not update notifications on this device. Please try again.');
+        expect(api.User.PushSubscription.optIn).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns from checking and shows localized feedback when an SDK action never settles', async () => {
+        const { enable, error, settings, status } = mountPushSettings();
+        initializeOneSignal();
+        const api = fakeOneSignal();
+        setGrantedPermissions(api);
+        api.User.PushSubscription.optIn.mockImplementation(() => new Promise<void>(() => {}));
+        await resolveSdk(api);
+
+        enable.click();
+        expect(settings.getAttribute('aria-busy')).toBe('true');
+        await vi.advanceTimersByTimeAsync(15000);
+        await vi.waitFor(() => expect(error.hidden).toBe(false));
+
+        expect(status.textContent).toBe('Notifications are off on this device.');
+        expect(settings.getAttribute('aria-busy')).toBe('false');
+        expect(error.textContent).toBe('Could not update notifications on this device. Please try again.');
+    });
+
+    it('uses granted permission and opted-in state while subscription identifiers hydrate', async () => {
+        const { disable, status } = mountPushSettings();
+        initializeOneSignal();
+        const api = fakeOneSignal();
+        setGrantedPermissions(api);
         api.User.PushSubscription.optedIn = true;
-        api.User.PushSubscription.id = 'subscription-id';
+        api.User.PushSubscription.id = null;
         api.User.PushSubscription.token = null;
         await resolveSdk(api);
 
-        expect(status.textContent).toBe('Notifications are off on this device.');
-        expect(enable.hidden).toBe(false);
+        expect(status.textContent).toBe('Notifications are enabled on this device.');
+        expect(disable.hidden).toBe(false);
     });
 
     it('explains denied permission and hides opt-in until browser/site settings change', async () => {
         const { deniedHelp, enable, status } = mountPushSettings();
         initializeOneSignal();
         const api = fakeOneSignal();
-        api.Notifications.permission = 'denied';
+        setBrowserPermission('denied');
+        api.Notifications.permissionNative = 'denied';
         await resolveSdk(api);
 
         expect(status.textContent).toBe('Notifications are blocked in browser settings.');
@@ -220,7 +327,7 @@ describe('OneSignal device opt-in foundation', () => {
         const { disable, status } = mountPushSettings();
         initializeOneSignal();
         const api = fakeOneSignal();
-        api.Notifications.permission = 'granted';
+        setGrantedPermissions(api);
         api.User.PushSubscription.optedIn = true;
         api.User.PushSubscription.id = 'subscription-id';
         api.User.PushSubscription.token = 'push-token';
@@ -233,6 +340,60 @@ describe('OneSignal device opt-in foundation', () => {
         disable.click();
         await vi.waitFor(() => expect(status.textContent).toBe('Notifications are off on this device.'));
         expect(api.User.PushSubscription.optOut).toHaveBeenCalledTimes(1);
+        expect(Notification.permission).toBe('granted');
+        expect(api.Notifications.permission).toBe(true);
+        expect(api.Notifications.permissionNative).toBe('granted');
+    });
+
+    it('refreshes device status when the push subscription changes', async () => {
+        const { status } = mountPushSettings();
+        initializeOneSignal();
+        const api = fakeOneSignal();
+        await resolveSdk(api);
+
+        expect(status.textContent).toBe('Notifications are off on this device.');
+        expect(api.User.PushSubscription.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+        const subscriptionListener = api.User.PushSubscription.addEventListener.mock.calls[0][1] as () => void;
+        setGrantedPermissions(api);
+        api.User.PushSubscription.optedIn = true;
+        api.User.PushSubscription.id = 'subscription-id';
+        api.User.PushSubscription.token = 'push-token';
+
+        subscriptionListener();
+        await vi.waitFor(() => expect(status.textContent).toBe('Notifications are enabled on this device.'));
+    });
+
+    it('refreshes after authenticated login finishes and the SDK exposes device state', async () => {
+        const { status } = mountPushSettings();
+        initializeOneSignal();
+        const api = fakeOneSignal();
+        let completeLogin: (() => void) | undefined;
+        api.login.mockImplementation(() => new Promise<void>((resolve) => {
+            completeLogin = resolve;
+        }));
+
+        const bootstrap = resolveSdk(api);
+        await vi.waitFor(() => expect(api.login).toHaveBeenCalledWith('skuysocial-user:24'));
+        expect(status.textContent).toBe('Checking this device.');
+
+        setGrantedPermissions(api);
+        api.User.PushSubscription.optedIn = true;
+        api.User.PushSubscription.id = 'subscription-id';
+        api.User.PushSubscription.token = 'push-token';
+        completeLogin?.();
+        await bootstrap;
+
+        expect(status.textContent).toBe('Notifications are enabled on this device.');
+    });
+
+    it('degrades gracefully when SDK initialization fails', async () => {
+        const { status } = mountPushSettings();
+        initializeOneSignal();
+        const api = fakeOneSignal();
+        api.init.mockRejectedValue(new Error('synthetic SDK failure'));
+
+        await expect(resolveSdk(api)).resolves.toBeUndefined();
+        expect(status.textContent).toBe('Push notifications are unavailable.');
     });
 
     it('submits logout even when OneSignal logout rejects', async () => {

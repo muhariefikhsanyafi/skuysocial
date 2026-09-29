@@ -95,7 +95,8 @@ class OneSignalSettingsTest extends TestCase
 
             $response->assertOk()
                 ->assertSee(__('settings.push.enable', [], $locale))
-                ->assertSee(__('settings.push.state.unavailable', [], $locale));
+                ->assertSee(__('settings.push.state.unavailable', [], $locale))
+                ->assertSee('data-state-action-failed="'.__('settings.push.action_failed', [], $locale).'"', false);
         }
     }
 

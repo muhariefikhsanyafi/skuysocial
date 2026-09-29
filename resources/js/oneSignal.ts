@@ -19,8 +19,10 @@ interface OneSignalApi {
     login: (externalId: string) => Promise<void> | void;
     logout: () => Promise<void> | void;
     Notifications: {
-        permission: PermissionState;
+        permission: boolean;
+        permissionNative: PermissionState;
         isPushSupported: () => boolean | Promise<boolean>;
+        requestPermission: () => Promise<unknown> | void;
         addEventListener?: (event: 'permissionChange', listener: () => void) => void;
     };
     User: {
@@ -34,6 +36,7 @@ type OneSignalDeferredWindow = Window & {
 
 const SDK_URL = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
 const SDK_LOAD_TIMEOUT_MS = 8000;
+const PUSH_ACTION_TIMEOUT_MS = 15000;
 const LOGOUT_TIMEOUT_MS = 600;
 
 export function initializeOneSignal(documentRef: Document = document): void {
@@ -219,41 +222,106 @@ async function refreshAll(settings: HTMLElement[], oneSignal: OneSignalApi): Pro
     await Promise.all(settings.map((section) => refreshSettings(section, oneSignal)));
 }
 
-async function refreshSettings(section: HTMLElement, oneSignal: OneSignalApi): Promise<void> {
+async function readPushDeviceState(oneSignal: OneSignalApi): Promise<PushState> {
+    const pushSupported = await Promise.resolve(oneSignal.Notifications.isPushSupported());
+
+    if (!pushSupported || typeof Notification === 'undefined') {
+        return 'unsupported';
+    }
+
+    const browserPermission = Notification.permission;
+    const sdkNativePermission = oneSignal.Notifications.permissionNative;
+
+    if (browserPermission === 'denied' || sdkNativePermission === 'denied') {
+        return 'denied';
+    }
+
+    const permissionsGranted = browserPermission === 'granted'
+        && oneSignal.Notifications.permission === true
+        && sdkNativePermission === 'granted';
+
+    return permissionsGranted && oneSignal.User.PushSubscription.optedIn === true
+        ? 'enabled'
+        : 'notRequested';
+}
+
+async function refreshSettings(section: HTMLElement, oneSignal: OneSignalApi): Promise<PushState> {
+    const refreshVersion = (Number(section.dataset.pushRefreshVersion) || 0) + 1;
+    const refreshKey = String(refreshVersion);
+    section.dataset.pushRefreshVersion = refreshKey;
     section.setAttribute('aria-busy', 'true');
+    renderActionError(section, false);
+
+    const isLatestRefresh = (): boolean => section.dataset.pushRefreshVersion === refreshKey;
 
     try {
-        const pushSupported = await Promise.resolve(oneSignal.Notifications.isPushSupported());
+        const state = await readPushDeviceState(oneSignal);
 
-        if (!pushSupported) {
-            renderState(section, 'unsupported');
-            updateControls(section, null, 'unsupported', null);
-
-            return;
-        }
-
-        const permission = oneSignal.Notifications.permission;
-        const subscription = oneSignal.User.PushSubscription;
-        const hasUsableSubscription = typeof subscription.id === 'string'
-            && subscription.id.trim() !== ''
-            && typeof subscription.token === 'string'
-            && subscription.token.trim() !== '';
-
-        let state: PushState = 'notRequested';
-
-        if (permission === 'denied') {
-            state = 'denied';
-        } else if (permission === 'granted' && subscription.optedIn === true && hasUsableSubscription) {
-            state = 'enabled';
+        if (!isLatestRefresh()) {
+            return (section.dataset.pushState as PushState | undefined) ?? 'checking';
         }
 
         renderState(section, state);
-        updateControls(section, subscription, state, oneSignal);
+        updateControls(section, oneSignal.User.PushSubscription, state, oneSignal);
+
+        return state;
     } catch {
+        if (!isLatestRefresh()) {
+            return (section.dataset.pushState as PushState | undefined) ?? 'checking';
+        }
+
         renderState(section, 'unavailable');
         updateControls(section, null, 'unavailable', null);
+
+        return 'unavailable';
     } finally {
-        section.setAttribute('aria-busy', 'false');
+        if (isLatestRefresh()) {
+            section.setAttribute('aria-busy', 'false');
+        }
+    }
+}
+
+function hasNativeNotificationPermission(): boolean {
+    return typeof Notification !== 'undefined' && Notification.permission === 'granted';
+}
+
+async function runSettingsAction(
+    section: HTMLElement,
+    button: HTMLButtonElement,
+    oneSignal: OneSignalApi,
+    expectedState: 'enabled' | 'notRequested',
+    action: () => Promise<unknown> | void,
+): Promise<void> {
+    section.dataset.pushActionPending = 'true';
+    button.disabled = true;
+    section.setAttribute('aria-busy', 'true');
+    renderState(section, 'checking');
+    renderActionError(section, false);
+
+    let actionSucceeded = true;
+    let timeout: number | undefined;
+    const timeoutPromise = new Promise<never>((_resolve, reject) => {
+        timeout = window.setTimeout(() => reject(new Error('Push settings action timed out.')), PUSH_ACTION_TIMEOUT_MS);
+    });
+
+    try {
+        await Promise.race([Promise.resolve().then(action), timeoutPromise]);
+    } catch {
+        actionSucceeded = false;
+    } finally {
+        if (timeout !== undefined) {
+            window.clearTimeout(timeout);
+        }
+
+        delete section.dataset.pushActionPending;
+    }
+
+    const state = await refreshSettings(section, oneSignal);
+    const actionNeedsFeedback = !actionSucceeded || state !== expectedState;
+    const stateHasSpecificFeedback = state === 'denied' || state === 'unsupported' || state === 'unavailable';
+
+    if (actionNeedsFeedback && !stateHasSpecificFeedback) {
+        renderActionError(section, true);
     }
 }
 
@@ -278,20 +346,14 @@ function updateControls(
             && oneSignal !== null;
         enable.hidden = !canEnable;
         enable.disabled = actionPending;
-        enable.onclick = canEnable ? async () => {
-            section.dataset.pushActionPending = 'true';
-            enable.disabled = true;
-            section.setAttribute('aria-busy', 'true');
-            renderState(section, 'checking');
+        enable.onclick = canEnable ? () => {
+            void runSettingsAction(section, enable, oneSignal, 'enabled', async () => {
+                if (!hasNativeNotificationPermission()) {
+                    await oneSignal.Notifications.requestPermission();
+                }
 
-            try {
                 await subscription.optIn?.();
-            } catch {
-                // Refresh actual device state after either success or failure.
-            } finally {
-                delete section.dataset.pushActionPending;
-                await refreshSettings(section, oneSignal);
-            }
+            });
         } : null;
     }
 
@@ -301,20 +363,8 @@ function updateControls(
             && oneSignal !== null;
         disable.hidden = !canDisable;
         disable.disabled = actionPending;
-        disable.onclick = canDisable ? async () => {
-            section.dataset.pushActionPending = 'true';
-            disable.disabled = true;
-            section.setAttribute('aria-busy', 'true');
-            renderState(section, 'checking');
-
-            try {
-                await subscription.optOut?.();
-            } catch {
-                // Refresh actual device state after either success or failure.
-            } finally {
-                delete section.dataset.pushActionPending;
-                await refreshSettings(section, oneSignal);
-            }
+        disable.onclick = canDisable ? () => {
+            void runSettingsAction(section, disable, oneSignal, 'notRequested', () => subscription.optOut?.());
         } : null;
     }
 }
@@ -322,9 +372,21 @@ function updateControls(
 function renderAll(settings: HTMLElement[], state: PushState): void {
     for (const section of settings) {
         renderState(section, state);
+        renderActionError(section, false);
         updateControls(section, null, state, null);
         section.setAttribute('aria-busy', 'false');
     }
+}
+
+function renderActionError(section: HTMLElement, visible: boolean): void {
+    const error = section.querySelector<HTMLElement>('[data-push-action-error]');
+
+    if (!error) {
+        return;
+    }
+
+    error.textContent = visible ? section.dataset.stateActionFailed ?? '' : '';
+    error.hidden = !visible;
 }
 
 function renderState(section: HTMLElement, state: PushState): void {

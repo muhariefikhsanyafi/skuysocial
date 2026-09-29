@@ -82,6 +82,7 @@ return [
             'enabled' => 'Push notifications are enabled on this device.',
         ],
         'denied_help' => 'Allow notifications in your browser or site settings, then reload this page.',
+        'action_failed' => 'Could not update push notifications on this device. Please try again.',
         'javascript_required' => 'Device notification controls require JavaScript. SkuySocial remains available without them.',
         'enable' => 'Enable notifications on this device',
         'disable' => 'Disable notifications on this device',
