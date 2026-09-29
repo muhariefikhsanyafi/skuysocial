@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\FindOrCreateDirectConversation;
 use App\Actions\ManageMessageBlocks;
 use App\Enums\MessageEligibility;
+use App\Jobs\SendSocialPushNotification;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
 use App\Models\Message;
@@ -146,6 +147,15 @@ class MessagesController extends Controller
             if (! $lockedConversation->forceFill(['last_message_at' => $message->created_at])->save()) {
                 throw new RuntimeException('Failed to update direct conversation recency.');
             }
+
+            SendSocialPushNotification::dispatchAfterCommit(
+                (int) $counterpart->getKey(),
+                SendSocialPushNotification::DIRECT_MESSAGE,
+                (int) $sender->getKey(),
+                (string) $sender->name,
+                null,
+                (int) $lockedConversation->getKey(),
+            );
 
             return $message;
         });

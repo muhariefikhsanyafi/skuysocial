@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendSocialPushNotification;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
@@ -38,8 +39,26 @@ class CommentController extends Controller
                 'parent_id' => $validated['parent_id'] ?? null,
             ]);
 
-            if ($targetPost->user_id !== $request->user()->getKey()) {
-                $targetPost->user->notify(new CommentPosted($request->user(), $targetPost));
+            $actor = $request->user();
+            $postOwnerId = (int) $targetPost->user_id;
+
+            // Existing Activity semantics notify the post owner for both comments and replies.
+            $recipientIds = $postOwnerId === (int) $actor->getKey() ? [] : [$postOwnerId];
+
+            if (in_array($postOwnerId, $recipientIds, true)) {
+                $targetPost->user->notify(new CommentPosted($actor, $targetPost));
+            }
+
+            foreach ($recipientIds as $recipientId) {
+                SendSocialPushNotification::dispatchAfterCommit(
+                    $recipientId,
+                    $comment->parent_id === null
+                        ? SendSocialPushNotification::COMMENT
+                        : SendSocialPushNotification::REPLY,
+                    (int) $actor->getKey(),
+                    (string) $actor->name,
+                    (string) $targetPost->uid,
+                );
             }
 
             return $comment;

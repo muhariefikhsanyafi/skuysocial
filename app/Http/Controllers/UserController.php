@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\MessageEligibility;
 use App\Enums\ProfileVisibility;
 use App\Http\Requests\ProfilePresentationUpdateRequest;
+use App\Jobs\SendSocialPushNotification;
 use App\Models\Post;
 use App\Models\User;
 use App\Services\MessagingEligibility;
@@ -162,6 +163,13 @@ class UserController extends Controller
 
                     // --- PELATUK NOTIFIKASI FOLLOW ---
                     $user->notify(new \App\Notifications\UserFollowed($currentUser));
+
+                    SendSocialPushNotification::dispatchAfterCommit(
+                        (int) $user->getKey(),
+                        SendSocialPushNotification::FOLLOW,
+                        (int) $currentUser->getKey(),
+                        (string) $currentUser->name,
+                    );
                 });
             } catch (QueryException $exception) {
                 if (! $this->isDuplicateFollowConflict($exception)) {

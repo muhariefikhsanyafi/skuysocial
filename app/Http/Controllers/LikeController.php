@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendSocialPushNotification;
 use App\Models\Post;
-use App\Notifications\PostLiked; // Tambahkan baris ini
+use App\Notifications\PostLiked;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,17 +37,20 @@ class LikeController extends Controller
 
         // Cari apakah user ini sudah menyukai postingan ini
         $like = $targetPost->likes()->where('user_id', $userId)->first();
+        $newlyLiked = false;
 
         if ($like && $desiredLiked !== true) {
             // Jika sudah like, hapus (Unlike)
             $like->delete();
         } elseif (! $like && $desiredLiked !== false) {
             try {
-                DB::transaction(function () use ($targetPost, $userId, $request): void {
+                DB::transaction(function () use ($targetPost, $userId, $request, &$newlyLiked): void {
                     // Jika belum, buat Like baru
                     $targetPost->likes()->create([
                         'user_id' => $userId,
                     ]);
+
+                    $newlyLiked = true;
 
                     // --- PELATUK NOTIFIKASI LIKE ---
                     // Cegah kirim notifikasi jika user menyukai postingannya sendiri
@@ -62,11 +66,31 @@ class LikeController extends Controller
         }
 
         if ($isJson) {
+            if ($newlyLiked && $targetPost->user_id !== $userId) {
+                SendSocialPushNotification::dispatchAfterCommit(
+                    (int) $targetPost->user_id,
+                    SendSocialPushNotification::LIKE,
+                    (int) $userId,
+                    (string) $request->user()->name,
+                    (string) $targetPost->uid,
+                );
+            }
+
             return response()->json([
                 'post_uid' => (string) $targetPost->uid,
                 'liked' => $targetPost->likes()->where('user_id', $userId)->exists(),
                 'like_count' => $targetPost->likes()->count(),
             ]);
+        }
+
+        if ($newlyLiked && $targetPost->user_id !== $userId) {
+            SendSocialPushNotification::dispatchAfterCommit(
+                (int) $targetPost->user_id,
+                SendSocialPushNotification::LIKE,
+                (int) $userId,
+                (string) $request->user()->name,
+                (string) $targetPost->uid,
+            );
         }
 
         // Kembalikan ke halaman sebelumnya

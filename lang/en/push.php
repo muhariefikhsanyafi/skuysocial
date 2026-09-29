@@ -1,6 +1,15 @@
 <?php
 
 return [
+    'social' => [
+        'heading' => 'SkuySocial notifications',
+        'actor_fallback' => 'Someone',
+        'like' => ':actor liked your thread.',
+        'comment' => ':actor commented on your thread.',
+        'reply' => ':actor replied to a comment on your thread.',
+        'follow' => ':actor started following you.',
+        'direct_message' => 'New message from :actor.',
+    ],
     'test' => [
         'heading' => 'SkuySocial notifications',
         'body' => 'This is a test notification for your account.',

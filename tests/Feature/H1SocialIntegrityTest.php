@@ -186,10 +186,10 @@ class H1SocialIntegrityTest extends TestCase
     {
         [, $actor, $post] = $this->notificationActorsAndPost();
         $this->failNotificationWrites();
+        $this->app['cache']->clear();
 
-        $this->actingAs($actor)
-            ->post(route('comments.store', $post), ['content' => 'Atomic comment'])
-            ->assertServerError();
+        $response = $this->actingAs($actor)->post(route('comments.store', $post), ['content' => 'Atomic comment']);
+        $response->assertServerError();
 
         $this->assertDatabaseMissing('comments', [
             'post_id' => $post->id,

@@ -5,9 +5,9 @@ namespace App\Services;
 use App\Enums\OneSignalPushOutcome;
 use App\Models\User;
 use App\Support\OneSignalExternalId;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
+use Throwable;
 
 class OneSignalPushService
 {
@@ -86,7 +86,7 @@ class OneSignalPushService
                     'contents' => $contents,
                     'url' => $url,
                 ]);
-        } catch (ConnectionException) {
+        } catch (Throwable) {
             return OneSignalPushOutcome::Failed;
         }
 
