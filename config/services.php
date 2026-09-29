@@ -26,6 +26,12 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    'onesignal' => [
+        'enabled' => env('ONESIGNAL_ENABLED', true),
+        'app_id' => env('ONESIGNAL_APP_ID'),
+        'rest_api_key' => env('ONESIGNAL_REST_API_KEY'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],

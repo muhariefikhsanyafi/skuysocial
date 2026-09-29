@@ -109,7 +109,7 @@
                     </button>
                 </form>
 
-                <form method="POST" action="{{ route('logout') }}" class="min-w-0">
+                <form method="POST" action="{{ route('logout') }}" class="min-w-0" data-onesignal-logout>
                     @csrf
                     <button type="submit" class="skuy-auth-link w-full justify-center text-center">
                         {{ __('auth.common.log_out') }}

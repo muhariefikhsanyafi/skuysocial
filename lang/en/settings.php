@@ -70,6 +70,23 @@ return [
         'saved' => 'Messaging privacy updated.',
     ],
 
+    'push' => [
+        'heading' => 'Push notifications',
+        'description' => 'Enable or disable notifications for this browser and device. Your in-app Activity remains available in SkuySocial.',
+        'state' => [
+            'checking' => 'Checking notification status on this device…',
+            'unavailable' => 'Push notification setup is unavailable right now.',
+            'unsupported' => 'This browser or device does not support push notifications.',
+            'denied' => 'Notifications are blocked for this site in browser settings.',
+            'not_requested' => 'Notifications are off on this device.',
+            'enabled' => 'Push notifications are enabled on this device.',
+        ],
+        'denied_help' => 'Allow notifications in your browser or site settings, then reload this page.',
+        'javascript_required' => 'Device notification controls require JavaScript. SkuySocial remains available without them.',
+        'enable' => 'Enable notifications on this device',
+        'disable' => 'Disable notifications on this device',
+    ],
+
     'two_factor' => [
         'heading' => 'Two-factor authentication',
         'description' => 'Add an authenticator app to provide a second step when signing in.',

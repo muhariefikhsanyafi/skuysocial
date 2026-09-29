@@ -23,6 +23,16 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="skuy-product antialiased">
+        @if (auth()->check() && (bool) config('services.onesignal.enabled', false) && filled(config('services.onesignal.app_id')))
+            <div
+                data-onesignal-bootstrap
+                data-app-id="{{ config('services.onesignal.app_id') }}"
+                data-external-id="{{ \App\Support\OneSignalExternalId::forUser(auth()->user()) }}"
+                hidden
+                aria-hidden="true"
+            ></div>
+        @endif
+
         <div class="skuy-app-shell">
             @if (auth()->check())
                 @include('layouts.navigation')

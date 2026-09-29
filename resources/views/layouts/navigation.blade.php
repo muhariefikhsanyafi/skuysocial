@@ -118,11 +118,11 @@
                             <x-dropdown-link :href="route('profile.edit', $user->username)" class="skuy-menu-link" role="menuitem">
                                 {{ __('navigation.settings') }}
                             </x-dropdown-link>
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
                                 @csrf
-                                <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();" class="skuy-menu-link" role="menuitem">
+                                <button type="submit" class="skuy-menu-link min-h-[44px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]" role="menuitem">
                                     {{ __('navigation.sign_out') }}
-                                </x-dropdown-link>
+                                </button>
                             </form>
                         </div>
                     </x-slot>
@@ -165,11 +165,11 @@
                 <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link">
                     {{ __('navigation.settings') }}
                 </a>
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
                     @csrf
-                    <a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();" class="skuy-menu-link text-[var(--skuy-danger)]">
+                    <button type="submit" class="skuy-menu-link min-h-[44px] text-[var(--skuy-danger)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
                         {{ __('navigation.sign_out') }}
-                    </a>
+                    </button>
                 </form>
             </div>
         </div>

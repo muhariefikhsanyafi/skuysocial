@@ -70,6 +70,23 @@ return [
         'saved' => 'Privasi pesan diperbarui.',
     ],
 
+    'push' => [
+        'heading' => 'Notifikasi push',
+        'description' => 'Aktifkan atau nonaktifkan notifikasi untuk browser dan perangkat ini. Aktivitas dalam aplikasi SkuySocial tetap tersedia.',
+        'state' => [
+            'checking' => 'Memeriksa status notifikasi di perangkat ini…',
+            'unavailable' => 'Penyiapan notifikasi push tidak tersedia saat ini.',
+            'unsupported' => 'Browser atau perangkat ini tidak mendukung notifikasi push.',
+            'denied' => 'Notifikasi untuk situs ini diblokir di pengaturan browser.',
+            'not_requested' => 'Notifikasi nonaktif di perangkat ini.',
+            'enabled' => 'Notifikasi push aktif di perangkat ini.',
+        ],
+        'denied_help' => 'Izinkan notifikasi di pengaturan browser atau situs, lalu muat ulang halaman ini.',
+        'javascript_required' => 'Kontrol notifikasi perangkat memerlukan JavaScript. SkuySocial tetap dapat digunakan tanpanya.',
+        'enable' => 'Aktifkan notifikasi di perangkat ini',
+        'disable' => 'Nonaktifkan notifikasi di perangkat ini',
+    ],
+
     'two_factor' => [
         'heading' => 'Autentikasi dua faktor',
         'description' => 'Tambahkan aplikasi autentikator sebagai langkah kedua saat masuk.',
