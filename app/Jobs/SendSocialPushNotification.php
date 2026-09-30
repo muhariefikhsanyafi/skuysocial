@@ -108,17 +108,18 @@ class SendSocialPushNotification implements ShouldQueue
                 return;
             }
 
-            $contents = [
-                $locale => (string) trans(
-                    'push.social.'.$copyKey,
-                    ['actor' => $actorName],
-                    $locale,
-                ),
-            ];
+            $heading = (string) trans('push.social.heading', [], $locale);
+            $body = (string) trans(
+                'push.social.'.$copyKey,
+                ['actor' => $actorName],
+                $locale,
+            );
+            $headings = ['en' => $heading, $locale => $heading];
+            $contents = ['en' => $body, $locale => $body];
 
             $outcome = $pushes->sendToUsers(
                 [$recipient],
-                [$locale => (string) trans('push.social.heading', [], $locale)],
+                $headings,
                 $contents,
                 $url,
             );

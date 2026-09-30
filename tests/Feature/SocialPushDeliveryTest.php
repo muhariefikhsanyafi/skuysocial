@@ -297,7 +297,12 @@ class SocialPushDeliveryTest extends TestCase
                 $payload = $recorded[0]->data();
                 $this->assertSame('https://skuysocial.test'.$path, $payload['url'] ?? null);
                 $copy = $locale === 'en' ? $english : $indonesian;
-                $this->assertSame([$locale => $copy], $payload['contents'] ?? null);
+                $this->assertSame($copy, $payload['contents']['en'] ?? null);
+                $this->assertSame((string) trans('push.social.heading', [], $locale), $payload['headings']['en'] ?? null);
+                if ($locale !== 'en') {
+                    $this->assertSame($copy, $payload['contents'][$locale] ?? null);
+                    $this->assertSame((string) trans('push.social.heading', [], $locale), $payload['headings'][$locale] ?? null);
+                }
             }
         }
     }
@@ -323,7 +328,13 @@ class SocialPushDeliveryTest extends TestCase
         (new SendSocialPushNotification($restricted->id, SendSocialPushNotification::FOLLOW, $actor->id, $actor->name))->handle(app(OneSignalPushService::class));
         $recorded = Http::recorded()->last();
         $this->assertNotNull($recorded, 'No HTTP request recorded for recipient-locale push.');
-        $this->assertSame(['id' => 'Safe Actor mulai mengikuti Anda.'], $recorded[0]->data()['contents'] ?? null);
+        $this->assertEqualsCanonicalizing(
+            [
+                'en' => 'Safe Actor mulai mengikuti Anda.',
+                'id' => 'Safe Actor mulai mengikuti Anda.',
+            ],
+            $recorded[0]->data()['contents'] ?? null,
+        );
     }
 
     public function test_unknown_or_null_moderation_state_is_suppressed(): void
