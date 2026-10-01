@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\HashtagController;
@@ -28,6 +29,8 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/pengumuman', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('/pengumuman/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
     Route::get('/@{username}/pengaturan-akun', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/pengaturan/messaging-privacy', [MessagePrivacyController::class, 'update'])
         ->name('settings.messaging-privacy.update');

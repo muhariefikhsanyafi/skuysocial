@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Http\Middleware\EnforceAccountSession;
 use App\Models\User;
 use App\Services\TwoFactorLoginChallengeService;
+use App\Support\AnnouncementAudience;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -39,7 +40,8 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $view->with('unreadNotificationCount', $user->unreadNotifications()->count())
-                ->with('unreadMessageCount', $user->unreadMessageCount());
+                ->with('unreadMessageCount', $user->unreadMessageCount())
+                ->with('unreadAnnouncementCount', app(AnnouncementAudience::class)->unreadCount($user));
         });
 
         RateLimiter::for('two-factor-login', function (Request $request): array {

@@ -44,7 +44,7 @@
             <a href="#main-content" class="skuy-skip-link">{{ __('navigation.skip_to_content') }}</a>
 
             @if (auth()->check())
-                <x-restricted-account-notice class="{{ request()->routeIs('user.profile') ? 'skuy-shell-notice--profile' : '' }}{{ request()->routeIs('search', 'activity.index', 'messages.*', 'bookmarks.index') ? ' skuy-shell-notice--content' : '' }}" />
+                <x-restricted-account-notice class="{{ request()->routeIs('user.profile') ? 'skuy-shell-notice--profile' : '' }}{{ request()->routeIs('search', 'activity.index', 'announcements.*', 'messages.*', 'bookmarks.index') ? ' skuy-shell-notice--content' : '' }}" />
             @endif
 
             @isset($header)

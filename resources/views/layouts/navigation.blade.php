@@ -6,11 +6,16 @@
     $showDashboardNavigation = $user->hasVerifiedEmail() || $isDashboard;
     $unreadNotificationCount = (int) ($unreadNotificationCount ?? 0);
     $unreadMessageCount = (int) ($unreadMessageCount ?? 0);
+    $unreadAnnouncementCount = (int) ($unreadAnnouncementCount ?? 0);
     $displayUnreadNotificationCount = $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount;
     $displayUnreadMessageCount = $unreadMessageCount > 99 ? '99+' : $unreadMessageCount;
+    $displayUnreadAnnouncementCount = $unreadAnnouncementCount > 99 ? '99+' : $unreadAnnouncementCount;
     $activityMobileLabel = $unreadNotificationCount > 0
         ? __('navigation.activity') . ', ' . __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount])
         : __('navigation.activity');
+    $announcementsMobileLabel = $unreadAnnouncementCount > 0
+        ? __('navigation.announcements') . ', ' . __('navigation.unread_announcements_count', ['count' => $unreadAnnouncementCount])
+        : __('navigation.announcements');
     $messagesMobileLabel = $unreadMessageCount > 0
         ? __('navigation.messages') . ', ' . __('navigation.unread_messages_count', ['count' => $unreadMessageCount])
         : __('navigation.messages');
@@ -26,13 +31,14 @@
         ['key' => 'feed', 'href' => route('feed'), 'label' => __('navigation.feed'), 'active' => request()->routeIs('feed'), 'icon' => 'house'],
         ['key' => 'search', 'href' => route('search'), 'label' => __('navigation.search'), 'active' => request()->routeIs('search'), 'icon' => 'magnifying-glass'],
         ['key' => 'activity', 'href' => route('activity.index'), 'label' => __('navigation.activity'), 'active' => request()->routeIs('activity.index'), 'icon' => 'bell'],
+        ['key' => 'announcements', 'href' => route('announcements.index'), 'label' => __('navigation.announcements'), 'active' => request()->routeIs('announcements.*'), 'icon' => 'bullhorn'],
         ['key' => 'messages', 'href' => route('messages.index'), 'label' => __('navigation.messages'), 'active' => request()->routeIs('messages.*'), 'icon' => 'comment-lines'],
         ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'bookmark'],
         ['key' => 'profile', 'href' => $profileUrl, 'label' => __('navigation.profile'), 'active' => request()->routeIs('user.profile') && request()->route('username') === $user->username, 'icon' => 'user'],
     ]);
     $navigationGroups = [
         array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['dashboard', 'feed', 'search'], true)),
-        array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['activity', 'messages', 'saved', 'profile'], true)),
+        array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['activity', 'announcements', 'messages', 'saved', 'profile'], true)),
     ];
     $bottomHomeIsDashboard = $isDashboard;
     $bottomHomeHref = $bottomHomeIsDashboard ? route('dashboard') : route('feed');
@@ -162,6 +168,10 @@
                 <a href="{{ route('messages.index') }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('messages.*') ? 'page' : 'false' }}">
                     {{ __('navigation.messages') }}
                 </a>
+                <a href="{{ route('announcements.index') }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('announcements.*') ? 'page' : 'false' }}" aria-label="{{ $announcementsMobileLabel }}">
+                    {{ __('navigation.announcements') }}
+                    @if ($unreadAnnouncementCount > 0)<span class="skuy-feed-nav__badge">{{ $displayUnreadAnnouncementCount }}</span>@endif
+                </a>
                 <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link">
                     {{ __('navigation.settings') }}
                 </a>
@@ -194,6 +204,7 @@
                         @foreach ($navigationGroup as $item)
                             <a
                                 href="{{ $item['href'] }}"
+                                aria-label="{{ $item['key'] === 'announcements' && $unreadAnnouncementCount > 0 ? $announcementsMobileLabel : $item['label'] }}"
                                 aria-current="{{ $item['active'] ? 'page' : 'false' }}"
                                 @click="sidebarOpen = false"
                                 class="skuy-app-nav__link"
@@ -207,6 +218,8 @@
                                         data-unread-notifications-badge
                                         aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}"
                                     >{{ $displayUnreadNotificationCount }}</span>
+                                @elseif ($item['key'] === 'announcements' && $unreadAnnouncementCount > 0)
+                                    <span class="skuy-feed-nav__badge" aria-label="{{ __('announcements.unread') }}: {{ $unreadAnnouncementCount }}">{{ $displayUnreadAnnouncementCount }}</span>
                                 @elseif ($item['key'] === 'messages' && $unreadMessageCount > 0)
                                     <span
                                         class="skuy-feed-nav__badge"
@@ -279,6 +292,16 @@
             @endif
         </span>
         <span>{{ __('navigation.messages') }}</span>
+    </a>
+
+    <a href="{{ route('announcements.index') }}" aria-label="{{ $announcementsMobileLabel }}" aria-current="{{ request()->routeIs('announcements.*') ? 'page' : 'false' }}" class="skuy-mobile-nav__item" data-mobile-nav-key="announcements">
+        <span class="skuy-mobile-nav__icon-wrap">
+            <x-fa-icon name="bullhorn" :weight="request()->routeIs('announcements.*') ? 'solid' : 'regular'" class="text-xl" />
+            @if ($unreadAnnouncementCount > 0)
+                <span class="skuy-feed-nav__badge" data-unread-announcements-badge aria-label="{{ __('announcements.unread') }}: {{ $unreadAnnouncementCount }}">{{ $displayUnreadAnnouncementCount }}</span>
+            @endif
+        </span>
+        <span>{{ __('navigation.announcements') }}</span>
     </a>
 </nav>
 </div>

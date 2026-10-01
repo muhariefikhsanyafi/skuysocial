@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\FindOrCreateDirectConversation;
+use App\Models\Announcement;
 use App\Models\User;
 use App\Notifications\UserFollowed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -175,6 +176,12 @@ class MessagesUnreadStateTest extends TestCase
         $readNotification = $viewer->notifications()->oldest('id')->firstOrFail();
         $readNotification->markAsRead();
         $unreadNotification = $viewer->unreadNotifications()->firstOrFail();
+        $announcementAuthor = User::factory()->administrator()->create(['locale' => 'en']);
+        $announcement = Announcement::query()->create([
+            'title_id' => 'Pengumuman', 'title_en' => 'Announcement', 'body_id' => 'Isi ID', 'body_en' => 'Body EN',
+            'audience_type' => 'all', 'status' => 'sent', 'audience_cutoff_user_id' => $viewer->id,
+            'created_by' => $announcementAuthor->id, 'sent_by' => $announcementAuthor->id, 'sent_at' => now(),
+        ]);
 
         $response = $this->actingAs($viewer)->get(route('messages.index'));
         $response->assertOk();
@@ -206,8 +213,10 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertStringContainsString('data-unread-notifications-badge', $mobileNav);
         $this->assertStringContainsString('aria-label="Activity, Unread notifications: 1"', $mobileNav);
         $this->assertStringContainsString('aria-label="Messages, Unread messages: 2"', $mobileNav);
+        $this->assertStringContainsString('aria-label="Announcements, Unread announcements: 1"', $mobileNav);
+        $this->assertStringContainsString('data-unread-announcements-badge', $mobileNav);
         $this->assertStringContainsString('aria-current="page"', $mobileNav);
-        $this->assertSame(['home', 'search', 'create', 'activity', 'messages'], $mobileKeys[1]);
+        $this->assertSame(['home', 'search', 'create', 'activity', 'messages', 'announcements'], $mobileKeys[1]);
         $this->assertDoesNotMatchRegularExpression(
             '/<a[^>]*href="'.preg_quote(route('user.profile', $viewer->username), '/').'"/',
             $mobileNav,
