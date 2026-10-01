@@ -310,13 +310,23 @@ class AnnouncementFeatureTest extends TestCase
         $announcement = Announcement::query()->create($this->draftAttributes(['created_by' => $admin->id]));
         $this->actingAs($admin);
         $component = Livewire::test(ViewAnnouncement::class, ['record' => $announcement->getRouteKey()]);
-        $component->assertActionExists('send_announcement', fn (Action $action): bool => $action->isConfirmationRequired());
+        $component->assertActionExists('send_announcement', fn (Action $action): bool => $action->isConfirmationRequired())
+            ->assertActionDoesNotHaveColor('send_announcement', 'danger')
+            ->assertActionHasColor('delete', 'danger');
         $component->mountAction('send_announcement')->assertActionMounted('send_announcement');
         $this->assertSame('draft', $announcement->fresh()->status);
         $component->callMountedAction();
         $this->assertSame('sent', $announcement->fresh()->status);
         $this->assertSame(1, $announcement->pushBatches()->where('batch_type', 'dispatch')->count());
         Queue::assertPushed(DispatchAnnouncementPush::class, 1);
+        $component->assertRedirect(AnnouncementResource::getUrl('view', ['record' => $announcement], false, 'admin'));
+
+        $sentComponent = Livewire::test(ViewAnnouncement::class, ['record' => $announcement->getRouteKey()]);
+        $sentComponent
+            ->assertSeeText(__('admin_announcements.status.sent'))
+            ->assertActionHidden('edit')
+            ->assertActionHidden('delete')
+            ->assertActionHidden('send_announcement');
         $draft = Announcement::query()->create($this->draftAttributes(['created_by' => $admin->id]));
         $draft->forceFill(['title_en' => ''])->saveQuietly();
         Livewire::test(ViewAnnouncement::class, ['record' => $draft->getRouteKey()])
@@ -351,9 +361,24 @@ class AnnouncementFeatureTest extends TestCase
         $admin = User::factory()->administrator()->create();
         $this->sentAnnouncement($admin, 'all', $recipient->id);
         $html = $this->actingAs($recipient)->get(route('feed'))->assertOk()->getContent();
-        $this->assertStringContainsString('data-unread-announcements-badge', $html);
-        $this->assertStringContainsString('data-mobile-nav-key="announcements"', $html);
+        $this->assertStringContainsString('Announcements, Unread announcements: 1', $html);
+        $this->assertStringContainsString('aria-label="Unread: 1"', $html);
+        $this->assertStringNotContainsString('data-mobile-nav-key="announcements"', $html);
         $this->assertStringContainsString('data-mobile-nav-key="messages"', $html);
+        $mobileProfileMenuStart = strpos($html, 'id="mobile-profile-menu"');
+        $mobileNavigationStart = strpos($html, 'id="mobile-navigation"');
+        $this->assertNotFalse($mobileProfileMenuStart);
+        $this->assertNotFalse($mobileNavigationStart);
+        $mobileProfileMenu = substr($html, $mobileProfileMenuStart, $mobileNavigationStart - $mobileProfileMenuStart);
+        $this->assertStringContainsString('href="'.route('announcements.index').'"', $mobileProfileMenu);
+        $announcementHtml = $this->get(route('announcements.index'))->assertOk()->getContent();
+        $this->assertStringContainsString('class="skuy-activity-item skuy-announcement-item"', $announcementHtml);
+        $this->assertStringContainsString('class="skuy-activity-item__body min-w-0 w-full"', $announcementHtml);
+        $bottomNavStart = strpos($html, '<nav class="skuy-mobile-nav"');
+        $bottomNavEnd = strpos($html, '</nav>', $bottomNavStart);
+        $bottomNav = substr($html, $bottomNavStart, $bottomNavEnd - $bottomNavStart);
+        preg_match_all('/data-mobile-nav-key="([^"]+)"/', $bottomNav, $mobileKeys);
+        $this->assertSame(['home', 'search', 'create', 'activity', 'messages'], $mobileKeys[1]);
     }
 
     public function test_sent_copy_is_escaped_and_draft_cannot_be_opened(): void

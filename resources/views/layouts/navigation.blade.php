@@ -293,15 +293,5 @@
         </span>
         <span>{{ __('navigation.messages') }}</span>
     </a>
-
-    <a href="{{ route('announcements.index') }}" aria-label="{{ $announcementsMobileLabel }}" aria-current="{{ request()->routeIs('announcements.*') ? 'page' : 'false' }}" class="skuy-mobile-nav__item" data-mobile-nav-key="announcements">
-        <span class="skuy-mobile-nav__icon-wrap">
-            <x-fa-icon name="bullhorn" :weight="request()->routeIs('announcements.*') ? 'solid' : 'regular'" class="text-xl" />
-            @if ($unreadAnnouncementCount > 0)
-                <span class="skuy-feed-nav__badge" data-unread-announcements-badge aria-label="{{ __('announcements.unread') }}: {{ $unreadAnnouncementCount }}">{{ $displayUnreadAnnouncementCount }}</span>
-            @endif
-        </span>
-        <span>{{ __('navigation.announcements') }}</span>
-    </a>
 </nav>
 </div>

@@ -6246,6 +6246,10 @@ a.skuy-message-row:focus-visible {
     transition: background-color 160ms ease;
 }
 
+.skuy-announcement-item {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .skuy-activity-item--unread {
     padding-inline-start: 7px;
     border-inline-start: 3px solid var(--skuy-secondary);

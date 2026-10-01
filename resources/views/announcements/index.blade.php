@@ -21,8 +21,8 @@
                             $locale = $localePreference->supported(auth()->user()->locale) ?? $localePreference->configuredLocale();
                             $isUnread = ! $announcement->read_by_me;
                         @endphp
-                        <li class="skuy-activity-item">
-                            <div class="skuy-activity-item__body">
+                        <li class="skuy-activity-item skuy-announcement-item">
+                            <div class="skuy-activity-item__body min-w-0 w-full">
                                 <h2 class="skuy-activity-item__message">
                                     <a href="{{ route('announcements.show', $announcement) }}" class="skuy-activity-item__actor">
                                         {{ $announcement->{'title_'.$locale} }}

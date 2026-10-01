@@ -34,7 +34,7 @@ class ViewAnnouncement extends ViewRecord
             DeleteAction::make()->visible($isDraft)->requiresConfirmation(),
             Action::make('send_announcement')
                 ->label(__('admin_announcements.actions.send'))
-                ->color('danger')
+                ->color('primary')
                 ->visible($isDraft)
                 ->authorize('update', $this->getRecord())
                 ->requiresConfirmation()
@@ -61,7 +61,7 @@ class ViewAnnouncement extends ViewRecord
                         return;
                     }
                     Notification::make()->success()->title(__('admin_announcements.notifications.sent'))->send();
-                    $this->refreshFormData(['status', 'sent_by', 'sent_at', 'audience_cutoff_user_id']);
+                    $this->redirect(AnnouncementResource::getUrl('view', ['record' => $this->getRecord()], false, 'admin'));
                 }),
         ];
     }

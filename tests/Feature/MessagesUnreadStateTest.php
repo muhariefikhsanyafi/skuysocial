@@ -213,10 +213,9 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertStringContainsString('data-unread-notifications-badge', $mobileNav);
         $this->assertStringContainsString('aria-label="Activity, Unread notifications: 1"', $mobileNav);
         $this->assertStringContainsString('aria-label="Messages, Unread messages: 2"', $mobileNav);
-        $this->assertStringContainsString('aria-label="Announcements, Unread announcements: 1"', $mobileNav);
-        $this->assertStringContainsString('data-unread-announcements-badge', $mobileNav);
+        $this->assertStringNotContainsString('Announcements, Unread announcements: 1', $mobileNav);
         $this->assertStringContainsString('aria-current="page"', $mobileNav);
-        $this->assertSame(['home', 'search', 'create', 'activity', 'messages', 'announcements'], $mobileKeys[1]);
+        $this->assertSame(['home', 'search', 'create', 'activity', 'messages'], $mobileKeys[1]);
         $this->assertDoesNotMatchRegularExpression(
             '/<a[^>]*href="'.preg_quote(route('user.profile', $viewer->username), '/').'"/',
             $mobileNav,
@@ -239,6 +238,8 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertNotFalse($desktopRailStart);
         $desktopRail = substr($html, $desktopRailStart, $mobileDockStart - $desktopRailStart);
         $this->assertStringContainsString('href="'.route('user.profile', $viewer->username).'"', $desktopRail);
+        $this->assertStringContainsString('href="'.route('announcements.index').'"', $desktopRail);
+        $this->assertStringContainsString('aria-label="Unread: 1"', $desktopRail);
 
         $this->get(route('messages.show', $conversation))->assertOk();
         $this->assertSame(0, $viewer->fresh()->unreadMessageCount());
