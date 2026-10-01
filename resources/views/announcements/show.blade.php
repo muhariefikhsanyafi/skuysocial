@@ -11,8 +11,8 @@
                 </a>
                 <h1 class="skuy-list-page-header__title">{{ $announcement->{'title_'.$locale} }}</h1>
             </header>
-            <article class="skuy-activity-item">
-                <div class="skuy-activity-item__body">
+            <article class="skuy-announcement-detail">
+                <div class="skuy-announcement-detail__body">
                     <p class="whitespace-pre-wrap break-words">{{ $announcement->{'body_'.$locale} }}</p>
                     <div class="text-sm text-[var(--skuy-text-muted)]">{{ $announcement->sent_at->locale($locale)->diffForHumans() }}</div>
                 </div>

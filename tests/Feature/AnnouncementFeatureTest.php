@@ -371,9 +371,6 @@ class AnnouncementFeatureTest extends TestCase
         $this->assertNotFalse($mobileNavigationStart);
         $mobileProfileMenu = substr($html, $mobileProfileMenuStart, $mobileNavigationStart - $mobileProfileMenuStart);
         $this->assertStringContainsString('href="'.route('announcements.index').'"', $mobileProfileMenu);
-        $announcementHtml = $this->get(route('announcements.index'))->assertOk()->getContent();
-        $this->assertStringContainsString('class="skuy-activity-item skuy-announcement-item"', $announcementHtml);
-        $this->assertStringContainsString('class="skuy-activity-item__body min-w-0 w-full"', $announcementHtml);
         $bottomNavStart = strpos($html, '<nav class="skuy-mobile-nav"');
         $bottomNavEnd = strpos($html, '</nav>', $bottomNavStart);
         $bottomNav = substr($html, $bottomNavStart, $bottomNavEnd - $bottomNavStart);
@@ -390,6 +387,31 @@ class AnnouncementFeatureTest extends TestCase
         $sent->forceFill(['body_en' => '<script>alert(1)</script>'])->saveQuietly();
         $this->actingAs($recipient)->get(route('announcements.show', $sent))->assertOk()->assertSee('&lt;script&gt;', false)->assertDontSee('<script>alert(1)</script>', false);
         $this->get(route('announcements.show', $draft))->assertNotFound();
+    }
+
+    public function test_announcement_list_and_detail_use_full_width_announcement_layout(): void
+    {
+        $recipient = User::factory()->create(['locale' => 'en']);
+        $admin = User::factory()->administrator()->create();
+        $announcement = $this->sentAnnouncement($admin, 'all', $recipient->id);
+
+        $this->actingAs($recipient)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertSee('class="skuy-activity-item skuy-announcement-item"', false)
+            ->assertSee('class="skuy-activity-item__body min-w-0 w-full"', false);
+
+        $stylesheet = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($stylesheet);
+        $this->assertMatchesRegularExpression('/\.skuy-announcement-item\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s', $stylesheet);
+        $this->assertMatchesRegularExpression('/@media \(max-width:\s*767px\)[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\.skuy-activity-item:not\(\.skuy-announcement-item\)\s*\{[^}]*grid-template-columns:\s*36px\s+minmax\(0,\s*1fr\)\s+30px;/s', $stylesheet);
+        $this->assertMatchesRegularExpression('/\.skuy-announcement-detail\s*\{[^}]*min-width:\s*0;/s', $stylesheet);
+
+        $this->get(route('announcements.show', $announcement))
+            ->assertOk()
+            ->assertSee('class="skuy-announcement-detail__body"', false)
+            ->assertDontSee('class="skuy-activity-item skuy-announcement-item"', false)
+            ->assertSee('English body');
     }
 
     public function test_provider_failure_is_durable_and_does_not_unpublish_announcement(): void

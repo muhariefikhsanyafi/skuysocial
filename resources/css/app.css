@@ -6250,6 +6250,22 @@ a.skuy-message-row:focus-visible {
     grid-template-columns: minmax(0, 1fr);
 }
 
+.skuy-announcement-detail {
+    min-width: 0;
+    padding: 14px 10px;
+    border-bottom: 1px solid var(--skuy-border-subtle);
+}
+
+.skuy-announcement-detail__body {
+    min-width: 0;
+    width: 100%;
+}
+
+.skuy-announcement-detail__body p {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 .skuy-activity-item--unread {
     padding-inline-start: 7px;
     border-inline-start: 3px solid var(--skuy-secondary);
@@ -6413,7 +6429,7 @@ a.skuy-message-row:focus-visible {
         padding: 24px 16px;
     }
 
-    .skuy-activity-item {
+    .skuy-activity-item:not(.skuy-announcement-item) {
         grid-template-columns: 36px minmax(0, 1fr) 30px;
         gap: 10px;
         padding: 12px 8px;
