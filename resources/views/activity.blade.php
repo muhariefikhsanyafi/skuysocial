@@ -24,6 +24,7 @@
                             $message = match ($data['type'] ?? null) {
                                 'like' => __('activity.messages.like'),
                                 'comment' => __('activity.messages.comment'),
+                                'reply' => __('activity.messages.reply'),
                                 'follow' => __('activity.messages.follow'),
                                 'repost' => __('activity.messages.repost'),
                                 default => $data['message'] ?? '',
@@ -32,12 +33,13 @@
                             $postTargetUrl = null;
                             $isUnread = $notification->read_at === null;
 
-                            if (
-                                in_array($data['type'] ?? null, ['like', 'comment'], true)
+                            if (in_array($data['type'] ?? null, ['like', 'comment', 'reply'], true)
                                 && is_string($postRouteKey)
-                                && $postRouteKey !== ''
-                            ) {
+                                && $postRouteKey !== '') {
                                 $postTargetUrl = route('posts.show', $postRouteKey);
+                                if (($data['type'] ?? null) === 'reply' && is_numeric($data['parent_id'] ?? null)) {
+                                    $postTargetUrl .= '#comment-'.(int) $data['parent_id'];
+                                }
                             }
                         @endphp
 
@@ -75,7 +77,7 @@
                             <span class="skuy-activity-item__type skuy-activity-item__type--{{ $data['type'] ?? 'other' }}" aria-hidden="true">
                                 @if (($data['type'] ?? null) === 'like')
                                     <x-fa-icon name="heart" weight="solid" />
-                                @elseif (($data['type'] ?? null) === 'comment')
+                                @elseif (in_array(($data['type'] ?? null), ['comment', 'reply'], true))
                                     <x-fa-icon name="comment" />
                                 @elseif (($data['type'] ?? null) === 'follow')
                                     <x-fa-icon name="user-plus" weight="solid" />

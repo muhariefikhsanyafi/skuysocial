@@ -222,8 +222,8 @@
                             'replies_for' => $comment->id,
                         ]).'#comment-'.$comment->id;
                     @endphp
-                    <div id="comment-{{ $comment->id }}" x-data="{ openReply: false, isSubmitting: false }" class="skuy-comment relative scroll-mt-20">
-                        <div class="flex flex-col items-center flex-shrink-0">
+                    <div id="comment-{{ $comment->id }}" x-data="{ openReply: false, isSubmitting: false }" class="skuy-comment skuy-post-detail__reply skuy-post-detail__reply--root relative scroll-mt-20">
+                        <div class="skuy-comment__avatar-column flex flex-col items-center flex-shrink-0">
                             @if ($comment->user->avatar)
                                 <img src="{{ asset('storage/' . $comment->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $comment->user->name]) }}" class="skuy-avatar skuy-avatar--small object-cover">
                             @else
@@ -231,7 +231,9 @@
                                     {{ substr($comment->user->name, 0, 1) }}
                                 </div>
                             @endif
-                            <div class="w-0.5 bg-[var(--skuy-border-subtle)]  flex-1 mt-2 mb-1 min-h-[20px]" x-show="openReply || {{ $comment->replies_count > 0 ? 'true' : 'false' }}"></div>
+                            @if ($comment->replies_count > 0)
+                                <div class="skuy-post-detail__thread-stem"></div>
+                            @endif
                         </div>
                         <div class="skuy-comment__body pb-4">
                             <div class="skuy-comment__identity">
@@ -258,6 +260,9 @@
                                 <!-- 2. Ikon Balas (Membuka Form) -->
                                 <button @click="openReply = !openReply" type="button" class="skuy-action" title="{{ __('threads.actions.reply') }}" aria-label="{{ __('threads.actions.reply') }}">
                                     <x-fa-icon name="comment-dots" class="text-base" />
+                                    @if ($comment->replies_count > 0)
+                                        <span data-comment-reply-count="{{ $comment->replies_count }}" class="text-[10px] font-semibold">{{ $comment->replies_count }}</span>
+                                    @endif
                                 </button>
                                 
                                 <!-- 3. Ikon Repost (Visual Only untuk saat ini) -->
@@ -286,19 +291,16 @@
 
                             <!-- Area Balasan Anak -->
                             @if ($visibleReplies->count() > 0)
-                                <div class="skuy-comment__replies">
+                                <div class="skuy-comment__replies skuy-comment__replies--has-items" data-reply-thread-root="{{ $comment->id }}">
                                     @foreach ($visibleReplies as $reply)
-                                        <div id="reply-{{ $reply->id }}" class="skuy-comment scroll-mt-20">
-                                            <div class="flex flex-col items-center flex-shrink-0 mt-0.5">
+                                        <div id="reply-{{ $reply->id }}" class="skuy-comment skuy-post-detail__reply skuy-post-detail__reply--nested relative scroll-mt-20">
+                                            <div class="skuy-comment__avatar-column flex flex-col items-center flex-shrink-0 mt-0.5">
                                                 @if ($reply->user->avatar)
                                                     <img src="{{ asset('storage/' . $reply->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $reply->user->name]) }}" class="skuy-avatar skuy-avatar--tiny object-cover">
                                                 @else
                                                     <div class="skuy-avatar skuy-avatar--tiny object-cover">
                                                         {{ substr($reply->user->name, 0, 1) }}
                                                     </div>
-                                                @endif
-                                                @if (!$loop->last)
-                                                    <div class="w-0.5 bg-[var(--skuy-border-subtle)]  flex-1 mt-1 min-h-[10px]"></div>
                                                 @endif
                                             </div>
                                             <div class="skuy-comment__body pb-1">

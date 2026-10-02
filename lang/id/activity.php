@@ -8,6 +8,7 @@ return [
     'messages' => [
         'like' => 'menyukai utas Anda.',
         'comment' => 'membalas utas Anda.',
+        'reply' => 'membalas komentar Anda.',
         'follow' => 'mulai mengikuti Anda.',
         'repost' => 'memposting ulang utas Anda.',
     ],

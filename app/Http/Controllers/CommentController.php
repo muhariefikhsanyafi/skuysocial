@@ -41,15 +41,22 @@ class CommentController extends Controller
 
             $actor = $request->user();
             $postOwnerId = (int) $targetPost->user_id;
+            $parentComment = $comment->parent_id === null
+                ? null
+                : Comment::query()->with('user')->findOrFail($comment->parent_id);
 
-            // Existing Activity semantics notify the post owner for both comments and replies.
-            $recipientIds = $postOwnerId === (int) $actor->getKey() ? [] : [$postOwnerId];
-
-            if (in_array($postOwnerId, $recipientIds, true)) {
-                $targetPost->user->notify(new CommentPosted($actor, $targetPost));
-            }
+            // Preserve post-owner notifications and add a reply's parent author once.
+            $recipientIds = array_values(array_unique(array_filter([
+                $postOwnerId === (int) $actor->getKey() ? null : $postOwnerId,
+                $parentComment?->user_id === null ? null : (int) $parentComment->user_id,
+            ], static fn (?int $recipientId): bool => $recipientId !== null && $recipientId !== (int) $actor->getKey())));
 
             foreach ($recipientIds as $recipientId) {
+                $recipient = (int) $parentComment?->user_id === $recipientId
+                    ? $parentComment->user
+                    : $targetPost->user;
+                $recipient->notify(new CommentPosted($actor, $targetPost, $comment));
+
                 SendSocialPushNotification::dispatchAfterCommit(
                     $recipientId,
                     $comment->parent_id === null
@@ -58,6 +65,8 @@ class CommentController extends Controller
                     (int) $actor->getKey(),
                     (string) $actor->name,
                     (string) $targetPost->uid,
+                    null,
+                    parentCommentId: $comment->parent_id === null ? null : (int) $comment->parent_id,
                 );
             }
 
@@ -78,7 +87,9 @@ class CommentController extends Controller
             'post_uid' => (string) $targetPost->uid,
             'comment_count' => (int) $commentCount,
             'root_comment_count' => (int) $rootCommentCount,
-            'parent_reply_count' => $parent?->replies()->count(),
+            'parent_reply_count' => $parent?->replies()
+                ->where('post_id', $targetPost->getKey())
+                ->count(),
             'comment' => $this->serializeCreatedComment($comment, $targetPost, $post),
         ];
 

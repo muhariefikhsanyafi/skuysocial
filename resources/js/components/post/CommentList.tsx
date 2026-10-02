@@ -40,7 +40,6 @@ interface CommentItemProps {
     routes: PostDetailRoutes;
     translations: PostDetailTranslations;
     canPerformSocialWrites: boolean;
-    isLastReplyOverride?: boolean;
     replyParentId?: number;
     replyTargetName?: string;
     onReplyRequest?: () => void;
@@ -187,7 +186,6 @@ function CommentItem({
     routes,
     translations,
     canPerformSocialWrites,
-    isLastReplyOverride,
     replyParentId: replyParentIdOverride,
     replyTargetName: replyTargetNameOverride,
     onReplyRequest,
@@ -209,9 +207,10 @@ function CommentItem({
     const visibleReplies = isExpanded ? expandedReplies.data : comment.replies;
     const replyParentId = replyParentIdOverride ?? comment.id;
     const replyTargetName = replyTargetNameOverride ?? comment.author.name;
+    const repliesCount = comment.replies_count;
     const hasMoreReplies = isExpanded
         ? expandedReplies.has_more
-        : comment.replies_count > visibleReplies.length;
+        : repliesCount > visibleReplies.length;
     const moreRepliesUrl = isExpanded
         ? expandedReplies.next_url ? `${expandedReplies.next_url}#comment-${comment.id}` : null
         : comment.reply_expansion_url ?? null;
@@ -292,14 +291,9 @@ function CommentItem({
             id={`${isReply ? 'reply' : 'comment'}-${comment.id}`}
             className={`skuy-comment skuy-post-detail__reply ${isReply ? 'skuy-post-detail__reply--nested' : 'skuy-post-detail__reply--root'} relative scroll-mt-20`}
         >
-            <div className={`flex flex-shrink-0 flex-col items-center ${isReply ? 'mt-0.5' : ''}`}>
+            <div className={`skuy-comment__avatar-column flex flex-shrink-0 flex-col items-center ${isReply ? 'mt-0.5' : ''}`}>
                 <Avatar author={comment.author} size={isReply ? 'tiny' : 'small'} labelTemplate={translations.avatar_of} />
-                {!isReply && (openReply || comment.replies_count > 0) && (
-                    <div className="mt-2 mb-1 min-h-[20px] w-0.5 flex-1 bg-[var(--skuy-border-subtle)]" />
-                )}
-                {isReply && !isLastReplyOverride && (
-                    <div className="mt-1 min-h-[10px] w-0.5 flex-1 bg-[var(--skuy-border-subtle)]" />
-                )}
+                {!isReply && (openReply || repliesCount > 0) && <div className="skuy-post-detail__thread-stem" />}
             </div>
 
             <div className={`skuy-comment__body ${isReply ? 'pb-1' : 'pb-4'}`}>
@@ -343,6 +337,7 @@ function CommentItem({
                         aria-expanded={isReply ? rootReplyOpen : openReply}
                     >
                         <CommentIcon className={isReply ? 'text-sm' : 'text-base'} />
+                        {!isReply && repliesCount > 0 && <span data-comment-reply-count={repliesCount} className="text-[10px] font-semibold">{repliesCount}</span>}
                     </button>
 
                     <button
@@ -411,8 +406,8 @@ function CommentItem({
                 )}
 
                 {visibleReplies.length > 0 && (
-                    <div className="skuy-comment__replies">
-                        {visibleReplies.map((reply, index) => (
+                    <div className={`skuy-comment__replies${visibleReplies.length ? ' skuy-comment__replies--has-items' : ''}`} data-reply-thread-root={comment.id}>
+                        {visibleReplies.map((reply) => (
                             <CommentItem
                                 key={reply.id}
                                 comment={reply}
@@ -424,7 +419,6 @@ function CommentItem({
                                 routes={routes}
                                 translations={translations}
                                 canPerformSocialWrites={canPerformSocialWrites}
-                                isLastReplyOverride={index === visibleReplies.length - 1}
                                 replyParentId={comment.id}
                                 replyTargetName={comment.author.name}
                                 onReplyRequest={() => setOpenReply((current) => !current)}

@@ -207,6 +207,43 @@ class PostDetailTest extends TestCase
         $this->assertSame('reply-detail-author', $loadedRoot->feedReplies->first()->user->username);
     }
 
+    public function test_reply_counts_are_direct_children_and_rendered_in_post_detail_actions(): void
+    {
+        $postOwner = User::factory()->create();
+        $replyAuthor = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($postOwner);
+        $root = $this->createComment($post, $postOwner, 'Zero replies root');
+        $secondRoot = $this->createComment($post, $postOwner, 'One reply root');
+        $this->createComment($post, $replyAuthor, 'One reply only', ['parent_id' => $secondRoot->id]);
+        $thirdRoot = $this->createComment($post, $postOwner, 'Three replies root');
+        $this->createComment($post, $replyAuthor, 'First direct reply', ['parent_id' => $thirdRoot->id]);
+        $this->createComment($post, $replyAuthor, 'Second direct reply', ['parent_id' => $thirdRoot->id]);
+        $anotherPost = $this->createPost(User::factory()->create());
+        $this->createComment($anotherPost, $replyAuthor, 'Other post reply', ['parent_id' => $thirdRoot->id]);
+
+        $response = $this->actingAs($viewer)->get(route('posts.show', $post));
+        $rootCollection = $response->viewData('comments')->getCollection();
+        $rendered = $response->getContent();
+        $commentListStart = strpos($rendered, '<div class="space-y-4">');
+        $commentListMarkup = $commentListStart === false ? '' : substr($rendered, $commentListStart);
+
+        $this->assertSame(0, $rootCollection->firstWhere('id', $root->id)->replies_count);
+        $this->assertSame(1, $rootCollection->firstWhere('id', $secondRoot->id)->replies_count);
+        $this->assertSame(2, $rootCollection->firstWhere('id', $thirdRoot->id)->replies_count);
+
+        $this->assertStringContainsString('data-comment-reply-count="1"', $rendered);
+        $this->assertStringContainsString('data-comment-reply-count="2"', $rendered);
+        $this->assertStringNotContainsString('data-comment-reply-count="0"', $rendered);
+        $this->assertGreaterThanOrEqual(2, substr_count($commentListMarkup, 'data-reply-thread-root='));
+        $this->assertGreaterThanOrEqual(2, substr_count($commentListMarkup, 'skuy-comment__replies--has-items'));
+        $this->assertGreaterThanOrEqual(2, substr_count($commentListMarkup, 'skuy-post-detail__reply--nested'));
+        $this->assertStringNotContainsString('Other post reply', $commentListMarkup);
+        $response->assertSee('Zero replies root')
+            ->assertSee('One reply only')
+            ->assertSee('Three replies root');
+    }
+
     public function test_reply_limit_is_applied_per_root_comment(): void
     {
         $author = User::factory()->create();

@@ -212,6 +212,12 @@ describe('CommentList reactive mutations', () => {
         expect(screen.getByText('@root-author')).toBeTruthy();
         expect(screen.getByText('Reply author')).toBeTruthy();
         expect(screen.getByText('@reply-author')).toBeTruthy();
+        expect(document.querySelectorAll('.skuy-comment__avatar-column')).toHaveLength(2);
+        const repliesGroup = document.querySelector('.skuy-comment__replies--has-items');
+        expect(repliesGroup).not.toBeNull();
+        expect(repliesGroup?.querySelectorAll('.skuy-post-detail__reply--nested')).toHaveLength(1);
+        expect(repliesGroup?.querySelector('.skuy-post-detail__reply--nested')?.classList.contains('skuy-post-detail__reply--nested')).toBe(true);
+        expect(screen.getAllByRole('button', { name: 'Reply' })[0].querySelector('[data-comment-reply-count="1"]')).not.toBeNull();
     });
 
     it('creates a reply with the root parent and inserts it under that thread', async () => {
@@ -234,6 +240,7 @@ describe('CommentList reactive mutations', () => {
         });
         const createdReply = screen.getByText('Reply from the nested control').closest('.skuy-post-detail__reply--nested');
         expect(createdReply?.closest('.skuy-comment__replies')).not.toBeNull();
+        await waitFor(() => expect(screen.getAllByRole('button', { name: 'Reply' })[0].querySelector('[data-comment-reply-count="2"]')).not.toBeNull());
     });
 
     it('updates comment Like state and count only from the server response', async () => {
@@ -245,7 +252,7 @@ describe('CommentList reactive mutations', () => {
         fireEvent.click(likeButton);
 
         await waitFor(() => expect(likeButton.getAttribute('aria-pressed')).toBe('true'));
-        expect(screen.getByText('1')).toBeTruthy();
+        expect(likeButton.querySelector('span')?.textContent).toBe('1');
         expect(JSON.parse(fetchMock.mock.calls[0][1].body as string)).toEqual({ liked: true });
     });
 

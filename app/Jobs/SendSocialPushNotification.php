@@ -25,13 +25,19 @@ class SendSocialPushNotification implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public const LIKE = 'like';
+
     public const COMMENT = 'comment';
+
     public const REPLY = 'reply';
+
     public const FOLLOW = 'follow';
+
     public const DIRECT_MESSAGE = 'direct_message';
 
     public int $tries = 1;
+
     public int $timeout = 8;
+
     public bool $failOnTimeout = true;
 
     public function __construct(
@@ -41,8 +47,8 @@ class SendSocialPushNotification implements ShouldQueue
         public readonly string $actorName,
         public readonly ?string $postUid = null,
         public readonly ?int $conversationId = null,
-    ) {
-    }
+        public readonly ?int $parentCommentId = null,
+    ) {}
 
     public static function dispatchAfterCommit(
         int $recipientId,
@@ -51,6 +57,7 @@ class SendSocialPushNotification implements ShouldQueue
         string $actorName,
         ?string $postUid = null,
         ?int $conversationId = null,
+        ?int $parentCommentId = null,
     ): void {
         DB::afterCommit(static function () use (
             $recipientId,
@@ -59,6 +66,7 @@ class SendSocialPushNotification implements ShouldQueue
             $actorName,
             $postUid,
             $conversationId,
+            $parentCommentId,
         ): void {
             self::dispatch(
                 $recipientId,
@@ -67,6 +75,7 @@ class SendSocialPushNotification implements ShouldQueue
                 $actorName,
                 $postUid,
                 $conversationId,
+                $parentCommentId,
             )->onConnection('deferred')->afterCommit();
         });
     }
@@ -142,8 +151,38 @@ class SendSocialPushNotification implements ShouldQueue
 
     private function destination(User $recipient, ?User $actor): ?string
     {
+        if ($this->event === self::REPLY) {
+            if ($this->parentCommentId === null || ! is_string($this->postUid) || $this->postUid === '') {
+                return null;
+            }
+
+            $post = Post::query()->where('uid', $this->postUid)->first();
+            if ($post === null) {
+                return null;
+            }
+
+            $parent = $post->comments()
+                ->whereKey($this->parentCommentId)
+                ->whereNull('parent_id')
+                ->first();
+
+            if ($parent === null) {
+                return null;
+            }
+
+            $fragment = (int) $parent->user_id === (int) $recipient->getKey()
+                ? '#comment-'.$parent->getKey()
+                : '';
+
+            if ((int) $post->user_id !== (int) $recipient->getKey() && $fragment === '') {
+                return null;
+            }
+
+            return $this->safeDestination(route('posts.show', $post, false).$fragment);
+        }
+
         return match ($this->event) {
-            self::LIKE, self::COMMENT, self::REPLY => $this->postDestination($recipient),
+            self::LIKE, self::COMMENT => $this->postOwnerDestination($recipient),
             self::FOLLOW => $actor === null
                 ? null
                 : $this->safeDestination(route('user.profile', ['username' => $actor->username], false)),
@@ -152,7 +191,7 @@ class SendSocialPushNotification implements ShouldQueue
         };
     }
 
-    private function postDestination(User $recipient): ?string
+    private function postOwnerDestination(User $recipient): ?string
     {
         if (! is_string($this->postUid) || $this->postUid === '') {
             return null;
@@ -211,8 +250,12 @@ class SendSocialPushNotification implements ShouldQueue
 
         $basePath = parse_url($base, PHP_URL_PATH);
         $prefix = is_string($basePath) ? rtrim($basePath, '/') : '';
+        $fragment = parse_url($destination, PHP_URL_FRAGMENT);
+        $safeFragment = is_string($fragment) && preg_match('/^(?:comment|reply)-\d+$/', $fragment) === 1
+            ? '#'.$fragment
+            : '';
 
-        return $origin.$prefix.$path;
+        return $origin.$prefix.$path.$safeFragment;
     }
 
     private function safeActorName(string $name, ?string $email, string $locale): string
@@ -229,5 +272,4 @@ class SendSocialPushNotification implements ShouldQueue
 
         return $name !== '' ? $name : (string) trans('push.social.actor_fallback', [], $locale);
     }
-
 }

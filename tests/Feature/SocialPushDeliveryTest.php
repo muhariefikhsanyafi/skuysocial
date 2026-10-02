@@ -13,7 +13,6 @@ use App\Notifications\PostLiked;
 use App\Notifications\UserFollowed;
 use App\Services\OneSignalPushService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Defer\DeferredCallbackCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -145,48 +144,76 @@ class SocialPushDeliveryTest extends TestCase
         Queue::assertNothingPushed();
     }
 
-    public function test_reply_mirrors_existing_activity_post_owner_recipient_without_duplicate_activity(): void
+    public function test_reply_notifies_post_owner_and_parent_author_once_with_post_deep_link(): void
     {
         Queue::fake();
         $postOwner = User::factory()->create();
-        $rootAuthor = User::factory()->create();
-        $actor = User::factory()->create();
-        $post = Post::create(['user_id' => $postOwner->id, 'content' => 'PRIVATE POST CONTENT']);
-        $root = Comment::query()->create(['post_id' => $post->id, 'user_id' => $rootAuthor->id, 'content' => 'ROOT COMMENT']);
-        $this->assertSame(0, $postOwner->notifications()->count());
-
-        Queue::fake();
-        $this->actingAs($actor)->postJson(route('comments.store', $post), [
-            'content' => 'PRIVATE REPLY BODY',
-            'parent_id' => $root->id,
-        ])->assertCreated();
-
-        $jobs = Queue::pushed(SendSocialPushNotification::class);
-        $this->assertCount(1, $jobs);
-        $this->assertSame($postOwner->id, $jobs[0]->recipientId);
-        $this->assertSame(SendSocialPushNotification::REPLY, $jobs[0]->event);
-        $this->assertSame(1, $postOwner->notifications()->count());
-    }
-
-    public function test_reply_suppresses_actor_when_actor_is_the_post_owner(): void
-    {
-        Queue::fake();
-        $owner = User::factory()->create();
-        $actor = User::factory()->create();
-        $actor->forceFill(['username' => 'g2-reply-self'])->save();
-        $post = Post::create(['user_id' => $owner->id, 'content' => 'PRIVATE POST']);
-        $post->forceFill(['user_id' => $actor->id])->save();
-        $root = Comment::query()->create(['post_id' => $post->id, 'user_id' => $actor->id, 'content' => 'PRIVATE ROOT']);
+        $rootAuthor = User::factory()->create(['locale' => 'en']);
+        $actor = User::factory()->create(['name' => 'Safe Actor']);
+        $post = Post::create(['user_id' => $postOwner->id, 'content' => 'PRIVATE POST']);
+        $root = Comment::query()->create(['post_id' => $post->id, 'user_id' => $rootAuthor->id, 'content' => 'PRIVATE ROOT']);
 
         $this->actingAs($actor)->postJson(route('comments.store', $post), [
             'content' => 'PRIVATE REPLY',
             'parent_id' => $root->id,
         ])->assertCreated();
 
-        $jobs = Queue::pushed(SendSocialPushNotification::class);
-        $this->assertCount(0, $jobs);
+        $this->assertSame(1, $postOwner->notifications()->where('type', CommentPosted::class)->count());
+        $this->assertSame(1, $rootAuthor->notifications()->where('type', CommentPosted::class)->count());
+        $ownerActivity = $postOwner->notifications()->where('type', CommentPosted::class)->firstOrFail();
+        $replyActivity = $rootAuthor->notifications()->where('type', CommentPosted::class)->firstOrFail();
+        $this->assertSame('comment', $ownerActivity->data['type']);
+        $this->assertSame('reply', $replyActivity->data['type']);
+        $this->assertSame($actor->id, $replyActivity->data['user_id']);
+        $this->assertSame((string) $post->uid, $replyActivity->data['post_slug']);
+        $this->assertSame((int) $root->id, (int) $replyActivity->data['parent_id']);
+        $this->assertArrayNotHasKey('post_url', $replyActivity->data);
         $this->assertSame(0, $actor->notifications()->count());
-        $this->assertSame(0, $owner->notifications()->count());
+        $jobs = Queue::pushed(SendSocialPushNotification::class);
+        $this->assertCount(2, $jobs);
+        $this->assertEqualsCanonicalizing([$postOwner->id, $rootAuthor->id], array_map(static fn (SendSocialPushNotification $job): int => $job->recipientId, $jobs->all()));
+        foreach ($jobs as $job) {
+            $this->assertSame(SendSocialPushNotification::REPLY, $job->event);
+            $this->assertSame((int) $root->id, $job->parentCommentId);
+        }
+
+        Http::fake(['https://api.onesignal.com/notifications' => Http::response(['id' => 'synthetic-push-id'], 200)]);
+        foreach ($jobs as $job) {
+            $job->handle(app(OneSignalPushService::class));
+        }
+        $requests = Http::recorded();
+        $this->assertCount(2, $requests);
+        $expectedParentUrl = 'https://skuysocial.test'.route('posts.show', $post->uid, false).'#comment-'.$root->id;
+        $this->assertSame(
+            1,
+            $requests->filter(static fn (array $request): bool => $request[0]->data()['url'] === $expectedParentUrl)->count(),
+        );
+        $this->assertStringNotContainsString('PRIVATE REPLY', json_encode($requests->all(), JSON_THROW_ON_ERROR));
+    }
+
+    public function test_reply_deduplicates_post_owner_and_parent_author_as_one_recipient(): void
+    {
+        Queue::fake();
+        $owner = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = Post::create(['user_id' => $owner->id, 'content' => 'PRIVATE POST']);
+        $root = Comment::query()->create(['post_id' => $post->id, 'user_id' => $owner->id, 'content' => 'PRIVATE ROOT']);
+        $this->actingAs($actor)->postJson(route('comments.store', $post), ['content' => 'PRIVATE REPLY', 'parent_id' => $root->id])->assertCreated();
+        $this->assertCount(1, Queue::pushed(SendSocialPushNotification::class));
+        $this->assertSame(1, $owner->notifications()->where('type', CommentPosted::class)->count());
+    }
+
+    public function test_reply_by_parent_author_creates_no_self_activity_but_notifies_post_owner(): void
+    {
+        Queue::fake();
+        $owner = User::factory()->create();
+        $actor = User::factory()->create();
+        $post = Post::create(['user_id' => $owner->id, 'content' => 'PRIVATE POST']);
+        $root = Comment::query()->create(['post_id' => $post->id, 'user_id' => $actor->id, 'content' => 'PRIVATE ROOT']);
+        $this->actingAs($actor)->postJson(route('comments.store', $post), ['content' => 'PRIVATE REPLY', 'parent_id' => $root->id])->assertCreated();
+        $this->assertSame(0, $actor->notifications()->count());
+        $this->assertSame(1, $owner->notifications()->where('type', CommentPosted::class)->count());
+        $this->assertCount(1, Queue::pushed(SendSocialPushNotification::class));
     }
 
     public function test_new_follow_pushes_once_to_followed_user_and_unfollow_does_not(): void
@@ -268,6 +295,7 @@ class SocialPushDeliveryTest extends TestCase
         $recipient = User::factory()->create(['locale' => 'en']);
         config(['app.locale' => 'en']);
         $post = Post::create(['user_id' => $recipient->id, 'content' => 'PRIVATE POST']);
+        $root = Comment::query()->create(['post_id' => $post->id, 'user_id' => $actor->id, 'content' => 'PRIVATE ROOT']);
         $conversation = app(FindOrCreateDirectConversation::class)->handle($actor, $recipient);
         $this->configureSuccessfulOneSignal();
 
@@ -281,6 +309,7 @@ class SocialPushDeliveryTest extends TestCase
 
         foreach ($cases as [$event, $path, $english, $indonesian, $locale]) {
             Http::fake(['https://api.onesignal.com/notifications' => Http::response(['id' => 'synthetic-push-id'], 200)]);
+            $this->configureSuccessfulOneSignal();
             $recipient->forceFill(['locale' => $locale])->save();
             config(['app.locale' => $locale]);
             (new SendSocialPushNotification(
@@ -290,19 +319,21 @@ class SocialPushDeliveryTest extends TestCase
                 actorName: $actor->name,
                 postUid: in_array($event, [SendSocialPushNotification::LIKE, SendSocialPushNotification::COMMENT, SendSocialPushNotification::REPLY], true) ? (string) $post->uid : null,
                 conversationId: $event === SendSocialPushNotification::DIRECT_MESSAGE ? (int) $conversation->id : null,
+                parentCommentId: $event === SendSocialPushNotification::REPLY ? (int) $root->id : null,
             ))->handle(app(OneSignalPushService::class));
 
             $recorded = Http::recorded()->last();
-            if ($recorded !== null) {
-                $payload = $recorded[0]->data();
-                $this->assertSame('https://skuysocial.test'.$path, $payload['url'] ?? null);
-                $copy = $locale === 'en' ? $english : $indonesian;
-                $this->assertSame($copy, $payload['contents']['en'] ?? null);
-                $this->assertSame((string) trans('push.social.heading', [], $locale), $payload['headings']['en'] ?? null);
-                if ($locale !== 'en') {
-                    $this->assertSame($copy, $payload['contents'][$locale] ?? null);
-                    $this->assertSame((string) trans('push.social.heading', [], $locale), $payload['headings'][$locale] ?? null);
-                }
+            $this->assertNotNull($recorded, 'No request recorded for '.$event.' push.');
+            $this->assertSame(
+                'https://skuysocial.test'.$path,
+                $recorded[0]->data()['url'] ?? null,
+            );
+            $copy = $locale === 'en' ? $english : $indonesian;
+            $this->assertSame($copy, $recorded[0]->data()['contents']['en'] ?? null);
+            $this->assertSame((string) trans('push.social.heading', [], $locale), $recorded[0]->data()['headings']['en'] ?? null);
+            if ($locale !== 'en') {
+                $this->assertSame($copy, $recorded[0]->data()['contents'][$locale] ?? null);
+                $this->assertSame((string) trans('push.social.heading', [], $locale), $recorded[0]->data()['headings'][$locale] ?? null);
             }
         }
     }

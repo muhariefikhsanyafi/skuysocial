@@ -230,9 +230,15 @@ class PostController extends Controller
         $comments = $displayPost->detailComments()
             ->with([
                 'user',
-                'feedReplies' => $loadReplyData,
+                'feedReplies' => function ($query) use ($loadReplyData, $displayPost): void {
+                    $query->where('post_id', $displayPost->getKey());
+                    $loadReplyData($query);
+                },
             ])
-            ->withCount(['likes', 'replies'])
+            ->withCount([
+                'likes',
+                'replies' => fn (Builder $query) => $query->where('post_id', $displayPost->getKey()),
+            ])
             ->withExists([
                 'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
             ])

@@ -8,6 +8,7 @@ return [
     'messages' => [
         'like' => 'liked your thread.',
         'comment' => 'replied to your thread.',
+        'reply' => 'replied to your comment.',
         'follow' => 'started following you.',
         'repost' => 'reposted your thread.',
     ],
