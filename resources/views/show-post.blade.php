@@ -3,7 +3,7 @@
         $isRepost = $post->id !== $displayPost->id;
     @endphp
 
-    <div class="skuy-feed-page">
+    <div class="skuy-feed-page skuy-post-detail-page">
         <div class="skuy-feed-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <!-- Header Kembali -->
             <div class="mb-4 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
@@ -231,9 +231,6 @@
                                     {{ substr($comment->user->name, 0, 1) }}
                                 </div>
                             @endif
-                            @if ($comment->replies_count > 0)
-                                <div class="skuy-post-detail__thread-stem"></div>
-                            @endif
                         </div>
                         <div class="skuy-comment__body pb-4">
                             <div class="skuy-comment__identity">
@@ -291,9 +288,11 @@
 
                             <!-- Area Balasan Anak -->
                             @if ($visibleReplies->count() > 0)
-                                <div class="skuy-comment__replies skuy-comment__replies--has-items" data-reply-thread-root="{{ $comment->id }}">
+                                <div class="skuy-comment__replies skuy-comment__replies--has-items skuy-post-detail__reply-group" data-reply-thread-root="{{ $comment->id }}" style="--thread-reply-count: {{ $visibleReplies->count() }}">
+                                    <span class="skuy-post-detail__thread-spine" aria-hidden="true"></span>
                                     @foreach ($visibleReplies as $reply)
-                                        <div id="reply-{{ $reply->id }}" class="skuy-comment skuy-post-detail__reply skuy-post-detail__reply--nested relative scroll-mt-20">
+                                        <div id="reply-{{ $reply->id }}" class="skuy-comment skuy-post-detail__reply skuy-post-detail__reply--nested {{ $loop->last ? 'is-thread-last' : 'is-thread-middle' }} relative scroll-mt-20">
+                                            <span class="skuy-post-detail__thread-elbow" aria-hidden="true"></span>
                                             <div class="skuy-comment__avatar-column flex flex-col items-center flex-shrink-0 mt-0.5">
                                                 @if ($reply->user->avatar)
                                                     <img src="{{ asset('storage/' . $reply->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $reply->user->name]) }}" class="skuy-avatar skuy-avatar--tiny object-cover">

@@ -173,6 +173,22 @@ function CommentListHarness() {
     );
 }
 
+function renderListWithComments(items: CommentPagination['data'], expansion: ExpandedReplies | null = null) {
+    render(
+        <CommentList
+            comments={{ ...comments, data: items }}
+            expandedReplyRootId={expansion ? items[0].id : null}
+            expandedReplies={expansion}
+            postUid="post-1"
+            createdComments={[]}
+            onCommentCreated={vi.fn()}
+            routes={routes}
+            translations={translations}
+            canPerformSocialWrites={true}
+        />,
+    );
+}
+
 function renderList() {
     return render(
         <CommentList
@@ -216,8 +232,67 @@ describe('CommentList reactive mutations', () => {
         const repliesGroup = document.querySelector('.skuy-comment__replies--has-items');
         expect(repliesGroup).not.toBeNull();
         expect(repliesGroup?.querySelectorAll('.skuy-post-detail__reply--nested')).toHaveLength(1);
-        expect(repliesGroup?.querySelector('.skuy-post-detail__reply--nested')?.classList.contains('skuy-post-detail__reply--nested')).toBe(true);
+        expect(repliesGroup?.querySelectorAll('.skuy-post-detail__thread-elbow')).toHaveLength(1);
+        expect(repliesGroup?.querySelectorAll('.is-thread-last')).toHaveLength(1);
+        expect(repliesGroup?.querySelectorAll('.is-thread-middle')).toHaveLength(0);
+        const spine = repliesGroup?.querySelector(':scope > .skuy-post-detail__thread-spine');
+        expect(repliesGroup?.querySelectorAll('.skuy-post-detail__thread-spine')).toHaveLength(1);
+        expect(spine?.getAttribute('aria-hidden')).toBe('true');
+        expect((repliesGroup as HTMLElement).style.getPropertyValue('--thread-reply-count')).toBe('1');
+        expect(spine?.nextElementSibling).toBe(nestedReply);
+        expect(repliesGroup?.querySelectorAll(':scope > .skuy-post-detail__reply--nested')).toHaveLength(1);
+        expect(repliesGroup?.querySelector('.is-thread-last')).toBe(repliesGroup?.querySelector(':scope > .skuy-post-detail__reply--nested'));
+        expect(directReply?.querySelector('.skuy-comment__avatar-column')?.getAttribute('class')).toContain('items-center');
+        expect(repliesGroup?.querySelector('.is-thread-last .skuy-comment__avatar-column')?.getAttribute('class')).toContain('items-center');
         expect(screen.getAllByRole('button', { name: 'Reply' })[0].querySelector('[data-comment-reply-count="1"]')).not.toBeNull();
+    });
+
+    it('renders one continuous spine and ends it at the last of multiple replies', () => {
+        const multiReplyRoot = {
+            ...root,
+            replies_count: 2,
+            replies: [root.replies[0], { ...root.replies[0], id: 12, content: 'Second reply' }],
+        };
+        renderListWithComments([multiReplyRoot]);
+
+        const repliesGroup = document.querySelector('.skuy-comment__replies--has-items');
+        expect(document.querySelectorAll('.skuy-post-detail__reply-group')).toHaveLength(1);
+        expect(repliesGroup?.querySelectorAll(':scope > .skuy-post-detail__thread-spine')).toHaveLength(1);
+        expect(repliesGroup?.querySelectorAll('.skuy-post-detail__thread-spine')).toHaveLength(1);
+        expect((repliesGroup as HTMLElement).style.getPropertyValue('--thread-reply-count')).toBe('2');
+        expect(repliesGroup?.querySelectorAll('.skuy-post-detail__thread-elbow')).toHaveLength(2);
+        expect(repliesGroup?.querySelectorAll('.is-thread-middle')).toHaveLength(1);
+        expect(repliesGroup?.querySelectorAll('.is-thread-last')).toHaveLength(1);
+        expect(repliesGroup?.querySelector('.is-thread-last')).toBe(repliesGroup?.querySelectorAll(':scope > .skuy-post-detail__reply--nested').item(1));
+        expect(document.querySelector('.skuy-post-detail__thread-stem')).toBeNull();
+        expect(screen.getAllByRole('button', { name: 'Reply' })[0].querySelector('[data-comment-reply-count="2"]')).not.toBeNull();
+    });
+
+    it('renders no thread connector for a root without replies', () => {
+        renderListWithComments([{ ...root, replies_count: 0, replies: [] }]);
+
+        expect(document.querySelector('.skuy-comment__replies--has-items')).toBeNull();
+        expect(document.querySelector('.skuy-post-detail__reply-group')).toBeNull();
+        expect(document.querySelector('.skuy-post-detail__thread-spine')).toBeNull();
+        expect(document.querySelector('.skuy-post-detail__thread-elbow')).toBeNull();
+    });
+
+    it('sizes the expanded spine from visible children rather than the preview or total count', () => {
+        renderListWithComments([{ ...root, replies_count: 12, replies: [] }], {
+            data: [root.replies[0], { ...root.replies[0], id: 12, content: 'Expanded final reply' }],
+            per_page: 10,
+            has_more: true,
+            next_url: '/post/post-1?replies_for=10&replies_cursor=next',
+            previous_url: null,
+        });
+
+        const group = document.querySelector('.skuy-post-detail__reply-group') as HTMLElement;
+        expect(group.style.getPropertyValue('--thread-reply-count')).toBe('2');
+        expect(group.querySelectorAll('.skuy-post-detail__thread-spine')).toHaveLength(1);
+        expect(group.querySelectorAll('.skuy-post-detail__thread-elbow')).toHaveLength(2);
+        expect(group.querySelector('.is-thread-last')).toBe(screen.getByText('Expanded final reply').closest('.skuy-post-detail__reply--nested'));
+        expect(screen.getByRole('link', { name: 'View more replies' }).closest('.skuy-post-detail__reply-group')).toBeNull();
+        expect(document.querySelector('[data-comment-reply-count="12"]')).not.toBeNull();
     });
 
     it('creates a reply with the root parent and inserts it under that thread', async () => {
@@ -241,6 +316,12 @@ describe('CommentList reactive mutations', () => {
         const createdReply = screen.getByText('Reply from the nested control').closest('.skuy-post-detail__reply--nested');
         expect(createdReply?.closest('.skuy-comment__replies')).not.toBeNull();
         await waitFor(() => expect(screen.getAllByRole('button', { name: 'Reply' })[0].querySelector('[data-comment-reply-count="2"]')).not.toBeNull());
+        const group = createdReply?.closest('.skuy-post-detail__reply-group') as HTMLElement;
+        expect(group.style.getPropertyValue('--thread-reply-count')).toBe('2');
+        expect(group.querySelectorAll('.skuy-post-detail__thread-spine')).toHaveLength(1);
+        expect(createdReply?.classList.contains('is-thread-middle')).toBe(true);
+        expect(group.querySelectorAll('.is-thread-last')).toHaveLength(1);
+        expect(group.querySelector('.is-thread-last')).toBe(screen.getByText('Reply content').closest('.skuy-post-detail__reply--nested'));
     });
 
     it('updates comment Like state and count only from the server response', async () => {

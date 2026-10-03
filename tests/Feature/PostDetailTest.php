@@ -238,6 +238,40 @@ class PostDetailTest extends TestCase
         $this->assertGreaterThanOrEqual(2, substr_count($commentListMarkup, 'data-reply-thread-root='));
         $this->assertGreaterThanOrEqual(2, substr_count($commentListMarkup, 'skuy-comment__replies--has-items'));
         $this->assertGreaterThanOrEqual(2, substr_count($commentListMarkup, 'skuy-post-detail__reply--nested'));
+
+        $document = new \DOMDocument;
+        @$document->loadHTML($rendered);
+        $xpath = new \DOMXPath($document);
+        $threadGroups = $xpath->query('//*[@data-reply-thread-root]');
+        $this->assertSame(2, $threadGroups->length);
+        $this->assertSame(2, $xpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__reply-group ")]/span[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__thread-spine ")]')->length);
+
+        $zeroReplyThread = $xpath->query('//*[@id="comment-'.$root->id.'"]')->item(0);
+        $this->assertNotNull($zeroReplyThread);
+        $this->assertSame(0, $xpath->query('.//*[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__reply-group ")]', $zeroReplyThread)->length);
+        $this->assertSame(0, $xpath->query('.//span[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__thread-spine ")]', $zeroReplyThread)->length);
+        $this->assertSame(0, $xpath->query('.//span[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__thread-elbow ")]', $zeroReplyThread)->length);
+
+        foreach ([$secondRoot->id => 1, $thirdRoot->id => 2] as $threadRootId => $expectedReplies) {
+            $threadGroup = $xpath->query('//*[@data-reply-thread-root="'.$threadRootId.'"]')->item(0);
+            $this->assertNotNull($threadGroup);
+            $children = $xpath->query('./div[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__reply--nested ")]', $threadGroup);
+            $this->assertSame($expectedReplies, $children->length);
+            $this->assertStringContainsString('skuy-post-detail__reply-group', $threadGroup->getAttribute('class'));
+            $this->assertSame('--thread-reply-count: '.$expectedReplies, $threadGroup->getAttribute('style'));
+            $this->assertSame(1, $xpath->query('./span[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__thread-spine ")]', $threadGroup)->length);
+            $this->assertSame(1, $xpath->query('.//span[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__thread-spine ")]', $threadGroup)->length);
+            $elbows = $xpath->query('./div[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__reply--nested ")]/span[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__thread-elbow ")]', $threadGroup);
+            $this->assertSame($expectedReplies, $elbows->length);
+            $this->assertSame($expectedReplies, $xpath->query('.//span[contains(concat(" ", normalize-space(@class), " "), " skuy-post-detail__thread-elbow ")]', $threadGroup)->length);
+            $lastChildren = $xpath->query('./div[contains(concat(" ", normalize-space(@class), " "), " is-thread-last ")]', $threadGroup);
+            $this->assertSame(1, $lastChildren->length);
+            $this->assertTrue($lastChildren->item(0)->isSameNode($children->item($children->length - 1)));
+            $middleChildren = $xpath->query('./div[contains(concat(" ", normalize-space(@class), " "), " is-thread-middle ")]', $threadGroup);
+            $this->assertSame($expectedReplies - 1, $middleChildren->length);
+        }
+
+        $this->assertStringNotContainsString('skuy-post-detail__thread-stem', $commentListMarkup);
         $this->assertStringNotContainsString('Other post reply', $commentListMarkup);
         $response->assertSee('Zero replies root')
             ->assertSee('One reply only')

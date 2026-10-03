@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import type {
     CommentPagination,
     ExpandedReplies,
@@ -33,6 +33,7 @@ interface CommentListProps {
 interface CommentItemProps {
     comment: PostDetailComment;
     isReply?: boolean;
+    isLastReply?: boolean;
     expandedReplyRootId: number | null;
     expandedReplies: ExpandedReplies | null;
     postUid: string;
@@ -179,6 +180,7 @@ export function CommentList({
 function CommentItem({
     comment,
     isReply = false,
+    isLastReply = false,
     expandedReplyRootId,
     expandedReplies,
     postUid,
@@ -289,11 +291,11 @@ function CommentItem({
     return (
         <div
             id={`${isReply ? 'reply' : 'comment'}-${comment.id}`}
-            className={`skuy-comment skuy-post-detail__reply ${isReply ? 'skuy-post-detail__reply--nested' : 'skuy-post-detail__reply--root'} relative scroll-mt-20`}
+            className={`skuy-comment skuy-post-detail__reply ${isReply ? `skuy-post-detail__reply--nested ${isLastReply ? 'is-thread-last' : 'is-thread-middle'}` : 'skuy-post-detail__reply--root'} relative scroll-mt-20`}
         >
+            {isReply && <span aria-hidden="true" className="skuy-post-detail__thread-elbow" />}
             <div className={`skuy-comment__avatar-column flex flex-shrink-0 flex-col items-center ${isReply ? 'mt-0.5' : ''}`}>
                 <Avatar author={comment.author} size={isReply ? 'tiny' : 'small'} labelTemplate={translations.avatar_of} />
-                {!isReply && (openReply || repliesCount > 0) && <div className="skuy-post-detail__thread-stem" />}
             </div>
 
             <div className={`skuy-comment__body ${isReply ? 'pb-1' : 'pb-4'}`}>
@@ -406,8 +408,13 @@ function CommentItem({
                 )}
 
                 {visibleReplies.length > 0 && (
-                    <div className={`skuy-comment__replies${visibleReplies.length ? ' skuy-comment__replies--has-items' : ''}`} data-reply-thread-root={comment.id}>
-                        {visibleReplies.map((reply) => (
+                    <div
+                        className="skuy-comment__replies skuy-comment__replies--has-items skuy-post-detail__reply-group"
+                        data-reply-thread-root={comment.id}
+                        style={{ '--thread-reply-count': visibleReplies.length } as CSSProperties}
+                    >
+                        <span aria-hidden="true" className="skuy-post-detail__thread-spine" />
+                        {visibleReplies.map((reply, index) => (
                             <CommentItem
                                 key={reply.id}
                                 comment={reply}
@@ -419,6 +426,7 @@ function CommentItem({
                                 routes={routes}
                                 translations={translations}
                                 canPerformSocialWrites={canPerformSocialWrites}
+                                isLastReply={index === visibleReplies.length - 1}
                                 replyParentId={comment.id}
                                 replyTargetName={comment.author.name}
                                 onReplyRequest={() => setOpenReply((current) => !current)}
