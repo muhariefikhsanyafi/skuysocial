@@ -53,5 +53,18 @@ return [
         'route_activity_description' => 'Check recent interactions on your account.',
         'route_saved' => 'Open saved threads',
         'route_saved_description' => 'Return to something you saved to read later.',
+        'checkin' => [
+            'kicker' => 'Daily reward',
+            'title' => 'Daily Check-in',
+            'description' => 'Check in once each SkuySocial day to receive :amount Points.',
+            'application_day' => 'SkuySocial day',
+            'timezone_note' => 'The date follows SkuySocial’s application timezone.',
+            'reward_label' => 'Today’s reward',
+            'available' => 'Your daily check-in is ready.',
+            'claim' => 'Check in for +:amount Points',
+            'checked_in' => 'Checked in today',
+            'received' => 'Check-in complete — you received +:amount Points.',
+            'already_claimed' => 'You already checked in for today.',
+        ],
     ],
 ];

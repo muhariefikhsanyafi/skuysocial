@@ -4,6 +4,8 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DailyCheckInController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\LocaleController;
@@ -25,15 +27,18 @@ Route::get('/', function () {
 
 Route::post('/locale', LocaleController::class)->name('locale.update');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pengumuman', [AnnouncementController::class, 'index'])->name('announcements.index');
     Route::get('/pengumuman/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
     Route::get('/@{username}/pengaturan-akun', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/poin/riwayat', [PointWalletController::class, 'index'])->name('points.history');
+    Route::post('/daily-check-in', [DailyCheckInController::class, 'store'])
+        ->middleware('moderation.active')
+        ->name('daily-checkin.store');
     Route::patch('/pengaturan/messaging-privacy', [MessagePrivacyController::class, 'update'])
         ->name('settings.messaging-privacy.update');
     Route::get('/profile', static function (Request $request) {

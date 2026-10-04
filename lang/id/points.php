@@ -21,4 +21,7 @@ return [
         'credit' => 'Poin masuk',
         'debit' => 'Poin keluar',
     ],
+    'reasons' => [
+        'daily_checkin' => 'Check-in harian',
+    ],
 ];

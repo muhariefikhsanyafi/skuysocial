@@ -200,6 +200,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return $this->hasOne(PointWallet::class);
     }
 
+    public function dailyCheckIns(): HasMany
+    {
+        return $this->hasMany(DailyCheckIn::class);
+    }
+
     public function emailVerificationOtp(): HasOne
     {
         return $this->hasOne(EmailVerificationOtp::class);

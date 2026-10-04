@@ -4705,6 +4705,7 @@
 .skuy-dashboard-frame--bento {
     grid-template-areas:
         "welcome account"
+        "checkin account"
         "routes routes";
 }
 
@@ -4754,6 +4755,112 @@
     padding: 12px 22px;
     border-radius: var(--radius-medium);
     box-shadow: var(--skuy-shadow-soft);
+}
+
+.skuy-dashboard-checkin {
+    grid-area: checkin;
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+    padding: clamp(20px, 2vw, 28px);
+    border: 1px solid color-mix(in srgb, var(--skuy-secondary) 28%, var(--skuy-border-soft));
+    border-radius: var(--radius-large);
+    background: var(--skuy-surface-elevated);
+    box-shadow: var(--skuy-shadow-soft);
+}
+
+.skuy-dashboard-checkin__content,
+.skuy-dashboard-checkin__action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    min-width: 0;
+}
+
+.skuy-dashboard-checkin__title {
+    margin: 6px 0;
+    color: var(--skuy-text-primary);
+    font-size: clamp(1.35rem, 2vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.2;
+}
+
+.skuy-dashboard-checkin__description,
+.skuy-dashboard-checkin__day,
+.skuy-dashboard-checkin__timezone-note,
+.skuy-dashboard-checkin__feedback,
+.skuy-dashboard-checkin__balance {
+    color: var(--skuy-text-secondary);
+    line-height: 1.55;
+}
+
+.skuy-dashboard-checkin__day {
+    margin-top: 12px;
+    font-size: 0.875rem;
+}
+
+.skuy-dashboard-checkin__day time {
+    font-weight: 600;
+    color: var(--skuy-text-primary);
+}
+
+.skuy-dashboard-checkin__timezone-note {
+    margin-top: 2px;
+    color: var(--skuy-text-muted);
+    font-size: 0.8125rem;
+}
+
+.skuy-dashboard-checkin__reward {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 142px;
+    padding: 14px 16px;
+    border-radius: var(--radius-medium);
+    background: var(--skuy-selected);
+    color: var(--skuy-on-selected);
+}
+
+.skuy-dashboard-checkin__reward span {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.skuy-dashboard-checkin__reward strong {
+    font-size: 1.125rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.skuy-dashboard-checkin__state {
+    color: var(--skuy-secondary);
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.skuy-dashboard-checkin__feedback {
+    font-size: 0.875rem;
+}
+
+.skuy-dashboard-checkin__balance {
+    margin-top: 6px;
+    font-size: 0.8125rem;
+}
+
+.skuy-dashboard-checkin__balance strong {
+    color: var(--skuy-text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.skuy-dashboard-checkin__button {
+    min-width: 176px;
+    min-height: 48px;
+    padding: 12px 18px;
+    border-radius: var(--radius-medium);
+    white-space: normal;
 }
 
 .skuy-dashboard-account {
@@ -5042,7 +5149,25 @@
         grid-template-areas:
             "welcome"
             "account"
+            "checkin"
             "routes";
+    }
+}
+
+@media (max-width: 639px) {
+    .skuy-dashboard-checkin__content,
+    .skuy-dashboard-checkin__action {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .skuy-dashboard-checkin__reward {
+        align-self: flex-start;
+    }
+
+    .skuy-dashboard-checkin__form,
+    .skuy-dashboard-checkin__button {
+        width: 100%;
     }
 }
 

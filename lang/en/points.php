@@ -21,4 +21,7 @@ return [
         'credit' => 'Points added',
         'debit' => 'Points spent',
     ],
+    'reasons' => [
+        'daily_checkin' => 'Daily Check-in',
+    ],
 ];

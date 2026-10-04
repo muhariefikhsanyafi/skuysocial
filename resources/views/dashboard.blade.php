@@ -2,6 +2,11 @@
     @php
         $user = auth()->user();
         $canCreateThread = $user->canPerformSocialWrites();
+        $canClaimDailyCheckIn = $canCreateThread && ! $dailyCheckIn->checkedIn;
+        $formattedDailyCheckInDate = \Carbon\CarbonImmutable::parse(
+            $dailyCheckIn->date,
+            (string) config('app.timezone'),
+        )->locale(app()->getLocale())->translatedFormat('j F Y');
     @endphp
 
     <div class="skuy-dashboard-page">
@@ -62,6 +67,76 @@
                     {{ __('home.dashboard.account_settings') }}
                 </a>
             </aside>
+
+            <section
+                class="skuy-dashboard-checkin"
+                aria-labelledby="daily-checkin-title"
+                data-daily-checkin-date="{{ $dailyCheckIn->date }}"
+            >
+                <div class="skuy-dashboard-checkin__content">
+                    <div class="min-w-0">
+                        <p class="skuy-dashboard-kicker">{{ __('home.dashboard.checkin.kicker') }}</p>
+                        <h2 id="daily-checkin-title" class="skuy-dashboard-checkin__title">
+                            {{ __('home.dashboard.checkin.title') }}
+                        </h2>
+                        <p class="skuy-dashboard-checkin__description">
+                            {{ __('home.dashboard.checkin.description', ['amount' => \Illuminate\Support\Number::format($dailyCheckIn->reward, locale: app()->getLocale())]) }}
+                        </p>
+                        <p class="skuy-dashboard-checkin__day">
+                            <span>{{ __('home.dashboard.checkin.application_day') }}:</span>
+                            <time datetime="{{ $dailyCheckIn->date }}">{{ $formattedDailyCheckInDate }}</time>
+                        </p>
+                        <p class="skuy-dashboard-checkin__timezone-note">
+                            {{ __('home.dashboard.checkin.timezone_note') }}
+                        </p>
+                    </div>
+
+                    <div class="skuy-dashboard-checkin__reward">
+                        <span>{{ __('home.dashboard.checkin.reward_label') }}</span>
+                        <strong>+{{ \Illuminate\Support\Number::format($dailyCheckIn->reward, locale: app()->getLocale()) }} {{ __('points.unit') }}</strong>
+                    </div>
+                </div>
+
+                <div class="skuy-dashboard-checkin__action">
+                    <div class="min-w-0">
+                        @if ($dailyCheckIn->checkedIn)
+                            <p class="skuy-dashboard-checkin__state">{{ __('home.dashboard.checkin.checked_in') }}</p>
+
+                            @if (session()->has('daily_checkin_claimed') && session('daily_checkin_claimed'))
+                                <p class="skuy-dashboard-checkin__feedback" role="status" aria-live="polite">
+                                    {{ __('home.dashboard.checkin.received', ['amount' => \Illuminate\Support\Number::format((int) session('daily_checkin_awarded'), locale: app()->getLocale())]) }}
+                                </p>
+                            @else
+                                <p class="skuy-dashboard-checkin__feedback" role="status" aria-live="polite">
+                                    {{ __('home.dashboard.checkin.already_claimed') }}
+                                </p>
+                            @endif
+                        @elseif (! $canCreateThread)
+                            <p class="skuy-dashboard-checkin__feedback" role="status" aria-live="polite">
+                                {{ __('moderation.denials.social_write') }}
+                            </p>
+                        @else
+                            <p class="skuy-dashboard-checkin__feedback" role="status" aria-live="polite">
+                                {{ __('home.dashboard.checkin.available') }}
+                            </p>
+                        @endif
+
+                        <p class="skuy-dashboard-checkin__balance" data-points-balance="{{ $dailyCheckIn->balance }}">
+                            <span>{{ __('points.wallet.balance_label') }}:</span>
+                            <strong>{{ \Illuminate\Support\Number::format($dailyCheckIn->balance, locale: app()->getLocale()) }} {{ __('points.unit') }}</strong>
+                        </p>
+                    </div>
+
+                    @if ($canClaimDailyCheckIn)
+                        <form method="POST" action="{{ route('daily-checkin.store') }}" class="skuy-dashboard-checkin__form">
+                            @csrf
+                            <button type="submit" class="skuy-button skuy-button--primary skuy-dashboard-checkin__button">
+                                {{ __('home.dashboard.checkin.claim', ['amount' => \Illuminate\Support\Number::format($dailyCheckIn->reward, locale: app()->getLocale())]) }}
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </section>
 
             <section class="skuy-dashboard-routes" aria-labelledby="dashboard-routes-title">
                 <div class="skuy-dashboard-routes__heading">

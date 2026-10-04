@@ -53,5 +53,18 @@ return [
         'route_activity_description' => 'Periksa interaksi terbaru di akunmu.',
         'route_saved' => 'Buka utas tersimpan',
         'route_saved_description' => 'Kembali ke bacaan yang kamu simpan.',
+        'checkin' => [
+            'kicker' => 'Hadiah harian',
+            'title' => 'Check-in Harian',
+            'description' => 'Check-in sekali setiap hari aplikasi SkuySocial untuk mendapat :amount Poin.',
+            'application_day' => 'Hari aplikasi SkuySocial',
+            'timezone_note' => 'Tanggal mengikuti zona waktu aplikasi SkuySocial.',
+            'reward_label' => 'Hadiah hari ini',
+            'available' => 'Check-in harianmu siap.',
+            'claim' => 'Check-in untuk mendapat +:amount Poin',
+            'checked_in' => 'Sudah check-in hari ini',
+            'received' => 'Check-in berhasil — kamu mendapat +:amount Poin.',
+            'already_claimed' => 'Kamu sudah check-in untuk hari ini.',
+        ],
     ],
 ];
