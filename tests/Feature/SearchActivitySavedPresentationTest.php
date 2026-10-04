@@ -213,7 +213,15 @@ class SearchActivitySavedPresentationTest extends TestCase
         $response->assertOk();
         $html = $response->getContent();
 
-        $this->assertTrue(str_contains($html, 'class="skuy-shell-notice skuy-shell-notice--content"'));
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $notice = $xpath->query(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " skuy-app-shell ")]'
+            .'//div[contains(concat(" ", normalize-space(@class), " "), " skuy-shell-notice ")'
+            .' and contains(concat(" ", normalize-space(@class), " "), " skuy-shell-notice--content ")]',
+        );
+        $this->assertSame(1, $notice->length, 'The restricted notice should retain both class tokens inside the app shell.');
         $this->assertTrue(str_contains($html, 'id="restricted-account-notice-title"'));
         $this->assertTrue(str_contains($html, __('moderation.restricted.notice_title')));
         $this->assertTrue(str_contains($html, __('moderation.restricted.notice_body')));

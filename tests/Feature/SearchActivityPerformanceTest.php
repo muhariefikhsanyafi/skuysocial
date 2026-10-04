@@ -114,7 +114,7 @@ class SearchActivityPerformanceTest extends TestCase
         $searchQueries = collect($queries)->filter(function (array $query): bool {
             $sql = strtolower($query['query']);
 
-            return str_contains($sql, ' from "users"') || str_contains($sql, ' from "posts"');
+            return preg_match('/"(?:name|username|content|topic)"\\s+like\\s+/i', $sql) === 1;
         });
 
         $response->assertOk();

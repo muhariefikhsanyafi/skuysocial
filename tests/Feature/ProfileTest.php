@@ -290,6 +290,7 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->delete('/profile', [
                 'password' => 'password',
+                'username_confirmation' => $user->username,
             ]);
 
         $response

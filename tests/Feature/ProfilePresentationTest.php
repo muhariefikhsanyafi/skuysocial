@@ -316,6 +316,8 @@ class ProfilePresentationTest extends TestCase
         $this->assertStringNotContainsString('name="bio"', $accountSettings);
         $this->assertStringNotContainsString('name="avatar"', $accountSettings);
         $this->assertStringNotContainsString('name="cover"', $accountSettings);
-        $this->assertStringNotContainsString('name="_method" value="delete"', $accountSettings);
+        $this->assertStringContainsString(__('settings.delete.danger_heading'), $accountSettings);
+        $this->assertStringContainsString('name="username_confirmation"', $accountSettings);
+        $this->assertStringContainsString('name="_method" value="delete"', $accountSettings);
     }
 }

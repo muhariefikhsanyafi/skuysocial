@@ -462,7 +462,9 @@ class FeedTest extends TestCase
 
         $this->assertIsString($javascript);
         $this->assertStringContainsString("credentials: 'same-origin'", $javascript);
-        $this->assertStringContainsString('body: JSON.stringify({ liked: desiredLiked })', $javascript);
+        $this->assertStringContainsString('async requestAction(url, method, body = null)', $javascript);
+        $this->assertStringContainsString("this.requestAction(this.urls.like, 'POST', { liked: desiredLiked })", $javascript);
+        $this->assertStringContainsString('body: body === null ? undefined : JSON.stringify(body)', $javascript);
         $this->assertStringContainsString('if (this.isLikeRequestInFlight) return;', $javascript);
         $this->assertStringContainsString('this.liked = payload.liked;', $javascript);
         $this->assertStringContainsString('this.likeCount = payload.like_count;', $javascript);
@@ -614,7 +616,7 @@ class FeedTest extends TestCase
             $mobileCss,
         );
         $this->assertMatchesRegularExpression(
-            '/\.skuy-action--dense-count\s+svg\s*\{\s*width:\s*14px;\s*height:\s*14px;\s*\}/s',
+            '/\.skuy-action--dense-count\s+svg\s*,\s*\.skuy-action--dense-count\s+\.skuy-fa-icon\s*\{\s*width:\s*14px;\s*height:\s*14px;\s*\}/s',
             $mobileCss,
         );
     }

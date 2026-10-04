@@ -356,11 +356,26 @@ class BookmarkTest extends TestCase
         $response = $this->actingAs($viewer)->get(route('feed'));
         $content = $response->getContent();
 
-        $response->assertOk()
-            ->assertSee('Tersimpan');
-        $this->assertSame(2, substr_count($content, route('bookmarks.index')));
-        $this->assertSame(2, substr_count($content, 'Tersimpan'));
-        $this->assertStringNotContainsString('aria-label="Tersimpan"', $content);
+        $response->assertOk();
+        $document = new \DOMDocument;
+        @$document->loadHTML($content);
+        $xpath = new \DOMXPath($document);
+        $bookmarkUrl = route('bookmarks.index');
+        $bookmarkLinks = $xpath->query('//a[@href="'.$bookmarkUrl.'"]');
+
+        $this->assertSame(2, $bookmarkLinks->length);
+        $savedLabel = __('navigation.saved');
+        $explicitAriaLabels = 0;
+        foreach ($bookmarkLinks as $bookmarkLink) {
+            $visibleLabel = trim(preg_replace('/\\s+/', ' ', $bookmarkLink->textContent));
+            $ariaLabel = trim($bookmarkLink->getAttribute('aria-label'));
+            $accessibleLabel = $ariaLabel !== '' ? $ariaLabel : $visibleLabel;
+
+            $this->assertSame($savedLabel, $accessibleLabel);
+            $this->assertNotSame('', $visibleLabel, 'Each bookmark link should have a visible accessible name.');
+            $explicitAriaLabels += $ariaLabel !== '' ? 1 : 0;
+        }
+        $this->assertSame(1, $explicitAriaLabels, 'The sidebar link should retain its explicit accessible label.');
     }
 
     private function createPost(User $user, array $attributes = []): Post
