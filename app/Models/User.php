@@ -195,6 +195,11 @@ class User extends Authenticatable implements FilamentUser, HasLocalePreference,
         return $this->hasMany(UserProfileLink::class)->orderBy('sort_order');
     }
 
+    public function pointWallet(): HasOne
+    {
+        return $this->hasOne(PointWallet::class);
+    }
+
     public function emailVerificationOtp(): HasOne
     {
         return $this->hasOne(EmailVerificationOtp::class);

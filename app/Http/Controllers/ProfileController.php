@@ -25,8 +25,11 @@ class ProfileController extends Controller
         $user = $request->user();
         abort_unless($username === $user->username, 404);
 
+        $user->loadMissing('pointWallet');
+
         return view('profile.edit', [
             'user' => $user,
+            'pointBalance' => (int) ($user->pointWallet?->balance ?? 0),
         ]);
     }
 

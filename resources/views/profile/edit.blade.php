@@ -13,6 +13,7 @@
     <div class="skuy-profile-page">
         <div class="skuy-profile-shell space-y-6">
             @include('profile.partials.update-profile-information-form')
+            @include('points.partials.wallet-summary', ['pointBalance' => $pointBalance])
             @include('profile.partials.update-message-privacy-form')
             @include('profile.partials.push-notifications')
 

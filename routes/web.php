@@ -10,6 +10,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MessagePrivacyController;
 use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PointWalletController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TwoFactorAuthenticationController;
@@ -32,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pengumuman', [AnnouncementController::class, 'index'])->name('announcements.index');
     Route::get('/pengumuman/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
     Route::get('/@{username}/pengaturan-akun', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/poin/riwayat', [PointWalletController::class, 'index'])->name('points.history');
     Route::patch('/pengaturan/messaging-privacy', [MessagePrivacyController::class, 'update'])
         ->name('settings.messaging-privacy.update');
     Route::get('/profile', static function (Request $request) {

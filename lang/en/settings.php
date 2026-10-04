@@ -131,10 +131,10 @@ return [
     'delete' => [
         'danger_heading' => 'Danger Zone',
         'heading' => 'Delete Account',
-        'description' => 'Deleting your account is permanent and cannot be undone. Your account and linked content records are removed. Messages you sent in direct conversations may remain for other participants, with your account no longer linked as the sender. Some moderation audit, notification, password-reset token, session, or uploaded media files may be retained.',
+        'description' => 'Deleting your account is permanent and cannot be undone. Your account and linked content records are removed. Messages you sent in direct conversations may remain for other participants, with your account no longer linked as the sender. Some moderation audit, notification, password-reset token, session, or uploaded media files may be retained. Your Points transaction history is retained permanently without links to your personal account.',
         'short_description' => 'Account deletion cannot be undone. Enter your current password and exact username to confirm.',
         'confirmation_heading' => 'Confirm account deletion',
-        'confirmation_description' => 'This action is permanent and cannot be undone. Enter your current password and exact username to continue. Messages you sent in direct conversations may remain for other participants, with your account no longer linked as the sender. Some moderation or operational records may remain.',
+        'confirmation_description' => 'This action is permanent and cannot be undone. Enter your current password and exact username to continue. Messages you sent in direct conversations may remain for other participants, with your account no longer linked as the sender. Some moderation or operational records may remain. Your Points transaction history is retained permanently without links to your personal account.',
         'password' => 'Current Password',
         'password_placeholder' => 'Enter your current password...',
         'username_confirmation' => 'Username confirmation',
