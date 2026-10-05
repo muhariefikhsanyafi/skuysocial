@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\GivePostAppreciation;
+use App\Enums\AppreciationType;
 use App\Models\Comment;
 use App\Models\Hashtag;
 use App\Models\Post;
@@ -28,6 +30,7 @@ class PostController extends Controller
         $viewerId = $request->user()->getKey();
         $loadDisplayPost = function ($query) use ($viewerId): void {
             $query
+                ->withAppreciationState($viewerId)
                 ->with(['user', 'feedComments.user', 'feedComments.feedReplies.user'])
                 ->withCount([
                     'likes',
@@ -44,6 +47,7 @@ class PostController extends Controller
 
         try {
             $posts = Post::query()
+                ->withAppreciationState($viewerId)
                 ->with([
                     'user',
                     'feedComments.user',
@@ -168,12 +172,15 @@ class PostController extends Controller
 
         $displayPost = $post->interactionTarget();
         $displayPost
-            ->loadCount(['likes', 'comments', 'reposts'])
+            ->loadCount(['likes', 'comments', 'reposts', 'appreciations'])
             ->loadExists([
                 'likes as liked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
                 'reposts as reposted_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
                 'bookmarks as bookmarked_by_current_user' => fn (Builder $query) => $query->where('user_id', $viewerId),
-            ]);
+            ])
+            ->load(['appreciations' => fn ($query) => $query
+                ->where('user_id', $viewerId)
+                ->select(['id', 'post_id', 'type'])]);
 
         $loadReplyData = function ($query) use ($viewerId): void {
             $query
@@ -361,6 +368,7 @@ class PostController extends Controller
             'routes' => [
                 'feed' => route('feed'),
                 'like' => route('posts.like', $displayPost),
+                'appreciation' => route('posts.appreciations.store', $displayPost),
                 'repost' => route('posts.repost', $displayPost),
                 'bookmark_store' => route('bookmarks.store', $displayPost),
                 'bookmark_destroy' => route('bookmarks.destroy', $displayPost),
@@ -394,6 +402,9 @@ class PostController extends Controller
             'interactions' => [
                 'liked' => (bool) ($post->liked_by_current_user ?? false),
                 'like_count' => (int) ($post->likes_count ?? 0),
+                'appreciation_count' => (int) ($post->appreciations_count ?? 0),
+                'appreciated' => $post->appreciations->isNotEmpty(),
+                'appreciation_type' => $post->appreciations->first()?->type->value,
                 'bookmarked' => (bool) ($post->bookmarked_by_current_user ?? false),
                 'reposted' => (bool) ($post->reposted_by_current_user ?? false),
                 'repost_count' => (int) ($post->reposts_count ?? 0),
@@ -570,6 +581,38 @@ class PostController extends Controller
                 'invalid' => __('threads.comment_feedback.invalid'),
                 'failed' => __('threads.comment_feedback.failed'),
                 'network' => __('threads.comment_feedback.network'),
+            ],
+            'appreciation' => [
+                'label' => __('appreciation.title'),
+                'action' => __('appreciation.actions.appreciate'),
+                'choose_type' => __('appreciation.actions.choose_type'),
+                'cost_label' => __('appreciation.cost_label', [
+                    'cost' => GivePostAppreciation::COST,
+                    'unit' => __('points.unit'),
+                ]),
+                'cost_copy' => __('appreciation.cost_copy', [
+                    'cost' => GivePostAppreciation::COST,
+                    'unit' => __('points.unit'),
+                ]),
+                'count_one' => trans_choice('appreciation.count', 1, ['count' => ':count']),
+                'count_other' => trans_choice('appreciation.count', 2, ['count' => ':count']),
+                'selected' => __('appreciation.selected', ['type' => ':type']),
+                'types' => array_combine(
+                    array_map(static fn (AppreciationType $type): string => $type->value, AppreciationType::cases()),
+                    array_map(static fn (AppreciationType $type): string => __('appreciation.types.'.$type->value), AppreciationType::cases()),
+                ),
+                'feedback' => [
+                    'insufficient_points' => __('appreciation.feedback.insufficient_points', [
+                        'cost' => GivePostAppreciation::COST,
+                        'unit' => __('points.unit'),
+                    ]),
+                    'self_appreciation_forbidden' => __('appreciation.feedback.self_appreciation_forbidden'),
+                    'session_expired' => __('threads.feedback.session_expired'),
+                    'restricted' => __('threads.feedback.restricted'),
+                    'invalid' => __('appreciation.validation.type_invalid'),
+                    'failed' => __('threads.feedback.failed'),
+                    'network' => __('threads.feedback.network'),
+                ],
             ],
         ];
     }

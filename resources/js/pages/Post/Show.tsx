@@ -119,6 +119,7 @@ export default function Show() {
                                 routes={routes}
                                 translations={translations}
                                 canPerformSocialWrites={viewer.can_perform_social_writes}
+                                viewerId={viewer.id}
                                 commentCount={commentCount}
                             />
                         </div>

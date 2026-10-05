@@ -172,6 +172,8 @@
                 </div>
             </article>
 
+            @include('partials.post-appreciation', ['displayPost' => $displayPost])
+
             <!-- ============================================================ -->
             <!-- FORM KOMENTAR UTAMA (Gaya Threads, di bawah kartu postingan) -->
             <!-- ============================================================ -->

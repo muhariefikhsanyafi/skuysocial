@@ -362,6 +362,8 @@
                         </div>
                     </div>
 
+                    @include('partials.post-appreciation', ['displayPost' => $displayPost])
+
                     @php
                         $topComment = $displayPost->feedComments->first();
                     @endphp

@@ -43,11 +43,32 @@ const translations = {
         failed: 'Comment action failed',
         network: 'Comment network failed',
     },
+    appreciation: {
+        label: 'Post Appreciation',
+        action: 'Appreciate',
+        choose_type: 'Choose an Appreciation type',
+        cost_label: '5 Points',
+        cost_copy: 'Costs 5 Points.',
+        count_one: ':count Appreciation',
+        count_other: ':count Appreciations',
+        selected: 'You appreciated this post with :type.',
+        types: { bermanfaat: 'Useful', inspiratif: 'Inspiring', solutif: 'Solution-oriented' },
+        feedback: {
+            insufficient_points: 'You need 5 Points.',
+            self_appreciation_forbidden: 'You cannot appreciate your own post.',
+            session_expired: 'Session expired',
+            restricted: 'Restricted',
+            invalid: 'Invalid appreciation type',
+            failed: 'Appreciation failed',
+            network: 'Network failed',
+        },
+    },
 } as PostDetailTranslations;
 
 const routes: PostDetailRoutes = {
     feed: '/feed',
     like: '/posts/post-1/like',
+    appreciation: '/posts/post-1/appreciation',
     repost: '/post/post-1/repost',
     bookmark_store: '/posts/post-1/bookmark',
     bookmark_destroy: '/posts/post-1/bookmark',

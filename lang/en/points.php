@@ -23,5 +23,6 @@ return [
     ],
     'reasons' => [
         'daily_checkin' => 'Daily Check-in',
+        'post_appreciation' => 'Post Appreciation',
     ],
 ];

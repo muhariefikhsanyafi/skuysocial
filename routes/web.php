@@ -11,6 +11,7 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MessagePrivacyController;
 use App\Http\Controllers\MessagesController;
+use App\Http\Controllers\PostAppreciationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PointWalletController;
 use App\Http\Controllers\ProfileController;
@@ -102,6 +103,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tags/{name}', [HashtagController::class, 'show'])->name('tags.show');
 
     // Rute Fitur Like & Komentar
+    Route::post('/posts/{post}/appreciation', [PostAppreciationController::class, 'store'])
+        ->middleware('moderation.active')
+        ->name('posts.appreciations.store');
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])
         ->middleware('moderation.active')
         ->name('posts.like');

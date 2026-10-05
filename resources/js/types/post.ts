@@ -16,9 +16,14 @@ export interface PostMedia {
     full_alt: string;
 }
 
+export type AppreciationTypeValue = 'bermanfaat' | 'inspiratif' | 'solutif';
+
 export interface PostInteractions {
     liked: boolean;
     like_count: number;
+    appreciation_count: number;
+    appreciated: boolean;
+    appreciation_type: AppreciationTypeValue | null;
     bookmarked: boolean;
     reposted: boolean;
     repost_count: number;
@@ -107,6 +112,7 @@ export interface ExpandedReplies {
 export interface PostDetailRoutes {
     feed: string;
     like: string;
+    appreciation: string;
     repost: string;
     bookmark_store: string;
     bookmark_destroy: string;
@@ -133,6 +139,29 @@ export interface CommentFeedbackTranslations {
     invalid: string;
     failed: string;
     network: string;
+}
+
+export interface PostAppreciationFeedbackTranslations {
+    insufficient_points: string;
+    self_appreciation_forbidden: string;
+    session_expired: string;
+    restricted: string;
+    invalid: string;
+    failed: string;
+    network: string;
+}
+
+export interface PostAppreciationTranslations {
+    label: string;
+    action: string;
+    choose_type: string;
+    cost_label: string;
+    cost_copy: string;
+    count_one: string;
+    count_other: string;
+    selected: string;
+    types: Record<AppreciationTypeValue, string>;
+    feedback: PostAppreciationFeedbackTranslations;
 }
 
 export interface PostDetailTranslations {
@@ -170,6 +199,7 @@ export interface PostDetailTranslations {
     pagination_next: string;
     feedback: PostDetailFeedbackTranslations;
     comment_feedback: CommentFeedbackTranslations;
+    appreciation: PostAppreciationTranslations;
 }
 
 export interface PostDetailPageProps extends SharedProps {

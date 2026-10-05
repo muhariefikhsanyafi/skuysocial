@@ -23,5 +23,6 @@ return [
     ],
     'reasons' => [
         'daily_checkin' => 'Check-in harian',
+        'post_appreciation' => 'Apresiasi Postingan',
     ],
 ];

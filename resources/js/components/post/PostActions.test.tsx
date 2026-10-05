@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DisplayPost, PostDetailRoutes, PostDetailTranslations } from '../../types/post';
 import { PostActions } from './PostActions';
@@ -64,6 +64,26 @@ const translations: PostDetailTranslations = {
         failed: 'Comment action failed.',
         network: 'Comment connection failed.',
     },
+    appreciation: {
+        label: 'Post Appreciation',
+        action: 'Appreciate',
+        choose_type: 'Choose an Appreciation type',
+        cost_label: '5 Points',
+        cost_copy: 'Costs exactly 5 Points. Spent by you, not transferred.',
+        count_one: ':count Appreciation',
+        count_other: ':count Appreciations',
+        selected: 'You appreciated this post with :type.',
+        types: { bermanfaat: 'Useful', inspiratif: 'Inspiring', solutif: 'Solution-oriented' },
+        feedback: {
+            insufficient_points: 'You need 5 Points.',
+            self_appreciation_forbidden: 'You cannot appreciate your own post.',
+            session_expired: 'Your session expired.',
+            restricted: 'Your account cannot perform this social action.',
+            invalid: 'Choose a valid Appreciation type.',
+            failed: 'Appreciation failed.',
+            network: 'The connection failed.',
+        },
+    },
 };
 
 const post: DisplayPost = {
@@ -83,6 +103,9 @@ const post: DisplayPost = {
     interactions: {
         liked: false,
         like_count: 1,
+        appreciation_count: 0,
+        appreciated: false,
+        appreciation_type: null,
         bookmarked: false,
         reposted: false,
         repost_count: 0,
@@ -98,6 +121,7 @@ const post: DisplayPost = {
 const routes: PostDetailRoutes = {
     feed: '/feed',
     like: '/posts/post-1/like',
+    appreciation: '/posts/post-1/appreciation',
     repost: '/post/post-1/repost',
     bookmark_store: '/posts/post-1/bookmark',
     bookmark_destroy: '/posts/post-1/bookmark',
@@ -107,6 +131,49 @@ const routes: PostDetailRoutes = {
     edit: null,
     delete: null,
 };
+
+const appreciationPost = {
+    ...post,
+    interactions: {
+        ...post.interactions,
+        appreciation_count: 0,
+        appreciated: false,
+        appreciation_type: null,
+    },
+} as DisplayPost;
+
+const appreciationRoutes = {
+    ...routes,
+    appreciation: '/posts/post-1/appreciation',
+} as PostDetailRoutes;
+
+const appreciationTranslations = {
+    ...translations,
+    appreciation: {
+        label: 'Post Appreciation',
+        action: 'Appreciate',
+        choose_type: 'Choose an Appreciation type',
+        cost_label: '5 Points',
+        cost_copy: 'Costs exactly 5 Points. Spent by you, not transferred.',
+        count_one: ':count Appreciation',
+        count_other: ':count Appreciations',
+        selected: 'You appreciated this post with :type.',
+        types: {
+            bermanfaat: 'Useful',
+            inspiratif: 'Inspiring',
+            solutif: 'Solution-oriented',
+        },
+        feedback: {
+            insufficient_points: 'You need 5 Points.',
+            self_appreciation_forbidden: 'You cannot appreciate your own post.',
+            session_expired: 'Your session expired.',
+            restricted: 'Your account cannot perform this social action.',
+            invalid: 'Choose a valid Appreciation type.',
+            failed: 'Appreciation failed.',
+            network: 'The connection failed.',
+        },
+    },
+} as PostDetailTranslations;
 
 describe('PostActions like state', () => {
     beforeEach(() => {
@@ -129,7 +196,7 @@ describe('PostActions like state', () => {
         );
         vi.stubGlobal('fetch', fetchMock);
 
-        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} commentCount={post.interactions.comment_count} />);
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} viewerId={2} commentCount={post.interactions.comment_count} />);
         const button = screen.getByRole('button', { name: /Like/ });
 
         fireEvent.click(button);
@@ -155,7 +222,7 @@ describe('PostActions like state', () => {
             },
         };
 
-        render(<PostActions post={restrictedPost} routes={routes} translations={translations} canPerformSocialWrites={false} commentCount={restrictedPost.interactions.comment_count} />);
+        render(<PostActions post={restrictedPost} routes={routes} translations={translations} canPerformSocialWrites={false} viewerId={2} commentCount={restrictedPost.interactions.comment_count} />);
 
         expect((screen.getByRole('button', { name: /Like/ }) as HTMLButtonElement).disabled).toBe(true);
         expect((screen.getByRole('button', { name: 'Repost' }) as HTMLButtonElement).disabled).toBe(true);
@@ -166,7 +233,7 @@ describe('PostActions like state', () => {
     it('rolls optimistic state back when the like request fails', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
 
-        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} commentCount={post.interactions.comment_count} />);
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} viewerId={2} commentCount={post.interactions.comment_count} />);
         const button = screen.getByRole('button', { name: /Like/ });
 
         fireEvent.click(button);
@@ -185,7 +252,7 @@ describe('PostActions like state', () => {
         }));
         vi.stubGlobal('fetch', fetchMock);
 
-        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} commentCount={post.interactions.comment_count} />);
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} viewerId={2} commentCount={post.interactions.comment_count} />);
         const button = screen.getByRole('button', { name: /Like/ });
         fireEvent.click(button);
 
@@ -193,5 +260,115 @@ describe('PostActions like state', () => {
             expect(button.getAttribute('aria-pressed')).toBe('false');
             expect(screen.getByRole('alert').textContent).toBe(translations.feedback.restricted);
         });
+    });
+
+    it('offers three Appreciation types at five Points and locks the selected type after success', async () => {
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            status: 'appreciated',
+            type: 'bermanfaat',
+            appreciation_count: 1,
+            message: 'Your Useful Appreciation was recorded. 5 Points spent.',
+        }), {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
+        }));
+        vi.stubGlobal('fetch', fetchMock);
+
+        render(
+            <PostActions
+                post={appreciationPost}
+                routes={appreciationRoutes}
+                translations={appreciationTranslations}
+                canPerformSocialWrites={true}
+                viewerId={2}
+                commentCount={post.interactions.comment_count}
+            />,
+        );
+
+        expect(screen.getByText('Costs exactly 5 Points. Spent by you, not transferred.')).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: /Appreciate/ }));
+        const choices = screen.getByRole('group', { name: 'Choose an Appreciation type' });
+        expect(within(choices).getAllByRole('button')).toHaveLength(3);
+        fireEvent.click(within(choices).getByRole('button', { name: 'Useful' }));
+
+        await waitFor(() => expect(screen.getByText('Your Useful Appreciation was recorded. 5 Points spent.')).toBeTruthy());
+        expect(fetchMock).toHaveBeenCalledWith('/posts/post-1/appreciation', expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({ type: 'bermanfaat' }),
+        }));
+        expect(screen.getByText('You appreciated this post with Useful.')).toBeTruthy();
+        expect(screen.getByText('1 Appreciation')).toBeTruthy();
+        expect(screen.queryByRole('group', { name: 'Choose an Appreciation type' })).toBeNull();
+        expect(screen.getByRole('button', { name: /Like/ }).className).toContain('skuy-action--reaction');
+    });
+
+    it('shows localized insufficient-Points feedback without marking the post appreciated', async () => {
+        const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            status: 'insufficient_points',
+            type: null,
+            appreciation_count: 0,
+            message: 'You need at least 5 Points to appreciate a post.',
+        }), {
+            status: 422,
+            headers: { 'Content-Type': 'application/json' },
+        }));
+        vi.stubGlobal('fetch', fetchMock);
+
+        render(
+            <PostActions
+                post={appreciationPost}
+                routes={appreciationRoutes}
+                translations={appreciationTranslations}
+                canPerformSocialWrites={true}
+                viewerId={2}
+                commentCount={post.interactions.comment_count}
+            />,
+        );
+        fireEvent.click(screen.getByRole('button', { name: /Appreciate/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Inspiring' }));
+
+        await waitFor(() => expect(screen.getByRole('alert').textContent).toBe('You need at least 5 Points to appreciate a post.'));
+        expect(screen.queryByText('You appreciated this post with Inspiring.')).toBeNull();
+        expect(screen.queryByText('You appreciated this post with Useful.')).toBeNull();
+    });
+
+    it('hides Appreciation controls on self-owned and already-appreciated posts', () => {
+        render(
+            <PostActions
+                post={appreciationPost}
+                routes={appreciationRoutes}
+                translations={appreciationTranslations}
+                canPerformSocialWrites={true}
+                viewerId={appreciationPost.author.id}
+                commentCount={post.interactions.comment_count}
+            />,
+        );
+
+        expect(screen.queryByRole('button', { name: /Appreciate/ })).toBeNull();
+        expect(screen.queryByRole('group', { name: 'Choose an Appreciation type' })).toBeNull();
+
+        cleanup();
+        const alreadyAppreciatedPost = {
+            ...appreciationPost,
+            interactions: {
+                ...appreciationPost.interactions,
+                appreciation_count: 1,
+                appreciated: true,
+                appreciation_type: 'inspiratif',
+            },
+        } as DisplayPost;
+        render(
+            <PostActions
+                post={alreadyAppreciatedPost}
+                routes={appreciationRoutes}
+                translations={appreciationTranslations}
+                canPerformSocialWrites={true}
+                viewerId={2}
+                commentCount={post.interactions.comment_count}
+            />,
+        );
+
+        expect(screen.getByText('You appreciated this post with Inspiring.')).toBeTruthy();
+        expect(screen.queryByRole('button', { name: /Appreciate/ })).toBeNull();
     });
 });

@@ -31,6 +31,11 @@ class Post extends Model
         return $this->hasMany(Like::class);
     }
 
+    public function appreciations(): HasMany
+    {
+        return $this->hasMany(PostAppreciation::class);
+    }
+
     public function bookmarks(): HasMany
     {
         return $this->hasMany(Bookmark::class);
@@ -71,6 +76,15 @@ class Post extends Model
             ->orderByDesc('id');
     }
 
+    public function scopeWithAppreciationState(Builder $query, int $viewerId): Builder
+    {
+        return $query
+            ->withCount('appreciations')
+            ->with(['appreciations' => static fn ($query) => $query
+                ->where('user_id', $viewerId)
+                ->select(['id', 'post_id', 'type'])]);
+    }
+
     /**
      * Load the data used by post listings that render comment previews.
      */
@@ -85,6 +99,7 @@ class Post extends Model
             ->withExists($bookmarkState);
 
         return $query
+            ->withAppreciationState($viewerId)
             ->with([
                 'user',
                 'originalPost' => $loadDisplayPost,

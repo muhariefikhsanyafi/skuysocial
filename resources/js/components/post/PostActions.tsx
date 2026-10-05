@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import type { DisplayPost, PostDetailRoutes, PostDetailTranslations } from '../../types/post';
+import type { AppreciationTypeValue, DisplayPost, PostDetailRoutes, PostDetailTranslations } from '../../types/post';
 import { BookmarkIcon, CommentIcon, HeartIcon, RepostIcon, ShareIcon } from './icons';
 
 interface PostActionsProps {
@@ -7,14 +7,19 @@ interface PostActionsProps {
     routes: PostDetailRoutes;
     translations: PostDetailTranslations;
     canPerformSocialWrites: boolean;
+    viewerId: number;
     commentCount: number;
 }
 
 interface JsonActionPayload {
     code?: unknown;
+    status?: unknown;
     post_uid?: unknown;
     liked?: unknown;
     like_count?: unknown;
+    appreciation_count?: unknown;
+    type?: unknown;
+    message?: unknown;
     reposted?: unknown;
     repost_count?: unknown;
     bookmarked?: unknown;
@@ -22,6 +27,64 @@ interface JsonActionPayload {
 
 function csrfToken(): string {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+}
+
+const APPRECIATION_TYPES: AppreciationTypeValue[] = ['bermanfaat', 'inspiratif', 'solutif'];
+
+function isAppreciationType(value: unknown): value is AppreciationTypeValue {
+    return APPRECIATION_TYPES.includes(value as AppreciationTypeValue);
+}
+
+async function requestAppreciation(
+    url: string,
+    type: AppreciationTypeValue,
+    translations: PostDetailTranslations,
+): Promise<unknown> {
+    let response: Response;
+
+    try {
+        response = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ type }),
+        });
+    } catch {
+        throw new Error(translations.appreciation.feedback.network);
+    }
+
+    const payload = await response.json().catch(() => null) as JsonActionPayload | null;
+
+    if (response.redirected || response.status === 401 || response.status === 419) {
+        throw new Error(translations.appreciation.feedback.session_expired);
+    }
+
+    if (!response.ok) {
+        if (
+            payload !== null
+            && ['insufficient_points', 'self_appreciation_forbidden'].includes(String(payload.status))
+            && typeof payload.message === 'string'
+        ) {
+            throw new Error(payload.message);
+        }
+
+        if (response.status === 403) {
+            throw new Error(translations.appreciation.feedback.restricted);
+        }
+
+        if (response.status === 422) {
+            throw new Error(translations.appreciation.feedback.invalid);
+        }
+
+        throw new Error(translations.appreciation.feedback.failed);
+    }
+
+    return payload;
 }
 
 async function requestAction(
@@ -75,24 +138,34 @@ function isActionPayload(payload: unknown): payload is JsonActionPayload {
     return typeof payload === 'object' && payload !== null;
 }
 
-export function PostActions({ post, routes, translations, canPerformSocialWrites, commentCount }: PostActionsProps) {
+export function PostActions({ post, routes, translations, canPerformSocialWrites, viewerId, commentCount }: PostActionsProps) {
     const [liked, setLiked] = useState(post.interactions.liked);
     const [likeCount, setLikeCount] = useState(post.interactions.like_count);
+    const [appreciationCount, setAppreciationCount] = useState(post.interactions.appreciation_count);
+    const [hasAppreciated, setHasAppreciated] = useState(post.interactions.appreciated);
+    const [appreciationType, setAppreciationType] = useState(post.interactions.appreciation_type);
+    const [appreciationChoicesOpen, setAppreciationChoicesOpen] = useState(false);
     const [reposted, setReposted] = useState(post.interactions.reposted);
     const [repostCount, setRepostCount] = useState(post.interactions.repost_count);
     const [bookmarked, setBookmarked] = useState(post.interactions.bookmarked);
     const [likePending, setLikePending] = useState(false);
     const [repostPending, setRepostPending] = useState(false);
     const [bookmarkPending, setBookmarkPending] = useState(false);
+    const [appreciationPending, setAppreciationPending] = useState(false);
     const likeInFlightRef = useRef(false);
     const repostInFlightRef = useRef(false);
     const bookmarkInFlightRef = useRef(false);
+    const appreciationInFlightRef = useRef(false);
     const [statusMessage, setStatusMessage] = useState('');
     const [statusIsError, setStatusIsError] = useState(false);
 
     useEffect(() => {
         setLiked(post.interactions.liked);
         setLikeCount(post.interactions.like_count);
+        setAppreciationCount(post.interactions.appreciation_count);
+        setHasAppreciated(post.interactions.appreciated);
+        setAppreciationType(post.interactions.appreciation_type);
+        setAppreciationChoicesOpen(false);
         setReposted(post.interactions.reposted);
         setRepostCount(post.interactions.repost_count);
         setBookmarked(post.interactions.bookmarked);
@@ -100,6 +173,9 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
         post.interactions.bookmarked,
         post.interactions.like_count,
         post.interactions.liked,
+        post.interactions.appreciation_count,
+        post.interactions.appreciated,
+        post.interactions.appreciation_type,
         post.interactions.repost_count,
         post.interactions.reposted,
     ]);
@@ -145,6 +221,52 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
         } finally {
             likeInFlightRef.current = false;
             setLikePending(false);
+        }
+    };
+
+    const giveAppreciation = async (type: AppreciationTypeValue) => {
+        if (
+            !canPerformSocialWrites
+            || viewerId === post.author.id
+            || hasAppreciated
+            || appreciationPending
+            || appreciationInFlightRef.current
+        ) {
+            return;
+        }
+
+        appreciationInFlightRef.current = true;
+        setAppreciationPending(true);
+        setStatusMessage('');
+        setStatusIsError(false);
+
+        try {
+            const payload = await requestAppreciation(routes.appreciation, type, translations);
+
+            if (
+                !isActionPayload(payload)
+                || !['appreciated', 'already_appreciated'].includes(String(payload.status))
+                || !isAppreciationType(payload.type)
+                || !Number.isInteger(payload.appreciation_count)
+                || Number(payload.appreciation_count) < 0
+                || typeof payload.message !== 'string'
+            ) {
+                throw new Error(translations.appreciation.feedback.invalid);
+            }
+
+            setAppreciationCount(Number(payload.appreciation_count));
+            setHasAppreciated(true);
+            setAppreciationType(payload.type);
+            setAppreciationChoicesOpen(false);
+            setStatusMessage(payload.message);
+        } catch (error) {
+            const message = error instanceof Error && error.message !== ''
+                ? error.message
+                : translations.appreciation.feedback.network;
+            setErrorStatus(message);
+        } finally {
+            appreciationInFlightRef.current = false;
+            setAppreciationPending(false);
         }
     };
 
@@ -239,6 +361,14 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
     };
 
     const bookmarkLabel = bookmarked ? translations.remove_from_saved : translations.save;
+    const canOfferAppreciation = canPerformSocialWrites && viewerId !== post.author.id && !hasAppreciated;
+    const appreciationCountLabel = (appreciationCount === 1
+        ? translations.appreciation.count_one
+        : translations.appreciation.count_other
+    ).replace(':count', String(appreciationCount));
+    const selectedAppreciationLabel = appreciationType === null
+        ? ''
+        : translations.appreciation.selected.replace(':type', translations.appreciation.types[appreciationType]);
 
     return (
         <>
@@ -302,6 +432,54 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                     <ShareIcon />
                 </button>
             </div>
+            {(appreciationCount > 0 || hasAppreciated || canOfferAppreciation) && (
+                <section className="skuy-appreciation" aria-label={translations.appreciation.label}>
+                    {appreciationCount > 0 && (
+                        <p className="skuy-appreciation__count">{appreciationCountLabel}</p>
+                    )}
+                    {hasAppreciated && appreciationType !== null && (
+                        <p className="skuy-appreciation__selected" role="status">
+                            {selectedAppreciationLabel}
+                        </p>
+                    )}
+                    {canOfferAppreciation && (
+                        <>
+                            <button
+                                type="button"
+                                className="skuy-appreciation__trigger"
+                                aria-expanded={appreciationChoicesOpen}
+                                aria-controls={`post-appreciation-${post.uid}-choices`}
+                                onClick={() => setAppreciationChoicesOpen((open) => !open)}
+                            >
+                                <span>{translations.appreciation.action}</span>
+                                <span className="skuy-appreciation__trigger-cost">{translations.appreciation.cost_label}</span>
+                            </button>
+                            <p className="skuy-appreciation__cost">{translations.appreciation.cost_copy}</p>
+                            {appreciationChoicesOpen && (
+                                <div
+                                    id={`post-appreciation-${post.uid}-choices`}
+                                    className="skuy-appreciation__choices"
+                                    role="group"
+                                    aria-label={translations.appreciation.choose_type}
+                                >
+                                    {APPRECIATION_TYPES.map((type) => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => void giveAppreciation(type)}
+                                            disabled={appreciationPending}
+                                            aria-busy={appreciationPending}
+                                            className="skuy-appreciation__choice disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            {translations.appreciation.types[type]}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </section>
+            )}
             {statusMessage && (
                 <p
                     className={`text-xs font-semibold ${statusIsError ? 'text-[var(--skuy-danger)]' : 'text-[var(--skuy-text-muted)]'}`}
