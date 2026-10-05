@@ -3,15 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PostDetailPageProps } from '../../types/post';
 import Show from '../../pages/Post/Show';
 
-const { usePageMock } = vi.hoisted(() => ({
+const { usePageMock, routerPostMock, routerDeleteMock } = vi.hoisted(() => ({
     usePageMock: vi.fn(),
+    routerPostMock: vi.fn(),
+    routerDeleteMock: vi.fn(),
 }));
 
 vi.mock('@inertiajs/react', () => ({
     usePage: usePageMock,
     router: {
-        post: vi.fn(),
-        delete: vi.fn(),
+        post: routerPostMock,
+        delete: routerDeleteMock,
     },
 }));
 
@@ -135,6 +137,7 @@ const props = {
         appreciation: {
             label: 'Post Appreciation',
             action: 'Appreciate',
+            dismiss: 'Cancel',
             choose_type: 'Choose an Appreciation type',
             cost_label: '5 Points',
             cost_copy: 'Costs 5 Points.',
@@ -163,6 +166,8 @@ describe('Post detail composition', () => {
         scrollXDescriptor = Object.getOwnPropertyDescriptor(window, 'scrollX');
         scrollYDescriptor = Object.getOwnPropertyDescriptor(window, 'scrollY');
         usePageMock.mockReturnValue({ props });
+        routerPostMock.mockReset();
+        routerDeleteMock.mockReset();
     });
 
     afterEach(() => {
@@ -191,6 +196,44 @@ describe('Post detail composition', () => {
 
         const conversation = screen.getByRole('region', { name: 'Replies' });
         expect(conversation.classList.contains('skuy-post-detail__conversation')).toBe(true);
+    });
+
+    it('keeps Save and Remove from Saved in the mobile post-options menu', () => {
+        render(<Show />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Open Thread options' }));
+        let menu = screen.getByRole('menu', { name: 'Open Thread options' });
+        let saveAction = within(menu).getByRole('menuitem', { name: 'Save' });
+        expect(saveAction.className).toContain('skuy-post-options__bookmark');
+        fireEvent.click(saveAction);
+
+        expect(routerPostMock).toHaveBeenCalledWith(
+            '/posts/detail-post/bookmark',
+            {},
+            expect.objectContaining({ preserveScroll: true }),
+        );
+
+        cleanup();
+        const savedProps = {
+            ...props,
+            display_post: {
+                ...props.display_post,
+                interactions: { ...props.display_post.interactions, bookmarked: true },
+            },
+        } as PostDetailPageProps;
+        usePageMock.mockReturnValue({ props: savedProps });
+        render(<Show />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Open Thread options' }));
+        menu = screen.getByRole('menu', { name: 'Open Thread options' });
+        const removeAction = within(menu).getByRole('menuitem', { name: 'Remove from Saved' });
+        expect(removeAction.className).toContain('skuy-post-options__bookmark');
+        fireEvent.click(removeAction);
+
+        expect(routerDeleteMock).toHaveBeenCalledWith(
+            '/posts/detail-post/bookmark',
+            expect.objectContaining({ preserveScroll: true }),
+        );
     });
 
     it('preserves the current scroll position after creating a comment reactively', async () => {

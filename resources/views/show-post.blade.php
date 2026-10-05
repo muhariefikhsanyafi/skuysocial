@@ -46,6 +46,7 @@
                                         {{ $displayPost->created_at->locale('id')->diffForHumans(null, true) }}
                                     </time>
                                 </div>
+                                @include('partials.post-mobile-bookmark-menu', ['displayPost' => $displayPost])
                             </div>
 
                             <div class="skuy-post__content">
@@ -126,21 +127,21 @@
                     <!-- Tombol Like -->
                     <form action="{{ route('posts.like', $displayPost->uid) }}" method="POST">
                         @csrf
-                        <button type="submit" aria-pressed="{{ $displayPost->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction" title="{{ __('threads.labels.like') }}">
+                        <button type="submit" data-mobile-primary-action="like" aria-pressed="{{ $displayPost->liked_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--reaction" title="{{ __('threads.labels.like') }}">
                             <x-fa-icon name="heart" :weight="$displayPost->liked_by_current_user ? 'solid' : 'regular'" class="text-xl" />
                             <span class="text-xs font-semibold">{{ $displayPost->likes_count > 0 ? $displayPost->likes_count : '' }}</span>
                         </button>
                     </form>
                     @include('partials.post-appreciation', ['displayPost' => $displayPost, 'surface' => 'detail'])
                     <!-- Tombol Komentar -->
-                    <div class="skuy-action cursor-default" aria-label="{{ __('threads.actions.reply') }}" title="{{ __('threads.actions.reply') }}">
+                    <div data-mobile-primary-action="comment" class="skuy-action cursor-default" aria-label="{{ __('threads.actions.reply') }}" title="{{ __('threads.actions.reply') }}">
                         <x-fa-icon name="comment" class="text-xl" />
                         <span class="text-xs font-semibold">{{ $displayPost->comments_count > 0 ? $displayPost->comments_count : '' }}</span>
                     </div>
                     <!-- Tombol Repost (Berfungsi) -->
                     <form action="{{ route('posts.repost', $displayPost->uid) }}" method="POST">
                         @csrf
-                        <button type="submit" aria-pressed="{{ $displayPost->reposted_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--selected" title="{{ __('threads.actions.repost') }}">
+                        <button type="submit" data-mobile-primary-action="repost" aria-pressed="{{ $displayPost->reposted_by_current_user ? 'true' : 'false' }}" class="skuy-action skuy-action--selected" title="{{ __('threads.actions.repost') }}">
                             <x-fa-icon name="retweet" :weight="$displayPost->reposted_by_current_user ? 'solid' : 'regular'" class="text-xl" />
                             <!-- Angka Jumlah Repost -->
                             @if($displayPost->reposts_count > 0)
@@ -149,7 +150,7 @@
                         </button>
                     </form>
                     @if ($displayPost->bookmarked_by_current_user)
-                        <form action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
+                        <form class="skuy-post-actions__desktop-bookmark" action="{{ route('bookmarks.destroy', $displayPost->uid) }}" method="POST">
                             @csrf
                             @method('DELETE')
                             <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
@@ -157,7 +158,7 @@
                             </button>
                         </form>
                     @else
-                        <form action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
+                        <form class="skuy-post-actions__desktop-bookmark" action="{{ route('bookmarks.store', $displayPost->uid) }}" method="POST">
                             @csrf
                             <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
                                 <x-fa-icon name="bookmark" class="text-xl" />
@@ -165,7 +166,7 @@
                         </form>
                     @endif
                     <!-- Tombol Share (Berfungsi) -->
-                    <button @click="copyAndToast('{{ url()->current() }}', '{{ __('threads.thread_link_copied') }}')" type="button" class="skuy-action" title="{{ __('threads.actions.share') }}" aria-label="{{ __('threads.actions.share') }}">
+                    <button data-mobile-primary-action="share" @click="copyAndToast('{{ url()->current() }}', '{{ __('threads.thread_link_copied') }}')" type="button" class="skuy-action" title="{{ __('threads.actions.share') }}" aria-label="{{ __('threads.actions.share') }}">
                         <x-fa-icon name="share-nodes" class="text-xl" />
                     </button>
                         </div>

@@ -1,12 +1,16 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { PostDetailTranslations } from '../../types/post';
-import { DotsIcon, PencilIcon, TrashIcon } from './icons';
+import { BookmarkIcon, DotsIcon, PencilIcon, TrashIcon } from './icons';
 
 interface PostOptionsProps {
     uid: string;
     editUrl: string | null;
     deleteUrl: string | null;
+    bookmarkStoreUrl: string;
+    bookmarkDestroyUrl: string;
+    bookmarked: boolean;
+    canBookmark: boolean;
     translations: PostDetailTranslations;
 }
 
@@ -14,7 +18,16 @@ function csrfToken(): string {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 }
 
-export function PostOptions({ uid, editUrl, deleteUrl, translations }: PostOptionsProps) {
+export function PostOptions({
+    uid,
+    editUrl,
+    deleteUrl,
+    bookmarkStoreUrl,
+    bookmarkDestroyUrl,
+    bookmarked,
+    canBookmark,
+    translations,
+}: PostOptionsProps) {
     const [open, setOpen] = useState(false);
     const [pending, setPending] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -52,7 +65,7 @@ export function PostOptions({ uid, editUrl, deleteUrl, translations }: PostOptio
 
         return () => window.cancelAnimationFrame(frame);
     }, [open]);
-    if (!editUrl && !deleteUrl) return null;
+    if (!editUrl && !deleteUrl && !canBookmark) return null;
 
     const deletePost = () => {
         if (!deleteUrl || pending || !window.confirm(translations.confirm_delete)) return;
@@ -65,8 +78,29 @@ export function PostOptions({ uid, editUrl, deleteUrl, translations }: PostOptio
         });
     };
 
+    const toggleBookmark = () => {
+        if (!canBookmark || pending) return;
+
+        setPending(true);
+        setOpen(false);
+        const options = {
+            preserveScroll: true,
+            headers: { 'X-CSRF-TOKEN': csrfToken() },
+            onFinish: () => setPending(false),
+        };
+
+        if (bookmarked) {
+            router.delete(bookmarkDestroyUrl, options);
+        } else {
+            router.post(bookmarkStoreUrl, {}, options);
+        }
+    };
+
     return (
-        <div ref={wrapperRef} className="skuy-post__options">
+        <div
+            ref={wrapperRef}
+            className={`skuy-post__options${!editUrl && !deleteUrl ? ' skuy-post__options--mobile-only' : ''}`}
+        >
             <button
                 ref={triggerRef}
                 id={`post-options-trigger-${uid}`}
@@ -105,6 +139,20 @@ export function PostOptions({ uid, editUrl, deleteUrl, translations }: PostOptio
                         >
                             <TrashIcon />
                             {translations.delete}
+                        </button>
+                    )}
+                    {canBookmark && (
+                        <button
+                            type="button"
+                            role="menuitem"
+                            aria-pressed={bookmarked}
+                            aria-busy={pending}
+                            disabled={pending}
+                            className="skuy-menu-link skuy-post-options__bookmark flex w-full items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            onClick={toggleBookmark}
+                        >
+                            <BookmarkIcon filled={bookmarked} />
+                            {bookmarked ? translations.remove_from_saved : translations.save}
                         </button>
                     )}
                 </div>

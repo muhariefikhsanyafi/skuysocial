@@ -83,6 +83,7 @@
                             }"
                             @keydown.escape.window="if (openOptions) closeOptions(true)"
                             class="skuy-post__options"
+                            data-mobile-post-options="{{ $displayPost->uid }}"
                         >
                             <button
                                 id="post-options-trigger-{{ $post->uid }}"
@@ -99,7 +100,21 @@
                                 <x-fa-icon name="ellipsis" class="text-xl" />
                             </button>
 
-                            <div id="post-options-{{ $post->uid }}" x-show="openOptions" @click.away="closeOptions()" style="display: none;" role="menu" aria-labelledby="post-options-trigger-{{ $post->uid }}" class="skuy-menu-surface absolute right-0 z-50 mt-2 w-44">
+                            <div id="post-options-{{ $displayPost->uid }}" x-show="openOptions" @click.away="closeOptions()" style="display: none;" role="menu" aria-labelledby="post-options-trigger-{{ $displayPost->uid }}" class="skuy-menu-surface absolute right-0 z-50 mt-2 w-44">
+                                <form
+                                    action="{{ $displayPost->bookmarked_by_me ? route('bookmarks.destroy', $displayPost->uid) : route('bookmarks.store', $displayPost->uid) }}"
+                                    method="POST"
+                                    class="skuy-post-options__bookmark"
+                                >
+                                    @csrf
+                                    @if ($displayPost->bookmarked_by_me)
+                                        @method('DELETE')
+                                    @endif
+                                    <button type="submit" class="skuy-menu-link flex w-full items-center gap-2" role="menuitem" aria-pressed="{{ $displayPost->bookmarked_by_me ? 'true' : 'false' }}">
+                                        <x-fa-icon name="bookmark" :weight="$displayPost->bookmarked_by_me ? 'solid' : 'regular'" class="text-base" />
+                                        {{ $displayPost->bookmarked_by_me ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}
+                                    </button>
+                                </form>
                                 <a href="{{ route('posts.edit', $displayPost->uid) }}" class="skuy-menu-link flex items-center gap-2" role="menuitem">
                                     <x-fa-icon name="pen-to-square" class="text-base" />
                                     {{ __('threads.actions.edit') }}
@@ -114,6 +129,8 @@
                                 </form>
                             </div>
                         </div>
+                    @else
+                        @include('partials.post-mobile-bookmark-menu', ['displayPost' => $displayPost])
                     @endif
                 </div>
 
@@ -267,6 +284,7 @@
                                     :aria-pressed="liked.toString()"
                                     :aria-busy="isLikeRequestInFlight.toString()"
                                     :disabled="isLikeRequestInFlight"
+                                    data-mobile-primary-action="like"
                                     class="skuy-action skuy-action--reaction{{ $likeActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
                                 >
                                     <x-fa-icon x-ref="likeIcon" name="heart" :weight="$displayPost->liked_by_me ? 'solid' : 'regular'" class="text-xl" />
@@ -280,7 +298,7 @@
 
                             @include('partials.post-appreciation', ['displayPost' => $displayPost, 'surface' => 'feed'])
 
-                            <button data-feed-comment-action @click="showComments = !showComments" type="button" aria-label="{{ $commentActionLabel }}" title="{{ $commentActionLabel }}" :aria-expanded="showComments.toString()" aria-controls="comments-{{ $displayPost->uid }}" class="skuy-action{{ $commentActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
+                            <button data-mobile-primary-action="comment" data-feed-comment-action @click="showComments = !showComments" type="button" aria-label="{{ $commentActionLabel }}" title="{{ $commentActionLabel }}" :aria-expanded="showComments.toString()" aria-controls="comments-{{ $displayPost->uid }}" class="skuy-action{{ $commentActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
                                 <x-fa-icon name="comment" class="text-xl" />
                                 <span data-feed-comment-count @if ($commentDisplayCount === '') style="display: none;" @endif>{{ $commentDisplayCount }}</span>
                             </button>
@@ -303,6 +321,7 @@
                                     :aria-pressed="reposted.toString()"
                                     :aria-busy="isRepostRequestInFlight.toString()"
                                     :disabled="isRepostRequestInFlight"
+                                    data-mobile-primary-action="repost"
                                     class="skuy-action skuy-action--selected{{ $repostActionCountIsDense ? ' skuy-action--dense-count' : '' }}"
                                 >
                                     <x-fa-icon x-ref="repostIcon" name="retweet" :weight="$displayPost->reposted_by_me ? 'solid' : 'regular'" class="text-xl" />
@@ -315,6 +334,7 @@
                             </form>
 
                             <form
+                                class="skuy-post-actions__desktop-bookmark"
                                 action="{{ $displayPost->bookmarked_by_me ? route('bookmarks.destroy', $displayPost->uid) : route('bookmarks.store', $displayPost->uid) }}"
                                 method="POST"
                                 :action="bookmarkFormAction()"
@@ -346,7 +366,7 @@
                                 </button>
                             </form>
 
-                            <button @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', '{{ __('threads.thread_link_copied') }}')" type="button" aria-label="{{ __('threads.actions.share') }}" title="{{ __('threads.actions.share') }}" class="skuy-action">
+                            <button data-mobile-primary-action="share" @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', '{{ __('threads.thread_link_copied') }}')" type="button" aria-label="{{ __('threads.actions.share') }}" title="{{ __('threads.actions.share') }}" class="skuy-action">
                                 <x-fa-icon name="share-nodes" class="text-xl" />
                             </button>
                         </div>

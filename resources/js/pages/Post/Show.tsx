@@ -104,6 +104,10 @@ export default function Show() {
                                         uid={post.uid}
                                         editUrl={routes.edit}
                                         deleteUrl={routes.delete}
+                                        bookmarkStoreUrl={routes.bookmark_store}
+                                        bookmarkDestroyUrl={routes.bookmark_destroy}
+                                        bookmarked={displayPost.interactions.bookmarked}
+                                        canBookmark={viewer.can_perform_social_writes}
                                         translations={translations}
                                     />
                                 </div>

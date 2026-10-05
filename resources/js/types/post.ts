@@ -154,6 +154,7 @@ export interface PostAppreciationFeedbackTranslations {
 export interface PostAppreciationTranslations {
     label: string;
     action: string;
+    dismiss: string;
     choose_type: string;
     cost_label: string;
     cost_copy: string;

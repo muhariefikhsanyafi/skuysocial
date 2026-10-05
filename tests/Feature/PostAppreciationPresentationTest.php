@@ -24,7 +24,6 @@ class PostAppreciationPresentationTest extends TestCase
             'content' => 'Inline Appreciation target.',
         ]);
         $this->credit($viewer, 10);
-
         $response = $this->actingAs($viewer)->get(route('feed'));
         $response->assertOk();
 
@@ -43,6 +42,16 @@ class PostAppreciationPresentationTest extends TestCase
         $this->assertNotNull($xpath->query('.//form[@action="'.route('posts.appreciations.store', $post).'"]//input[@name="surface" and @value="feed"]', $actionRow)->item(0));
         $this->assertSame(1, $xpath->query('//*[@data-post-appreciation]')->length);
         $this->assertSame(0, $xpath->query('//summary[contains(concat(" ", normalize-space(@class), " "), " skuy-appreciation__trigger ")]')->length);
+        $mobileActions = [];
+        foreach ($xpath->query('.//*[@data-mobile-primary-action]', $actionRow) as $mobileAction) {
+            if ($mobileAction instanceof \DOMElement) {
+                $mobileActions[] = $mobileAction->getAttribute('data-mobile-primary-action');
+            }
+        }
+        $this->assertSame(['like', 'appreciation', 'comment', 'repost', 'share'], $mobileActions);
+        $this->assertSame(6, $xpath->query('./*[self::form or self::button or self::section]', $actionRow)->length);
+        $this->assertNotNull($xpath->query('.//form[contains(@class, "skuy-post-actions__desktop-bookmark")]', $actionRow)->item(0));
+        $this->assertNotNull($xpath->query('//*[@data-mobile-post-options="'.$post->uid.'"]')->item(0));
         $choiceValues = [];
         foreach ($xpath->query('.//button[@type="submit" and @name="type"]', $actionRow) as $choiceButton) {
             if ($choiceButton instanceof \DOMElement) {
@@ -54,6 +63,31 @@ class PostAppreciationPresentationTest extends TestCase
             'cost' => 5,
             'unit' => __('points.unit'),
         ]));
+    }
+
+    public function test_feed_appreciation_chooser_has_a_mobile_sheet_and_explicit_dismiss_control(): void
+    {
+        $viewer = User::factory()->create();
+        $post = Post::query()->create([
+            'user_id' => User::factory()->create()->getKey(),
+            'content' => 'Mobile Appreciation sheet target.',
+        ]);
+        $this->credit($viewer, 5);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+        $response->assertOk();
+
+        $document = new \DOMDocument();
+        $document->loadHTML($response->getContent(), LIBXML_NONET);
+        $xpath = new \DOMXPath($document);
+        $appreciation = $xpath->query('//*[@data-post-appreciation="'.$post->uid.'"]')->item(0);
+
+        $this->assertNotNull($appreciation);
+        $this->assertNotNull($xpath->query('.//div[contains(concat(" ", normalize-space(@class), " "), " skuy-appreciation__overlay ")]', $appreciation)->item(0));
+        $dialog = $xpath->query('.//div[contains(concat(" ", normalize-space(@class), " "), " skuy-appreciation__popover ") and @role="dialog"]', $appreciation)->item(0);
+        $this->assertNotNull($dialog);
+        $this->assertNotNull($xpath->query('.//button[contains(concat(" ", normalize-space(@class), " "), " skuy-appreciation__dismiss ")]', $dialog)->item(0));
+        $this->assertNotNull($xpath->query('.//div[@role="group"]//button[@type="submit" and @name="type"]', $dialog)->item(0));
     }
 
     public function test_feed_submission_returns_to_feed_without_a_referer(): void
@@ -295,6 +329,37 @@ class PostAppreciationPresentationTest extends TestCase
             ->assertJsonPath('props.translations.appreciation.types.bermanfaat', 'Bermanfaat');
 
         $this->assertArrayNotHasKey('appreciations', $response->json('props.display_post'));
+    }
+
+    public function test_blade_post_detail_keeps_mobile_bookmark_outside_its_five_primary_actions(): void
+    {
+        config(['frontend.post_detail_inertia' => false]);
+
+        $viewer = User::factory()->create();
+        $post = Post::query()->create([
+            'user_id' => User::factory()->create()->getKey(),
+            'content' => 'Mobile actions detail target.',
+        ]);
+
+        $response = $this->actingAs($viewer)->get(route('posts.show', $post));
+        $response->assertOk();
+
+        $document = new \DOMDocument();
+        $document->loadHTML($response->getContent(), LIBXML_NONET);
+        $xpath = new \DOMXPath($document);
+        $actionRow = $xpath->query('//div[contains(concat(" ", normalize-space(@class), " "), " skuy-actions--primary ")]')->item(0);
+
+        $this->assertNotNull($actionRow);
+        $mobileActions = [];
+        foreach ($xpath->query('.//*[@data-mobile-primary-action]', $actionRow) as $mobileAction) {
+            if ($mobileAction instanceof \DOMElement) {
+                $mobileActions[] = $mobileAction->getAttribute('data-mobile-primary-action');
+            }
+        }
+
+        $this->assertSame(['like', 'appreciation', 'comment', 'repost', 'share'], $mobileActions);
+        $this->assertNotNull($xpath->query('.//form[contains(@class, "skuy-post-actions__desktop-bookmark")]', $actionRow)->item(0));
+        $this->assertNotNull($xpath->query('//*[@data-mobile-post-options="'.$post->uid.'"]')->item(0));
     }
 
     private function credit(User $user, int $amount): void

@@ -46,6 +46,7 @@ const translations = {
     appreciation: {
         label: 'Post Appreciation',
         action: 'Appreciate',
+        dismiss: 'Cancel',
         choose_type: 'Choose an Appreciation type',
         cost_label: '5 Points',
         cost_copy: 'Costs 5 Points.',

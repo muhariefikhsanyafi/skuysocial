@@ -585,6 +585,7 @@ class PostController extends Controller
             'appreciation' => [
                 'label' => __('appreciation.title'),
                 'action' => __('appreciation.actions.appreciate'),
+                'dismiss' => __('threads.actions.cancel'),
                 'choose_type' => __('appreciation.actions.choose_type'),
                 'cost_label' => __('appreciation.cost_label', [
                     'cost' => GivePostAppreciation::COST,

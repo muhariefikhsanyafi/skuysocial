@@ -67,6 +67,7 @@ const translations: PostDetailTranslations = {
     appreciation: {
         label: 'Post Appreciation',
         action: 'Appreciate',
+        dismiss: 'Cancel',
         choose_type: 'Choose an Appreciation type',
         cost_label: '5 Points',
         cost_copy: 'Costs exactly 5 Points. Spent by you, not transferred.',
@@ -152,6 +153,7 @@ const appreciationTranslations = {
     appreciation: {
         label: 'Post Appreciation',
         action: 'Appreciate',
+        dismiss: 'Cancel',
         choose_type: 'Choose an Appreciation type',
         cost_label: '5 Points',
         cost_copy: 'Costs exactly 5 Points. Spent by you, not transferred.',
@@ -285,6 +287,11 @@ describe('PostActions like state', () => {
             />,
         );
 
+        const actionRow = screen.getByRole('button', { name: /Like/ }).closest('.skuy-actions--primary');
+        expect(actionRow?.querySelectorAll('[data-mobile-primary-action]')).toHaveLength(5);
+        expect(actionRow?.children).toHaveLength(6);
+        expect(actionRow?.querySelector('.skuy-post-actions__desktop-bookmark')).not.toBeNull();
+
         const appreciationButton = screen.getByRole('button', { name: /Appreciate/ });
         expect(appreciationButton.closest('.skuy-actions--primary')).not.toBeNull();
         expect(appreciationButton.className).toContain('skuy-action--appreciation');
@@ -294,6 +301,7 @@ describe('PostActions like state', () => {
         fireEvent.click(appreciationButton);
         expect(screen.getByText('Costs exactly 5 Points. Spent by you, not transferred.')).toBeTruthy();
         const choices = screen.getByRole('group', { name: 'Choose an Appreciation type' });
+        expect(choices.closest('[data-appreciation-presentation]')?.getAttribute('data-appreciation-presentation')).toBe('popover');
         expect(within(choices).getAllByRole('button')).toHaveLength(3);
         fireEvent.click(within(choices).getByRole('button', { name: 'Useful' }));
 
@@ -306,6 +314,50 @@ describe('PostActions like state', () => {
         expect(document.querySelector('.skuy-appreciation__count')?.textContent).toBe('1');
         expect(screen.queryByRole('group', { name: 'Choose an Appreciation type' })).toBeNull();
         expect(screen.getByRole('button', { name: /Like/ }).className).toContain('skuy-action--reaction');
+    });
+
+    it('opens a dismissible mobile Appreciation sheet above the fixed dock', async () => {
+        vi.stubGlobal('matchMedia', vi.fn((media: string) => ({
+            matches: media === '(max-width: 767px)',
+            media,
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+        })));
+
+        render(
+            <PostActions
+                post={appreciationPost}
+                routes={appreciationRoutes}
+                translations={appreciationTranslations}
+                canPerformSocialWrites={true}
+                viewerId={2}
+                commentCount={post.interactions.comment_count}
+            />,
+        );
+
+        const trigger = screen.getByRole('button', { name: /Appreciate/ });
+        fireEvent.click(trigger);
+
+        const sheet = screen.getByRole('dialog', { name: 'Choose an Appreciation type' });
+        expect(sheet.getAttribute('aria-modal')).toBe('true');
+        expect(sheet.getAttribute('data-appreciation-presentation')).toBe('sheet');
+        expect(within(sheet).getByText('Costs exactly 5 Points. Spent by you, not transferred.')).toBeTruthy();
+        expect(within(sheet).getAllByRole('button', { name: /Useful|Inspiring|Solution-oriented/ })).toHaveLength(3);
+
+        const cancel = within(sheet).getByRole('button', { name: 'Cancel' });
+        expect(document.activeElement).toBe(cancel);
+        fireEvent.click(cancel);
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        expect(document.activeElement).toBe(trigger);
+
+        fireEvent.click(trigger);
+        fireEvent.keyDown(document, { key: 'Escape' });
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        expect(document.activeElement).toBe(trigger);
     });
 
     it('shows localized insufficient-Points feedback without marking the post appreciated', async () => {
@@ -330,6 +382,7 @@ describe('PostActions like state', () => {
                 commentCount={post.interactions.comment_count}
             />,
         );
+
         fireEvent.click(screen.getByRole('button', { name: /Appreciate/ }));
         fireEvent.click(screen.getByRole('button', { name: 'Inspiring' }));
 

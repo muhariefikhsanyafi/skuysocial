@@ -30,6 +30,13 @@ function csrfToken(): string {
 }
 
 const APPRECIATION_TYPES: AppreciationTypeValue[] = ['bermanfaat', 'inspiratif', 'solutif'];
+const MOBILE_ACTION_QUERY = '(max-width: 767px)';
+
+function isMobileActionViewport(): boolean {
+    return typeof window.matchMedia === 'function'
+        ? window.matchMedia(MOBILE_ACTION_QUERY).matches
+        : window.innerWidth <= 767;
+}
 
 function isAppreciationType(value: unknown): value is AppreciationTypeValue {
     return APPRECIATION_TYPES.includes(value as AppreciationTypeValue);
@@ -146,6 +153,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
     const [appreciationType, setAppreciationType] = useState(post.interactions.appreciation_type);
     const [appreciationChoicesOpen, setAppreciationChoicesOpen] = useState(false);
     const [appreciationPopoverPlacement, setAppreciationPopoverPlacement] = useState<'above' | 'below'>('below');
+    const [mobileAppreciationSheet, setMobileAppreciationSheet] = useState(isMobileActionViewport);
     const [reposted, setReposted] = useState(post.interactions.reposted);
     const [repostCount, setRepostCount] = useState(post.interactions.repost_count);
     const [bookmarked, setBookmarked] = useState(post.interactions.bookmarked);
@@ -159,6 +167,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
     const appreciationInFlightRef = useRef(false);
     const appreciationTriggerRef = useRef<HTMLButtonElement>(null);
     const appreciationPopoverRef = useRef<HTMLDivElement>(null);
+    const appreciationDismissRef = useRef<HTMLButtonElement>(null);
     const [statusMessage, setStatusMessage] = useState('');
     const [statusIsError, setStatusIsError] = useState(false);
 
@@ -184,7 +193,64 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
     ]);
 
     useEffect(() => {
+        const updateViewportMode = () => setMobileAppreciationSheet(isMobileActionViewport());
+        window.addEventListener('resize', updateViewportMode);
+
+        return () => window.removeEventListener('resize', updateViewportMode);
+    }, []);
+
+    useEffect(() => {
         if (!appreciationChoicesOpen) return;
+
+        const mobile = isMobileActionViewport();
+        const trigger = appreciationTriggerRef.current;
+        const dialog = appreciationPopoverRef.current;
+        const previousOverflow = document.body.style.overflow;
+
+        setMobileAppreciationSheet(mobile);
+
+        const handleKeydown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setAppreciationChoicesOpen(false);
+                return;
+            }
+
+            if (!mobile || event.key !== 'Tab' || dialog === null) return;
+
+            const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+                'button:not(:disabled), a[href], input:not(:disabled), [tabindex]:not([tabindex="-1"])',
+            ));
+            if (focusable.length === 0) return;
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+
+        if (mobile) {
+            document.body.style.overflow = 'hidden';
+            appreciationDismissRef.current?.focus();
+        }
+
+        document.addEventListener('keydown', handleKeydown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeydown);
+            if (mobile) document.body.style.overflow = previousOverflow;
+            trigger?.focus();
+        };
+    }, [appreciationChoicesOpen, mobileAppreciationSheet]);
+
+    useEffect(() => {
+        if (!appreciationChoicesOpen || mobileAppreciationSheet) return;
 
         const trigger = appreciationTriggerRef.current;
         const popover = appreciationPopoverRef.current;
@@ -203,7 +269,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
         setAppreciationPopoverPlacement(
             spaceBelow >= popoverHeight || spaceAbove < popoverHeight ? 'below' : 'above',
         );
-    }, [appreciationChoicesOpen]);
+    }, [appreciationChoicesOpen, mobileAppreciationSheet]);
 
     const setErrorStatus = (message: string) => {
         setStatusMessage(message);
@@ -401,6 +467,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleLike(); }}>
                     <button
                         type="submit"
+                        data-mobile-primary-action="like"
                         aria-label={`${liked ? translations.unlike : translations.like}${likeCount > 0 ? ` (${likeCount})` : ''}`}
                         aria-pressed={liked}
                         aria-busy={likePending}
@@ -421,6 +488,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                                     type="button"
                                     ref={appreciationTriggerRef}
                                     data-post-appreciation-trigger
+                                    data-mobile-primary-action="appreciation"
                                     className="skuy-action skuy-action--appreciation"
                                     aria-label={`${translations.appreciation.action}, ${translations.appreciation.cost_label}`}
                                     title={`${translations.appreciation.action}, ${translations.appreciation.cost_label}`}
@@ -435,31 +503,53 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                                 </button>
                                 {appreciationChoicesOpen && (
                                     <div
-                                        ref={appreciationPopoverRef}
-                                        id={`post-appreciation-${post.uid}-choices`}
-                                        className={`skuy-appreciation__popover${appreciationPopoverPlacement === 'above' ? ' is-above' : ''}`}
+                                        className={`skuy-appreciation__overlay${appreciationPopoverPlacement === 'above' ? ' is-above' : ''}`}
+                                        onClick={(event) => {
+                                            if (event.target === event.currentTarget) setAppreciationChoicesOpen(false);
+                                        }}
                                     >
-                                        <p id={`post-appreciation-${post.uid}-choose-type`} className="skuy-appreciation__choose-type">
-                                            {translations.appreciation.choose_type}
-                                        </p>
-                                        <p className="skuy-appreciation__cost">{translations.appreciation.cost_copy}</p>
                                         <div
-                                            className="skuy-appreciation__choices"
-                                            role="group"
+                                            ref={appreciationPopoverRef}
+                                            id={`post-appreciation-${post.uid}-choices`}
+                                            role="dialog"
                                             aria-labelledby={`post-appreciation-${post.uid}-choose-type`}
+                                            aria-modal={mobileAppreciationSheet ? 'true' : undefined}
+                                            data-appreciation-presentation={mobileAppreciationSheet ? 'sheet' : 'popover'}
+                                            className="skuy-appreciation__popover"
                                         >
-                                            {APPRECIATION_TYPES.map((type) => (
+                                            <div className="skuy-appreciation__header">
+                                                <p id={`post-appreciation-${post.uid}-choose-type`} className="skuy-appreciation__choose-type">
+                                                    {translations.appreciation.choose_type}
+                                                </p>
                                                 <button
-                                                    key={type}
                                                     type="button"
-                                                    onClick={() => void giveAppreciation(type)}
-                                                    disabled={appreciationPending}
-                                                    aria-busy={appreciationPending}
-                                                    className="skuy-appreciation__choice disabled:cursor-not-allowed disabled:opacity-50"
+                                                    ref={appreciationDismissRef}
+                                                    className="skuy-appreciation__dismiss"
+                                                    aria-label={translations.appreciation.dismiss}
+                                                    onClick={() => setAppreciationChoicesOpen(false)}
                                                 >
-                                                    {translations.appreciation.types[type]}
+                                                    {translations.appreciation.dismiss}
                                                 </button>
-                                            ))}
+                                            </div>
+                                            <p className="skuy-appreciation__cost">{translations.appreciation.cost_copy}</p>
+                                            <div
+                                                className="skuy-appreciation__choices"
+                                                role="group"
+                                                aria-labelledby={`post-appreciation-${post.uid}-choose-type`}
+                                            >
+                                                {APPRECIATION_TYPES.map((type) => (
+                                                    <button
+                                                        key={type}
+                                                        type="button"
+                                                        onClick={() => void giveAppreciation(type)}
+                                                        disabled={appreciationPending}
+                                                        aria-busy={appreciationPending}
+                                                        className="skuy-appreciation__choice disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        {translations.appreciation.types[type]}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -472,12 +562,13 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                                 title={selectedAppreciationLabel}
                                 aria-pressed="true"
                                 className="skuy-action skuy-action--appreciation skuy-action--appreciated"
+                                data-mobile-primary-action="appreciation"
                             >
                                 <StarIcon filled />
                                 {appreciationCount > 0 && <span className="skuy-appreciation__count">{appreciationCount}</span>}
                             </button>
                         ) : (
-                            <span className="skuy-action skuy-action--appreciation" aria-label={appreciationCountLabel} title={appreciationCountLabel}>
+                            <span data-mobile-primary-action="appreciation" className="skuy-action skuy-action--appreciation" aria-label={appreciationCountLabel} title={appreciationCountLabel}>
                                 <StarIcon />
                                 <span className="skuy-appreciation__count">{appreciationCount}</span>
                             </span>
@@ -485,7 +576,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                     </div>
                 )}
 
-                <div className="skuy-action cursor-default" aria-label={translations.reply} title={translations.reply}>
+                <div data-mobile-primary-action="comment" className="skuy-action cursor-default" aria-label={translations.reply} title={translations.reply}>
                     <CommentIcon />
                     <span className="text-xs font-semibold">{commentCount > 0 ? commentCount : ''}</span>
                 </div>
@@ -493,6 +584,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleRepost(); }}>
                     <button
                         type="submit"
+                        data-mobile-primary-action="repost"
                         aria-label={translations.repost}
                         aria-pressed={reposted}
                         aria-busy={repostPending}
@@ -505,7 +597,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                     </button>
                 </form>
 
-                <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleBookmark(); }}>
+                <form className="skuy-post-actions__desktop-bookmark" onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleBookmark(); }}>
                     <button
                         type="submit"
                         aria-label={bookmarkLabel}
@@ -521,6 +613,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
 
                 <button
                     type="button"
+                    data-mobile-primary-action="share"
                     onClick={() => void copyShareUrl()}
                     className="skuy-action"
                     title={translations.share}
