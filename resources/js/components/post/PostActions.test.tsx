@@ -285,8 +285,14 @@ describe('PostActions like state', () => {
             />,
         );
 
+        const appreciationButton = screen.getByRole('button', { name: /Appreciate/ });
+        expect(appreciationButton.closest('.skuy-actions--primary')).not.toBeNull();
+        expect(appreciationButton.className).toContain('skuy-action--appreciation');
+        expect(appreciationButton.querySelector('.fa-star')).not.toBeNull();
+        expect(screen.queryByText('Costs exactly 5 Points. Spent by you, not transferred.')).toBeNull();
+
+        fireEvent.click(appreciationButton);
         expect(screen.getByText('Costs exactly 5 Points. Spent by you, not transferred.')).toBeTruthy();
-        fireEvent.click(screen.getByRole('button', { name: /Appreciate/ }));
         const choices = screen.getByRole('group', { name: 'Choose an Appreciation type' });
         expect(within(choices).getAllByRole('button')).toHaveLength(3);
         fireEvent.click(within(choices).getByRole('button', { name: 'Useful' }));
@@ -297,7 +303,7 @@ describe('PostActions like state', () => {
             body: JSON.stringify({ type: 'bermanfaat' }),
         }));
         expect(screen.getByText('You appreciated this post with Useful.')).toBeTruthy();
-        expect(screen.getByText('1 Appreciation')).toBeTruthy();
+        expect(document.querySelector('.skuy-appreciation__count')?.textContent).toBe('1');
         expect(screen.queryByRole('group', { name: 'Choose an Appreciation type' })).toBeNull();
         expect(screen.getByRole('button', { name: /Like/ }).className).toContain('skuy-action--reaction');
     });

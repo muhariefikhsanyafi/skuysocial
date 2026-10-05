@@ -112,6 +112,20 @@ class PostAppreciationTest extends TestCase
         $this->assertSame(10, (int) $sender->pointWallet()->value('balance'));
     }
 
+    public function test_invalid_appreciation_type_returns_json_validation_errors_for_json_clients(): void
+    {
+        $sender = User::factory()->create(['locale' => 'id']);
+        $post = $this->createPost(User::factory()->create());
+
+        $this->actingAs($sender)
+            ->postJson('/posts/'.$post->uid.'/appreciation', ['type' => 'recognition'])
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.type.0', __('appreciation.validation.type_invalid'));
+
+        $this->assertDatabaseCount('post_appreciations', 0);
+        $this->assertDatabaseCount('point_transactions', 0);
+    }
+
     public function test_client_supplied_amount_fields_never_change_the_server_owned_five_point_cost(): void
     {
         $sender = User::factory()->create();

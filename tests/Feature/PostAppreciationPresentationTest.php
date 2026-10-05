@@ -15,6 +15,167 @@ class PostAppreciationPresentationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_feed_places_the_star_trigger_and_three_choice_form_in_the_primary_action_row(): void
+    {
+        $viewer = User::factory()->create(['locale' => 'id']);
+        $owner = User::factory()->create();
+        $post = Post::query()->create([
+            'user_id' => $owner->getKey(),
+            'content' => 'Inline Appreciation target.',
+        ]);
+        $this->credit($viewer, 10);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+        $response->assertOk();
+
+        $document = new \DOMDocument();
+        $document->loadHTML($response->getContent(), LIBXML_NONET);
+        $xpath = new \DOMXPath($document);
+        $actionRow = $xpath->query('//div[contains(concat(" ", normalize-space(@class), " "), " skuy-actions--primary ")]')->item(0);
+
+        $this->assertNotNull($actionRow);
+        $trigger = $xpath->query('.//button[@data-post-appreciation-trigger]', $actionRow)->item(0);
+        $this->assertNotNull($trigger);
+        $this->assertInstanceOf(\DOMElement::class, $trigger);
+        $this->assertSame('button', $trigger->getAttribute('type'));
+        $this->assertFalse($trigger->hasAttribute('href'));
+        $this->assertNotNull($xpath->query('.//i[contains(concat(" ", normalize-space(@class), " "), " fa-star ")]', $actionRow)->item(0));
+        $this->assertNotNull($xpath->query('.//form[@action="'.route('posts.appreciations.store', $post).'"]//input[@name="surface" and @value="feed"]', $actionRow)->item(0));
+        $this->assertSame(1, $xpath->query('//*[@data-post-appreciation]')->length);
+        $this->assertSame(0, $xpath->query('//summary[contains(concat(" ", normalize-space(@class), " "), " skuy-appreciation__trigger ")]')->length);
+        $choiceValues = [];
+        foreach ($xpath->query('.//button[@type="submit" and @name="type"]', $actionRow) as $choiceButton) {
+            if ($choiceButton instanceof \DOMElement) {
+                $choiceValues[] = $choiceButton->getAttribute('value');
+            }
+        }
+        $this->assertSame(['bermanfaat', 'inspiratif', 'solutif'], $choiceValues);
+        $response->assertSee(__('appreciation.cost_copy', [
+            'cost' => 5,
+            'unit' => __('points.unit'),
+        ]));
+    }
+
+    public function test_feed_submission_returns_to_feed_without_a_referer(): void
+    {
+        $viewer = User::factory()->create();
+        $post = Post::query()->create([
+            'user_id' => User::factory()->create()->getKey(),
+            'content' => 'Feed redirect target.',
+        ]);
+        $this->credit($viewer, 5);
+
+        $this->actingAs($viewer)
+            ->post(route('posts.appreciations.store', $post), ['type' => 'bermanfaat', 'surface' => 'feed'])
+            ->assertRedirect(route('feed'))
+            ->assertSessionHas('post_appreciation_post_uid', (string) $post->uid)
+            ->assertSessionHas('post_appreciation_feedback_error', false);
+
+        $this->get(route('feed'))
+            ->assertOk()
+            ->assertSee(__('appreciation.feedback.success', [
+                'type' => __('appreciation.types.bermanfaat'),
+                'cost' => 5,
+                'unit' => __('points.unit'),
+            ]));
+    }
+
+    public function test_feed_validation_error_returns_to_feed_and_is_rendered_there(): void
+    {
+        $viewer = User::factory()->create(['locale' => 'id']);
+        $post = Post::query()->create([
+            'user_id' => User::factory()->create()->getKey(),
+            'content' => 'Feed validation target.',
+        ]);
+
+        $this->actingAs($viewer)
+            ->post(route('posts.appreciations.store', $post), ['type' => 'invalid', 'surface' => 'feed'])
+            ->assertRedirect(route('feed'))
+            ->assertSessionHasErrors(['type'])
+            ->assertSessionHas('post_appreciation_post_uid', (string) $post->uid);
+
+        $this->get(route('feed'))
+            ->assertOk()
+            ->assertSee(__('appreciation.validation.type_invalid'));
+    }
+
+    public function test_post_detail_validation_error_returns_to_the_post_detail(): void
+    {
+        config(['frontend.post_detail_inertia' => false]);
+
+        $viewer = User::factory()->create(['locale' => 'en']);
+        $post = Post::query()->create([
+            'user_id' => User::factory()->create()->getKey(),
+            'content' => 'Detail validation target.',
+        ]);
+
+        $this->actingAs($viewer)
+            ->post(route('posts.appreciations.store', $post), ['type' => 'invalid', 'surface' => 'detail'])
+            ->assertRedirect(route('posts.show', $post))
+            ->assertSessionHasErrors(['type'])
+            ->assertSessionHas('post_appreciation_post_uid', (string) $post->uid);
+
+        $this->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertSee(__('appreciation.validation.type_invalid'));
+    }
+
+    public function test_post_detail_submission_returns_to_the_post_detail_without_a_referer(): void
+    {
+        $viewer = User::factory()->create();
+        $post = Post::query()->create([
+            'user_id' => User::factory()->create()->getKey(),
+            'content' => 'Detail redirect target.',
+        ]);
+        $this->credit($viewer, 5);
+
+        $this->actingAs($viewer)
+            ->post(route('posts.appreciations.store', $post), ['type' => 'bermanfaat', 'surface' => 'detail'])
+            ->assertRedirect(route('posts.show', $post));
+    }
+
+    public function test_feed_denial_feedback_returns_to_feed_for_insufficient_points_and_self_appreciation(): void
+    {
+        $viewer = User::factory()->create(['locale' => 'id']);
+        $owner = User::factory()->create();
+        $post = Post::query()->create([
+            'user_id' => $owner->getKey(),
+            'content' => 'Insufficient points feed target.',
+        ]);
+        $insufficientPointsMessage = __('appreciation.feedback.insufficient_points', [
+            'cost' => 5,
+            'unit' => __('points.unit'),
+        ]);
+
+        $this->actingAs($viewer)
+            ->post(route('posts.appreciations.store', $post), ['type' => 'bermanfaat', 'surface' => 'feed'])
+            ->assertRedirect(route('feed'))
+            ->assertSessionHas('post_appreciation_feedback', $insufficientPointsMessage)
+            ->assertSessionHas('post_appreciation_feedback_error', true);
+
+        $this->get(route('feed'))
+            ->assertOk()
+            ->assertSee($insufficientPointsMessage);
+
+        $self = User::factory()->create(['locale' => 'id']);
+        $selfPost = Post::query()->create([
+            'user_id' => $self->getKey(),
+            'content' => 'Self appreciation feed target.',
+        ]);
+        $this->credit($self, 5);
+        $selfAppreciationMessage = __('appreciation.feedback.self_appreciation_forbidden');
+
+        $this->actingAs($self)
+            ->post(route('posts.appreciations.store', $selfPost), ['type' => 'solutif', 'surface' => 'feed'])
+            ->assertRedirect(route('feed'))
+            ->assertSessionHas('post_appreciation_feedback', $selfAppreciationMessage)
+            ->assertSessionHas('post_appreciation_feedback_error', true);
+
+        $this->get(route('feed'))
+            ->assertOk()
+            ->assertSee($selfAppreciationMessage);
+    }
+
     public function test_feed_exposes_the_localized_three_choice_control_and_fixed_cost(): void
     {
         $viewer = User::factory()->create(['locale' => 'id']);

@@ -12,6 +12,7 @@ type FontAwesomeName =
     | 'pen-to-square'
     | 'retweet'
     | 'share-nodes'
+    | 'star'
     | 'trash-can'
     | 'xmark';
 
@@ -60,6 +61,10 @@ export function CheckIcon({ className = 'h-4 w-4' }: IconProps) {
 
 export function HeartIcon({ className = 'text-xl', filled = false }: IconProps) {
     return <FontAwesomeIcon name="heart" weight={filled ? 'solid' : 'regular'} className={className} />;
+}
+
+export function StarIcon({ className = 'text-xl', filled = false }: IconProps) {
+    return <FontAwesomeIcon name="star" weight={filled ? 'solid' : 'regular'} className={className} />;
 }
 
 export function CommentIcon({ className = 'text-xl' }: IconProps) {

@@ -131,6 +131,7 @@
                             <span class="text-xs font-semibold">{{ $displayPost->likes_count > 0 ? $displayPost->likes_count : '' }}</span>
                         </button>
                     </form>
+                    @include('partials.post-appreciation', ['displayPost' => $displayPost, 'surface' => 'detail'])
                     <!-- Tombol Komentar -->
                     <div class="skuy-action cursor-default" aria-label="{{ __('threads.actions.reply') }}" title="{{ __('threads.actions.reply') }}">
                         <x-fa-icon name="comment" class="text-xl" />
@@ -168,11 +169,10 @@
                         <x-fa-icon name="share-nodes" class="text-xl" />
                     </button>
                         </div>
+                        @include('partials.post-appreciation-feedback', ['displayPost' => $displayPost])
                     </div>
                 </div>
             </article>
-
-            @include('partials.post-appreciation', ['displayPost' => $displayPost])
 
             <!-- ============================================================ -->
             <!-- FORM KOMENTAR UTAMA (Gaya Threads, di bawah kartu postingan) -->

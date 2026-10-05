@@ -278,6 +278,8 @@
                                 </button>
                             </form>
 
+                            @include('partials.post-appreciation', ['displayPost' => $displayPost, 'surface' => 'feed'])
+
                             <button data-feed-comment-action @click="showComments = !showComments" type="button" aria-label="{{ $commentActionLabel }}" title="{{ $commentActionLabel }}" :aria-expanded="showComments.toString()" aria-controls="comments-{{ $displayPost->uid }}" class="skuy-action{{ $commentActionCountIsDense ? ' skuy-action--dense-count' : '' }}">
                                 <x-fa-icon name="comment" class="text-xl" />
                                 <span data-feed-comment-count @if ($commentDisplayCount === '') style="display: none;" @endif>{{ $commentDisplayCount }}</span>
@@ -349,6 +351,7 @@
                             </button>
                         </div>
                         <div class="min-h-5">
+                            @include('partials.post-appreciation-feedback', ['displayPost' => $displayPost])
                             <p
                                 x-show="feedbackMessage"
                                 x-text="feedbackMessage"
@@ -361,8 +364,6 @@
                             ></p>
                         </div>
                     </div>
-
-                    @include('partials.post-appreciation', ['displayPost' => $displayPost])
 
                     @php
                         $topComment = $displayPost->feedComments->first();

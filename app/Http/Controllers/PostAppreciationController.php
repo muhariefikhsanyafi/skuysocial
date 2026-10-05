@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class PostAppreciationController extends Controller
@@ -23,11 +24,14 @@ class PostAppreciationController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
+        $targetPost = $post->interactionTarget();
+        $returnToFeed = $request->input('surface') === 'feed';
+
         $allowedTypes = array_map(
             static fn (AppreciationType $type): string => $type->value,
             AppreciationType::cases(),
         );
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'type' => ['required', 'string', Rule::in($allowedTypes)],
         ], [
             'type.required' => __('appreciation.validation.type_required'),
@@ -35,7 +39,25 @@ class PostAppreciationController extends Controller
             'type.in' => __('appreciation.validation.type_invalid'),
         ]);
 
-        $targetPost = $post->interactionTarget();
+        if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $validator->errors()->first(),
+                    'errors' => $validator->errors()->toArray(),
+                ], 422);
+            }
+
+            return $this->redirectToSurface($returnToFeed, $targetPost)
+                ->withErrors($validator)
+                ->withInput($request->except('_token'))
+                ->with([
+                    'post_appreciation_feedback' => $validator->errors()->first('type'),
+                    'post_appreciation_feedback_error' => true,
+                    'post_appreciation_post_uid' => (string) $targetPost->uid,
+                ]);
+        }
+
+        $validated = $validator->validated();
         $result = $giveAppreciation->handle(
             $user,
             $targetPost,
@@ -61,11 +83,18 @@ class PostAppreciationController extends Controller
             });
         }
 
-        return back()->with([
+        return $this->redirectToSurface($returnToFeed, $targetPost)->with([
             'post_appreciation_feedback' => $message,
             'post_appreciation_feedback_error' => $isError,
             'post_appreciation_post_uid' => (string) $targetPost->uid,
         ]);
+    }
+
+    private function redirectToSurface(bool $feedSurface, Post $post): RedirectResponse
+    {
+        return $feedSurface
+            ? redirect()->route('feed')
+            : redirect()->route('posts.show', $post);
     }
 
     private function message(PostAppreciationResult $result): string

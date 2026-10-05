@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { AppreciationTypeValue, DisplayPost, PostDetailRoutes, PostDetailTranslations } from '../../types/post';
-import { BookmarkIcon, CommentIcon, HeartIcon, RepostIcon, ShareIcon } from './icons';
+import { BookmarkIcon, CommentIcon, HeartIcon, RepostIcon, ShareIcon, StarIcon } from './icons';
 
 interface PostActionsProps {
     post: DisplayPost;
@@ -145,6 +145,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
     const [hasAppreciated, setHasAppreciated] = useState(post.interactions.appreciated);
     const [appreciationType, setAppreciationType] = useState(post.interactions.appreciation_type);
     const [appreciationChoicesOpen, setAppreciationChoicesOpen] = useState(false);
+    const [appreciationPopoverPlacement, setAppreciationPopoverPlacement] = useState<'above' | 'below'>('below');
     const [reposted, setReposted] = useState(post.interactions.reposted);
     const [repostCount, setRepostCount] = useState(post.interactions.repost_count);
     const [bookmarked, setBookmarked] = useState(post.interactions.bookmarked);
@@ -156,6 +157,8 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
     const repostInFlightRef = useRef(false);
     const bookmarkInFlightRef = useRef(false);
     const appreciationInFlightRef = useRef(false);
+    const appreciationTriggerRef = useRef<HTMLButtonElement>(null);
+    const appreciationPopoverRef = useRef<HTMLDivElement>(null);
     const [statusMessage, setStatusMessage] = useState('');
     const [statusIsError, setStatusIsError] = useState(false);
 
@@ -179,6 +182,28 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
         post.interactions.repost_count,
         post.interactions.reposted,
     ]);
+
+    useEffect(() => {
+        if (!appreciationChoicesOpen) return;
+
+        const trigger = appreciationTriggerRef.current;
+        const popover = appreciationPopoverRef.current;
+
+        if (trigger === null || popover === null) return;
+
+        const triggerRect = trigger.getBoundingClientRect();
+        const popoverHeight = popover.getBoundingClientRect().height;
+        const mobileDock = document.querySelector<HTMLElement>('.skuy-mobile-nav');
+        const bottomBoundary = mobileDock !== null && mobileDock.getClientRects().length > 0
+            ? mobileDock.getBoundingClientRect().top
+            : window.innerHeight;
+        const spaceBelow = bottomBoundary - triggerRect.bottom - 8;
+        const spaceAbove = triggerRect.top - 8;
+
+        setAppreciationPopoverPlacement(
+            spaceBelow >= popoverHeight || spaceAbove < popoverHeight ? 'below' : 'above',
+        );
+    }, [appreciationChoicesOpen]);
 
     const setErrorStatus = (message: string) => {
         setStatusMessage(message);
@@ -388,6 +413,78 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                     </button>
                 </form>
 
+                {(canOfferAppreciation || hasAppreciated || appreciationCount > 0) && (
+                    <div className="skuy-appreciation skuy-appreciation--inline">
+                        {canOfferAppreciation ? (
+                            <>
+                                <button
+                                    type="button"
+                                    ref={appreciationTriggerRef}
+                                    data-post-appreciation-trigger
+                                    className="skuy-action skuy-action--appreciation"
+                                    aria-label={`${translations.appreciation.action}, ${translations.appreciation.cost_label}`}
+                                    title={`${translations.appreciation.action}, ${translations.appreciation.cost_label}`}
+                                    aria-expanded={appreciationChoicesOpen}
+                                    aria-controls={`post-appreciation-${post.uid}-choices`}
+                                    onClick={() => setAppreciationChoicesOpen((open) => !open)}
+                                >
+                                    <StarIcon />
+                                    {appreciationCount > 0 && (
+                                        <span className="skuy-appreciation__count" aria-label={appreciationCountLabel}>{appreciationCount}</span>
+                                    )}
+                                </button>
+                                {appreciationChoicesOpen && (
+                                    <div
+                                        ref={appreciationPopoverRef}
+                                        id={`post-appreciation-${post.uid}-choices`}
+                                        className={`skuy-appreciation__popover${appreciationPopoverPlacement === 'above' ? ' is-above' : ''}`}
+                                    >
+                                        <p id={`post-appreciation-${post.uid}-choose-type`} className="skuy-appreciation__choose-type">
+                                            {translations.appreciation.choose_type}
+                                        </p>
+                                        <p className="skuy-appreciation__cost">{translations.appreciation.cost_copy}</p>
+                                        <div
+                                            className="skuy-appreciation__choices"
+                                            role="group"
+                                            aria-labelledby={`post-appreciation-${post.uid}-choose-type`}
+                                        >
+                                            {APPRECIATION_TYPES.map((type) => (
+                                                <button
+                                                    key={type}
+                                                    type="button"
+                                                    onClick={() => void giveAppreciation(type)}
+                                                    disabled={appreciationPending}
+                                                    aria-busy={appreciationPending}
+                                                    className="skuy-appreciation__choice disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {translations.appreciation.types[type]}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        ) : hasAppreciated ? (
+                            <button
+                                type="button"
+                                disabled
+                                aria-label={selectedAppreciationLabel}
+                                title={selectedAppreciationLabel}
+                                aria-pressed="true"
+                                className="skuy-action skuy-action--appreciation skuy-action--appreciated"
+                            >
+                                <StarIcon filled />
+                                {appreciationCount > 0 && <span className="skuy-appreciation__count">{appreciationCount}</span>}
+                            </button>
+                        ) : (
+                            <span className="skuy-action skuy-action--appreciation" aria-label={appreciationCountLabel} title={appreciationCountLabel}>
+                                <StarIcon />
+                                <span className="skuy-appreciation__count">{appreciationCount}</span>
+                            </span>
+                        )}
+                    </div>
+                )}
+
                 <div className="skuy-action cursor-default" aria-label={translations.reply} title={translations.reply}>
                     <CommentIcon />
                     <span className="text-xs font-semibold">{commentCount > 0 ? commentCount : ''}</span>
@@ -432,53 +529,10 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                     <ShareIcon />
                 </button>
             </div>
-            {(appreciationCount > 0 || hasAppreciated || canOfferAppreciation) && (
-                <section className="skuy-appreciation" aria-label={translations.appreciation.label}>
-                    {appreciationCount > 0 && (
-                        <p className="skuy-appreciation__count">{appreciationCountLabel}</p>
-                    )}
-                    {hasAppreciated && appreciationType !== null && (
-                        <p className="skuy-appreciation__selected" role="status">
-                            {selectedAppreciationLabel}
-                        </p>
-                    )}
-                    {canOfferAppreciation && (
-                        <>
-                            <button
-                                type="button"
-                                className="skuy-appreciation__trigger"
-                                aria-expanded={appreciationChoicesOpen}
-                                aria-controls={`post-appreciation-${post.uid}-choices`}
-                                onClick={() => setAppreciationChoicesOpen((open) => !open)}
-                            >
-                                <span>{translations.appreciation.action}</span>
-                                <span className="skuy-appreciation__trigger-cost">{translations.appreciation.cost_label}</span>
-                            </button>
-                            <p className="skuy-appreciation__cost">{translations.appreciation.cost_copy}</p>
-                            {appreciationChoicesOpen && (
-                                <div
-                                    id={`post-appreciation-${post.uid}-choices`}
-                                    className="skuy-appreciation__choices"
-                                    role="group"
-                                    aria-label={translations.appreciation.choose_type}
-                                >
-                                    {APPRECIATION_TYPES.map((type) => (
-                                        <button
-                                            key={type}
-                                            type="button"
-                                            onClick={() => void giveAppreciation(type)}
-                                            disabled={appreciationPending}
-                                            aria-busy={appreciationPending}
-                                            className="skuy-appreciation__choice disabled:cursor-not-allowed disabled:opacity-50"
-                                        >
-                                            {translations.appreciation.types[type]}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    )}
-                </section>
+            {hasAppreciated && selectedAppreciationLabel && (
+                <p className="skuy-appreciation__selected" role="status">
+                    {selectedAppreciationLabel}
+                </p>
             )}
             {statusMessage && (
                 <p
