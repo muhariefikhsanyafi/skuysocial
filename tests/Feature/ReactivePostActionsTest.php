@@ -129,13 +129,15 @@ class ReactivePostActionsTest extends TestCase
         $actor = User::factory()->create();
         $post = $this->createPost(User::factory()->create());
 
-        $this->actingAs($actor)
-            ->postJson(route('bookmarks.store', $post))
+        $saveResponse = $this->actingAs($actor)
+            ->postJson(route('bookmarks.store', $post));
+        $saveResponse
             ->assertOk()
             ->assertExactJson([
                 'post_uid' => $post->uid,
                 'bookmarked' => true,
             ]);
+        $this->assertFalse($saveResponse->headers->has('Location'));
 
         $this->postJson(route('bookmarks.store', $post))
             ->assertOk()
@@ -145,12 +147,14 @@ class ReactivePostActionsTest extends TestCase
             ]);
         $this->assertDatabaseCount('bookmarks', 1);
 
-        $this->deleteJson(route('bookmarks.destroy', $post))
+        $unsaveResponse = $this->deleteJson(route('bookmarks.destroy', $post));
+        $unsaveResponse
             ->assertOk()
             ->assertExactJson([
                 'post_uid' => $post->uid,
                 'bookmarked' => false,
             ]);
+        $this->assertFalse($unsaveResponse->headers->has('Location'));
 
         $this->deleteJson(route('bookmarks.destroy', $post))
             ->assertOk()

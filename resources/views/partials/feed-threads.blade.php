@@ -71,6 +71,8 @@
                         <div
                             x-data="{
                                 openOptions: false,
+                                postUid: @js((string) $displayPost->uid),
+                                bookmarkState: @js((bool) $displayPost->bookmarked_by_me),
                                 closeOptions(restoreFocus) {
                                     this.openOptions = false;
 
@@ -79,9 +81,18 @@
                                             if (this.$refs.optionsTrigger) this.$refs.optionsTrigger.focus();
                                         });
                                     }
+                                },
+                                syncBookmarkState(event) {
+                                    const state = event?.detail;
+                                    if (state?.postUid !== this.postUid || typeof state.bookmarked !== 'boolean') return;
+
+                                    const changed = this.bookmarkState !== state.bookmarked;
+                                    this.bookmarkState = state.bookmarked;
+                                    if (changed) this.closeOptions(true);
                                 }
                             }"
                             @keydown.escape.window="if (openOptions) closeOptions(true)"
+                            @skuy-post-action-state.window="syncBookmarkState($event)"
                             class="skuy-post__options"
                             data-mobile-post-options="{{ $displayPost->uid }}"
                         >
@@ -104,16 +115,57 @@
                                 <form
                                     action="{{ $displayPost->bookmarked_by_me ? route('bookmarks.destroy', $displayPost->uid) : route('bookmarks.store', $displayPost->uid) }}"
                                     method="POST"
-                                    class="skuy-post-options__bookmark"
+                                    class="skuy-bookmark-menu-action"
+                                    x-data="likeControl({
+                                        liked: @js((bool) $displayPost->liked_by_me),
+                                        likeCount: @js((int) ($displayPost->likes_count ?? 0)),
+                                        reposted: @js((bool) $displayPost->reposted_by_me),
+                                        repostCount: @js((int) ($displayPost->reposts_count ?? 0)),
+                                        bookmarked: @js((bool) $displayPost->bookmarked_by_me),
+                                        postUid: @js((string) $displayPost->uid),
+                                        urls: {
+                                            bookmarkStore: @js(route('bookmarks.store', $displayPost->uid)),
+                                            bookmarkDestroy: @js(route('bookmarks.destroy', $displayPost->uid)),
+                                        },
+                                        labels: {
+                                            save: @js(__('threads.actions.save')),
+                                            removeFromSaved: @js(__('threads.actions.remove_from_saved')),
+                                            sessionExpired: @js(__('threads.feedback.session_expired')),
+                                            restricted: @js(__('threads.feedback.restricted')),
+                                            invalid: @js(__('threads.feedback.invalid')),
+                                            failed: @js(__('threads.feedback.failed')),
+                                            network: @js(__('threads.feedback.network')),
+                                        },
+                                    })"
+                                    @skuy-post-action-state.window="syncPeerState($event)"
+                                    @submit.prevent="toggleBookmark($event)"
+                                    :action="bookmarkFormAction()"
                                 >
                                     @csrf
-                                    @if ($displayPost->bookmarked_by_me)
-                                        @method('DELETE')
-                                    @endif
-                                    <button type="submit" class="skuy-menu-link flex w-full items-center gap-2" role="menuitem" aria-pressed="{{ $displayPost->bookmarked_by_me ? 'true' : 'false' }}">
-                                        <x-fa-icon name="bookmark" :weight="$displayPost->bookmarked_by_me ? 'solid' : 'regular'" class="text-base" />
-                                        {{ $displayPost->bookmarked_by_me ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}
+                                    <input type="hidden" name="_method" value="DELETE" x-bind:disabled="!bookmarked" @if (! $displayPost->bookmarked_by_me) disabled @endif>
+                                    <button
+                                        type="submit"
+                                        class="skuy-menu-link flex w-full items-center gap-2"
+                                        role="menuitem"
+                                        aria-label="{{ $displayPost->bookmarked_by_me ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}"
+                                        :aria-label="bookmarkButtonLabel()"
+                                        aria-pressed="{{ $displayPost->bookmarked_by_me ? 'true' : 'false' }}"
+                                        :aria-pressed="bookmarked.toString()"
+                                        :aria-busy="isBookmarkRequestInFlight.toString()"
+                                        :disabled="isBookmarkRequestInFlight"
+                                    >
+                                        <x-fa-icon x-ref="bookmarkIcon" name="bookmark" :weight="$displayPost->bookmarked_by_me ? 'solid' : 'regular'" class="text-base" />
+                                        <span x-text="bookmarkButtonLabel()">{{ $displayPost->bookmarked_by_me ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}</span>
                                     </button>
+                                    <p
+                                        x-show="feedbackMessage"
+                                        x-text="feedbackMessage"
+                                        :role="feedbackIsError ? 'alert' : 'status'"
+                                        :aria-live="feedbackIsError ? 'assertive' : 'polite'"
+                                        aria-atomic="true"
+                                        style="display: none;"
+                                        class="px-3 py-2 text-xs font-semibold text-[var(--skuy-danger)]"
+                                    ></p>
                                 </form>
                                 <a href="{{ route('posts.edit', $displayPost->uid) }}" class="skuy-menu-link flex items-center gap-2" role="menuitem">
                                     <x-fa-icon name="pen-to-square" class="text-base" />

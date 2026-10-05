@@ -250,6 +250,67 @@ class BookmarkTest extends TestCase
         $savedResponse->assertSee('aria-label="Hapus dari tersimpan"', false);
     }
 
+    public function test_feed_more_menus_toggle_bookmarks_inline_outside_the_mobile_primary_row(): void
+    {
+        $viewer = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $ownedPost = $this->createPost($viewer, ['content' => 'Owned mobile menu post']);
+        $otherPost = $this->createPost($otherUser, ['content' => 'Other mobile menu post']);
+        $this->createBookmark($viewer, $otherPost);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+        $html = (string) $response->getContent();
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $response->assertOk();
+        foreach ([$ownedPost, $otherPost] as $post) {
+            $options = $xpath->query('//*[@data-mobile-post-options="'.$post->uid.'"]');
+            $this->assertSame(1, $options->length, 'Each Feed post should expose its own More menu.');
+
+            $bookmarkForms = $xpath->query(
+                './/form[contains(concat(" ", normalize-space(@class), " "), " skuy-bookmark-menu-action ")]',
+                $options->item(0),
+            );
+            $this->assertSame(1, $bookmarkForms->length, 'Save/Unsave should stay inside the post More menu.');
+
+            /** @var \DOMElement $form */
+            $form = $bookmarkForms->item(0);
+            $this->assertSame('toggleBookmark($event)', $form->getAttribute('@submit.prevent'));
+            $this->assertStringContainsString('likeControl({', $form->getAttribute('x-data'));
+            $this->assertSame('syncPeerState($event)', $form->getAttribute('@skuy-post-action-state.window'));
+            $this->assertSame(
+                $post->is($otherPost),
+                str_contains($form->getAttribute('class'), 'skuy-post-options__bookmark'),
+                'Only the non-owner mobile-only menu should use the mobile visibility class.',
+            );
+            $saved = $post->is($otherPost);
+            $this->assertSame(
+                route($saved ? 'bookmarks.destroy' : 'bookmarks.store', $post->uid),
+                $form->getAttribute('action'),
+            );
+
+            $menuItems = $xpath->query('.//button[@role="menuitem"]', $form);
+            $this->assertSame(1, $menuItems->length);
+            /** @var \DOMElement $menuItem */
+            $menuItem = $menuItems->item(0);
+            $this->assertSame(
+                $saved ? __('threads.actions.remove_from_saved') : __('threads.actions.save'),
+                $menuItem->getAttribute('aria-label'),
+            );
+            $this->assertSame($saved ? 'true' : 'false', $menuItem->getAttribute('aria-pressed'));
+
+            $primaryBookmark = $xpath->query(
+                './/*[@data-mobile-primary-action="bookmark"]',
+                $options->item(0)->parentNode->parentNode,
+            );
+            $this->assertSame(0, $primaryBookmark->length, 'Bookmark must not be a mobile primary action.');
+        }
+
+        $this->assertSame(2, substr_count($html, 'syncBookmarkState($event)'));
+    }
+
     public function test_post_detail_renders_saved_and_unsaved_bookmark_state(): void
     {
         $owner = User::factory()->create();
