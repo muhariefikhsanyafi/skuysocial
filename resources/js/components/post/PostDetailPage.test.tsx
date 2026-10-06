@@ -185,6 +185,9 @@ describe('Post detail composition', () => {
 
         const root = screen.getByRole('article');
         expect(root.classList.contains('skuy-post-detail__root')).toBe(true);
+        expect(root.classList.contains('skuy-post--detail-root')).toBe(true);
+        expect(page?.querySelector('.skuy-post-detail__header')).not.toBeNull();
+        expect(page?.querySelector('.skuy-post-detail__title')?.textContent).toBe('Thread');
         expect(within(root).getByText('Display Person').textContent).toBe('Display Person');
         expect(within(root).getByText('@display_person').textContent).toBe('@display_person');
         expect(within(root).getByText('#design-topic').textContent).toBe('#design-topic');

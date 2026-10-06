@@ -59,11 +59,11 @@ export default function Show() {
     return (
         <div className="skuy-feed-page skuy-post-detail-page">
             <div className="skuy-feed-content skuy-post-detail__content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-                <div className="mb-4 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
+                <div className="skuy-post-detail__header mb-4 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
                     <a href={routes.feed} aria-label={translations.back_to_feed} className="skuy-action">
                         <ArrowLeftIcon />
                     </a>
-                    <h1 className="text-xl font-bold text-[var(--skuy-text-primary)]">{translations.thread}</h1>
+                    <h1 className="skuy-post-detail__title text-xl font-bold text-[var(--skuy-text-primary)]">{translations.thread}</h1>
                 </div>
 
                 {post.is_repost && post.reposted_by && (

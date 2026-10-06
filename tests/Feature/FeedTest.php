@@ -346,6 +346,65 @@ class FeedTest extends TestCase
         $this->assertStringNotContainsString('aspect-ratio: 4 / 3;', $feedCss);
     }
 
+    public function test_mobile_feed_uses_flat_stream_posts_and_integrated_comment_previews(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+        $mobileBreakpoint = '@media (max-width: 767px)';
+
+        $postSelector = '.skuy-feed-page .skuy-feed-post {';
+        $postStart = strrpos($css, $postSelector);
+        $this->assertIsInt($postStart, "Missing mobile Feed post rule: {$postSelector}");
+        $this->assertIsInt(strrpos(substr($css, 0, $postStart), $mobileBreakpoint), 'Mobile Feed post styles must stay inside the mobile breakpoint.');
+        $postEnd = strpos($css, '}', $postStart);
+        $this->assertIsInt($postEnd, "Unclosed mobile Feed post rule: {$postSelector}");
+        $postRule = substr($css, $postStart, $postEnd - $postStart + 1);
+        foreach ([
+            'padding: 16px 0;',
+            'border: 0;',
+            'border-radius: 0;',
+            'background: transparent;',
+            'box-shadow: none;',
+        ] as $declaration) {
+            $this->assertStringContainsString($declaration, $postRule);
+        }
+
+        $feedListSelector = '.skuy-feed-page .skuy-feed-list {';
+        $feedListStart = strrpos($css, $feedListSelector);
+        $this->assertIsInt($feedListStart, "Missing mobile Feed list rule: {$feedListSelector}");
+        $this->assertIsInt(strrpos(substr($css, 0, $feedListStart), $mobileBreakpoint), 'Mobile Feed list styles must stay inside the mobile breakpoint.');
+        $feedListEnd = strpos($css, '}', $feedListStart);
+        $this->assertIsInt($feedListEnd, "Unclosed mobile Feed list rule: {$feedListSelector}");
+        $this->assertStringContainsString('gap: 0;', substr($css, $feedListStart, $feedListEnd - $feedListStart + 1));
+
+        $dividerSelector = '.skuy-feed-page .skuy-feed-post + .skuy-feed-post {';
+        $dividerStart = strrpos($css, $dividerSelector);
+        $this->assertIsInt($dividerStart, "Missing stream divider rule: {$dividerSelector}");
+        $dividerEnd = strpos($css, '}', $dividerStart);
+        $this->assertIsInt($dividerEnd, "Unclosed stream divider rule: {$dividerSelector}");
+        $this->assertStringContainsString('border-top: 1px solid var(--skuy-border-subtle);', substr($css, $dividerStart, $dividerEnd - $dividerStart + 1));
+
+        $previewSelector = '.skuy-feed-page .skuy-feed-post__comment-preview {';
+        $previewStart = strrpos($css, $previewSelector);
+        $this->assertIsInt($previewStart, "Missing integrated comment preview rule: {$previewSelector}");
+        $previewEnd = strpos($css, '}', $previewStart);
+        $this->assertIsInt($previewEnd, "Unclosed comment preview rule: {$previewSelector}");
+        $previewRule = substr($css, $previewStart, $previewEnd - $previewStart + 1);
+        foreach (['margin-top: 4px;', 'padding-top: 8px;', 'border-top: 0;', 'background: transparent;'] as $declaration) {
+            $this->assertStringContainsString($declaration, $previewRule);
+        }
+
+        $previewCommentSelector = '.skuy-feed-page .skuy-feed-post__comment-preview > .skuy-comment {';
+        $previewCommentStart = strrpos($css, $previewCommentSelector);
+        $this->assertIsInt($previewCommentStart, "Missing integrated preview comment rule: {$previewCommentSelector}");
+        $previewCommentEnd = strpos($css, '}', $previewCommentStart);
+        $this->assertIsInt($previewCommentEnd, "Unclosed integrated preview comment rule: {$previewCommentSelector}");
+        $previewCommentRule = substr($css, $previewCommentStart, $previewCommentEnd - $previewCommentStart + 1);
+        foreach (['padding-left: 8px;', 'border-left: 1px solid var(--skuy-border-soft);', 'background: transparent;'] as $declaration) {
+            $this->assertStringContainsString($declaration, $previewCommentRule);
+        }
+    }
+
     public function test_feed_mobile_actions_keep_accessible_tap_targets(): void
     {
         $css = file_get_contents(resource_path('css/app.css'));

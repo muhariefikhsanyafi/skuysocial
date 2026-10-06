@@ -4,13 +4,13 @@
     @endphp
 
     <div class="skuy-feed-page skuy-post-detail-page">
-        <div class="skuy-feed-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+        <div class="skuy-feed-content skuy-post-detail__content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <!-- Header Kembali -->
-            <div class="mb-4 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
+            <div class="skuy-post-detail__header mb-4 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
                 <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action">
                     <x-fa-icon name="arrow-left-long" class="text-xl" />
                 </a>
-                <h1 class="text-xl font-bold text-[var(--skuy-text-primary)]">{{ __('threads.labels.thread') }}</h1>
+                <h1 class="skuy-post-detail__title text-xl font-bold text-[var(--skuy-text-primary)]">{{ __('threads.labels.thread') }}</h1>
             </div>
 
             <!-- Postingan utama -->
@@ -20,7 +20,7 @@
                     <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
                 </div>
             @endif
-            <article class="skuy-post mb-4">
+            <article class="skuy-post skuy-post--detail-root skuy-post-detail__root mb-4">
                 <!-- Header User -->
                 <div class="skuy-post__layout">
                     <div class="skuy-post__avatar-column">
@@ -212,7 +212,7 @@
             <!-- DAFTAR KOMENTAR (Berjejer ke bawah) -->
             <div class="space-y-4">
                 @if($comments->isNotEmpty())
-                    <h2 class="mb-4 border-b border-[var(--skuy-border-subtle)] pb-2 text-lg font-bold text-[var(--skuy-text-primary)]">{{ __('threads.labels.replies') }}</h2>
+                    <h2 class="skuy-post-detail__reply-heading mb-4 border-b border-[var(--skuy-border-subtle)] pb-2 text-lg font-bold text-[var(--skuy-text-primary)]">{{ __('threads.labels.replies') }}</h2>
                 @endif
 
                 @foreach ($comments as $comment)

@@ -68,6 +68,64 @@ class PostDetailTest extends TestCase
             ->assertSee('Visible detail content');
     }
 
+    public function test_post_detail_uses_feed_surface_grammar_and_lighter_thread_rows(): void
+    {
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $post = $this->createPost($author, ['content' => 'Presentation root post']);
+        $root = $this->createComment($post, $author, 'Presentation root reply');
+        $this->createComment($post, $viewer, 'Presentation nested reply', ['parent_id' => $root->id]);
+
+        $response = $this->actingAs($viewer)->get(route('posts.show', $post));
+        $response->assertOk()
+            ->assertSee('skuy-post-detail__content', false)
+            ->assertSee('skuy-post-detail__header', false)
+            ->assertSee('skuy-post-detail__title', false)
+            ->assertSee('skuy-post--detail-root', false)
+            ->assertSee('skuy-post-detail__reply-heading', false)
+            ->assertSee('skuy-post-detail__reply--root', false)
+            ->assertSee('skuy-post-detail__reply--nested', false)
+            ->assertSee('skuy-post-detail__thread-spine', false);
+
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+        $rootSelector = '.skuy-post-detail-page .skuy-post--detail-root {';
+        $rootStart = strrpos($css, $rootSelector);
+        $this->assertIsInt($rootStart, "Missing mobile Post Detail root rule: {$rootSelector}");
+        $this->assertIsInt(strrpos(substr($css, 0, $rootStart), '@media (max-width: 767px)'), 'Mobile Post Detail root styles must stay inside the mobile breakpoint.');
+        $rootEnd = strpos($css, '}', $rootStart);
+        $this->assertIsInt($rootEnd, "Unclosed mobile Post Detail root rule: {$rootSelector}");
+        $rootRule = substr($css, $rootStart, $rootEnd - $rootStart + 1);
+        foreach ([
+            'padding: 12px 0;',
+            'border: 0;',
+            'border-bottom: 1px solid var(--skuy-border-subtle);',
+            'border-radius: 0;',
+            'background: var(--skuy-surface-raised);',
+            'box-shadow: none;',
+        ] as $declaration) {
+            $this->assertStringContainsString($declaration, $rootRule);
+        }
+
+        $replyDividerSelector = '.skuy-post-detail-page .skuy-post-detail__reply--root + .skuy-post-detail__reply--root {';
+        $replyDividerStart = strrpos($css, $replyDividerSelector);
+        $this->assertIsInt($replyDividerStart, "Missing Post Detail reply divider rule: {$replyDividerSelector}");
+        $replyDividerEnd = strpos($css, '}', $replyDividerStart);
+        $this->assertIsInt($replyDividerEnd, "Unclosed Post Detail reply divider rule: {$replyDividerSelector}");
+        $replyDividerRule = substr($css, $replyDividerStart, $replyDividerEnd - $replyDividerStart + 1);
+        $this->assertStringContainsString('border-top: 1px solid var(--skuy-border-subtle);', $replyDividerRule);
+        $this->assertStringNotContainsString('background:', $replyDividerRule);
+
+        $titleSelector = '.skuy-post-detail-page .skuy-post-detail__title {';
+        $titleStart = strrpos($css, $titleSelector);
+        $this->assertIsInt($titleStart, "Missing Post Detail title rule: {$titleSelector}");
+        $titleEnd = strpos($css, '}', $titleStart);
+        $this->assertIsInt($titleEnd, "Unclosed Post Detail title rule: {$titleSelector}");
+        $titleRule = substr($css, $titleStart, $titleEnd - $titleStart + 1);
+        $this->assertStringContainsString('font-size: 24px;', $titleRule);
+        $this->assertStringContainsString('font-weight: 700;', $titleRule);
+    }
+
     public function test_post_detail_exposes_scalar_post_counts_and_interaction_state(): void
     {
         $author = User::factory()->create();
