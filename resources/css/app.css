@@ -32,6 +32,11 @@
     transform: scale(0.94);
 }
 
+.skuy-action[data-mobile-primary-action='share']:active .skuy-fa-icon,
+.skuy-action[data-mobile-primary-action='share']:active > svg {
+    transform: translateY(-2px) scale(1.02);
+}
+
 @layer base {
     :root {
         color-scheme: light;
@@ -67,6 +72,10 @@
         --skuy-type-body: 1rem;
         --skuy-type-meta: 0.8125rem;
         --skuy-type-action: 0.875rem;
+        --skuy-social-motion-press-duration: 120ms;
+        --skuy-social-motion-success-duration: 220ms;
+        --skuy-social-motion-release-duration: 180ms;
+        --skuy-social-chooser-duration: 190ms;
         --skuy-leading-display: 1.12;
         --skuy-leading-title: 1.25;
         --skuy-leading-body: 1.55;
@@ -1207,7 +1216,7 @@
         font-size: var(--skuy-type-action);
         font-weight: 600;
         line-height: var(--skuy-leading-title);
-        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+        transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform var(--skuy-social-motion-press-duration, 120ms) ease;
     }
 
     .skuy-action:hover {
@@ -1902,7 +1911,23 @@
     }
 
     body.skuy-product :is(.skuy-action, .skuy-auth-password-toggle, .skuy-button, .skuy-icon-button, .skuy-profile-trigger, .skuy-app-nav__link, .skuy-mobile-nav__item, .skuy-app-rail__compose):active,
-    body.skuy-product :is(.skuy-action, .skuy-auth-password-toggle, .skuy-button, .skuy-icon-button, .skuy-profile-trigger, .skuy-app-nav__link, .skuy-mobile-nav__item, .skuy-app-rail__compose):active .skuy-fa-icon {
+    body.skuy-product :is(.skuy-action, .skuy-auth-password-toggle, .skuy-button, .skuy-icon-button, .skuy-profile-trigger, .skuy-app-nav__link, .skuy-mobile-nav__item, .skuy-app-rail__compose):active .skuy-fa-icon,
+    body.skuy-product .skuy-action[data-mobile-primary-action='share']:active > svg {
+        transform: none !important;
+    }
+
+    body.skuy-product :is(
+        .skuy-social-motion--like,
+        .skuy-social-motion--like-release,
+        .skuy-social-motion--appreciation,
+        .skuy-social-motion--bookmark-save,
+        .skuy-social-motion--bookmark-remove,
+        .skuy-social-motion--repost,
+        .skuy-social-motion--share,
+        .skuy-appreciation__overlay,
+        .skuy-appreciation__popover
+    ) {
+        animation: none !important;
         transform: none !important;
     }
 }
@@ -7103,6 +7128,109 @@ a.skuy-message-row:focus-visible {
 .skuy-action--bookmark[aria-pressed='true'] > svg,
 .skuy-action--bookmark[aria-pressed='true'] > span:not(.sr-only) {
     color: var(--skuy-secondary);
+}
+
+/* Shared, transient motion: the persistent semantic state remains in aria/color. */
+@keyframes skuy-social-like-pop {
+    0%, 100% { transform: scale(1); }
+    38% { transform: scale(1.14); }
+    72% { transform: scale(0.98); }
+}
+
+@keyframes skuy-social-like-release {
+    0% { transform: scale(1.02); }
+    55% { transform: scale(0.96); }
+    100% { transform: scale(1); }
+}
+
+@keyframes skuy-social-appreciation-pop {
+    0%, 100% { transform: scale(1) rotate(0); }
+    36% { transform: scale(1.12) rotate(9deg); }
+    72% { transform: scale(0.98) rotate(-2deg); }
+}
+
+@keyframes skuy-social-bookmark-save {
+    0%, 100% { transform: translateY(0) scale(1); }
+    38% { transform: translateY(1px) scale(0.92); }
+    72% { transform: translateY(-1px) scale(1.06); }
+}
+
+@keyframes skuy-social-bookmark-release {
+    0% { transform: translateY(-1px) scale(0.94); opacity: 0.84; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes skuy-social-repost-nudge {
+    0%, 100% { transform: rotate(0); }
+    38% { transform: rotate(7deg) translateX(1px); }
+    72% { transform: rotate(-3deg); }
+}
+
+@keyframes skuy-social-share-lift {
+    0%, 100% { transform: translateY(0) scale(1); }
+    45% { transform: translateY(-2px) scale(1.03); }
+}
+
+.skuy-social-motion--like {
+    animation: skuy-social-like-pop var(--skuy-social-motion-success-duration, 220ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transform-origin: center;
+}
+
+.skuy-social-motion--like-release {
+    animation: skuy-social-like-release var(--skuy-social-motion-release-duration, 180ms) ease-out both;
+    transform-origin: center;
+}
+
+.skuy-social-motion--appreciation {
+    animation: skuy-social-appreciation-pop 230ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transform-origin: center;
+}
+
+.skuy-social-motion--bookmark-save {
+    animation: skuy-social-bookmark-save var(--skuy-social-motion-success-duration, 220ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transform-origin: center;
+}
+
+.skuy-social-motion--bookmark-remove {
+    animation: skuy-social-bookmark-release var(--skuy-social-motion-release-duration, 180ms) ease-out both;
+    transform-origin: center;
+}
+
+.skuy-social-motion--repost {
+    animation: skuy-social-repost-nudge 210ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transform-origin: center;
+}
+
+.skuy-social-motion--share {
+    animation: skuy-social-share-lift 170ms ease-out both;
+    transform-origin: center;
+}
+
+@keyframes skuy-appreciation-overlay-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes skuy-appreciation-popover-enter {
+    from { opacity: 0; transform: translateY(-3px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes skuy-appreciation-sheet-enter {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.skuy-appreciation__overlay {
+    animation: skuy-appreciation-overlay-enter 160ms ease-out both;
+}
+
+.skuy-appreciation__popover[data-appreciation-presentation='popover'] {
+    animation: skuy-appreciation-popover-enter var(--skuy-social-chooser-duration, 190ms) ease-out both;
+}
+
+.skuy-appreciation__popover[data-appreciation-presentation='sheet'] {
+    animation: skuy-appreciation-sheet-enter 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 /* Card surfaces match the subtle capsule; lift only primary interaction states in dark mode. */

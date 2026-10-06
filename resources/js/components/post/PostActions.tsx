@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { AppreciationTypeValue, DisplayPost, PostDetailRoutes, PostDetailTranslations } from '../../types/post';
 import { BookmarkIcon, CommentIcon, HeartIcon, RepostIcon, ShareIcon, StarIcon } from './icons';
+import { playSocialActionMotion } from '../../socialActionMotion';
 
 interface PostActionsProps {
     post: DisplayPost;
@@ -165,6 +166,10 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
     const repostInFlightRef = useRef(false);
     const bookmarkInFlightRef = useRef(false);
     const appreciationInFlightRef = useRef(false);
+    const likeButtonRef = useRef<HTMLButtonElement>(null);
+    const repostButtonRef = useRef<HTMLButtonElement>(null);
+    const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
+    const appreciationMotionPendingRef = useRef(false);
     const appreciationTriggerRef = useRef<HTMLButtonElement>(null);
     const appreciationPopoverRef = useRef<HTMLDivElement>(null);
     const appreciationDismissRef = useRef<HTMLButtonElement>(null);
@@ -191,6 +196,13 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
         post.interactions.repost_count,
         post.interactions.reposted,
     ]);
+
+    useEffect(() => {
+        if (!appreciationMotionPendingRef.current || !hasAppreciated) return;
+
+        appreciationMotionPendingRef.current = false;
+        void playSocialActionMotion(appreciationTriggerRef.current, 'appreciation');
+    }, [hasAppreciated]);
 
     useEffect(() => {
         const updateViewportMode = () => setMobileAppreciationSheet(isMobileActionViewport());
@@ -302,6 +314,9 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 throw new Error(translations.feedback.invalid);
             }
 
+            if (payload.liked !== previousLiked) {
+                void playSocialActionMotion(likeButtonRef.current, payload.liked ? 'like' : 'like-release');
+            }
             setLiked(payload.liked);
             setLikeCount(Number(payload.like_count));
             setStatusMessage(payload.liked ? translations.feedback.liked : translations.feedback.unliked);
@@ -345,6 +360,9 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 throw new Error(translations.appreciation.feedback.invalid);
             }
 
+            if (payload.status === 'appreciated' && !hasAppreciated) {
+                appreciationMotionPendingRef.current = true;
+            }
             setAppreciationCount(Number(payload.appreciation_count));
             setHasAppreciated(true);
             setAppreciationType(payload.type);
@@ -382,6 +400,9 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 throw new Error(translations.feedback.invalid);
             }
 
+            if (payload.reposted !== reposted) {
+                void playSocialActionMotion(repostButtonRef.current, 'repost');
+            }
             setReposted(payload.reposted);
             setRepostCount(Number(payload.repost_count));
         } catch (error) {
@@ -417,6 +438,12 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 throw new Error(translations.feedback.invalid);
             }
 
+            if (payload.bookmarked !== bookmarked) {
+                void playSocialActionMotion(
+                    bookmarkButtonRef.current,
+                    payload.bookmarked ? 'bookmark-save' : 'bookmark-remove',
+                );
+            }
             setBookmarked(payload.bookmarked);
         } catch (error) {
             setErrorStatus(feedbackForError(error, translations));
@@ -467,6 +494,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleLike(); }}>
                     <button
                         type="submit"
+                        ref={likeButtonRef}
                         data-mobile-primary-action="like"
                         aria-label={`${liked ? translations.unlike : translations.like}${likeCount > 0 ? ` (${likeCount})` : ''}`}
                         aria-pressed={liked}
@@ -557,6 +585,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                         ) : hasAppreciated ? (
                             <button
                                 type="button"
+                                ref={appreciationTriggerRef}
                                 disabled
                                 aria-label={selectedAppreciationLabel}
                                 title={selectedAppreciationLabel}
@@ -584,6 +613,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 <form onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleRepost(); }}>
                     <button
                         type="submit"
+                        ref={repostButtonRef}
                         data-mobile-primary-action="repost"
                         aria-label={translations.repost}
                         aria-pressed={reposted}
@@ -600,6 +630,7 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 <form className="skuy-post-actions__desktop-bookmark" onSubmit={(event: FormEvent) => { event.preventDefault(); void toggleBookmark(); }}>
                     <button
                         type="submit"
+                        ref={bookmarkButtonRef}
                         aria-label={bookmarkLabel}
                         title={bookmarkLabel}
                         aria-pressed={bookmarked}
@@ -614,7 +645,10 @@ export function PostActions({ post, routes, translations, canPerformSocialWrites
                 <button
                     type="button"
                     data-mobile-primary-action="share"
-                    onClick={() => void copyShareUrl()}
+                    onClick={(event) => {
+                        void playSocialActionMotion(event.currentTarget, 'share');
+                        void copyShareUrl();
+                    }}
                     className="skuy-action"
                     title={translations.share}
                     aria-label={translations.share}

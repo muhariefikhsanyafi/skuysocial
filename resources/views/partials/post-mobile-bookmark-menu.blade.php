@@ -85,6 +85,7 @@
             <input type="hidden" name="_method" value="DELETE" x-bind:disabled="!bookmarked" @if (! $mobileBookmarkActive) disabled @endif>
             <button
                 type="submit"
+                x-ref="bookmarkButton"
                 class="skuy-menu-link flex w-full items-center gap-2"
                 role="menuitem"
                 aria-label="{{ $mobileBookmarkActive ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}"
@@ -94,7 +95,7 @@
                 :aria-busy="isBookmarkRequestInFlight.toString()"
                 :disabled="isBookmarkRequestInFlight"
             >
-                <x-fa-icon name="bookmark" :weight="$mobileBookmarkActive ? 'solid' : 'regular'" class="text-base" />
+                <x-fa-icon x-ref="bookmarkIcon" name="bookmark" :weight="$mobileBookmarkActive ? 'solid' : 'regular'" class="text-base" />
                 <span x-text="bookmarkButtonLabel()">{{ $mobileBookmarkActive ? __('threads.actions.remove_from_saved') : __('threads.actions.save') }}</span>
             </button>
             <p

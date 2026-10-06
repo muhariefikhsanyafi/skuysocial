@@ -103,7 +103,8 @@ class PostAppreciationPresentationTest extends TestCase
             ->post(route('posts.appreciations.store', $post), ['type' => 'bermanfaat', 'surface' => 'feed'])
             ->assertRedirect(route('feed'))
             ->assertSessionHas('post_appreciation_post_uid', (string) $post->uid)
-            ->assertSessionHas('post_appreciation_feedback_error', false);
+            ->assertSessionHas('post_appreciation_feedback_error', false)
+            ->assertSessionHas('post_appreciation_motion_post_uid', (string) $post->uid);
 
         $this->get(route('feed'))
             ->assertOk()
@@ -111,7 +112,12 @@ class PostAppreciationPresentationTest extends TestCase
                 'type' => __('appreciation.types.bermanfaat'),
                 'cost' => 5,
                 'unit' => __('points.unit'),
-            ]));
+            ]))
+            ->assertSee('skuy-social-motion--appreciation', false);
+
+        $this->get(route('feed'))
+            ->assertOk()
+            ->assertDontSee('skuy-social-motion--appreciation', false);
     }
 
     public function test_feed_validation_error_returns_to_feed_and_is_rendered_there(): void
@@ -126,7 +132,8 @@ class PostAppreciationPresentationTest extends TestCase
             ->post(route('posts.appreciations.store', $post), ['type' => 'invalid', 'surface' => 'feed'])
             ->assertRedirect(route('feed'))
             ->assertSessionHasErrors(['type'])
-            ->assertSessionHas('post_appreciation_post_uid', (string) $post->uid);
+            ->assertSessionHas('post_appreciation_post_uid', (string) $post->uid)
+            ->assertSessionMissing('post_appreciation_motion_post_uid');
 
         $this->get(route('feed'))
             ->assertOk()

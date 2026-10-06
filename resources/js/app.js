@@ -2,6 +2,7 @@ import Alpine from 'alpinejs';
 import { acquireFeedPostActionLock } from './feedPostActionLock';
 import { initializeMessageComposers } from './messageComposer';
 import { initializeOneSignal } from './oneSignal';
+import { playSocialActionMotion } from './socialActionMotion';
 
 window.Alpine = Alpine;
 initializeMessageComposers();
@@ -440,7 +441,8 @@ Alpine.data('likeControl', (config = {}) => ({
         const releaseActionLock = this.acquireActionLock('like');
         if (!releaseActionLock) return;
 
-        const desiredLiked = !this.liked;
+        const previousLiked = this.liked;
+        const desiredLiked = !previousLiked;
         this.feedbackMessage = '';
         this.feedbackIsError = false;
         this.isLikeRequestInFlight = true;
@@ -462,6 +464,9 @@ Alpine.data('likeControl', (config = {}) => ({
             this.liked = payload.liked;
             this.likeCount = payload.like_count;
             this.syncLikePresentation();
+            if (payload.liked !== previousLiked) {
+                void playSocialActionMotion(this.$refs.likeButton, payload.liked ? 'like' : 'like-release');
+            }
             this.publishPeerState();
             this.setFeedback(this.liked ? this.labels.liked : this.labels.unliked, false);
         } catch (error) {
@@ -478,6 +483,7 @@ Alpine.data('likeControl', (config = {}) => ({
         const releaseActionLock = this.acquireActionLock('repost');
         if (!releaseActionLock) return;
 
+        const previousReposted = this.reposted;
         this.feedbackMessage = '';
         this.feedbackIsError = false;
         this.isRepostRequestInFlight = true;
@@ -499,6 +505,9 @@ Alpine.data('likeControl', (config = {}) => ({
             this.reposted = payload.reposted;
             this.repostCount = payload.repost_count;
             this.syncRepostPresentation();
+            if (payload.reposted !== previousReposted) {
+                void playSocialActionMotion(this.$refs.repostButton, 'repost');
+            }
             this.publishPeerState();
         } catch (error) {
             this.setFeedback(this.feedbackForError(error), true);
@@ -514,7 +523,8 @@ Alpine.data('likeControl', (config = {}) => ({
         const releaseActionLock = this.acquireActionLock('bookmark');
         if (!releaseActionLock) return;
 
-        const desiredBookmarked = !this.bookmarked;
+        const previousBookmarked = this.bookmarked;
+        const desiredBookmarked = !previousBookmarked;
         this.feedbackMessage = '';
         this.feedbackIsError = false;
         this.isBookmarkRequestInFlight = true;
@@ -536,6 +546,12 @@ Alpine.data('likeControl', (config = {}) => ({
 
             this.bookmarked = payload.bookmarked;
             this.syncBookmarkPresentation();
+            if (payload.bookmarked !== previousBookmarked) {
+                await playSocialActionMotion(
+                    this.$refs.bookmarkButton,
+                    payload.bookmarked ? 'bookmark-save' : 'bookmark-remove',
+                );
+            }
             this.publishPeerState();
         } catch (error) {
             this.setFeedback(this.feedbackForError(error), true);

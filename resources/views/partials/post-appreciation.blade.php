@@ -11,6 +11,8 @@
         && $viewerAppreciation === null;
     $returnSurface = in_array($surface ?? 'detail', ['feed', 'detail'], true) ? ($surface ?? 'detail') : 'detail';
     $appreciationCountLabel = trans_choice('appreciation.count', $appreciationCount, ['count' => $appreciationCount]);
+    $appreciationJustAdded = $viewerAppreciation !== null
+        && session('post_appreciation_motion_post_uid') === (string) $displayPost->uid;
 @endphp
 
 @if ($appreciationCount > 0 || $viewerAppreciation !== null || $canAppreciate)
@@ -161,7 +163,7 @@
                 aria-pressed="true"
                 disabled
             >
-                <x-fa-icon name="star" weight="solid" class="text-xl" />
+                <x-fa-icon name="star" weight="solid" class="text-xl{{ $appreciationJustAdded ? ' skuy-social-motion--appreciation' : '' }}" />
                 <span class="skuy-appreciation__count" aria-label="{{ $appreciationCountLabel }}">{{ $appreciationCount }}</span>
             </button>
         @else

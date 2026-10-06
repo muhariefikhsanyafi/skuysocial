@@ -211,6 +211,30 @@ describe('PostActions like state', () => {
         await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
         expect(button.getAttribute('aria-pressed')).toBe('true');
         expect(button.getAttribute('aria-label')).toBe('Unlike (2)');
+        expect(button.querySelector('svg, .skuy-fa-icon')?.classList.contains('skuy-social-motion--like')).toBe(true);
+    });
+
+    it('uses a soft release only after the server confirms Unlike', async () => {
+        const likedPost = {
+            ...post,
+            interactions: { ...post.interactions, liked: true, like_count: 2 },
+        } as DisplayPost;
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            post_uid: 'post-1',
+            liked: false,
+            like_count: 1,
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        })));
+
+        render(<PostActions post={likedPost} routes={routes} translations={translations} canPerformSocialWrites={true} viewerId={2} commentCount={post.interactions.comment_count} />);
+        const button = screen.getByRole('button', { name: 'Unlike (2)' });
+        fireEvent.click(button);
+
+        await waitFor(() => expect(button.querySelector('.skuy-fa-icon')?.classList.contains('skuy-social-motion--like-release')).toBe(true));
+        expect(button.getAttribute('aria-pressed')).toBe('false');
+        expect(button.getAttribute('aria-label')).toBe('Like (1)');
     });
 
     it('disables social writes when the server marks the viewer as restricted', () => {
@@ -264,6 +288,73 @@ describe('PostActions like state', () => {
         });
     });
 
+    it('animates Repost only after the server confirms the state change', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            post_uid: 'post-1',
+            reposted: true,
+            repost_count: 1,
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        })));
+
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} viewerId={2} commentCount={post.interactions.comment_count} />);
+        const button = screen.getByRole('button', { name: 'Repost' });
+        fireEvent.click(button);
+
+        await waitFor(() => expect(button.querySelector('.skuy-fa-icon')?.classList.contains('skuy-social-motion--repost')).toBe(true));
+        expect(button.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('animates Bookmark after the server confirms the saved state', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            post_uid: 'post-1',
+            bookmarked: true,
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        })));
+
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} viewerId={2} commentCount={post.interactions.comment_count} />);
+        const button = screen.getByRole('button', { name: 'Save' });
+        fireEvent.click(button);
+
+        await waitFor(() => expect(button.querySelector('.skuy-fa-icon')?.classList.contains('skuy-social-motion--bookmark-save')).toBe(true));
+        expect(button.getAttribute('aria-pressed')).toBe('true');
+        expect(button.getAttribute('aria-label')).toBe('Remove from Saved');
+    });
+
+    it('animates Bookmark release after the server confirms Unsave', async () => {
+        const bookmarkedPost = {
+            ...post,
+            interactions: { ...post.interactions, bookmarked: true },
+        } as DisplayPost;
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+            post_uid: 'post-1',
+            bookmarked: false,
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        })));
+
+        render(<PostActions post={bookmarkedPost} routes={routes} translations={translations} canPerformSocialWrites={true} viewerId={2} commentCount={post.interactions.comment_count} />);
+        const button = screen.getByRole('button', { name: 'Remove from Saved' });
+        fireEvent.click(button);
+
+        await waitFor(() => expect(button.querySelector('.skuy-fa-icon')?.classList.contains('skuy-social-motion--bookmark-remove')).toBe(true));
+        expect(button.getAttribute('aria-pressed')).toBe('false');
+        expect(button.getAttribute('aria-label')).toBe('Save');
+    });
+
+    it('starts Share feedback immediately without waiting for clipboard work', () => {
+        render(<PostActions post={post} routes={routes} translations={translations} canPerformSocialWrites={true} viewerId={2} commentCount={post.interactions.comment_count} />);
+        const button = screen.getByRole('button', { name: 'Share' });
+
+        fireEvent.click(button);
+
+        expect(button.querySelector('.skuy-fa-icon')?.classList.contains('skuy-social-motion--share')).toBe(true);
+    });
+
     it('offers three Appreciation types at five Points and locks the selected type after success', async () => {
         const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
             status: 'appreciated',
@@ -312,6 +403,8 @@ describe('PostActions like state', () => {
         }));
         expect(screen.getByText('You appreciated this post with Useful.')).toBeTruthy();
         expect(document.querySelector('.skuy-appreciation__count')?.textContent).toBe('1');
+        const activeAppreciation = screen.getByRole('button', { name: 'You appreciated this post with Useful.' });
+        expect(activeAppreciation.querySelector('.skuy-fa-icon')?.classList.contains('skuy-social-motion--appreciation')).toBe(true);
         expect(screen.queryByRole('group', { name: 'Choose an Appreciation type' })).toBeNull();
         expect(screen.getByRole('button', { name: /Like/ }).className).toContain('skuy-action--reaction');
     });

@@ -83,11 +83,17 @@ class PostAppreciationController extends Controller
             });
         }
 
-        return $this->redirectToSurface($returnToFeed, $targetPost)->with([
+        $feedback = [
             'post_appreciation_feedback' => $message,
             'post_appreciation_feedback_error' => $isError,
             'post_appreciation_post_uid' => (string) $targetPost->uid,
-        ]);
+        ];
+
+        if ($result->status === PostAppreciationStatus::Appreciated) {
+            $feedback['post_appreciation_motion_post_uid'] = (string) $targetPost->uid;
+        }
+
+        return $this->redirectToSurface($returnToFeed, $targetPost)->with($feedback);
     }
 
     private function redirectToSurface(bool $feedSurface, Post $post): RedirectResponse

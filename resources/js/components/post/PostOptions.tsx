@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { PostDetailTranslations } from '../../types/post';
 import { BookmarkIcon, DotsIcon, PencilIcon, TrashIcon } from './icons';
+import { playSocialActionMotion } from '../../socialActionMotion';
 
 interface PostOptionsProps {
     uid: string;
@@ -33,6 +34,8 @@ export function PostOptions({
     const wrapperRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const bookmarkButtonRef = useRef<HTMLButtonElement>(null);
+    const bookmarkMotionPendingRef = useRef(false);
 
     useEffect(() => {
         const closeOnOutsideClick = (event: MouseEvent) => {
@@ -82,11 +85,28 @@ export function PostOptions({
         if (!canBookmark || pending) return;
 
         setPending(true);
-        setOpen(false);
+        const closeMenu = () => {
+            setOpen(false);
+            triggerRef.current?.focus();
+        };
         const options = {
             preserveScroll: true,
             headers: { 'X-CSRF-TOKEN': csrfToken() },
-            onFinish: () => setPending(false),
+            onSuccess: () => {
+                bookmarkMotionPendingRef.current = true;
+                void playSocialActionMotion(
+                    bookmarkButtonRef.current,
+                    bookmarked ? 'bookmark-remove' : 'bookmark-save',
+                ).then(() => {
+                    bookmarkMotionPendingRef.current = false;
+                    setPending(false);
+                    closeMenu();
+                });
+            },
+            onError: closeMenu,
+            onFinish: () => {
+                if (!bookmarkMotionPendingRef.current) setPending(false);
+            },
         };
 
         if (bookmarked) {
@@ -144,6 +164,7 @@ export function PostOptions({
                     {canBookmark && (
                         <button
                             type="button"
+                            ref={bookmarkButtonRef}
                             role="menuitem"
                             aria-pressed={bookmarked}
                             aria-busy={pending}
