@@ -73,7 +73,7 @@ export default function Show() {
                     </div>
                 )}
 
-                <article className="skuy-post skuy-post--detail-root skuy-post-detail__root mb-4">
+                <article className="skuy-post skuy-post--detail-root skuy-social-post skuy-post-detail__root mb-4">
                     <div className="skuy-post__layout">
                         <div className="skuy-post__avatar-column">
                             <Avatar author={displayPost.author} labelTemplate={translations.avatar_of} />

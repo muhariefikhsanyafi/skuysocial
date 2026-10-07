@@ -20,7 +20,7 @@
                     <span>{{ __('threads.reposted_by', ['username' => $post->user->username]) }}</span>
                 </div>
             @endif
-            <article class="skuy-post skuy-post--detail-root skuy-post-detail__root mb-4">
+            <article class="skuy-post skuy-post--detail-root skuy-social-post skuy-post-detail__root mb-4">
                 <!-- Header User -->
                 <div class="skuy-post__layout">
                     <div class="skuy-post__avatar-column">
@@ -69,8 +69,8 @@
                     }
                 @endphp
                 @if (count($mediaPaths) === 1)
-                    <div x-data="{ openImage: false, activeImage: '' }" class="mb-4">
-                        <div @click="openImage = true; activeImage = '{{ asset('storage/' . $mediaPaths[0]) }}'" class="cursor-pointer overflow-hidden rounded-[var(--radius-medium)] border border-[var(--skuy-border-strong)] bg-[var(--skuy-surface-subtle)]">
+                    <div x-data="{ openImage: false, activeImage: '' }" class="skuy-post-detail__media skuy-post-detail__media--single mb-4">
+                        <div @click="openImage = true; activeImage = '{{ asset('storage/' . $mediaPaths[0]) }}'" class="skuy-post-detail__media-frame cursor-pointer overflow-hidden rounded-[var(--radius-small)]">
                             <img src="{{ asset('storage/' . $mediaPaths[0]) }}" alt="{{ __('threads.media.photo') }}" class="h-auto w-full object-cover transition-opacity hover:opacity-90">
                         </div>
 
@@ -94,10 +94,10 @@
                                 if (maxScroll === 0) return;
                                 this.activeSlide = Math.round((e.target.scrollLeft / maxScroll) * maxIndex);
                             }
-                        }" data-media-slider="true" class="mb-4">
-                        <div @scroll.passive="updateDots" data-media-slider-track="true" class="skuy-media-track">
+                        }" data-media-slider="true" class="skuy-post-detail__media skuy-post-detail__media--carousel mb-4">
+                        <div @scroll.passive="updateDots" data-media-slider-track="true" class="skuy-media-track skuy-post-detail__media-track">
                             @foreach ($mediaPaths as $mediaPath)
-                                <div @click="openImage = true; activeImage = '{{ asset('storage/' . $mediaPath) }}'" data-media-slide="true" class="skuy-media-item w-[85%] sm:w-[48%]">
+                                <div @click="openImage = true; activeImage = '{{ asset('storage/' . $mediaPath) }}'" data-media-slide="true" class="skuy-media-item skuy-post-detail__media-item w-[85%] sm:w-[48%]">
                                     <img src="{{ asset('storage/' . $mediaPath) }}" alt="{{ __('threads.media.photo') }}" class="w-full h-full object-cover">
                                 </div>
                             @endforeach
@@ -178,7 +178,7 @@
             <!-- ============================================================ -->
             <!-- FORM KOMENTAR UTAMA (Gaya Threads, di bawah kartu postingan) -->
             <!-- ============================================================ -->
-            <div class="skuy-composer mb-6">
+            <div class="skuy-composer skuy-post-detail__composer mb-6">
                 <div class="skuy-composer__identity">
                     @if (Auth::user()->avatar)
                         <div class="skuy-avatar skuy-avatar--small object-cover">

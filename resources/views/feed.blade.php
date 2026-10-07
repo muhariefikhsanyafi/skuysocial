@@ -110,7 +110,9 @@
                 data-feed-next-url="{{ $posts->nextPageUrl() }}"
                 x-init="nextFeedUrl = $el.dataset.feedNextUrl || ''"
             >
-                <h1 id="feed-title" class="sr-only">{{ __('navigation.home') }}</h1>
+                <header class="skuy-feed-page__header">
+                    <h1 id="feed-title" class="skuy-feed-page__title">{{ __('navigation.feed') }}</h1>
+                </header>
 
                 <div class="skuy-feed-timeline">
                     <div id="composer" data-composer class="skuy-composer skuy-feed-composer">

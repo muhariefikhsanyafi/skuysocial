@@ -18,7 +18,7 @@
         })"
         @feed-comment-created="commentCreated($event)"
         @click="if(!$event.target.closest('button, a, form, img, input, textarea, select, [contenteditable]')) window.location='{{ route('posts.show', $displayPost->uid) }}'"
-        class="skuy-post skuy-feed-post cursor-pointer"
+        class="skuy-post skuy-feed-post skuy-social-post cursor-pointer"
     >
         @if ($isRepost)
             <div class="skuy-post__repost skuy-feed-post__repost">

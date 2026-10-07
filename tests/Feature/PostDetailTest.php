@@ -72,7 +72,10 @@ class PostDetailTest extends TestCase
     {
         $author = User::factory()->create();
         $viewer = User::factory()->create();
-        $post = $this->createPost($author, ['content' => 'Presentation root post']);
+        $post = $this->createPost($author, [
+            'content' => 'Presentation root post',
+            'images' => ['detail-presentation-image.jpg'],
+        ]);
         $root = $this->createComment($post, $author, 'Presentation root reply');
         $this->createComment($post, $viewer, 'Presentation nested reply', ['parent_id' => $root->id]);
 
@@ -82,10 +85,16 @@ class PostDetailTest extends TestCase
             ->assertSee('skuy-post-detail__header', false)
             ->assertSee('skuy-post-detail__title', false)
             ->assertSee('skuy-post--detail-root', false)
+            ->assertSee('skuy-social-post', false)
             ->assertSee('skuy-post-detail__reply-heading', false)
             ->assertSee('skuy-post-detail__reply--root', false)
             ->assertSee('skuy-post-detail__reply--nested', false)
             ->assertSee('skuy-post-detail__thread-spine', false);
+
+        $html = (string) $response->getContent();
+        foreach (['skuy-post-detail__media--single', 'skuy-post-detail__composer'] as $markupHook) {
+            $this->assertTrue(str_contains($html, $markupHook), "Missing Post Detail presentation hook: {$markupHook}");
+        }
 
         $css = file_get_contents(resource_path('css/app.css'));
         $this->assertIsString($css);
@@ -97,12 +106,12 @@ class PostDetailTest extends TestCase
         $this->assertIsInt($rootEnd, "Unclosed mobile Post Detail root rule: {$rootSelector}");
         $rootRule = substr($css, $rootStart, $rootEnd - $rootStart + 1);
         foreach ([
-            'padding: 12px 0;',
+            'padding: var(--skuy-space-3) 0;',
             'border: 0;',
             'border-bottom: 1px solid var(--skuy-border-subtle);',
             'border-radius: 0;',
-            'background: var(--skuy-surface-raised);',
-            'box-shadow: none;',
+            'background: transparent;',
+            'box-shadow: var(--skuy-social-post-elevation);',
         ] as $declaration) {
             $this->assertStringContainsString($declaration, $rootRule);
         }
@@ -122,8 +131,30 @@ class PostDetailTest extends TestCase
         $titleEnd = strpos($css, '}', $titleStart);
         $this->assertIsInt($titleEnd, "Unclosed Post Detail title rule: {$titleSelector}");
         $titleRule = substr($css, $titleStart, $titleEnd - $titleStart + 1);
-        $this->assertStringContainsString('font-size: 24px;', $titleRule);
+        $this->assertStringContainsString('font-size: var(--skuy-type-social-page);', $titleRule);
         $this->assertStringContainsString('font-weight: 700;', $titleRule);
+    }
+
+    public function test_mobile_post_detail_header_uses_compact_social_spacing(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        $headerSelector = '.skuy-post-detail-page .skuy-post-detail__header {';
+        $headerStart = strrpos($css, $headerSelector);
+        $this->assertIsInt($headerStart, "Missing compact Post Detail header rule: {$headerSelector}");
+        $headerEnd = strpos($css, '}', $headerStart);
+        $this->assertIsInt($headerEnd, "Unclosed Post Detail header rule: {$headerSelector}");
+        $headerRule = substr($css, $headerStart, $headerEnd - $headerStart + 1);
+
+        foreach ([
+            'gap: var(--skuy-space-2);',
+            'margin-bottom: var(--skuy-space-3);',
+            'padding-bottom: var(--skuy-space-2);',
+            'min-height: var(--skuy-social-action-target);',
+        ] as $declaration) {
+            $this->assertTrue(str_contains($headerRule, $declaration), "Missing compact Post Detail header declaration: {$declaration}");
+        }
     }
 
     public function test_post_detail_exposes_scalar_post_counts_and_interaction_state(): void

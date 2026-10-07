@@ -37,6 +37,139 @@ class FeedTest extends TestCase
         });
     }
 
+    public function test_feed_exposes_a_visible_social_stream_heading(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+        $this->createPost($author, ['content' => 'Visible stream heading contract']);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+
+        $response->assertOk()
+            ->assertSee('class="skuy-feed-page__header"', false)
+            ->assertSee('class="skuy-feed-page__title"', false)
+            ->assertSee(__('navigation.feed'));
+    }
+
+    public function test_social_foundations_define_the_compact_spacing_and_type_scale(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+        $rootStart = strpos($css, ':root {');
+        $this->assertIsInt($rootStart, 'Missing root design-token scope.');
+        $rootEnd = strpos($css, '}', $rootStart);
+        $this->assertIsInt($rootEnd, 'Unclosed root design-token scope.');
+        $rootTokens = substr($css, $rootStart, $rootEnd - $rootStart + 1);
+
+        foreach ([
+            '--skuy-space-1: 4px;',
+            '--skuy-space-2: 8px;',
+            '--skuy-space-3: 12px;',
+            '--skuy-space-4: 16px;',
+            '--skuy-space-6: 24px;',
+            '--skuy-space-8: 32px;',
+            '--skuy-space-10: 40px;',
+            '--skuy-space-12: 48px;',
+            '--skuy-space-16: 64px;',
+            '--skuy-type-social-page: 24px;',
+            '--skuy-type-social-section: 18px;',
+            '--skuy-type-social-surface: 16px;',
+            '--skuy-type-social-author: 15px;',
+            '--skuy-type-social-body: 15px;',
+            '--skuy-type-social-meta: 12px;',
+            '--skuy-type-social-label: 12px;',
+            '--skuy-icon-social: 18px;',
+        ] as $token) {
+            $this->assertStringContainsString($token, $rootTokens, "Missing social design token: {$token}");
+        }
+    }
+
+    public function test_mobile_social_pages_use_four_column_grid_and_twelve_pixel_gutters(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        foreach ([
+            '--skuy-social-grid-columns: 4;',
+            '--skuy-social-gutter: var(--skuy-space-3);',
+            'grid-template-columns: repeat(var(--skuy-social-grid-columns), minmax(0, 1fr));',
+        ] as $foundationContract) {
+            $this->assertTrue(str_contains($css, $foundationContract), "Missing mobile social foundation: {$foundationContract}");
+        }
+    }
+
+    public function test_mobile_feed_uses_a_full_width_content_stream_with_compact_author_rows(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        foreach ([
+            'position: absolute;',
+            'display: block;',
+            'width: calc(100% + var(--skuy-social-gutter) + var(--skuy-social-gutter));',
+            'margin-inline: calc(0px - var(--skuy-social-gutter));',
+            'font-size: var(--skuy-type-social-body);',
+            'grid-template-columns: repeat(5, minmax(0, 1fr));',
+        ] as $cssContract) {
+            $this->assertTrue(str_contains($css, $cssContract), "Missing mobile Feed composition contract: {$cssContract}");
+        }
+    }
+
+    public function test_mobile_social_action_rows_stay_inside_post_content(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        $selector = '.skuy-post.skuy-social-post .skuy-actions.skuy-actions--primary {';
+        $ruleStart = strrpos($css, $selector);
+        $this->assertNotFalse($ruleStart, 'Social action rows need a bounded mobile width rule.');
+        $ruleEnd = strpos($css, '}', $ruleStart);
+        $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart);
+
+        foreach ([
+            'display: grid;',
+            'grid-template-columns: repeat(5, minmax(0, 1fr));',
+            'width: 100%;',
+            'max-width: 100%;',
+            'margin-inline-start: 0;',
+        ] as $declaration) {
+            $this->assertTrue(str_contains($rule, $declaration), "Social action row must include {$declaration}");
+        }
+    }
+
+    public function test_mobile_social_action_icons_use_the_normalized_size_token(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        $selector = '.skuy-post.skuy-social-post .skuy-actions.skuy-actions--primary .skuy-action > svg,';
+        $ruleStart = strrpos($css, $selector);
+        $this->assertNotFalse($ruleStart, 'Mobile social action icons need a high-specificity size rule.');
+        $ruleEnd = strpos($css, '}', $ruleStart);
+        $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart);
+
+        foreach (['width: var(--skuy-icon-social);', 'height: var(--skuy-icon-social);'] as $declaration) {
+            $this->assertTrue(str_contains($rule, $declaration), "Social icon rule must include {$declaration}");
+        }
+    }
+
+    public function test_active_feed_like_is_red_and_appreciation_remains_gold(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+
+        $this->assertTrue(
+            str_contains($css, '.skuy-social-post .skuy-actions--primary [data-mobile-primary-action="like"][aria-pressed="true"]'),
+            'The selected Feed Like must have a dedicated semantic color rule.',
+        );
+        $this->assertTrue(str_contains($css, 'color: var(--skuy-danger);'), 'Selected Like must use the red danger token.');
+        $this->assertTrue(
+            str_contains($css, ".skuy-actions--primary .skuy-appreciation--inline .skuy-action--appreciation[aria-pressed='true']"),
+            'Selected Appreciation must retain its gold semantic rule.',
+        );
+        $this->assertTrue(str_contains($css, 'color: var(--skuy-reaction);'), 'Selected Appreciation must use the gold reaction token.');
+    }
+
     public function test_feed_visual_hooks_keep_composer_and_social_controls_real_and_present(): void
     {
         $author = User::factory()->create();
@@ -77,7 +210,7 @@ class FeedTest extends TestCase
             'for="feed-composer-images"',
             'name="images[]"',
             'accept="image/*"',
-            'class="skuy-post skuy-feed-post cursor-pointer"',
+            'class="skuy-post skuy-feed-post skuy-social-post cursor-pointer"',
             'class="skuy-post__repost skuy-feed-post__repost"',
             'class="skuy-actions skuy-actions--primary skuy-feed-post__actions"',
             "@click=\"if(!\$event.target.closest('button, a, form, img, input, textarea, select, [contenteditable]')) window.location=",
@@ -194,7 +327,7 @@ class FeedTest extends TestCase
             'grid-template-columns: minmax(0, 1fr) minmax(260px, 280px);',
             '@media (min-width: 1500px)',
             '@media (max-width: 767px)',
-            'padding-bottom: calc(104px + env(safe-area-inset-bottom));',
+            'padding-bottom: calc(var(--skuy-social-mobile-dock-clearance) + env(safe-area-inset-bottom));',
             'grid-template-columns: repeat(5, minmax(0, 1fr));',
             'gap: 16px;',
             'gap: 8px;',
@@ -360,11 +493,12 @@ class FeedTest extends TestCase
         $this->assertIsInt($postEnd, "Unclosed mobile Feed post rule: {$postSelector}");
         $postRule = substr($css, $postStart, $postEnd - $postStart + 1);
         foreach ([
-            'padding: 16px 0;',
+            'padding: var(--skuy-space-4) 0;',
             'border: 0;',
+            'border-bottom: 1px solid var(--skuy-border-subtle);',
             'border-radius: 0;',
             'background: transparent;',
-            'box-shadow: none;',
+            'box-shadow: var(--skuy-social-post-elevation);',
         ] as $declaration) {
             $this->assertStringContainsString($declaration, $postRule);
         }
@@ -376,13 +510,6 @@ class FeedTest extends TestCase
         $feedListEnd = strpos($css, '}', $feedListStart);
         $this->assertIsInt($feedListEnd, "Unclosed mobile Feed list rule: {$feedListSelector}");
         $this->assertStringContainsString('gap: 0;', substr($css, $feedListStart, $feedListEnd - $feedListStart + 1));
-
-        $dividerSelector = '.skuy-feed-page .skuy-feed-post + .skuy-feed-post {';
-        $dividerStart = strrpos($css, $dividerSelector);
-        $this->assertIsInt($dividerStart, "Missing stream divider rule: {$dividerSelector}");
-        $dividerEnd = strpos($css, '}', $dividerStart);
-        $this->assertIsInt($dividerEnd, "Unclosed stream divider rule: {$dividerSelector}");
-        $this->assertStringContainsString('border-top: 1px solid var(--skuy-border-subtle);', substr($css, $dividerStart, $dividerEnd - $dividerStart + 1));
 
         $previewSelector = '.skuy-feed-page .skuy-feed-post__comment-preview {';
         $previewStart = strrpos($css, $previewSelector);
@@ -472,8 +599,8 @@ class FeedTest extends TestCase
         $timelineEnd = strpos($css, '}', $timelineStart);
         $this->assertIsInt($timelineEnd, "Unclosed mobile Feed timeline rule: {$timelineSelector}");
         $timelineRule = substr($css, $timelineStart, $timelineEnd - $timelineStart + 1);
-        $this->assertStringContainsString('gap: 8px;', $timelineRule);
-        $this->assertStringContainsString('padding-bottom: calc(104px + env(safe-area-inset-bottom));', $css);
+        $this->assertStringContainsString('gap: 0;', $timelineRule);
+        $this->assertStringContainsString('padding-bottom: calc(var(--skuy-social-mobile-dock-clearance) + env(safe-area-inset-bottom));', $css);
     }
 
     public function test_feed_wide_desktop_keeps_portrait_carousel_inside_the_existing_rail(): void
