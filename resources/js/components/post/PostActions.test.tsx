@@ -17,6 +17,11 @@ vi.mock('@inertiajs/react', () => ({
 
 const translations: PostDetailTranslations = {
     back_to_feed: 'Back to feed',
+    about_creator: 'About the creator',
+    no_bio: 'This user has not written a bio.',
+    threads: 'Threads',
+    followers: 'Followers',
+    following: 'Following',
     thread: 'Thread',
     replies: 'Replies',
     like: 'Like',
@@ -121,6 +126,7 @@ const post: DisplayPost = {
 
 const routes: PostDetailRoutes = {
     feed: '/feed',
+    author_profile: '/@author',
     like: '/posts/post-1/like',
     appreciation: '/posts/post-1/appreciation',
     repost: '/post/post-1/repost',

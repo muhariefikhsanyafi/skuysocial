@@ -61,6 +61,12 @@ const props = {
             can_perform_social_writes: true,
         },
     },
+    author_context: {
+        bio: 'A real city-garden designer.',
+        posts_count: 12,
+        followers_count: 34,
+        followings_count: 5,
+    },
     comments: {
         data: [],
         current_page: 1,
@@ -74,6 +80,7 @@ const props = {
     viewer: { id: 1, author, can_perform_social_writes: true },
     routes: {
         feed: '/feed',
+        author_profile: '/@display_person',
         like: '/posts/detail-post/like',
         appreciation: '/posts/detail-post/appreciation',
         repost: '/posts/detail-post/repost',
@@ -87,6 +94,11 @@ const props = {
     },
     translations: {
         back_to_feed: 'Back to feed',
+        about_creator: 'About the creator',
+        no_bio: 'This user has not written a bio.',
+        threads: 'Threads',
+        followers: 'Followers',
+        following: 'Following',
         thread: 'Thread',
         replies: 'Replies',
         like: 'Like',
@@ -175,6 +187,31 @@ describe('Post detail composition', () => {
         vi.unstubAllGlobals();
         if (scrollXDescriptor) Object.defineProperty(window, 'scrollX', scrollXDescriptor);
         if (scrollYDescriptor) Object.defineProperty(window, 'scrollY', scrollYDescriptor);
+    });
+
+    it('uses the Skuy Prism detail grid and a data-backed author context card', () => {
+        usePageMock.mockReturnValue({
+            props: {
+                ...props,
+                routes: { ...props.routes, author_profile: '/@display_person' },
+            },
+        });
+        render(<Show />);
+
+        const page = document.querySelector('[data-skuy-prism-detail]');
+        expect(page).not.toBeNull();
+        expect(page?.querySelector('.skuy-post-detail__layout')).not.toBeNull();
+        expect(page?.querySelector('main')).toBeNull();
+        expect(page?.querySelector('.skuy-post-detail__main')).not.toBeNull();
+
+        const context = screen.getByRole('complementary', { name: 'About the creator' });
+        const creatorLink = within(context).getByRole('link', { name: /Display Person.*@display_person/ });
+        expect(creatorLink.getAttribute('href')).toBe('/@display_person');
+        expect(within(context).getByText('A real city-garden designer.')).not.toBeNull();
+        expect(context.querySelector('[data-profile-stat="threads"]')?.textContent).toBe('12');
+        expect(context.querySelector('[data-profile-stat="followers"]')?.textContent).toBe('34');
+        expect(context.querySelector('[data-profile-stat="following"]')?.textContent).toBe('5');
+        expect(page?.querySelector('.skuy-post-detail__root-header .skuy-avatar')).not.toBeNull();
     });
 
     it('separates root post, reply composer, and conversation while leading with author identity', () => {

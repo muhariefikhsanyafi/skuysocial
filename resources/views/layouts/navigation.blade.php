@@ -40,11 +40,10 @@
         array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['dashboard', 'feed', 'search'], true)),
         array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['activity', 'announcements', 'messages', 'saved', 'profile'], true)),
     ];
-    $bottomHomeIsDashboard = $isDashboard;
-    $bottomHomeHref = $bottomHomeIsDashboard ? route('dashboard') : route('feed');
-    $bottomHomeLabel = $bottomHomeIsDashboard ? __('navigation.dashboard') : __('navigation.feed');
-    $bottomHomeIcon = $bottomHomeIsDashboard ? 'gauge' : 'house';
-    $bottomHomeCurrent = $bottomHomeIsDashboard || $isFeed;
+    $bottomHomeHref = route('feed');
+    $bottomHomeLabel = __('navigation.home');
+    $bottomHomeIcon = 'house';
+    $bottomHomeCurrent = $isFeed;
     $composerHref = $isFeed ? '#composer' : route('feed').'#composer';
 @endphp
 
@@ -62,6 +61,7 @@
     }"
     @keydown.escape.window="if (window.innerWidth < 1280) sidebarOpen = false"
     class="skuy-navigation-shell"
+    data-skuy-prism-shell
 >
 <nav class="skuy-topbar">
     <div class="skuy-topbar__inner">
@@ -192,9 +192,13 @@
     x-transition
     style="display: none;"
     class="skuy-app-rail"
+    data-skuy-desktop-rail
     aria-label="{{ __('home.public.primary_navigation') }}"
 >
     <div class="skuy-app-rail__inner">
+        <a href="{{ $brandHref }}" class="skuy-app-rail__brand" aria-label="SkuySocial, {{ $brandLabel }}">
+            <span class="skuy-brand__accent">Skuy</span><span>Social</span>
+        </a>
         <p class="skuy-app-nav__eyebrow">{{ __('home.public.primary_navigation') }}</p>
 
         <nav class="skuy-app-nav" aria-label="{{ __('home.public.primary_navigation') }}">
@@ -204,6 +208,7 @@
                         @foreach ($navigationGroup as $item)
                             <a
                                 href="{{ $item['href'] }}"
+                                data-nav-key="{{ $item['key'] }}"
                                 aria-label="{{ $item['key'] === 'announcements' && $unreadAnnouncementCount > 0 ? $announcementsMobileLabel : $item['label'] }}"
                                 aria-current="{{ $item['active'] ? 'page' : 'false' }}"
                                 @click="sidebarOpen = false"
@@ -230,16 +235,45 @@
                             </a>
                         @endforeach
                     </div>
+
+                    @if ($loop->first && $user->canPerformSocialWrites())
+                        <a href="{{ route('feed') }}#composer" class="skuy-app-rail__compose">
+                            <x-fa-icon name="plus" weight="solid" class="text-xl" />
+                            <span>{{ __('navigation.create_thread') }}</span>
+                        </a>
+                    @endif
                 @endif
             @endforeach
         </nav>
 
-        @if ($user->canPerformSocialWrites())
-            <a href="{{ route('feed') }}#composer" class="skuy-app-rail__compose">
-                <x-fa-icon name="plus" weight="solid" class="text-xl" />
-                <span>{{ __('navigation.create_thread') }}</span>
-            </a>
-        @endif
+        <div class="skuy-app-rail__footer" x-data="{ accountMenuOpen: false }" @click.outside="accountMenuOpen = false" @keydown.escape.window="accountMenuOpen = false">
+            <div class="skuy-app-rail__account-card">
+                <a href="{{ $profileUrl }}" class="skuy-app-rail__account" aria-label="{{ __('navigation.my_profile') }}: {{ $user->name }}">
+                    <span class="skuy-app-rail__account-avatar" aria-hidden="true">
+                        @if ($user->avatar)
+                            <img src="{{ asset('storage/' . $user->avatar) }}" alt="">
+                        @else
+                            {{ mb_substr($user->name, 0, 1) }}
+                        @endif
+                    </span>
+                    <span class="skuy-app-rail__account-copy">
+                        <strong>{{ $user->name }}</strong>
+                        <span>{{ '@' . $user->username }}</span>
+                    </span>
+                </a>
+                <button type="button" class="skuy-app-rail__account-more" aria-label="{{ __('navigation.open_profile_menu') }}" aria-haspopup="menu" :aria-expanded="accountMenuOpen.toString()" aria-controls="rail-account-menu" @click="accountMenuOpen = !accountMenuOpen">
+                    <x-fa-icon name="ellipsis" class="text-lg" />
+                </button>
+                <div id="rail-account-menu" x-show="accountMenuOpen" x-transition style="display: none;" role="menu" aria-label="{{ __('navigation.my_profile') }}" class="skuy-menu-surface skuy-app-rail__account-menu">
+                    <a href="{{ route('announcements.index') }}" class="skuy-menu-link" role="menuitem">{{ __('navigation.announcements') }}</a>
+                    <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link" role="menuitem">{{ __('navigation.settings') }}</a>
+                    <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
+                        @csrf
+                        <button type="submit" class="skuy-menu-link min-h-[44px] text-[var(--skuy-danger)]" role="menuitem">{{ __('navigation.sign_out') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </aside>
 
@@ -260,10 +294,10 @@
             <span class="sr-only">{{ __('navigation.create_thread') }}</span>
         </a>
     @else
-        <a href="{{ route('feed') }}" aria-label="{{ __('navigation.feed') }}" class="skuy-mobile-nav__item">
-            <x-fa-icon name="house" :weight="request()->routeIs('feed') ? 'solid' : 'regular'" class="text-xl" />
-            <span>{{ __('navigation.feed') }}</span>
-        </a>
+        <button type="button" disabled aria-label="{{ __('navigation.create_thread') }}" aria-disabled="true" class="skuy-mobile-nav__item skuy-mobile-nav__item--compose skuy-mobile-nav__item--disabled" data-mobile-nav-key="create">
+            <x-fa-icon name="plus" weight="solid" class="text-xl" />
+            <span class="sr-only">{{ __('navigation.create_thread') }}</span>
+        </button>
     @endif
 
     <a href="{{ route('activity.index') }}" aria-label="{{ $activityMobileLabel }}" aria-current="{{ request()->routeIs('activity.index') ? 'page' : 'false' }}" class="skuy-mobile-nav__item" data-mobile-nav-key="activity">

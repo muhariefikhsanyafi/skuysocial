@@ -111,6 +111,7 @@ export interface ExpandedReplies {
 
 export interface PostDetailRoutes {
     feed: string;
+    author_profile: string;
     like: string;
     appreciation: string;
     repost: string;
@@ -167,6 +168,11 @@ export interface PostAppreciationTranslations {
 
 export interface PostDetailTranslations {
     back_to_feed: string;
+    about_creator: string;
+    no_bio: string;
+    threads: string;
+    followers: string;
+    following: string;
     thread: string;
     replies: string;
     like: string;
@@ -206,6 +212,12 @@ export interface PostDetailTranslations {
 export interface PostDetailPageProps extends SharedProps {
     post: PostRouteContext;
     display_post: DisplayPost;
+    author_context: {
+        bio: string | null;
+        posts_count: number;
+        followers_count: number;
+        followings_count: number;
+    };
     comments: CommentPagination;
     expanded_reply_root_id: number | null;
     expanded_replies: ExpandedReplies | null;

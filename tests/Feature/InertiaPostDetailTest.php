@@ -28,6 +28,7 @@ class InertiaPostDetailTest extends TestCase
         $owner = User::factory()->create([
             'username' => 'pilot-owner',
             'is_verified' => true,
+            'bio' => 'An architect writing about inclusive spaces.',
         ]);
         $post = $this->createPost($owner, [
             'content' => 'Pilot detail content',
@@ -61,17 +62,23 @@ class InertiaPostDetailTest extends TestCase
             ->assertJsonPath('props.display_post.interactions.comment_count', 2)
             ->assertJsonPath('props.display_post.capabilities.can_edit', true)
             ->assertJsonPath('props.display_post.capabilities.can_delete', true)
+            ->assertJsonPath('props.author_context.bio', 'An architect writing about inclusive spaces.')
+            ->assertJsonPath('props.author_context.posts_count', 1)
+            ->assertJsonPath('props.author_context.followers_count', 0)
+            ->assertJsonPath('props.author_context.followings_count', 0)
             ->assertJsonPath('props.viewer.can_perform_social_writes', true)
             ->assertJsonPath('props.comments.data.0.id', $root->id)
             ->assertJsonPath('props.comments.data.0.replies.0.id', $reply->id)
             ->assertJsonPath('props.expanded_reply_root_id', null)
             ->assertJsonPath('props.expanded_replies', null)
+            ->assertJsonPath('props.routes.author_profile', route('user.profile', $owner))
             ->assertJsonPath('props.routes.comment', route('comments.store', $post))
             ->assertJsonPath('props.routes.like', route('posts.like', $post))
             ->assertJsonPath('props.routes.bookmark_store', route('bookmarks.store', $post))
             ->assertJsonPath('props.routes.edit', route('posts.edit', $post))
             ->assertJsonPath('props.routes.delete', route('posts.destroy', $post))
-            ->assertJsonPath('props.translations.thread', __('threads.labels.thread'));
+            ->assertJsonPath('props.translations.thread', __('threads.labels.thread'))
+            ->assertJsonPath('props.translations.about_creator', __('profile.about_creator'));
 
         $displayPost = $response->json('props.display_post');
         $this->assertSame(
@@ -82,6 +89,10 @@ class InertiaPostDetailTest extends TestCase
         $this->assertArrayNotHasKey('password', $displayPost['author']);
         $this->assertArrayNotHasKey('email', $response->json('props.viewer.author'));
         $this->assertArrayNotHasKey('password', $response->json('props.viewer.author'));
+        $this->assertSame(
+            ['bio', 'posts_count', 'followers_count', 'followings_count'],
+            array_keys($response->json('props.author_context')),
+        );
     }
 
     public function test_inertia_post_detail_preserves_repost_context_and_non_owner_capabilities(): void

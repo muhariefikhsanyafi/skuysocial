@@ -2,6 +2,7 @@
 
 return [
     'edit' => 'Edit Profile',
+    'about_creator' => 'About the creator',
     'follow' => 'Follow',
     'following' => 'Following',
     'followers' => 'Followers',

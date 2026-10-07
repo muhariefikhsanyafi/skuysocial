@@ -425,6 +425,17 @@ class BookmarkTest extends TestCase
         $bookmarkLinks = $xpath->query('//a[@href="'.$bookmarkUrl.'"]');
 
         $this->assertSame(2, $bookmarkLinks->length);
+
+        $prismCss = file_get_contents(resource_path('css/skuy-prism.css'));
+        $this->assertIsString($prismCss);
+        $hiddenNavigationSelector = ".skuy-app-nav__link[data-nav-key='dashboard'],";
+        $hiddenNavigationStart = strpos($prismCss, $hiddenNavigationSelector);
+        $this->assertIsInt($hiddenNavigationStart, "Missing desktop rail visibility rule: {$hiddenNavigationSelector}");
+        $hiddenNavigationEnd = strpos($prismCss, '}', $hiddenNavigationStart);
+        $this->assertIsInt($hiddenNavigationEnd, 'Unclosed desktop rail visibility rule.');
+        $hiddenNavigationRule = substr($prismCss, $hiddenNavigationStart, $hiddenNavigationEnd - $hiddenNavigationStart);
+        $this->assertStringNotContainsString("data-nav-key='saved'", $hiddenNavigationRule);
+
         $savedLabel = __('navigation.saved');
         $explicitAriaLabels = 0;
         foreach ($bookmarkLinks as $bookmarkLink) {

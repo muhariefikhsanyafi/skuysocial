@@ -1,5 +1,14 @@
+@php
+    $feedCreators = collect($posts->items())
+        ->map(fn ($post) => $post->repost_id !== null ? $post->originalPost?->user : $post->user)
+        ->filter(fn ($creator) => $creator && $creator->id !== auth()->id())
+        ->unique('id')
+        ->take(5)
+        ->values();
+@endphp
+
 <x-app-layout>
-    <div class="skuy-feed-page">
+    <div class="skuy-feed-page" data-skuy-prism-feed>
         <div class="skuy-feed-shell">
             <section
                 class="skuy-feed-content"
@@ -114,6 +123,23 @@
                     <h1 id="feed-title" class="skuy-feed-page__title">{{ __('navigation.feed') }}</h1>
                 </header>
 
+                @if ($feedCreators->isNotEmpty())
+                    <nav class="skuy-feed-creators" aria-label="{{ __('navigation.profile') }}">
+                        @foreach ($feedCreators as $creator)
+                            <a href="{{ route('user.profile', $creator->username) }}" class="skuy-feed-creator" aria-label="{{ $creator->name }}, @{{ $creator->username }}">
+                                <span class="skuy-feed-creator__avatar">
+                                    @if ($creator->avatar)
+                                        <img src="{{ asset('storage/' . $creator->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $creator->name]) }}">
+                                    @else
+                                        {{ mb_substr($creator->name, 0, 1) }}
+                                    @endif
+                                </span>
+                                <span class="skuy-feed-creator__name">{{ '@' . $creator->username }}</span>
+                            </a>
+                        @endforeach
+                    </nav>
+                @endif
+
                 <div class="skuy-feed-timeline">
                     <div id="composer" data-composer class="skuy-composer skuy-feed-composer">
                         <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="skuy-feed-composer__form" x-data="{
@@ -169,29 +195,20 @@
                         }" @submit="isSubmitting = true" @beforeunload.window="cleanupImagePreviews()">
                             @csrf
 
-                            <div class="skuy-composer__identity">
+                            <div class="skuy-feed-composer__entry">
                                 @if (Auth::user()->avatar)
-                                    <div class="skuy-avatar">
+                                    <div class="skuy-avatar skuy-feed-composer__avatar">
                                         <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
                                     </div>
                                 @else
-                                    <div class="skuy-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
-                                        {{ substr(Auth::user()->name, 0, 1) }}
+                                    <div class="skuy-avatar skuy-feed-composer__avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
+                                        {{ mb_substr(Auth::user()->name, 0, 1) }}
                                     </div>
                                 @endif
 
-                                <div class="skuy-composer__identity-copy">
-                                    <span class="skuy-composer__display-name">{{ Auth::user()->name }}</span>
-                                    <div class="skuy-composer__identity-meta">
-                                        <span class="skuy-composer__username">{{ '@' . Auth::user()->username }}</span>
-                                        @if (Auth::user()->is_verified)
-                                            <span class="skuy-composer__verified text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
-                                                </svg>
-                                            </span>
-                                        @endif
-                                    </div>
+                                <div class="skuy-feed-composer__field">
+                                    <label for="feed-composer-body" class="sr-only">{{ __('threads.composer.content_placeholder') }}</label>
+                                    <textarea id="feed-composer-body" name="content" rows="2" x-model="content" class="skuy-composer__textarea" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
                                 </div>
                             </div>
 
@@ -229,9 +246,6 @@
                                 </div>
                             </div>
 
-                            <label for="feed-composer-body" class="sr-only">{{ __('threads.composer.content_placeholder') }}</label>
-                            <textarea id="feed-composer-body" name="content" rows="2" x-model="content" class="skuy-composer__textarea" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
-
                             @if ($errors->any())
                                 <div class="skuy-form-error" role="alert">
                                     <ul class="list-disc list-inside">
@@ -266,9 +280,10 @@
                                     <div x-show="mediaMessage" x-text="mediaMessage" style="display: none;" role="status" aria-live="polite" class="mt-2 text-sm font-semibold text-[var(--skuy-danger)]"></div>
                                 </div>
 
-                                <button type="submit" :disabled="isSubmitting || content.trim() === ''" class="skuy-button skuy-button--primary shrink-0">
-                                    <span x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
-                                    <span x-show="isSubmitting">...</span>
+                                <button type="submit" :disabled="isSubmitting || content.trim() === ''" :aria-busy="isSubmitting.toString()" aria-label="{{ __('threads.actions.post') }}" title="{{ __('threads.actions.post') }}" class="skuy-feed-composer__submit">
+                                    <x-fa-icon name="arrow-up" weight="solid" class="text-lg" />
+                                    <span class="sr-only" x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
+                                    <span class="sr-only" x-show="isSubmitting" style="display: none;">...</span>
                                 </button>
                             </div>
                         </form>
@@ -323,6 +338,30 @@
                         @endforelse
                     </div>
                 </div>
+
+                @if ($feedCreators->isNotEmpty())
+                    <div class="skuy-context-card skuy-feed-context-card skuy-feed-context-creators" aria-labelledby="feed-creators-title">
+                        <h2 id="feed-creators-title" class="skuy-context-card__title">{{ __('navigation.profile') }}</h2>
+                        <div class="skuy-feed-context-creators__list">
+                            @foreach ($feedCreators as $creator)
+                                <a href="{{ route('user.profile', $creator->username) }}" class="skuy-feed-context-creator">
+                                    <span class="skuy-feed-context-creator__avatar" aria-hidden="true">
+                                        @if ($creator->avatar)
+                                            <img src="{{ asset('storage/' . $creator->avatar) }}" alt="">
+                                        @else
+                                            {{ mb_substr($creator->name, 0, 1) }}
+                                        @endif
+                                    </span>
+                                    <span class="skuy-feed-context-creator__identity">
+                                        <strong>{{ $creator->name }}</strong>
+                                        <span>{{ '@' . $creator->username }}</span>
+                                    </span>
+                                    <x-fa-icon name="arrow-up-right-from-square" class="skuy-feed-context-creator__icon" />
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <div class="skuy-context-card skuy-context-card--accent skuy-feed-context-card skuy-feed-context-card--community">
                     <h2 class="skuy-context-card__title">SkuySocial</h2>

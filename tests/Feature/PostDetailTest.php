@@ -68,6 +68,42 @@ class PostDetailTest extends TestCase
             ->assertSee('Visible detail content');
     }
 
+    public function test_post_detail_uses_the_skuy_prism_layout_and_real_author_context(): void
+    {
+        $author = User::factory()->create([
+            'username' => 'prism-detail-author',
+            'bio' => 'Garden designer and community builder.',
+        ]);
+        $viewer = User::factory()->create();
+        $this->createPost($author, ['content' => 'A prior thread.']);
+        $author->followers()->attach($viewer->getKey());
+        $post = $this->createPost($author, ['content' => 'Prism detail root content']);
+
+        $response = $this->actingAs($viewer)->get(route('posts.show', $post));
+
+        $response->assertOk()
+            ->assertSee('data-skuy-prism-shell', false)
+            ->assertSee('data-skuy-prism-detail', false)
+            ->assertSee('skuy-post-detail__layout', false)
+            ->assertSee('skuy-post-detail__main', false)
+            ->assertSee('skuy-post-detail__context', false)
+            ->assertSee(__('profile.about_creator'))
+            ->assertSee('Garden designer and community builder.')
+            ->assertSee(__('profile.followers'))
+            ->assertSee(route('user.profile', $author), false)
+            ->assertSee('prism-detail-author')
+            ->assertSee('Prism detail root content');
+
+        $html = (string) $response->getContent();
+        $this->assertStringContainsString('<section class="skuy-feed-content skuy-post-detail__main', $html);
+        $this->assertStringContainsString(':aria-busy="isSubmitting.toString()"', $html);
+        $this->assertStringContainsString('class="skuy-avatar skuy-post-detail__creator-avatar"', $html);
+        $this->assertStringContainsString('class="skuy-post-detail__context-title">'.e(__('profile.about_creator')).'</h2>', $html);
+        $this->assertStringContainsString('data-profile-stat="threads">2</dd>', $html);
+        $this->assertStringContainsString('data-profile-stat="followers">1</dd>', $html);
+        $this->assertStringContainsString('data-profile-stat="following">0</dd>', $html);
+    }
+
     public function test_post_detail_uses_feed_surface_grammar_and_lighter_thread_rows(): void
     {
         $author = User::factory()->create();

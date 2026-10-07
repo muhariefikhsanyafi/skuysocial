@@ -2,6 +2,7 @@
 
 return [
     'edit' => 'Edit Profil',
+    'about_creator' => 'Tentang kreator',
     'follow' => 'Ikuti',
     'following' => 'Mengikuti',
     'followers' => 'Pengikut',

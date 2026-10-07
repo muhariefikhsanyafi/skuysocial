@@ -27,20 +27,16 @@
             </div>
         @endif
 
-        <div class="skuy-post__layout">
-            <div class="skuy-post__avatar-column">
-                <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
-                    @if ($displayPost->user->avatar)
-                        <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
-                    @else
-                        {{ substr($displayPost->user->name, 0, 1) }}
-                    @endif
-                </a>
-            </div>
-
-            <div class="skuy-post__body">
-                <div class="skuy-post__body-main">
-                <div class="skuy-post__header">
+        <div class="skuy-post__body">
+            <div class="skuy-post__body-main">
+                <div class="skuy-post__header skuy-feed-post__header">
+                    <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-avatar skuy-feed-post__avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
+                        @if ($displayPost->user->avatar)
+                            <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
+                        @else
+                            {{ mb_substr($displayPost->user->name, 0, 1) }}
+                        @endif
+                    </a>
                     <div class="skuy-post__identity">
                         <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-post__display-name">
                             {{ $displayPost->user->name }}
@@ -625,6 +621,5 @@
                         </div>
                     </div>
             </div>
-        </div>
     </article>
 @endforeach

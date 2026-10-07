@@ -1,3 +1,4 @@
+import '../css/skuy-prism.css';
 import Alpine from 'alpinejs';
 import { acquireFeedPostActionLock } from './feedPostActionLock';
 import { initializeMessageComposers } from './messageComposer';

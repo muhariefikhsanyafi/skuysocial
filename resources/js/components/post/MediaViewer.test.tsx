@@ -4,6 +4,11 @@ import type { PostDetailTranslations, PostMedia } from '../../types/post';
 import { MediaViewer } from './MediaViewer';
 
 const translations = {
+    about_creator: 'About the creator',
+    no_bio: 'This user has not written a bio.',
+    threads: 'Threads',
+    followers: 'Followers',
+    following: 'Following',
     photo: 'Photo',
     full_photo: 'Full image',
     close_preview: 'Close preview',

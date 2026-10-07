@@ -37,6 +37,92 @@ class FeedTest extends TestCase
         });
     }
 
+    public function test_feed_renders_the_skuy_prism_composition_with_real_feed_creators(): void
+    {
+        $viewer = User::factory()->create();
+        $creator = User::factory()->create(['username' => 'prism-feed-creator']);
+        $this->createPost($creator, ['content' => 'A real creator from the current feed']);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+
+        $response->assertOk()
+            ->assertSee('data-skuy-prism-shell', false)
+            ->assertSee('data-skuy-desktop-rail', false)
+            ->assertSee('data-skuy-prism-feed', false)
+            ->assertSee('skuy-feed-creators', false)
+            ->assertSee('skuy-feed-composer__entry', false)
+            ->assertSee('skuy-feed-post__header', false)
+            ->assertSee('skuy-feed-context-creators', false)
+            ->assertSee(route('user.profile', $creator), false)
+            ->assertSee('A real creator from the current feed');
+    }
+
+    public function test_mobile_primary_navigation_has_exactly_five_items_in_product_order(): void
+    {
+        $viewer = User::factory()->create();
+        $response = $this->actingAs($viewer)->get(route('feed'));
+        $html = (string) $response->getContent();
+
+        preg_match_all('/data-mobile-nav-key="([^"]+)"/', $html, $matches);
+
+        $this->assertSame(['home', 'search', 'create', 'activity', 'messages'], $matches[1]);
+        $response->assertSee('skuy-app-rail__account', false);
+    }
+
+    public function test_skuy_prism_visual_tokens_and_performance_guards_are_defined(): void
+    {
+        $css = file_get_contents(resource_path('css/skuy-prism.css'));
+        $this->assertIsString($css);
+
+        foreach ([
+            '--skuy-prism-glass-edge:',
+            '--skuy-motion-fast:',
+            '--skuy-motion-panel:',
+            '.skuy-app-shell__workspace',
+            '.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post',
+            '.skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__layout',
+            '.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post.skuy-social-post .skuy-post__header {',
+            '.skuy-post-detail-page[data-skuy-prism-detail] .skuy-post--detail-root.skuy-social-post .skuy-post__header {',
+            'grid-template-columns: repeat(5, minmax(0, 1fr));',
+            '@media (min-width: 1200px)',
+            '@media (prefers-reduced-motion: reduce)',
+            '@media (prefers-reduced-transparency: reduce)',
+        ] as $contract) {
+            $this->assertStringContainsString($contract, $css, "Missing Skuy Prism visual contract: {$contract}");
+        }
+
+        $postSelector = '.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post {';
+        $postStart = strpos($css, $postSelector);
+        $this->assertIsInt($postStart, "Missing scoped Feed surface selector: {$postSelector}");
+        $postEnd = strpos($css, '}', $postStart);
+        $this->assertIsInt($postEnd, 'Unclosed Skuy Prism Feed post surface rule.');
+        $postSurfaceRule = substr($css, $postStart, $postEnd - $postStart + 1);
+        $this->assertStringNotContainsString('backdrop-filter:', $postSurfaceRule);
+
+        $desktopMediaStart = strpos($css, '@media (min-width: 1280px) {');
+        $this->assertIsInt($desktopMediaStart, 'Missing desktop Skuy Prism rail breakpoint.');
+        $desktopTopbarSelector = '.skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {';
+        $desktopTopbarStart = strpos($css, $desktopTopbarSelector, $desktopMediaStart);
+        $this->assertIsInt($desktopTopbarStart, 'Missing high-specificity desktop Skuy Prism topbar rule: '.$desktopTopbarSelector);
+        $desktopTopbarEnd = strpos($css, '}', $desktopTopbarStart);
+        $this->assertIsInt($desktopTopbarEnd, 'Unclosed desktop Skuy Prism topbar rule.');
+        $desktopTopbarRule = substr($css, $desktopTopbarStart, $desktopTopbarEnd - $desktopTopbarStart + 1);
+        $this->assertStringContainsString('inset-inline-start: auto;', $desktopTopbarRule);
+        $this->assertStringContainsString('inset-inline-end: 18px;', $desktopTopbarRule);
+        $this->assertStringContainsString('width: max-content;', $desktopTopbarRule);
+        $this->assertStringContainsString('border: 0;', $desktopTopbarRule);
+        $this->assertStringContainsString('background: transparent;', $desktopTopbarRule);
+        $this->assertStringContainsString('box-shadow: none;', $desktopTopbarRule);
+
+        $communityLinkSelector = '.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-context-card--community a {';
+        $communityLinkStart = strpos($css, $communityLinkSelector);
+        $this->assertIsInt($communityLinkStart, 'Missing Feed community-card action rule.');
+        $communityLinkEnd = strpos($css, '}', $communityLinkStart);
+        $this->assertIsInt($communityLinkEnd, 'Unclosed Feed community-card action rule.');
+        $communityLinkRule = substr($css, $communityLinkStart, $communityLinkEnd - $communityLinkStart + 1);
+        $this->assertStringContainsString('color: var(--skuy-on-brand);', $communityLinkRule);
+    }
+
     public function test_feed_exposes_a_visible_social_stream_heading(): void
     {
         $viewer = User::factory()->create();

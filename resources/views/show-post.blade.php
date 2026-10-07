@@ -3,8 +3,9 @@
         $isRepost = $post->id !== $displayPost->id;
     @endphp
 
-    <div class="skuy-feed-page skuy-post-detail-page">
-        <div class="skuy-feed-content skuy-post-detail__content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+    <div class="skuy-feed-page skuy-post-detail-page" data-skuy-prism-detail>
+        <div class="skuy-post-detail__layout">
+            <section class="skuy-feed-content skuy-post-detail__main skuy-post-detail__content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <!-- Header Kembali -->
             <div class="skuy-post-detail__header mb-4 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
                 <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action">
@@ -22,32 +23,30 @@
             @endif
             <article class="skuy-post skuy-post--detail-root skuy-social-post skuy-post-detail__root mb-4">
                 <!-- Header User -->
-                <div class="skuy-post__layout">
-                    <div class="skuy-post__avatar-column">
-                        @if ($displayPost->user->avatar)
-                            <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}" class="skuy-avatar object-cover">
-                        @else
-                            <div class="skuy-avatar object-cover">
-                                {{ substr($displayPost->user->name, 0, 1) }}
+                <div class="skuy-post__body">
+                    <div class="skuy-post__body-main">
+                        <div class="skuy-post__header skuy-post-detail__root-header">
+                            <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-avatar skuy-post-detail__root-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
+                                @if ($displayPost->user->avatar)
+                                    <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
+                                @else
+                                    {{ mb_substr($displayPost->user->name, 0, 1) }}
+                                @endif
+                            </a>
+                            <div class="skuy-post__identity">
+                                <span class="skuy-post__display-name">{{ $displayPost->user->name }}</span>
+                                <span class="skuy-post__username">@{{ $displayPost->user->username }}</span>
+                                @if($displayPost->user->is_verified)
+                                    <span class="inline-flex text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
+                                    </span>
+                                @endif
+                                <time datetime="{{ $displayPost->created_at->toIso8601String() }}" class="skuy-post__time">
+                                    {{ $displayPost->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}
+                                </time>
                             </div>
-                        @endif
-                    </div>
-                    <div class="skuy-post__body">
-                        <div class="skuy-post__body-main">
-                            <div class="skuy-post__header">
-                                <div class="skuy-post__identity">
-                                    <span class="skuy-post__display-name">{{ $displayPost->user->username }}</span>
-                            @if($displayPost->user->is_verified)
-                                <span class="inline-flex text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
-                                </span>
-                            @endif
-                                    <time datetime="{{ $displayPost->created_at->toIso8601String() }}" class="skuy-post__time">
-                                        {{ $displayPost->created_at->locale('id')->diffForHumans(null, true) }}
-                                    </time>
-                                </div>
-                                @include('partials.post-mobile-bookmark-menu', ['displayPost' => $displayPost])
-                            </div>
+                            @include('partials.post-mobile-bookmark-menu', ['displayPost' => $displayPost])
+                        </div>
 
                             <div class="skuy-post__content">
                                 <!-- Isi Teks -->
@@ -95,7 +94,7 @@
                                 this.activeSlide = Math.round((e.target.scrollLeft / maxScroll) * maxIndex);
                             }
                         }" data-media-slider="true" class="skuy-post-detail__media skuy-post-detail__media--carousel mb-4">
-                        <div @scroll.passive="updateDots" data-media-slider-track="true" class="skuy-media-track skuy-post-detail__media-track">
+                        <div @scroll.passive="updateDots" data-media-slider-track="true" class="skuy-media-track">
                             @foreach ($mediaPaths as $mediaPath)
                                 <div @click="openImage = true; activeImage = '{{ asset('storage/' . $mediaPath) }}'" data-media-slide="true" class="skuy-media-item skuy-post-detail__media-item w-[85%] sm:w-[48%]">
                                     <img src="{{ asset('storage/' . $mediaPath) }}" alt="{{ __('threads.media.photo') }}" class="w-full h-full object-cover">
@@ -171,7 +170,6 @@
                     </button>
                         </div>
                         @include('partials.post-appreciation-feedback', ['displayPost' => $displayPost])
-                    </div>
                 </div>
             </article>
 
@@ -179,30 +177,25 @@
             <!-- FORM KOMENTAR UTAMA (Gaya Threads, di bawah kartu postingan) -->
             <!-- ============================================================ -->
             <div class="skuy-composer skuy-post-detail__composer mb-6">
-                <div class="skuy-composer__identity">
-                    @if (Auth::user()->avatar)
-                        <div class="skuy-avatar skuy-avatar--small object-cover">
-                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
-                        </div>
-                    @else
-                        <div class="skuy-avatar skuy-avatar--small object-cover" aria-label="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
-                            {{ substr(Auth::user()->name, 0, 1) }}
-                        </div>
-                    @endif
-                    <div class="skuy-composer__identity-copy">
-                        <span class="skuy-composer__username">{{ '@' . Auth::user()->username }}</span>
-                    </div>
-                </div>
-
-                <form action="{{ route('comments.store', $displayPost->uid) }}" method="POST" x-data="{ isSubmitting: false, content: '' }" @submit="isSubmitting = true" class="mt-3 flex min-w-0 items-center gap-2">
+                <form action="{{ route('comments.store', $displayPost->uid) }}" method="POST" x-data="{ isSubmitting: false, content: '' }" @submit="isSubmitting = true" class="skuy-post-detail__composer-form">
                     @csrf
-                    <input type="text" name="content" x-model="content" class="skuy-inline-input" placeholder="{{ __('threads.comments.reply_to', ['name' => $displayPost->user->username]) }}" required autocomplete="off">
+                    <div class="skuy-post-detail__composer-avatar">
+                        @if (Auth::user()->avatar)
+                            <div class="skuy-avatar skuy-avatar--small object-cover">
+                                <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
+                            </div>
+                        @else
+                            <div class="skuy-avatar skuy-avatar--small object-cover" aria-label="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
+                                {{ mb_substr(Auth::user()->name, 0, 1) }}
+                            </div>
+                        @endif
+                    </div>
+                    <input type="text" name="content" x-model="content" class="skuy-inline-input skuy-post-detail__composer-input" placeholder="{{ __('threads.comments.reply_to', ['name' => $displayPost->user->username]) }}" required autocomplete="off">
 
                     <button type="button" class="skuy-action shrink-0" title="{{ __('threads.image_coming_soon') }}" aria-label="{{ __('threads.image_coming_soon') }}">
                         <x-fa-icon name="image" class="text-xl" />
                     </button>
-                    <!-- Tombol Post Muncul Jika Ada Teks -->
-                    <button type="submit" x-show="content.trim().length > 0" :disabled="isSubmitting" class="skuy-button skuy-button--primary min-h-[40px] shrink-0 px-3 py-1 text-xs" style="display: none;">
+                    <button type="submit" x-show="content.trim().length > 0" :disabled="isSubmitting" :aria-busy="isSubmitting.toString()" class="skuy-post-detail__submit" style="display: none;">
                         <span x-show="!isSubmitting">{{ __('threads.actions.send') }}</span>
                         <span x-show="isSubmitting">...</span>
                     </button>
@@ -360,6 +353,44 @@
                 </div>
             @endif
 
+            </section>
+            <aside class="skuy-post-detail__context" aria-label="{{ __('profile.about_creator') }}">
+                <section class="skuy-post-detail__context-card" aria-labelledby="post-detail-creator-title">
+                    <h2 id="post-detail-creator-title" class="skuy-post-detail__context-title">{{ __('profile.about_creator') }}</h2>
+                    <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-post-detail__creator-link" aria-label="{{ $displayPost->user->name }}, @{{ $displayPost->user->username }}">
+                        @if ($displayPost->user->avatar)
+                            <span class="skuy-avatar skuy-post-detail__creator-avatar"><img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}"></span>
+                        @else
+                            <span class="skuy-avatar skuy-post-detail__creator-avatar" aria-hidden="true">{{ mb_substr($displayPost->user->name, 0, 1) }}</span>
+                        @endif
+                        <span class="skuy-post-detail__creator-identity">
+                            <strong>{{ $displayPost->user->name }}</strong>
+                            <span>{{ '@' . $displayPost->user->username }}</span>
+                        </span>
+                        @if ($displayPost->user->is_verified)
+                            <span class="skuy-post-detail__creator-verified" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
+                                <x-fa-icon name="badge-check" weight="solid" />
+                            </span>
+                        @endif
+                        <x-fa-icon name="arrow-up-right-from-square" class="skuy-post-detail__creator-icon" />
+                    </a>
+                    <p class="skuy-post-detail__creator-bio">{{ filled($displayPost->user->bio) ? $displayPost->user->bio : __('profile.no_bio') }}</p>
+                    <dl class="skuy-post-detail__creator-stats">
+                        <div class="skuy-post-detail__creator-stat">
+                            <dt>{{ __('profile.threads') }}</dt>
+                            <dd data-profile-stat="threads">{{ (int) $displayPost->user->posts_count }}</dd>
+                        </div>
+                        <div class="skuy-post-detail__creator-stat">
+                            <dt>{{ __('profile.followers') }}</dt>
+                            <dd data-profile-stat="followers">{{ (int) $displayPost->user->followers_count }}</dd>
+                        </div>
+                        <div class="skuy-post-detail__creator-stat">
+                            <dt>{{ __('profile.following') }}</dt>
+                            <dd data-profile-stat="following">{{ (int) $displayPost->user->followings_count }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </aside>
         </div>
     </div>
 </x-app-layout>

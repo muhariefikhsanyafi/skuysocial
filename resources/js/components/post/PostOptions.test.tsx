@@ -16,6 +16,11 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 const translations = {
+    about_creator: 'About the creator',
+    no_bio: 'This user has not written a bio.',
+    threads: 'Threads',
+    followers: 'Followers',
+    following: 'Following',
     open_options: 'Open Thread options',
     confirm_delete: 'Delete this thread?',
     edit: 'Edit',

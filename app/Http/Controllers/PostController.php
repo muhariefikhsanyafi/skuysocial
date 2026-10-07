@@ -171,6 +171,7 @@ class PostController extends Controller
         $post->load(['user', 'originalPost.user']);
 
         $displayPost = $post->interactionTarget();
+        $displayPost->user->loadCount(['posts', 'followers', 'followings']);
         $displayPost
             ->loadCount(['likes', 'comments', 'reposts', 'appreciations'])
             ->loadExists([
@@ -326,6 +327,12 @@ class PostController extends Controller
                 $canDeleteForPage,
                 $canPerformSocialWrites,
             ),
+            'author_context' => [
+                'bio' => filled($displayPost->user->bio) ? (string) $displayPost->user->bio : null,
+                'posts_count' => (int) $displayPost->user->posts_count,
+                'followers_count' => (int) $displayPost->user->followers_count,
+                'followings_count' => (int) $displayPost->user->followings_count,
+            ],
             'comments' => [
                 'data' => $comments->getCollection()
                     ->map(fn (Comment $comment): array => $this->serializeRootComment(
@@ -367,6 +374,7 @@ class PostController extends Controller
             ],
             'routes' => [
                 'feed' => route('feed'),
+                'author_profile' => route('user.profile', $displayPost->user->username),
                 'like' => route('posts.like', $displayPost),
                 'appreciation' => route('posts.appreciations.store', $displayPost),
                 'repost' => route('posts.repost', $displayPost),
@@ -535,6 +543,11 @@ class PostController extends Controller
     {
         return [
             'back_to_feed' => __('navigation.back_to_feed'),
+            'about_creator' => __('profile.about_creator'),
+            'no_bio' => __('profile.no_bio'),
+            'threads' => __('profile.threads'),
+            'followers' => __('profile.followers'),
+            'following' => __('profile.following'),
             'thread' => __('threads.labels.thread'),
             'replies' => __('threads.labels.replies'),
             'like' => __('threads.labels.like'),

@@ -68,6 +68,7 @@ const translations = {
 
 const routes: PostDetailRoutes = {
     feed: '/feed',
+    author_profile: '/@root-author',
     like: '/posts/post-1/like',
     appreciation: '/posts/post-1/appreciation',
     repost: '/post/post-1/repost',
