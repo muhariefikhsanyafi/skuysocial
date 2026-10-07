@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Actions\FindOrCreateDirectConversation;
 use App\Enums\ModerationState;
 use App\Models\User;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
@@ -42,15 +44,16 @@ class MessagesInboxTest extends TestCase
         $this->assertStringContainsString('fa-comment-lines', $activeLink);
         $this->assertStringContainsString('Pesan', strip_tags($activeLink));
 
-        $mobileProfileMenuStart = strpos($html, 'id="mobile-profile-menu"');
-        $mobileNavigationStart = strpos($html, 'id="mobile-navigation"');
-        $this->assertNotFalse($mobileProfileMenuStart);
-        $this->assertNotFalse($mobileNavigationStart);
-        $mobileProfileMenu = substr($html, $mobileProfileMenuStart, $mobileNavigationStart - $mobileProfileMenuStart);
-        $this->assertStringContainsString(
-            'href="'.route('messages.index').'" class="skuy-menu-link" aria-current="page"',
-            $mobileProfileMenu,
-        );
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML($html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+
+        $this->assertSame(0, $xpath->query('//nav[@data-navigation-kind="responsive"]//*[@data-nav-key="messages" and contains(concat(" ", normalize-space(@data-nav-surfaces), " "), " mobile-secondary ")]')->length);
+        $this->assertSame(0, $xpath->query('//*[@id="mobile-profile-menu"]//a[contains(@href, "'.route('messages.index').'")]')->length);
+        $this->assertSame(1, $xpath->query('//nav[@data-navigation-kind="mobile-primary"]//*[@data-mobile-nav-key="messages"][@href="'.route('messages.index').'"]')->length);
     }
 
     public function test_inbox_shows_only_conversations_for_the_authenticated_participant(): void

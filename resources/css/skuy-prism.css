@@ -1517,7 +1517,7 @@
 
     .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-shell {
         gap: 16px;
-        padding-top: 14px;
+        padding-top: 12px;
         padding-right: var(--skuy-shell-gutter);
         padding-bottom: calc(var(--skuy-social-mobile-dock-clearance) + env(safe-area-inset-bottom));
         padding-left: var(--skuy-shell-gutter);

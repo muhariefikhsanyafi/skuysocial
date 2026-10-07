@@ -1,0 +1,409 @@
+/* Skuy Prism Tahap 1.1 — responsive navigation and feed-story placeholder. */
+.skuy-stories-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: 48px;
+    margin: 0 0 8px;
+    padding: 7px 10px;
+    border: 1px solid var(--skuy-prism-glass-edge);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--skuy-surface-raised) 88%, var(--skuy-surface-glass));
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 16%, transparent);
+}
+
+.skuy-stories-placeholder__icon {
+    display: grid;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--skuy-secondary) 32%, transparent);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--skuy-secondary) 12%, var(--skuy-surface-elevated));
+    color: var(--skuy-secondary);
+}
+
+.skuy-stories-placeholder__copy {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+}
+
+.skuy-stories-placeholder__title {
+    color: var(--skuy-text-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.skuy-stories-placeholder__status {
+    color: var(--skuy-text-muted);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+@media (max-width: 1279px) {
+    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        position: fixed;
+        z-index: 70;
+        top: 0;
+        right: 0;
+        left: 0;
+        padding-block-start: env(safe-area-inset-top, 0px);
+        border-radius: 0 0 18px 18px;
+        background: var(--skuy-surface-glass);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 14px 34px -30px rgb(0 0 0 / 0.55), inset 0 1px 0 color-mix(in srgb, white 22%, transparent);
+    }
+
+    .skuy-app-shell .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        padding-block-start: calc(72px + env(safe-area-inset-top, 0px));
+    }
+
+    .skuy-app-rail__backdrop {
+        position: fixed;
+        z-index: 80;
+        inset: 0;
+        background: rgb(9 18 20 / 0.38);
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+    }
+
+    .skuy-app-rail {
+        position: fixed;
+        z-index: 90;
+        inset-block-start: calc(72px + env(safe-area-inset-top, 0px) + 10px);
+        inset-block-end: auto;
+        inset-inline-start: 12px;
+        inset-inline-end: auto;
+        display: block;
+        width: min(320px, calc(100vw - 48px));
+        max-width: calc(100vw - 24px);
+        max-height: calc(100dvh - 170px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        border: 1px solid var(--skuy-prism-glass-edge);
+        border-radius: 22px;
+        background: var(--skuy-surface-glass);
+        box-shadow: var(--skuy-shadow-raised), inset 0 1px 0 color-mix(in srgb, white 22%, transparent);
+        scrollbar-width: thin;
+    }
+
+    .skuy-app-rail__inner {
+        display: flex;
+        height: auto;
+        min-height: 0;
+        flex-direction: column;
+        gap: 0;
+        padding: 12px;
+    }
+
+    .skuy-app-rail__mobile-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 48px;
+        margin-bottom: 10px;
+        padding: 2px 2px 9px;
+        border-bottom: 1px solid color-mix(in srgb, var(--skuy-border-subtle) 82%, transparent);
+    }
+
+    .skuy-app-rail__mobile-heading p {
+        margin: 2px 0 0;
+        color: var(--skuy-text-muted);
+        font-size: 0.68rem;
+        font-weight: 700;
+    }
+
+    .skuy-app-rail__mobile-brand {
+        color: var(--skuy-text-primary);
+        font-size: 1.06rem;
+        font-weight: 800;
+        letter-spacing: -0.055em;
+        text-decoration: none;
+    }
+
+    .skuy-app-rail__brand,
+    .skuy-app-nav__eyebrow,
+    .skuy-app-rail__compose,
+    .skuy-app-rail__footer {
+        display: none;
+    }
+
+    .skuy-app-nav--responsive {
+        display: grid;
+        gap: 5px;
+    }
+
+    .skuy-app-nav--responsive .skuy-app-nav__group {
+        display: grid;
+        gap: 5px;
+    }
+
+    .skuy-app-nav--responsive .skuy-app-nav__link[data-nav-surfaces="desktop-primary"] {
+        display: none;
+    }
+
+    .skuy-app-nav--responsive .skuy-app-nav__link {
+        min-height: 48px;
+        padding: 9px 11px;
+        border-radius: 14px;
+    }
+
+    .skuy-app-rail__spacer {
+        display: none;
+    }
+
+    .skuy-mobile-account-scrim {
+        position: fixed;
+        z-index: 85;
+        inset: 0;
+        background: rgb(9 18 20 / 0.32);
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+    }
+
+    .skuy-mobile-account-menu {
+        position: fixed;
+        z-index: 86;
+        inset-block-start: calc(72px + env(safe-area-inset-top, 0px) + 10px);
+        inset-inline-end: 12px;
+        width: min(340px, calc(100vw - 24px));
+        max-height: calc(100dvh - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        overflow-y: auto;
+        border: 1px solid var(--skuy-prism-glass-edge);
+        border-radius: 20px;
+        background: var(--skuy-surface-glass);
+        box-shadow: var(--skuy-shadow-raised), inset 0 1px 0 color-mix(in srgb, white 22%, transparent);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+    }
+
+    .skuy-mobile-account-menu__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 14px 12px;
+        border-bottom: 1px solid color-mix(in srgb, var(--skuy-border-subtle) 82%, transparent);
+    }
+
+    .skuy-mobile-account-menu__identity {
+        display: grid;
+        min-width: 0;
+        gap: 3px;
+        padding-top: 3px;
+    }
+
+    .skuy-mobile-account-menu__identity h2,
+    .skuy-mobile-account-menu__identity p {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .skuy-mobile-account-menu__identity h2 {
+        color: var(--skuy-text-primary);
+        font-size: 0.92rem;
+        font-weight: 800;
+    }
+
+    .skuy-mobile-account-menu__identity p {
+        color: var(--skuy-text-muted);
+        font-size: 0.76rem;
+    }
+
+    .skuy-mobile-account-menu__items {
+        display: grid;
+        gap: 3px;
+        padding: 8px;
+    }
+
+    .skuy-mobile-account-menu__items .skuy-menu-link {
+        min-height: 46px;
+        border-radius: 12px;
+    }
+}
+
+@media (max-width: 767px) {
+    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        position: fixed;
+        top: 0;
+        z-index: 65;
+        padding-block-start: env(safe-area-inset-top);
+        min-height: calc(58px + env(safe-area-inset-top, 0px));
+    }
+
+    .skuy-app-shell .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        padding-block-start: calc(58px + env(safe-area-inset-top, 0px));
+        padding-top: calc(58px + env(safe-area-inset-top));
+        padding-block-end: calc(88px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .skuy-topbar__inner {
+        width: 100%;
+        min-height: 58px;
+        padding: 6px max(12px, env(safe-area-inset-right, 0px)) 6px max(12px, env(safe-area-inset-left, 0px));
+    }
+
+    .skuy-app-rail {
+        inset-block-start: calc(58px + env(safe-area-inset-top, 0px) + 10px);
+        inset-block-end: auto;
+        max-height: calc(100dvh - 160px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    }
+
+    .skuy-mobile-nav {
+        inset-inline-start: max(10px, env(safe-area-inset-left, 0px));
+        inset-inline-end: max(10px, env(safe-area-inset-right, 0px));
+    }
+
+    .skuy-mobile-account-menu {
+        inset-block-start: calc(58px + env(safe-area-inset-top, 0px) + 10px);
+    }
+
+    .skuy-feed-page[data-skuy-prism-feed] #composer {
+        scroll-margin-block-start: calc(58px + env(safe-area-inset-top, 0px) + 16px);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        min-height: calc(72px + env(safe-area-inset-top, 0px));
+    }
+
+    .skuy-app-shell .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        padding-block-end: calc(88px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .skuy-topbar__inner {
+        padding-inline-start: max(20px, env(safe-area-inset-left, 0px));
+        padding-inline-end: max(20px, env(safe-area-inset-right, 0px));
+    }
+
+    .skuy-app-rail {
+        inset-block-start: calc(72px + env(safe-area-inset-top, 0px) + 10px);
+        inset-block-end: auto;
+        max-height: calc(100dvh - 180px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    }
+
+    .skuy-mobile-nav {
+        inset-inline-start: 50%;
+        inset-inline-end: auto;
+        inset-block-end: calc(10px + env(safe-area-inset-bottom, 0px));
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: end;
+        gap: 4px;
+        width: min(720px, calc(100vw - 36px));
+        padding: 6px;
+        border: 1px solid var(--skuy-prism-glass-edge);
+        border-radius: 24px;
+        background: var(--skuy-surface-glass);
+        box-shadow: 0 18px 48px -26px rgb(0 0 0 / 0.48), inset 0 1px 0 color-mix(in srgb, white 24%, transparent);
+        transform: translateX(-50%);
+    }
+
+    .skuy-mobile-nav__item {
+        min-height: 58px;
+        font-size: 0.74rem;
+    }
+
+    .skuy-mobile-nav__item--compose {
+        width: 52px;
+        height: 52px;
+        min-height: 52px;
+        margin-top: -14px;
+        border-radius: 18px;
+    }
+
+    .skuy-feed-page[data-skuy-prism-feed] #composer {
+        scroll-margin-block-start: calc(72px + env(safe-area-inset-top, 0px) + 16px);
+    }
+}
+
+@media (min-width: 1280px) {
+    .skuy-app-rail {
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+    }
+
+    .skuy-app-rail__inner {
+        height: auto;
+        min-height: 100%;
+    }
+
+    .skuy-app-rail__mobile-heading,
+    .skuy-app-nav--responsive .skuy-app-nav__link[data-nav-surfaces="mobile-secondary"] {
+        display: none;
+    }
+
+    .skuy-app-rail__brand {
+        display: inline-flex;
+    }
+
+    .skuy-app-nav--responsive {
+        display: grid;
+        gap: 6px;
+    }
+
+    .skuy-app-nav--responsive .skuy-app-nav__group {
+        display: grid;
+        gap: 5px;
+    }
+
+    .skuy-app-rail__spacer {
+        flex: 1 0 24px;
+        min-height: 24px;
+    }
+
+    .skuy-app-rail__compose {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 54px;
+        margin: 8px 0 18px;
+        padding: 12px 14px;
+        border: 1px solid color-mix(in srgb, var(--skuy-secondary) 52%, transparent);
+        border-radius: 17px;
+        background: linear-gradient(125deg, var(--skuy-brand), color-mix(in srgb, var(--skuy-secondary) 72%, var(--skuy-brand)));
+        box-shadow: 0 14px 30px -18px var(--skuy-glow-primary), inset 0 1px 0 rgb(255 255 255 / 0.2);
+        color: var(--skuy-on-brand);
+        font-size: 0.88rem;
+        font-weight: 800;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .skuy-app-rail__compose:hover {
+        filter: brightness(1.06);
+        transform: translateY(-1px);
+    }
+
+    .skuy-app-rail__compose:focus-visible {
+        outline: 3px solid var(--skuy-focus);
+        outline-offset: 3px;
+    }
+
+    .skuy-app-rail__footer {
+        margin-top: 0;
+        padding-top: 14px;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .skuy-mobile-account-menu,
+    .skuy-app-rail {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--skuy-surface-raised);
+    }
+}

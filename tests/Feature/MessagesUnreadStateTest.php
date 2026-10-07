@@ -231,6 +231,7 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertNotFalse($mobileNavigationStart);
         $mobileProfileMenu = substr($html, $mobileProfileMenuStart, $mobileNavigationStart - $mobileProfileMenuStart);
         $this->assertStringContainsString('href="'.route('user.profile', $viewer->username).'"', $mobileProfileMenu);
+        $this->assertStringNotContainsString('href="'.route('messages.index').'"', $mobileProfileMenu);
         $this->assertStringContainsString('aria-controls="mobile-profile-menu"', $html);
 
         $desktopRailStart = strpos($html, 'id="mobile-navigation"');

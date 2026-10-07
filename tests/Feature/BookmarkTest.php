@@ -424,7 +424,7 @@ class BookmarkTest extends TestCase
         $bookmarkUrl = route('bookmarks.index');
         $bookmarkLinks = $xpath->query('//a[@href="'.$bookmarkUrl.'"]');
 
-        $this->assertSame(2, $bookmarkLinks->length);
+        $this->assertSame(1, $bookmarkLinks->length, 'Saved should be one responsive navigation item, not duplicated markup.');
 
         $prismCss = file_get_contents(resource_path('css/skuy-prism.css'));
         $this->assertIsString($prismCss);

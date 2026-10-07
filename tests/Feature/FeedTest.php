@@ -7,6 +7,8 @@ use App\Models\Like;
 use App\Models\Post;
 use App\Models\User;
 use Carbon\Carbon;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\Cursor;
@@ -49,12 +51,29 @@ class FeedTest extends TestCase
             ->assertSee('data-skuy-prism-shell', false)
             ->assertSee('data-skuy-desktop-rail', false)
             ->assertSee('data-skuy-prism-feed', false)
-            ->assertSee('skuy-feed-creators', false)
+            ->assertSee('data-skuy-stories-placeholder', false)
+            ->assertSeeText(__('navigation.stories'))
+            ->assertSeeText(__('navigation.stories_coming_soon'))
+            ->assertDontSee('class="skuy-feed-creator"', false)
             ->assertSee('skuy-feed-composer__entry', false)
             ->assertSee('skuy-feed-post__header', false)
             ->assertSee('skuy-feed-context-creators', false)
             ->assertSee(route('user.profile', $creator), false)
             ->assertSee('A real creator from the current feed');
+
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML((string) $response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+        $stories = $xpath->query('//*[@data-skuy-stories-placeholder]');
+
+        $this->assertNotFalse($stories);
+        $this->assertSame(1, $stories->length);
+        $this->assertSame(0, $xpath->query('//*[@data-skuy-stories-placeholder]//a | //*[@data-skuy-stories-placeholder]//button')->length);
+        $this->assertSame(0, $xpath->query('//*[@data-skuy-stories-placeholder]//*[@data-creator-id or @data-user-id]')->length);
+        $this->assertStringNotContainsString('skuy-feed-creator', $stories->item(0)->textContent);
     }
 
     public function test_mobile_primary_navigation_has_exactly_five_items_in_product_order(): void

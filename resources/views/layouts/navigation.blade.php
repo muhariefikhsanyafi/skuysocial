@@ -21,25 +21,17 @@
         : __('navigation.messages');
     $brandHref = $showDashboardNavigation ? route('dashboard') : route('feed');
     $brandLabel = $showDashboardNavigation ? __('navigation.dashboard') : __('navigation.feed');
-    $navigationItems = [];
-
-    if ($showDashboardNavigation) {
-        $navigationItems[] = ['key' => 'dashboard', 'href' => route('dashboard'), 'label' => __('navigation.dashboard'), 'active' => $isDashboard, 'icon' => 'gauge'];
-    }
-
-    $navigationItems = array_merge($navigationItems, [
-        ['key' => 'feed', 'href' => route('feed'), 'label' => __('navigation.feed'), 'active' => request()->routeIs('feed'), 'icon' => 'house'],
-        ['key' => 'search', 'href' => route('search'), 'label' => __('navigation.search'), 'active' => request()->routeIs('search'), 'icon' => 'magnifying-glass'],
-        ['key' => 'activity', 'href' => route('activity.index'), 'label' => __('navigation.activity'), 'active' => request()->routeIs('activity.index'), 'icon' => 'bell'],
-        ['key' => 'announcements', 'href' => route('announcements.index'), 'label' => __('navigation.announcements'), 'active' => request()->routeIs('announcements.*'), 'icon' => 'bullhorn'],
-        ['key' => 'messages', 'href' => route('messages.index'), 'label' => __('navigation.messages'), 'active' => request()->routeIs('messages.*'), 'icon' => 'comment-lines'],
-        ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'bookmark'],
-        ['key' => 'profile', 'href' => $profileUrl, 'label' => __('navigation.profile'), 'active' => request()->routeIs('user.profile') && request()->route('username') === $user->username, 'icon' => 'user'],
+    $responsiveNavigationItems = $showDashboardNavigation
+        ? [['key' => 'dashboard', 'href' => route('dashboard'), 'label' => __('navigation.dashboard'), 'active' => $isDashboard, 'icon' => 'gauge', 'surfaces' => 'mobile-secondary']]
+        : [];
+    $responsiveNavigationItems = array_merge($responsiveNavigationItems, [
+        ['key' => 'feed', 'href' => route('feed'), 'label' => __('navigation.feed'), 'active' => $isFeed, 'icon' => 'house', 'surfaces' => 'desktop-primary'],
+        ['key' => 'search', 'href' => route('search'), 'label' => __('navigation.search'), 'active' => request()->routeIs('search'), 'icon' => 'magnifying-glass', 'surfaces' => 'desktop-primary'],
+        ['key' => 'activity', 'href' => route('activity.index'), 'label' => __('navigation.activity'), 'active' => request()->routeIs('activity.index'), 'icon' => 'bell', 'surfaces' => 'desktop-primary'],
+        ['key' => 'messages', 'href' => route('messages.index'), 'label' => __('navigation.messages'), 'active' => request()->routeIs('messages.*'), 'icon' => 'comment-lines', 'surfaces' => 'desktop-primary'],
+        ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'bookmark', 'surfaces' => 'desktop-primary mobile-secondary'],
+        ['key' => 'announcements', 'href' => route('announcements.index'), 'label' => __('navigation.announcements'), 'active' => request()->routeIs('announcements.*'), 'icon' => 'bullhorn', 'surfaces' => 'mobile-secondary'],
     ]);
-    $navigationGroups = [
-        array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['dashboard', 'feed', 'search'], true)),
-        array_filter($navigationItems, static fn ($item) => in_array($item['key'], ['activity', 'announcements', 'messages', 'saved', 'profile'], true)),
-    ];
     $bottomHomeHref = route('feed');
     $bottomHomeLabel = __('navigation.home');
     $bottomHomeIcon = 'house';
@@ -49,17 +41,104 @@
 
 <div
     x-data="{
-        open: false,
+        accountMenuOpen: false,
         sidebarOpen: window.matchMedia('(min-width: 1280px)').matches,
+        isDesktop: window.matchMedia('(min-width: 1280px)').matches,
         navigationQuery: null,
+        accountMenuQuery: null,
+        navigationReturnFocus: null,
+        accountReturnFocus: null,
+        previousBodyOverflow: '',
+        overlayScrollLocked: false,
         init() {
+            this.accountMenuQuery = window.matchMedia('(min-width: 640px)');
+            this.accountMenuQuery.addEventListener('change', event => {
+                if (!event.matches || !this.accountMenuOpen) return;
+
+                this.closeAccountMenu(false);
+                this.$nextTick(() => document.querySelector('#desktop-profile-trigger')?.focus());
+            });
             this.navigationQuery = window.matchMedia('(min-width: 1280px)');
             this.navigationQuery.addEventListener('change', event => {
+                this.isDesktop = event.matches;
                 this.sidebarOpen = event.matches;
+                this.syncOverlayScrollLock();
             });
+        },
+        syncOverlayScrollLock() {
+            const shouldLock = (!this.isDesktop && this.sidebarOpen) || this.accountMenuOpen;
+            if (shouldLock && !this.overlayScrollLocked) {
+                this.previousBodyOverflow = document.body.style.overflow;
+                document.body.style.overflow = 'hidden';
+                this.overlayScrollLocked = true;
+            } else if (!shouldLock && this.overlayScrollLocked) {
+                document.body.style.overflow = this.previousBodyOverflow;
+                this.overlayScrollLocked = false;
+            }
+        },
+        trapOverlayFocus(event, container) {
+            if (event.key !== 'Tab') return;
+
+            const focusable = [...container.querySelectorAll('a[href], button:not(:disabled)')]
+                .filter(element => element.getClientRects().length > 0);
+            if (focusable.length === 0) {
+                event.preventDefault();
+                container.focus();
+                return;
+            }
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && (document.activeElement === first || !container.contains(document.activeElement))) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && (document.activeElement === last || !container.contains(document.activeElement))) {
+                event.preventDefault();
+                first.focus();
+            }
+        },
+        toggleNavigation() {
+            if (this.isDesktop) return;
+            if (this.sidebarOpen) {
+                this.closeNavigation();
+                return;
+            }
+
+            this.closeAccountMenu(false);
+            this.navigationReturnFocus = document.activeElement;
+            this.sidebarOpen = true;
+            this.syncOverlayScrollLock();
+            this.$nextTick(() => this.$refs.navigationClose?.focus());
+        },
+        closeNavigation(restoreFocus = true) {
+            if (this.isDesktop) return;
+            this.sidebarOpen = false;
+            this.syncOverlayScrollLock();
+            if (restoreFocus && this.navigationReturnFocus?.isConnected) {
+                this.$nextTick(() => this.navigationReturnFocus.focus());
+            }
+        },
+        toggleAccountMenu() {
+            if (this.accountMenuOpen) {
+                this.closeAccountMenu();
+                return;
+            }
+
+            this.closeNavigation(false);
+            this.accountReturnFocus = document.activeElement;
+            this.accountMenuOpen = true;
+            this.syncOverlayScrollLock();
+            this.$nextTick(() => this.$refs.accountClose?.focus());
+        },
+        closeAccountMenu(restoreFocus = true) {
+            this.accountMenuOpen = false;
+            this.syncOverlayScrollLock();
+            if (restoreFocus && this.accountReturnFocus?.isConnected) {
+                this.$nextTick(() => this.accountReturnFocus.focus());
+            }
         }
     }"
-    @keydown.escape.window="if (window.innerWidth < 1280) sidebarOpen = false"
+    @keydown.escape.window="if (accountMenuOpen) closeAccountMenu(); else if (!isDesktop && sidebarOpen) closeNavigation()"
     class="skuy-navigation-shell"
     data-skuy-prism-shell
 >
@@ -67,9 +146,9 @@
     <div class="skuy-topbar__inner">
         <div class="skuy-topbar__brand-group">
             <button
-                @click="sidebarOpen = !sidebarOpen"
-                :aria-label="sidebarOpen ? '{{ __('navigation.close_navigation_menu') }}' : '{{ __('navigation.open_navigation_menu') }}'"
-                :aria-expanded="sidebarOpen"
+                @click="toggleNavigation()"
+                :aria-label="sidebarOpen && !isDesktop ? '{{ __('navigation.close_navigation_menu') }}' : '{{ __('navigation.open_navigation_menu') }}'"
+                :aria-expanded="(sidebarOpen && !isDesktop).toString()"
                 aria-controls="mobile-navigation"
                 type="button"
                 class="skuy-icon-button skuy-navigation-trigger xl:hidden"
@@ -118,15 +197,15 @@
 
                     <x-slot name="content">
                         <div id="desktop-profile-menu" role="menu" aria-labelledby="desktop-profile-trigger" class="skuy-menu-surface">
-                            <x-dropdown-link :href="route('user.profile', auth()->user()->username)" class="skuy-menu-link" role="menuitem">
+                            <x-dropdown-link :href="route('user.profile', auth()->user()->username)" class="skuy-menu-link" role="menuitem" data-account-menu-key="profile">
                                 {{ __('navigation.my_profile') }}
                             </x-dropdown-link>
-                            <x-dropdown-link :href="route('profile.edit', $user->username)" class="skuy-menu-link" role="menuitem">
+                            <x-dropdown-link :href="route('profile.edit', $user->username)" class="skuy-menu-link" role="menuitem" data-account-menu-key="settings">
                                 {{ __('navigation.settings') }}
                             </x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
                                 @csrf
-                                <button type="submit" class="skuy-menu-link min-h-[44px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]" role="menuitem">
+                                <button type="submit" class="skuy-menu-link min-h-[44px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]" role="menuitem" data-account-menu-key="sign-out">
                                     {{ __('navigation.sign_out') }}
                                 </button>
                             </form>
@@ -137,54 +216,70 @@
 
             <div class="flex items-center sm:hidden">
                 <button
-                    @click="open = !open"
-                    :aria-label="open ? '{{ __('navigation.close_profile_menu') }}' : '{{ __('navigation.open_profile_menu') }}'"
-                    :aria-expanded="open"
+                    @click="toggleAccountMenu()"
+                    x-ref="accountTrigger"
+                    :aria-label="accountMenuOpen ? '{{ __('navigation.close_profile_menu') }}' : '{{ __('navigation.open_profile_menu') }}'"
+                    :aria-expanded="accountMenuOpen.toString()"
                     aria-controls="mobile-profile-menu"
                     type="button"
                     class="skuy-icon-button"
                 >
-                    <x-fa-icon x-show="!open" name="user" class="skuy-profile-icon text-xl" />
-                    <x-fa-icon x-show="open" style="display: none;" name="xmark" weight="solid" class="skuy-profile-icon text-xl" />
+                    <x-fa-icon x-show="!accountMenuOpen" name="user" class="skuy-profile-icon text-xl" />
+                    <x-fa-icon x-show="accountMenuOpen" style="display: none;" name="xmark" weight="solid" class="skuy-profile-icon text-xl" />
                 </button>
             </div>
         </div>
     </div>
-
-    <div id="mobile-profile-menu" x-show="open" x-transition style="display: none;" class="border-t border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] sm:hidden">
-        <div class="mx-auto w-[min(100%-24px,1280px)] py-3">
-            <div class="mb-2 px-2">
-                <div class="break-words text-sm font-bold text-[var(--skuy-text-primary)]">{{ Auth::user()->name }}</div>
-                <div class="break-all text-xs text-[var(--skuy-text-muted)]">{{ Auth::user()->email }}</div>
-            </div>
-
-            <div class="skuy-menu-surface">
-                <a href="{{ route('user.profile', auth()->user()->username) }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === auth()->user()->username ? 'page' : 'false' }}">
-                    {{ __('navigation.my_profile') }}
-                </a>
-                <a href="{{ route('bookmarks.index') }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('bookmarks.index') ? 'page' : 'false' }}">
-                    {{ __('navigation.saved') }}
-                </a>
-                <a href="{{ route('messages.index') }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('messages.*') ? 'page' : 'false' }}">
-                    {{ __('navigation.messages') }}
-                </a>
-                <a href="{{ route('announcements.index') }}" class="skuy-menu-link" aria-current="{{ request()->routeIs('announcements.*') ? 'page' : 'false' }}" aria-label="{{ $announcementsMobileLabel }}">
-                    {{ __('navigation.announcements') }}
-                    @if ($unreadAnnouncementCount > 0)<span class="skuy-feed-nav__badge">{{ $displayUnreadAnnouncementCount }}</span>@endif
-                </a>
-                <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link">
-                    {{ __('navigation.settings') }}
-                </a>
-                <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
-                    @csrf
-                    <button type="submit" class="skuy-menu-link min-h-[44px] text-[var(--skuy-danger)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
-                        {{ __('navigation.sign_out') }}
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
 </nav>
+
+<div
+    id="mobile-profile-menu-backdrop"
+    x-show="accountMenuOpen"
+    x-transition.opacity
+    style="display: none;"
+    class="skuy-mobile-account-scrim sm:hidden"
+    @click.self="closeAccountMenu()"
+    @keydown.escape.stop="closeAccountMenu()"
+    :aria-hidden="(!accountMenuOpen).toString()"
+>
+    <section
+        id="mobile-profile-menu"
+        x-ref="accountDialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-profile-menu-title"
+        class="skuy-mobile-account-menu"
+        @keydown.tab="trapOverlayFocus($event, $el)"
+    >
+        <header class="skuy-mobile-account-menu__header">
+            <div class="skuy-mobile-account-menu__identity" data-account-identity>
+                <h2 id="mobile-profile-menu-title">{{ Auth::user()->name }}</h2>
+                <p>{{ Auth::user()->email }}</p>
+            </div>
+            <button
+                type="button"
+                x-ref="accountClose"
+                data-account-close
+                class="skuy-icon-button"
+                aria-label="{{ __('navigation.close_profile_menu') }}"
+                @click="closeAccountMenu()"
+            >
+                <x-fa-icon name="xmark" weight="solid" class="text-lg" />
+            </button>
+        </header>
+
+        <nav class="skuy-mobile-account-menu__items" aria-label="{{ __('navigation.my_profile') }}">
+            <a href="{{ route('user.profile', $user->username) }}" class="skuy-menu-link" data-account-menu-key="profile" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === $user->username ? 'page' : 'false' }}" @click="closeAccountMenu(false)">{{ __('navigation.my_profile') }}</a>
+            <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link" data-account-menu-key="settings" @click="closeAccountMenu(false)">{{ __('navigation.settings') }}</a>
+            <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
+                @csrf
+                <button type="submit" class="skuy-menu-link min-h-[44px] text-[var(--skuy-danger)]" data-account-menu-key="sign-out">{{ __('navigation.sign_out') }}</button>
+            </form>
+        </nav>
+    </section>
+</div>
+
+<div x-show="!isDesktop && sidebarOpen" x-transition.opacity style="display: none;" class="skuy-app-rail__backdrop" aria-hidden="true" @click="closeNavigation()"></div>
 
 <aside
     id="mobile-navigation"
@@ -193,60 +288,67 @@
     style="display: none;"
     class="skuy-app-rail"
     data-skuy-desktop-rail
-    aria-label="{{ __('home.public.primary_navigation') }}"
+    x-ref="navigationDialog"
+    :role="isDesktop ? 'complementary' : 'dialog'"
+    :aria-modal="isDesktop ? null : 'true'"
+    :aria-label="isDesktop ? '{{ __('home.public.primary_navigation') }}' : '{{ __('navigation.secondary_navigation') }}'"
+    @keydown.tab="if (!isDesktop) trapOverlayFocus($event, $el)"
+    @keydown.escape.stop="if (!isDesktop) closeNavigation()"
 >
     <div class="skuy-app-rail__inner">
+        <div class="skuy-app-rail__mobile-heading">
+            <div>
+                <a href="{{ $brandHref }}" class="skuy-app-rail__mobile-brand" aria-label="SkuySocial, {{ $brandLabel }}">
+                    <span class="skuy-brand__accent">Skuy</span><span>Social</span>
+                </a>
+                <p>{{ __('navigation.secondary_navigation') }}</p>
+            </div>
+            <button type="button" x-ref="navigationClose" data-drawer-close class="skuy-icon-button" aria-label="{{ __('navigation.close_navigation_menu') }}" @click="closeNavigation()">
+                <x-fa-icon name="xmark" weight="solid" class="text-lg" />
+            </button>
+        </div>
+
         <a href="{{ $brandHref }}" class="skuy-app-rail__brand" aria-label="SkuySocial, {{ $brandLabel }}">
             <span class="skuy-brand__accent">Skuy</span><span>Social</span>
         </a>
         <p class="skuy-app-nav__eyebrow">{{ __('home.public.primary_navigation') }}</p>
 
-        <nav class="skuy-app-nav" aria-label="{{ __('home.public.primary_navigation') }}">
-            @foreach ($navigationGroups as $navigationGroup)
-                @if ($navigationGroup)
-                    <div class="skuy-app-nav__group">
-                        @foreach ($navigationGroup as $item)
-                            <a
-                                href="{{ $item['href'] }}"
-                                data-nav-key="{{ $item['key'] }}"
-                                aria-label="{{ $item['key'] === 'announcements' && $unreadAnnouncementCount > 0 ? $announcementsMobileLabel : $item['label'] }}"
-                                aria-current="{{ $item['active'] ? 'page' : 'false' }}"
-                                @click="sidebarOpen = false"
-                                class="skuy-app-nav__link"
-                            >
-                                <x-fa-icon :name="$item['icon']" :weight="$item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
-                                <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
-
-                                @if ($item['key'] === 'activity' && $unreadNotificationCount > 0)
-                                    <span
-                                        class="skuy-feed-nav__badge"
-                                        data-unread-notifications-badge
-                                        aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}"
-                                    >{{ $displayUnreadNotificationCount }}</span>
-                                @elseif ($item['key'] === 'announcements' && $unreadAnnouncementCount > 0)
-                                    <span class="skuy-feed-nav__badge" aria-label="{{ __('announcements.unread') }}: {{ $unreadAnnouncementCount }}">{{ $displayUnreadAnnouncementCount }}</span>
-                                @elseif ($item['key'] === 'messages' && $unreadMessageCount > 0)
-                                    <span
-                                        class="skuy-feed-nav__badge"
-                                        data-unread-messages-badge
-                                        aria-label="{{ __('navigation.unread_messages_count', ['count' => $unreadMessageCount]) }}"
-                                    >{{ $displayUnreadMessageCount }}</span>
-                                @endif
-                            </a>
-                        @endforeach
-                    </div>
-
-                    @if ($loop->first && $user->canPerformSocialWrites())
-                        <a href="{{ route('feed') }}#composer" class="skuy-app-rail__compose">
-                            <x-fa-icon name="plus" weight="solid" class="text-xl" />
-                            <span>{{ __('navigation.create_thread') }}</span>
-                        </a>
-                    @endif
-                @endif
-            @endforeach
+        <nav class="skuy-app-nav skuy-app-nav--responsive" :aria-label="isDesktop ? '{{ __('home.public.primary_navigation') }}' : '{{ __('navigation.secondary_navigation') }}'" data-navigation-kind="responsive" data-rail-slot="desktop-primary">
+            <div class="skuy-app-nav__group">
+                @foreach ($responsiveNavigationItems as $item)
+                    <a
+                        href="{{ $item['href'] }}"
+                        data-nav-key="{{ $item['key'] }}"
+                        data-nav-surfaces="{{ $item['surfaces'] }}"
+                        aria-label="{{ $item['key'] === 'activity' && $unreadNotificationCount > 0 ? $activityMobileLabel : ($item['key'] === 'messages' && $unreadMessageCount > 0 ? $messagesMobileLabel : ($item['key'] === 'announcements' && $unreadAnnouncementCount > 0 ? $announcementsMobileLabel : $item['label'])) }}"
+                        aria-current="{{ $item['active'] ? 'page' : 'false' }}"
+                        @click="closeNavigation(false)"
+                        class="skuy-app-nav__link"
+                    >
+                        <x-fa-icon :name="$item['icon']" :weight="$item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
+                        <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
+                        @if ($item['key'] === 'activity' && $unreadNotificationCount > 0)
+                            <span class="skuy-feed-nav__badge" data-unread-notifications-badge aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}">{{ $displayUnreadNotificationCount }}</span>
+                        @elseif ($item['key'] === 'messages' && $unreadMessageCount > 0)
+                            <span class="skuy-feed-nav__badge" data-unread-messages-badge aria-label="{{ __('navigation.unread_messages_count', ['count' => $unreadMessageCount]) }}">{{ $displayUnreadMessageCount }}</span>
+                        @elseif ($item['key'] === 'announcements' && $unreadAnnouncementCount > 0)
+                            <span class="skuy-feed-nav__badge" aria-label="{{ __('announcements.unread') }}: {{ $unreadAnnouncementCount }}">{{ $displayUnreadAnnouncementCount }}</span>
+                        @endif
+                    </a>
+                @endforeach
+            </div>
         </nav>
 
-        <div class="skuy-app-rail__footer" x-data="{ accountMenuOpen: false }" @click.outside="accountMenuOpen = false" @keydown.escape.window="accountMenuOpen = false">
+        <div class="skuy-app-rail__spacer" data-rail-slot="spacer" aria-hidden="true"></div>
+
+        @if ($user->canPerformSocialWrites())
+            <a href="{{ route('feed') }}#composer" class="skuy-app-rail__compose" data-desktop-create-cta data-rail-slot="create">
+                <x-fa-icon name="plus" weight="solid" class="text-xl" />
+                <span>{{ __('navigation.create_thread') }}</span>
+            </a>
+        @endif
+
+        <div class="skuy-app-rail__footer" data-rail-slot="account" x-data="{ accountMenuOpen: false }" @click.outside="accountMenuOpen = false" @keydown.escape.window="accountMenuOpen = false">
             <div class="skuy-app-rail__account-card">
                 <a href="{{ $profileUrl }}" class="skuy-app-rail__account" aria-label="{{ __('navigation.my_profile') }}: {{ $user->name }}">
                     <span class="skuy-app-rail__account-avatar" aria-hidden="true">
@@ -265,11 +367,11 @@
                     <x-fa-icon name="ellipsis" class="text-lg" />
                 </button>
                 <div id="rail-account-menu" x-show="accountMenuOpen" x-transition style="display: none;" role="menu" aria-label="{{ __('navigation.my_profile') }}" class="skuy-menu-surface skuy-app-rail__account-menu">
-                    <a href="{{ route('announcements.index') }}" class="skuy-menu-link" role="menuitem">{{ __('navigation.announcements') }}</a>
-                    <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link" role="menuitem">{{ __('navigation.settings') }}</a>
+                    <a href="{{ $profileUrl }}" class="skuy-menu-link" role="menuitem" data-account-menu-key="profile">{{ __('navigation.my_profile') }}</a>
+                    <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link" role="menuitem" data-account-menu-key="settings">{{ __('navigation.settings') }}</a>
                     <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
                         @csrf
-                        <button type="submit" class="skuy-menu-link min-h-[44px] text-[var(--skuy-danger)]" role="menuitem">{{ __('navigation.sign_out') }}</button>
+                        <button type="submit" class="skuy-menu-link min-h-[44px] text-[var(--skuy-danger)]" role="menuitem" data-account-menu-key="sign-out">{{ __('navigation.sign_out') }}</button>
                     </form>
                 </div>
             </div>
@@ -277,7 +379,7 @@
     </div>
 </aside>
 
-<nav class="skuy-mobile-nav" aria-label="{{ __('home.public.primary_navigation') }}">
+<nav class="skuy-mobile-nav" aria-label="{{ __('home.public.primary_navigation') }}" data-navigation-kind="mobile-primary">
     <a href="{{ $bottomHomeHref }}" aria-label="{{ $bottomHomeLabel }}" aria-current="{{ $bottomHomeCurrent ? 'page' : 'false' }}" class="skuy-mobile-nav__item" data-mobile-nav-key="home">
         <x-fa-icon :name="$bottomHomeIcon" :weight="$bottomHomeCurrent ? 'solid' : 'regular'" class="text-xl" />
         <span>{{ $bottomHomeLabel }}</span>

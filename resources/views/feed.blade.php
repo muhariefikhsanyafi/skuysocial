@@ -123,22 +123,7 @@
                     <h1 id="feed-title" class="skuy-feed-page__title">{{ __('navigation.feed') }}</h1>
                 </header>
 
-                @if ($feedCreators->isNotEmpty())
-                    <nav class="skuy-feed-creators" aria-label="{{ __('navigation.profile') }}">
-                        @foreach ($feedCreators as $creator)
-                            <a href="{{ route('user.profile', $creator->username) }}" class="skuy-feed-creator" aria-label="{{ $creator->name }}, @{{ $creator->username }}">
-                                <span class="skuy-feed-creator__avatar">
-                                    @if ($creator->avatar)
-                                        <img src="{{ asset('storage/' . $creator->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $creator->name]) }}">
-                                    @else
-                                        {{ mb_substr($creator->name, 0, 1) }}
-                                    @endif
-                                </span>
-                                <span class="skuy-feed-creator__name">{{ '@' . $creator->username }}</span>
-                            </a>
-                        @endforeach
-                    </nav>
-                @endif
+                @include('partials.feed-stories-placeholder')
 
                 <div class="skuy-feed-timeline">
                     <div id="composer" data-composer class="skuy-composer skuy-feed-composer">

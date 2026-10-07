@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,24 +27,26 @@ class NavigationTest extends TestCase
         $this->assertSame(2, substr_count($html, 'href="'.route('activity.index').'"'));
         $this->assertStringContainsString('<div class="skuy-app-shell">', $html);
         $this->assertStringContainsString('<div class="skuy-app-shell__workspace">', $html);
-        $this->assertSame(2, substr_count($html, 'class="skuy-app-nav__group"'));
         $this->assertStringContainsString('aria-controls="mobile-navigation"', $html);
-        $this->assertStringContainsString(':aria-expanded="sidebarOpen"', $html);
-        $this->assertStringContainsString(":aria-label=\"sidebarOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
+        $this->assertStringContainsString(':aria-expanded="(sidebarOpen && !isDesktop).toString()"', $html);
+        $this->assertStringContainsString(":aria-label=\"sidebarOpen && !isDesktop ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
         $this->assertStringContainsString('id="mobile-navigation"', $html);
         $this->assertStringContainsString('aria-controls="mobile-profile-menu"', $html);
-        $this->assertStringContainsString(':aria-expanded="open"', $html);
-        $this->assertStringContainsString(":aria-label=\"open ? 'Tutup menu profil' : 'Buka menu profil'\"", $html);
+        $this->assertStringContainsString(':aria-expanded="accountMenuOpen.toString()"', $html);
+        $this->assertStringContainsString(":aria-label=\"accountMenuOpen ? 'Tutup menu profil' : 'Buka menu profil'\"", $html);
         $this->assertStringContainsString('id="desktop-profile-trigger"', $html);
         $this->assertStringContainsString('aria-controls="desktop-profile-menu"', $html);
         $this->assertStringContainsString('id="desktop-profile-menu"', $html);
         $this->assertStringContainsString('aria-labelledby="desktop-profile-trigger"', $html);
         $this->assertStringContainsString('role="menu"', $html);
         $this->assertStringContainsString('role="menuitem"', $html);
-        $this->assertStringContainsString('@keydown.escape.window="if (open) closeMenu(true)"', $html);
+        $this->assertStringContainsString('data-account-menu-key="profile"', $html);
+        $this->assertStringContainsString('data-account-menu-key="settings"', $html);
+        $this->assertStringContainsString('data-account-menu-key="sign-out"', $html);
+        $this->assertStringContainsString('@keydown.tab="trapOverlayFocus($event, $el)"', $html);
+        $this->assertStringContainsString('@click.self="closeAccountMenu()"', $html);
         $this->assertStringContainsString('aria-label="Cari"', $html);
         $this->assertStringContainsString('aria-label="Aktivitas"', $html);
-        $this->assertStringContainsString('aria-label="Profil"', $html);
         $this->assertStringContainsString('skuy-profile-icon', $html);
         $this->assertStringContainsString('aria-label="Buat utas"', $html);
         $this->assertStringContainsString(':aria-pressed="darkMode"', $html);
@@ -53,17 +57,90 @@ class NavigationTest extends TestCase
 
         $bottomNavStart = strpos($html, '<nav class="skuy-mobile-nav"');
         $this->assertNotFalse($bottomNavStart);
-        $this->assertStringNotContainsString(route('bookmarks.index'), substr($html, $bottomNavStart));
+        $xpath = $this->xpath($html);
 
-        $mobileNavigationStart = strpos($html, 'id="mobile-navigation"');
-        $this->assertNotFalse($mobileNavigationStart);
-        $this->assertStringContainsString(route('bookmarks.index'), substr($html, $mobileNavigationStart));
+        $this->assertSame(
+            ['feed', 'search', 'activity', 'messages', 'saved'],
+            $this->attributeValues($xpath, '//nav[@data-navigation-kind="responsive"]//*[@data-nav-surfaces="desktop-primary" or contains(@data-nav-surfaces, "desktop-primary mobile-secondary")]/@data-nav-key'),
+        );
+        $this->assertSame(
+            ['dashboard', 'saved', 'announcements'],
+            $this->attributeValues($xpath, '//nav[@data-navigation-kind="responsive"]//*[@data-nav-surfaces="mobile-secondary" or contains(@data-nav-surfaces, "desktop-primary mobile-secondary")]/@data-nav-key'),
+        );
+        $this->assertSame(
+            ['home', 'search', 'create', 'activity', 'messages'],
+            $this->attributeValues($xpath, '//nav[@data-navigation-kind="mobile-primary"]//*[@data-mobile-nav-key]/@data-mobile-nav-key'),
+        );
+        $this->assertSame(1, $xpath->query('//*[@data-nav-key="announcements"]')->length);
+        $this->assertSame(1, $xpath->query('//*[@data-nav-key="saved"]')->length);
+        $this->assertSame(0, $xpath->query('//nav[@data-navigation-kind="responsive"]//*[@data-nav-surfaces="mobile-secondary" or contains(@data-nav-surfaces, "desktop-primary mobile-secondary")][@data-nav-key="feed" or @data-nav-key="search" or @data-nav-key="activity" or @data-nav-key="messages"]')->length);
+        $this->assertSame(0, $xpath->query('//nav[@data-navigation-kind="responsive"]//*[@data-rail-slot="create"]')->length);
+        $this->assertSame(
+            ['profile', 'settings', 'sign-out'],
+            $this->attributeValues($xpath, '//*[@id="mobile-profile-menu"]//*[@data-account-menu-key]/@data-account-menu-key'),
+        );
 
-        $desktopDropdownStart = strpos($html, 'class="skuy-profile-trigger"');
-        $mobileProfileStart = strpos($html, 'id="mobile-profile-menu"');
-        $this->assertNotFalse($desktopDropdownStart);
-        $this->assertNotFalse($mobileProfileStart);
-        $this->assertStringNotContainsString(route('bookmarks.index'), substr($html, $desktopDropdownStart, $mobileProfileStart - $desktopDropdownStart));
+        $railSlots = $this->attributeValues($xpath, '//*[@id="mobile-navigation"]//*[@data-rail-slot]/@data-rail-slot');
+        $this->assertLessThan(array_search('account', $railSlots, true), array_search('create', $railSlots, true));
+        $this->assertGreaterThan(array_search('desktop-primary', $railSlots, true), array_search('create', $railSlots, true));
+        $this->assertStringContainsString('flex: 1 0 24px;', file_get_contents(resource_path('css/skuy-prism-navigation.css')));
+    }
+
+    public function test_mobile_account_menu_shows_identity_and_only_account_destinations(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Navigation Account Owner',
+            'email' => 'navigation-owner@example.test',
+        ]);
+
+        $html = $this->actingAs($user)->get(route('feed'))->assertOk()->getContent();
+        $xpath = $this->xpath($html);
+        $accountMenu = $xpath->query('//*[@id="mobile-profile-menu"]')->item(0);
+
+        $this->assertNotNull($accountMenu);
+        $this->assertStringContainsString($user->name, $accountMenu->textContent);
+        $this->assertStringContainsString($user->email, $accountMenu->textContent);
+        $this->assertSame(0, $xpath->query('//*[@id="mobile-profile-menu"]//*[@data-nav-key or @data-mobile-nav-key]')->length);
+        $this->assertSame(0, $xpath->query('//*[@id="mobile-profile-menu"]//*[contains(@href, "'.route('bookmarks.index').'") or contains(@href, "'.route('messages.index').'") or contains(@href, "'.route('announcements.index').'")]')->length);
+        $this->assertSame(0, $xpath->query('//*[@id="mobile-profile-menu"]//*[@data-rail-slot="create"]')->length);
+    }
+
+    public function test_mobile_header_and_feed_spacing_reserve_only_the_fixed_header_height(): void
+    {
+        $css = file_get_contents(resource_path('css/skuy-prism-navigation.css'));
+        $prismCss = file_get_contents(resource_path('css/skuy-prism.css'));
+        $this->assertIsString($css);
+        $this->assertIsString($prismCss);
+
+        $this->assertMatchesRegularExpression(
+            '/@media \(max-width: 767px\)\s*\{.*?\.skuy-navigation-shell\[data-skuy-prism-shell\] \.skuy-topbar\s*\{[^}]*position: fixed;[^}]*top: 0;[^}]*z-index: 65;[^}]*padding-block-start: env\(safe-area-inset-top\);/s',
+            $css,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.skuy-app-shell \.skuy-navigation-shell\[data-skuy-prism-shell\] \+ \.skuy-app-shell__workspace\s*\{[^}]*padding-top: calc\(58px \+ env\(safe-area-inset-top\)\);/s',
+            $css,
+        );
+        $this->assertStringNotContainsString('position: sticky;\n        top: 0;\n        z-index: 65;', $css);
+        $this->assertStringContainsString('padding-top: 12px;', $prismCss);
+    }
+
+    private function xpath(string $html): DOMXPath
+    {
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML($html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        return new DOMXPath($document);
+    }
+
+    private function attributeValues(DOMXPath $xpath, string $query): array
+    {
+        $nodes = $xpath->query($query);
+        $this->assertNotFalse($nodes);
+
+        return array_map(static fn (\DOMAttr $attribute): string => $attribute->value, iterator_to_array($nodes));
     }
 
     public function test_create_thread_rail_cta_has_theme_safe_hover_pressed_and_focus_states(): void

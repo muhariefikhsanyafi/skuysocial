@@ -365,12 +365,17 @@ class AnnouncementFeatureTest extends TestCase
         $this->assertStringContainsString('aria-label="Unread: 1"', $html);
         $this->assertStringNotContainsString('data-mobile-nav-key="announcements"', $html);
         $this->assertStringContainsString('data-mobile-nav-key="messages"', $html);
+        $this->assertSame(1, substr_count($html, 'data-nav-key="announcements"'));
         $mobileProfileMenuStart = strpos($html, 'id="mobile-profile-menu"');
         $mobileNavigationStart = strpos($html, 'id="mobile-navigation"');
         $this->assertNotFalse($mobileProfileMenuStart);
         $this->assertNotFalse($mobileNavigationStart);
         $mobileProfileMenu = substr($html, $mobileProfileMenuStart, $mobileNavigationStart - $mobileProfileMenuStart);
-        $this->assertStringContainsString('href="'.route('announcements.index').'"', $mobileProfileMenu);
+        $this->assertStringNotContainsString('href="'.route('announcements.index').'"', $mobileProfileMenu);
+        $mobileDockStart = strpos($html, '<nav class="skuy-mobile-nav"');
+        $this->assertNotFalse($mobileDockStart);
+        $secondaryNavigation = substr($html, $mobileNavigationStart, $mobileDockStart - $mobileNavigationStart);
+        $this->assertSame(1, substr_count($secondaryNavigation, 'href="'.route('announcements.index').'"'));
         $bottomNavStart = strpos($html, '<nav class="skuy-mobile-nav"');
         $bottomNavEnd = strpos($html, '</nav>', $bottomNavStart);
         $bottomNav = substr($html, $bottomNavStart, $bottomNavEnd - $bottomNavStart);
