@@ -133,6 +133,8 @@ class FeedTest extends TestCase
         $this->assertStringContainsString('border: 0;', $desktopTopbarRule);
         $this->assertStringContainsString('background: transparent;', $desktopTopbarRule);
         $this->assertStringContainsString('box-shadow: none;', $desktopTopbarRule);
+        $this->assertStringContainsString('-webkit-backdrop-filter: none;', $desktopTopbarRule);
+        $this->assertStringContainsString('backdrop-filter: none;', $desktopTopbarRule);
 
         $communityLinkSelector = '.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-context-card--community a {';
         $communityLinkStart = strpos($css, $communityLinkSelector);
@@ -141,6 +143,57 @@ class FeedTest extends TestCase
         $this->assertIsInt($communityLinkEnd, 'Unclosed Feed community-card action rule.');
         $communityLinkRule = substr($css, $communityLinkStart, $communityLinkEnd - $communityLinkStart + 1);
         $this->assertStringContainsString('color: var(--skuy-on-brand);', $communityLinkRule);
+    }
+
+    public function test_feed_context_height_reserves_the_grid_tail_in_both_menu_states(): void
+    {
+        $css = file_get_contents(resource_path('css/skuy-prism.css'));
+        $navigationCss = file_get_contents(resource_path('css/skuy-prism-navigation.css'));
+        $appCss = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertIsString($css);
+        $this->assertIsString($navigationCss);
+        $this->assertIsString($appCss);
+        $this->assertTrue(str_contains($css, '--skuy-feed-shell-bottom-padding: 56px;'), 'The grid tail must share the Feed shell padding token.');
+        $this->assertTrue(str_contains($css, '--skuy-feed-context-bottom-reserve: calc(var(--skuy-feed-context-bottom-gap) + var(--skuy-feed-shell-bottom-padding));'));
+        $this->assertTrue(str_contains($css, '--skuy-feed-context-bottom-gap: 16px;'), 'The context rail must reserve a visible bottom gap.');
+
+        $feedShellSelector = '.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-shell {';
+        $desktopFeedMediaStart = strpos($css, '@media (min-width: 1200px) {');
+        $feedShellStart = strpos($css, $feedShellSelector, $desktopFeedMediaStart);
+        $this->assertIsInt($feedShellStart, 'Missing desktop Feed shell sizing rule.');
+        $feedShellEnd = strpos($css, '}', $feedShellStart);
+        $feedShellRule = substr($css, $feedShellStart, $feedShellEnd - $feedShellStart + 1);
+        $this->assertTrue(str_contains($feedShellRule, 'padding-bottom: var(--skuy-feed-shell-bottom-padding);'));
+
+        $contextSelector = '.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-context {';
+        $contextStart = strrpos($css, $contextSelector);
+        $this->assertIsInt($contextStart, 'Missing desktop Feed context scroll rule.');
+        $contextEnd = strpos($css, '}', $contextStart);
+        $contextRule = substr($css, $contextStart, $contextEnd - $contextStart + 1);
+        $this->assertTrue(str_contains($contextRule, 'var(--skuy-feed-context-bottom-reserve)'));
+
+        $openContextSelector = '.skuy-app-shell.skuy-desktop-account-menu-open .skuy-feed-context {';
+        $openContextStart = strrpos($css, $openContextSelector);
+        $this->assertIsInt($openContextStart, 'Missing account-menu-open Feed context sizing rule.');
+        $openContextEnd = strpos($css, '}', $openContextStart);
+        $openContextRule = substr($css, $openContextStart, $openContextEnd - $openContextStart + 1);
+        $this->assertTrue(str_contains($openContextRule, 'var(--skuy-feed-context-bottom-reserve)'));
+
+        $this->assertFalse(
+            str_contains($navigationCss, '.skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,'),
+            'The desktop topbar must not inherit the global rectangular glass-surface group.'
+        );
+        $this->assertFalse(
+            str_contains($css, '.skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,'),
+            'Reduced-transparency styles must not repaint the desktop topbar wrapper.'
+        );
+        $this->assertFalse(
+            str_contains($appCss, "@media (prefers-reduced-transparency: reduce) {\n    .skuy-topbar,"),
+            'The generic reduced-transparency rule must not repaint the desktop topbar wrapper.'
+        );
+        $this->assertTrue(str_contains($appCss, '@media (max-width: 1279px) and (prefers-reduced-transparency: reduce) {'));
+        $this->assertTrue(str_contains($navigationCss, '@media (min-width: 1280px) and (prefers-reduced-transparency: reduce) {'));
     }
 
     public function test_feed_exposes_a_visible_social_stream_heading(): void
@@ -1235,13 +1288,17 @@ class FeedTest extends TestCase
             'radial-gradient(',
             '@media (min-width: 1200px)',
             'position: sticky;',
-            'max-height: calc(100dvh - var(--skuy-feed-context-sticky-offset) - 16px);',
-            '--skuy-feed-context-menu-open-bottom-gap: 72px;',
-            'max-height: max(0px, calc(100dvh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-menu-open-bottom-gap)));',
+            'max-height: calc(100vh - var(--skuy-feed-context-sticky-offset) - var(--skuy-feed-context-bottom-reserve));',
+            'max-height: max(0px, calc(100dvh - var(--skuy-feed-context-sticky-offset) - var(--skuy-feed-context-bottom-reserve)));',
+            '--skuy-feed-context-bottom-gap: 16px;',
+            '--skuy-feed-shell-bottom-padding: 56px;',
+            '--skuy-feed-context-bottom-reserve: calc(var(--skuy-feed-context-bottom-gap) + var(--skuy-feed-shell-bottom-padding));',
+            'padding-bottom: var(--skuy-feed-shell-bottom-padding);',
+            'max-height: max(0px, calc(100dvh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-bottom-reserve)));',
             'overflow-y: auto;',
             '@media (prefers-reduced-transparency: reduce)',
         ] as $contract) {
-            $this->assertStringContainsString($contract, $css, "Missing feed layout/ambience contract: {$contract}");
+            $this->assertTrue(str_contains($css, $contract), "Missing feed layout/ambience contract: {$contract}");
         }
     }
 

@@ -1242,7 +1242,7 @@
         grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
         gap: clamp(22px, 2.2vw, 32px);
         padding-top: 28px;
-        padding-bottom: 56px;
+        padding-bottom: var(--skuy-feed-shell-bottom-padding);
     }
 
     .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-content {
@@ -1345,7 +1345,10 @@
         min-height: 0;
         border: 0;
         background: transparent;
+        background-image: none;
         box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
 
     .skuy-topbar__inner {
@@ -1370,6 +1373,13 @@
         background: var(--skuy-surface-glass);
         box-shadow: var(--skuy-shadow-soft);
         pointer-events: auto;
+    }
+
+    @supports (backdrop-filter: blur(1px)) {
+        .skuy-topbar__actions {
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+        }
     }
 
     .skuy-profile-trigger {
@@ -1703,7 +1713,6 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
-    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,
     .skuy-app-rail,
     .skuy-mobile-nav,
     .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-composer,
@@ -1736,8 +1745,10 @@
 :root {
     --skuy-feed-context-sticky-offset: 94px;
     --skuy-feed-context-menu-open-offset: 220px;
-    /* 56px feed-shell tail + 16px breathing room keeps the rail inside its grid end. */
-    --skuy-feed-context-menu-open-bottom-gap: 72px;
+    --skuy-feed-context-bottom-gap: 16px;
+    --skuy-feed-shell-bottom-padding: 56px;
+    /* Keep sticky sizing inside its grid containing block through the shell tail. */
+    --skuy-feed-context-bottom-reserve: calc(var(--skuy-feed-context-bottom-gap) + var(--skuy-feed-shell-bottom-padding));
 }
 
 .skuy-app-shell {
@@ -1979,8 +1990,8 @@
         position: sticky;
         top: var(--skuy-feed-context-sticky-offset);
         align-self: start;
-        max-height: calc(100vh - var(--skuy-feed-context-sticky-offset) - 16px);
-        max-height: calc(100dvh - var(--skuy-feed-context-sticky-offset) - 16px);
+        max-height: calc(100vh - var(--skuy-feed-context-sticky-offset) - var(--skuy-feed-context-bottom-reserve));
+        max-height: max(0px, calc(100dvh - var(--skuy-feed-context-sticky-offset) - var(--skuy-feed-context-bottom-reserve)));
         min-height: 0;
         overflow-x: hidden;
         overflow-y: auto;
@@ -2026,8 +2037,8 @@
 @media (min-width: 1200px) {
     .skuy-app-shell.skuy-desktop-account-menu-open .skuy-feed-context {
         top: var(--skuy-feed-context-menu-open-offset);
-        max-height: calc(100vh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-menu-open-bottom-gap));
-        max-height: max(0px, calc(100dvh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-menu-open-bottom-gap)));
+        max-height: calc(100vh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-bottom-reserve));
+        max-height: max(0px, calc(100dvh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-bottom-reserve)));
     }
 }
 

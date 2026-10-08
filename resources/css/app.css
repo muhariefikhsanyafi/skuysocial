@@ -4585,8 +4585,15 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
-    .skuy-topbar,
     .skuy-mobile-nav {
+        background: var(--skuy-surface-raised);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+@media (max-width: 1279px) and (prefers-reduced-transparency: reduce) {
+    .skuy-topbar {
         background: var(--skuy-surface-raised);
         -webkit-backdrop-filter: none;
         backdrop-filter: none;

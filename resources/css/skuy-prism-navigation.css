@@ -409,7 +409,6 @@
 }
 
 /* Tahap 1.2: crisp layered glass, with a lighter mobile blur budget. */
-.skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,
 .skuy-app-rail,
 .skuy-mobile-nav,
 .skuy-mobile-account-menu,
@@ -441,7 +440,12 @@
 
 @media (max-width: 1279px) {
     .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        border-color: var(--skuy-prism-glass-edge);
         background: color-mix(in srgb, var(--skuy-surface-glass) 94%, transparent);
+        box-shadow:
+            var(--skuy-shadow-raised),
+            inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+            inset 0 -1px 0 color-mix(in srgb, var(--skuy-secondary) 10%, transparent);
     }
 
     @supports (backdrop-filter: blur(1px)) {
@@ -479,12 +483,31 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
-    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,
     .skuy-app-rail,
     .skuy-mobile-nav,
     .skuy-mobile-account-menu,
     .skuy-menu-surface,
     .skuy-appreciation__popover {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border-color: var(--skuy-border-strong);
+        background: var(--skuy-surface-raised);
+        box-shadow: var(--skuy-shadow-soft);
+    }
+}
+
+@media (max-width: 1279px) and (prefers-reduced-transparency: reduce) {
+    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border-color: var(--skuy-border-strong);
+        background: var(--skuy-surface-raised);
+        box-shadow: var(--skuy-shadow-soft);
+    }
+}
+
+@media (min-width: 1280px) and (prefers-reduced-transparency: reduce) {
+    .skuy-topbar__actions {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
         border-color: var(--skuy-border-strong);
