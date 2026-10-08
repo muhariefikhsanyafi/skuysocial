@@ -2,6 +2,7 @@ import '../css/skuy-prism.css';
 import '../css/skuy-prism-navigation.css';
 import Alpine from 'alpinejs';
 import { acquireFeedPostActionLock } from './feedPostActionLock';
+import { feedTopicAutocomplete } from './feedTopicAutocomplete';
 import { initializeMessageComposers } from './messageComposer';
 import { initializeOneSignal } from './oneSignal';
 import { playSocialActionMotion } from './socialActionMotion';
@@ -9,6 +10,8 @@ import { playSocialActionMotion } from './socialActionMotion';
 window.Alpine = Alpine;
 initializeMessageComposers();
 initializeOneSignal();
+
+Alpine.data('feedTopicAutocomplete', (topics = []) => feedTopicAutocomplete(topics));
 
 Alpine.data('feedCommentControl', (config = {}) => ({
     showComments: false,

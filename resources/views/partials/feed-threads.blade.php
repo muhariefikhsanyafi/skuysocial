@@ -46,11 +46,7 @@
                         </a>
 
                         @if ($displayPost->user->is_verified)
-                            <span class="inline-flex text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
-                                </svg>
-                            </span>
+                            <x-verified-badge />
                         @endif
 
                         @if ($displayPost->topic)
@@ -192,49 +188,97 @@
                                 ->values();
                         @endphp
 
-                        <div x-data="{
-                            activeSlide: 0,
-                            updateDots(event) {
-                                const slider = event.target;
-                                const slides = Array.from(slider.querySelectorAll('[data-media-slide=true]'));
-                                if (slides.length < 2) return;
+                        <div
+                            x-data="{
+                                activeSlide: 0,
+                                updateDots(event) {
+                                    const slider = event.target;
+                                    const slides = Array.from(slider.querySelectorAll('[data-media-slide=true]'));
+                                    if (slides.length < 2) return;
 
-                                const maxScroll = slider.scrollWidth - slider.clientWidth;
-                                if (maxScroll <= 0) return;
+                                    const sliderCenter = slider.getBoundingClientRect().left + (slider.clientWidth / 2);
+                                    let nearestDistance = Number.POSITIVE_INFINITY;
+                                    let nearestIndex = 0;
 
-                                const sliderLeft = slider.getBoundingClientRect().left;
-                                let nearestDistance = Number.POSITIVE_INFINITY;
-                                let nearestIndex = 0;
+                                    slides.forEach((slide, index) => {
+                                        const slideRect = slide.getBoundingClientRect();
+                                        const distance = Math.abs((slideRect.left + (slideRect.width / 2)) - sliderCenter);
+                                        if (distance < nearestDistance) {
+                                            nearestDistance = distance;
+                                            nearestIndex = index;
+                                        }
+                                    });
 
-                                slides.forEach((slide, index) => {
-                                    const slideRect = slide.getBoundingClientRect();
-                                    const slideCenter = slider.scrollLeft + slideRect.left - sliderLeft + (slideRect.width / 2);
-                                    const snapLeft = Math.max(0, Math.min(maxScroll, slideCenter - (slider.clientWidth / 2)));
-                                    const distance = Math.abs(snapLeft - slider.scrollLeft);
+                                    this.activeSlide = nearestIndex;
+                                },
+                                moveSlide(direction) {
+                                    const slider = this.$refs.mediaTrack;
+                                    const slides = Array.from(slider?.querySelectorAll('[data-media-slide=true]') ?? []);
+                                    if (slides.length < 2) return;
 
-                                    if (distance < nearestDistance) {
-                                        nearestDistance = distance;
-                                        nearestIndex = index;
+                                    const targetIndex = Math.max(0, Math.min(slides.length - 1, this.activeSlide + direction));
+                                    const slide = slides[targetIndex];
+                                    const targetLeft = slider.scrollLeft
+                                        + slide.getBoundingClientRect().left
+                                        - slider.getBoundingClientRect().left
+                                        - ((slider.clientWidth - slide.clientWidth) / 2);
+                                    const maxScroll = Math.max(0, slider.scrollWidth - slider.clientWidth);
+                                    const left = Math.max(0, Math.min(maxScroll, targetLeft));
+                                    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+                                    if (typeof slider.scrollTo === 'function') {
+                                        slider.scrollTo({ left, behavior: reduceMotion ? 'auto' : 'smooth' });
+                                    } else {
+                                        slider.scrollLeft = left;
                                     }
-                                });
-
-                                this.activeSlide = nearestIndex;
-                            }
-                        }" class="skuy-feed-post__media skuy-feed-post__media--{{ count($displayPost->images) === 1 ? 'single' : 'carousel' }}">
-                            <div data-media-slider="true" @scroll.passive="updateDots" class="skuy-media-track{{ count($displayPost->images) === 1 ? ' skuy-feed-media-track--single' : ' skuy-feed-media-track--carousel' }}">
-                                @foreach ($displayPost->images as $imgUrl)
-                                    <div data-media-slide="true" @click="openLightbox(@js($postImageUrls), {{ $loop->index }})" class="skuy-media-item{{ count($displayPost->images) > 1 ? ' skuy-feed-media-item--portrait-preview' : '' }}">
+                                    this.activeSlide = targetIndex;
+                                }
+                            }"
+                            class="skuy-feed-post__media skuy-feed-post__media--{{ count($displayPost->images) === 1 ? 'single' : 'carousel' }}"
+                        >
+                            <div
+                                data-media-slider="true"
+                                x-ref="mediaTrack"
+                                @scroll.passive="updateDots"
+                                @if (count($displayPost->images) > 1)
+                                    role="region"
+                                    aria-label="{{ __('threads.media.photo_gallery') }}"
+                                    aria-roledescription="carousel"
+                                    tabindex="0"
+                                    @keydown.arrow-left.prevent.stop="moveSlide(-1)"
+                                    @keydown.arrow-right.prevent.stop="moveSlide(1)"
+                                @endif
+                                class="skuy-media-track{{ count($displayPost->images) === 1 ? ' skuy-feed-media-track--single' : ' skuy-feed-media-track--carousel' }}"
+                            >
+                                @foreach ($displayPost->images as $index => $imgUrl)
+                                    <button
+                                        type="button"
+                                        data-media-slide="true"
+                                        @click.stop="openLightbox(@js($postImageUrls), {{ $loop->index }}, $event)"
+                                        :aria-current="activeSlide === {{ $loop->index }} ? 'true' : null"
+                                        aria-label="{{ __('threads.media.image_position', ['current' => $loop->iteration, 'total' => count($displayPost->images)]) }}"
+                                        class="skuy-media-item{{ count($displayPost->images) > 1 ? ' skuy-feed-media-item--portrait-preview' : '' }}"
+                                    >
                                         <img src="{{ asset('storage/' . $imgUrl) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
-                                    </div>
+                                    </button>
                                 @endforeach
                             </div>
 
                             @if (count($displayPost->images) > 1)
+                                <div class="skuy-media-gallery__controls" role="group" aria-label="{{ __('threads.media.photo_gallery') }}">
+                                    <button type="button" data-feed-media-previous="true" @click.stop="moveSlide(-1)" :disabled="activeSlide === 0" aria-label="{{ __('threads.media.previous_image') }}" class="skuy-media-gallery__control">
+                                        <x-fa-icon name="chevron-left" />
+                                    </button>
+                                    <button type="button" data-feed-media-next="true" @click.stop="moveSlide(1)" :disabled="activeSlide === {{ count($displayPost->images) - 1 }}" aria-label="{{ __('threads.media.next_image') }}" class="skuy-media-gallery__control">
+                                        <x-fa-icon name="chevron-right" />
+                                    </button>
+                                </div>
                                 <div data-media-indicator="true" class="skuy-media-dots" aria-hidden="true">
                                     @foreach ($displayPost->images as $index => $img)
                                         <div data-media-indicator-dot="true" class="skuy-media-dot" :class="activeSlide === {{ $index }} ? 'is-active' : ''"></div>
                                     @endforeach
                                 </div>
+                                <span class="sr-only" role="status" aria-live="polite" x-text="'{{ __('threads.media.image_position', ['current' => '__CURRENT__', 'total' => count($displayPost->images)]) }}'.replace('__CURRENT__', activeSlide + 1)"></span>
                             @endif
                         </div>
                     @endif

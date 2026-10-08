@@ -34,11 +34,7 @@
                         <h1 id="profile-title" class="skuy-profile-title">
                             <span>{{ $user->name }}</span>
                             @if ($user->is_verified)
-                                <span class="skuy-profile-verified" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
-                                    </svg>
-                                </span>
+                                <x-verified-badge />
                             @endif
                         </h1>
                         <p class="skuy-profile-username">{{ '@' . $user->username }}</p>
@@ -173,11 +169,7 @@
                                                     <span aria-hidden="true">@</span>{{ $displayPost->user->username }}
                                                 </a>
                                                 @if ($displayPost->user->is_verified)
-                                                    <span class="inline-flex text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
-                                                        </svg>
-                                                    </span>
+                                                    <x-verified-badge />
                                                 @endif
                                                 <time datetime="{{ $displayPost->created_at->toIso8601String() }}" class="skuy-post__time">
                                                     {{ $displayPost->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}

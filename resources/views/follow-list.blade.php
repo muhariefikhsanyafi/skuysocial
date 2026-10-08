@@ -36,9 +36,7 @@
                                     <div class="flex flex-wrap items-center gap-1.5">
                                         <p class="skuy-post__display-name truncate">{{ $listedUser->name }}</p>
                                         @if ($listedUser->is_verified)
-                                            <span class="inline-flex text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
-                                            </span>
+                                            <x-verified-badge />
                                         @endif
                                     </div>
                                     <p class="skuy-post__username truncate">{{ '@' }}{{ $listedUser->username }}</p>

@@ -83,6 +83,8 @@ return [
         'avatar' => 'Avatar',
         'avatar_of' => 'Avatar :name',
         'photo' => 'Foto',
+        'photo_gallery' => 'Galeri foto',
+        'image_position' => 'Foto :current dari :total',
         'photo_by' => 'Foto dari :name',
         'full_photo' => 'Foto penuh',
         'preview' => 'Pratinjau gambar',

@@ -88,7 +88,7 @@ export default function Show() {
                                     <span className="skuy-post__display-name">{displayPost.author.name}</span>
                                     <span className="skuy-post__username">@{displayPost.author.username}</span>
                                     {displayPost.author.is_verified && (
-                                        <span className="inline-flex text-[var(--skuy-secondary)]" title={translations.verified} aria-label={translations.verified}>
+                                        <span className="skuy-verified-badge" data-verified-badge role="img" title={translations.verified} aria-label={translations.verified}>
                                             <CheckIcon />
                                         </span>
                                     )}
@@ -171,7 +171,7 @@ export default function Show() {
                                 <span>@{displayPost.author.username}</span>
                             </span>
                             {displayPost.author.is_verified && (
-                                <span className="skuy-post-detail__creator-verified" title={translations.verified} aria-label={translations.verified}>
+                                <span className="skuy-verified-badge" data-verified-badge role="img" title={translations.verified} aria-label={translations.verified}>
                                     <CheckIcon />
                                 </span>
                             )}

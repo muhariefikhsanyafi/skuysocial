@@ -18,35 +18,106 @@
                     activeImage: '',
                     lightboxImages: [],
                     lightboxIndex: 0,
+                    lightboxTrigger: null,
+                    lightboxPointerStart: null,
+                    previousBodyOverflow: '',
                     nextFeedUrl: '',
                     isLoadingMore: false,
                     feedLoadFailed: false,
-                    openLightbox(images, index = 0) {
+                    openLightbox(images, index = 0, event = null) {
                         const normalizedImages = images.filter(image => typeof image === 'string' && image.length > 0);
                         if (normalizedImages.length === 0) return;
 
                         this.lightboxImages = normalizedImages;
                         this.lightboxIndex = Math.min(Math.max(index, 0), normalizedImages.length - 1);
                         this.activeImage = this.lightboxImages[this.lightboxIndex];
+                        this.lightboxTrigger = event?.currentTarget ?? null;
+                        this.previousBodyOverflow = document.body.style.overflow;
+                        document.body.style.overflow = 'hidden';
                         this.openImage = true;
+                        this.$nextTick(() => this.$refs.lightboxClose?.focus());
                     },
                     previousImage() {
-                        if (this.lightboxImages.length <= 1) return;
+                        if (this.lightboxImages.length <= 1 || this.lightboxIndex <= 0) return;
 
-                        this.lightboxIndex = (this.lightboxIndex - 1 + this.lightboxImages.length) % this.lightboxImages.length;
+                        this.lightboxIndex -= 1;
                         this.activeImage = this.lightboxImages[this.lightboxIndex];
                     },
                     nextImage() {
-                        if (this.lightboxImages.length <= 1) return;
+                        if (this.lightboxImages.length <= 1 || this.lightboxIndex >= this.lightboxImages.length - 1) return;
 
-                        this.lightboxIndex = (this.lightboxIndex + 1) % this.lightboxImages.length;
+                        this.lightboxIndex += 1;
                         this.activeImage = this.lightboxImages[this.lightboxIndex];
+                    },
+                    startLightboxPointer(event) {
+                        this.lightboxPointerStart = { x: event.clientX, y: event.clientY };
+                    },
+                    endLightboxPointer(event) {
+                        const start = this.lightboxPointerStart;
+                        this.lightboxPointerStart = null;
+                        if (!start || this.lightboxImages.length <= 1) return;
+
+                        const deltaX = event.clientX - start.x;
+                        const deltaY = event.clientY - start.y;
+                        if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.25) return;
+
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (deltaX < 0) this.nextImage();
+                        else this.previousImage();
+                    },
+                    handleLightboxKeydown(event) {
+                        if (!this.openImage) return;
+
+                        if (event.key === 'Escape') {
+                            event.preventDefault();
+                            this.closeImage();
+                            return;
+                        }
+
+                        if (event.key === 'ArrowLeft') {
+                            event.preventDefault();
+                            this.previousImage();
+                            return;
+                        }
+
+                        if (event.key === 'ArrowRight') {
+                            event.preventDefault();
+                            this.nextImage();
+                            return;
+                        }
+
+                        if (event.key !== 'Tab') return;
+
+                        const dialog = this.$refs.lightboxDialog;
+                        const focusable = [...dialog.querySelectorAll('button:not(:disabled), [href], [tabindex]')]
+                            .filter(element => element instanceof HTMLElement && element.tabIndex >= 0 && element.getClientRects().length > 0);
+                        if (focusable.length === 0) {
+                            event.preventDefault();
+                            dialog.focus();
+                            return;
+                        }
+
+                        const first = focusable[0];
+                        const last = focusable[focusable.length - 1];
+                        if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+                            event.preventDefault();
+                            last.focus();
+                        } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+                            event.preventDefault();
+                            first.focus();
+                        }
                     },
                     closeImage() {
                         this.openImage = false;
                         this.activeImage = '';
                         this.lightboxIndex = 0;
                         this.lightboxImages = [];
+                        this.lightboxPointerStart = null;
+                        document.body.style.overflow = this.previousBodyOverflow;
+                        const trigger = this.lightboxTrigger;
+                        this.lightboxTrigger = null;
+                        this.$nextTick(() => trigger?.isConnected && trigger.focus());
                     },
                     closeImageIfActive(imageUrl) {
                         if (this.lightboxImages.includes(imageUrl)) this.closeImage();
@@ -197,19 +268,11 @@
                                 </div>
                             </div>
 
-                            <div x-data="{
-                                topicQuery: '',
-                                showSuggestions: false,
-                                availableTopics: {{ $availableTopics->toJson() }},
-                                get filteredTopics() {
-                                    if (this.topicQuery === '') return [];
-                                    return this.availableTopics.filter(topic => topic.toLowerCase().includes(this.topicQuery.toLowerCase()));
-                                },
-                                selectTopic(topic) {
-                                    this.topicQuery = topic;
-                                    this.showSuggestions = false;
-                                }
-                            }" class="skuy-composer__topic">
+                            <div
+                                x-data="feedTopicAutocomplete(@js($availableTopics->values()->all()))"
+                                @click.outside="close()"
+                                class="skuy-composer__topic"
+                            >
                                 <label for="composer-topic" class="skuy-composer__topic-label">{{ __('threads.composer.topic_placeholder') }}</label>
                                 <div class="relative min-w-0 flex-1">
                                     <input
@@ -217,15 +280,42 @@
                                         id="composer-topic"
                                         name="topic"
                                         x-model="topicQuery"
-                                        @focus="showSuggestions = true"
-                                        @click.away="showSuggestions = false"
+                                        @focus="open()"
+                                        @input="handleInput()"
+                                        @keydown="handleKeydown($event)"
+                                        role="combobox"
+                                        aria-autocomplete="list"
+                                        aria-haspopup="listbox"
+                                        aria-expanded="false"
+                                        aria-controls="composer-topic-suggestions"
+                                        :aria-expanded="expanded.toString()"
+                                        :aria-activedescendant="activeDescendant"
                                         class="skuy-composer__topic-input"
                                         maxlength="30"
                                         autocomplete="off"
                                     >
-                                    <div x-show="showSuggestions && filteredTopics.length > 0" style="display: none;" class="skuy-composer__topic-suggestions absolute left-0 top-full z-50 mt-2 w-52 max-w-[calc(100vw-4rem)]">
-                                        <template x-for="topic in filteredTopics" :key="topic">
-                                            <button type="button" @click="selectTopic(topic)" class="skuy-composer__topic-option" x-text="topic"></button>
+                                    <div
+                                        id="composer-topic-suggestions"
+                                        x-show="expanded"
+                                        style="display: none;"
+                                        role="listbox"
+                                        aria-label="{{ __('threads.composer.topic_placeholder') }}"
+                                        class="skuy-composer__topic-suggestions"
+                                    >
+                                        <template x-for="(topic, index) in filteredTopics" :key="topic">
+                                            <button
+                                                type="button"
+                                                :id="`composer-topic-option-${index}`"
+                                                role="option"
+                                                tabindex="-1"
+                                                :aria-selected="(activeIndex === index).toString()"
+                                                :class="{ 'is-active': activeIndex === index }"
+                                                @mouseenter="activeIndex = index"
+                                                @mousedown.prevent
+                                                @click.prevent.stop="selectTopic(topic)"
+                                                class="skuy-composer__topic-option"
+                                                x-text="topic"
+                                            ></button>
                                         </template>
                                     </div>
                                 </div>
@@ -252,7 +342,7 @@
                                     <div x-show="selectedImages.length > 0" style="display: none;" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="{{ __('threads.media.preview') }}">
                                         <template x-for="(image, index) in selectedImages" :key="image.identity">
                                             <div class="relative aspect-square overflow-hidden rounded-[var(--radius-small)] border border-[var(--skuy-border-strong)] bg-[var(--skuy-surface-subtle)]">
-                                                <button type="button" @click="openLightbox(selectedImages.map(item => item.previewUrl), index)" :aria-label="'{{ __('threads.media.view_preview') }} ' + (index + 1)" class="skuy-preview-button block h-full w-full p-0">
+                                                <button type="button" @click="openLightbox(selectedImages.map(item => item.previewUrl), index, $event)" :aria-label="'{{ __('threads.media.view_preview') }} ' + (index + 1)" class="skuy-preview-button block h-full w-full p-0">
                                                     <img :src="image.previewUrl" :alt="'{{ __('threads.media.preview') }} ' + (index + 1)" class="h-full w-full object-cover">
                                                 </button>
                                                 <button type="button" @click="closeImageIfActive(image.previewUrl); removeImage(index)" :disabled="isSubmitting" :aria-label="'{{ __('threads.media.remove_image') }} ' + (index + 1)" :title="'{{ __('threads.media.remove_image') }} ' + (index + 1)" class="skuy-preview-remove absolute right-1 top-1">
@@ -279,18 +369,62 @@
                     </div>
                 </div>
 
-                <div x-show="openImage" @click.self="closeImage()" @keydown.window="if (openImage && $event.key === 'ArrowLeft') previousImage(); if (openImage && $event.key === 'ArrowRight') nextImage()" @keydown.escape.window="closeImage()" style="display: none;" role="dialog" aria-modal="true" aria-label="{{ __('threads.media.photo_preview') }}" class="skuy-lightbox fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-8">
-                    <div x-show="lightboxImages.length > 1" x-text="(lightboxIndex + 1) + ' / ' + lightboxImages.length" class="skuy-lightbox__counter"></div>
-                    <button type="button" x-show="lightboxImages.length > 1" @click.stop="previousImage()" aria-label="{{ __('threads.media.previous_image') }}" class="skuy-lightbox__control absolute left-3 top-1/2 -translate-y-1/2 sm:left-8">
+                <div
+                    x-show="openImage"
+                    x-ref="lightboxDialog"
+                    @click.self="closeImage()"
+                    @keydown.window="handleLightboxKeydown($event)"
+                    style="display: none;"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="{{ __('threads.media.photo_preview') }}"
+                    tabindex="-1"
+                    class="skuy-lightbox fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-8"
+                >
+                    <span
+                        x-show="lightboxImages.length > 1"
+                        x-text="'{{ __('threads.media.image_position', ['current' => '__CURRENT__', 'total' => '__TOTAL__']) }}'.replace('__CURRENT__', lightboxIndex + 1).replace('__TOTAL__', lightboxImages.length)"
+                        class="skuy-lightbox__counter"
+                        role="status"
+                        aria-live="polite"
+                    ></span>
+                    <button
+                        type="button"
+                        x-show="lightboxImages.length > 1"
+                        @click.stop="previousImage()"
+                        :disabled="lightboxIndex === 0"
+                        aria-label="{{ __('threads.media.previous_image') }}"
+                        class="skuy-lightbox__control absolute left-3 top-1/2 -translate-y-1/2 sm:left-8"
+                    >
                         <x-fa-icon name="chevron-left" class="text-2xl" />
                     </button>
-                    <button type="button" x-show="lightboxImages.length > 1" @click.stop="nextImage()" aria-label="{{ __('threads.media.next_image') }}" class="skuy-lightbox__control absolute right-3 top-1/2 -translate-y-1/2 sm:right-8">
+                    <button
+                        type="button"
+                        x-show="lightboxImages.length > 1"
+                        @click.stop="nextImage()"
+                        :disabled="lightboxIndex >= lightboxImages.length - 1"
+                        aria-label="{{ __('threads.media.next_image') }}"
+                        class="skuy-lightbox__control absolute right-3 top-1/2 -translate-y-1/2 sm:right-8"
+                    >
                         <x-fa-icon name="chevron-right" class="text-2xl" />
                     </button>
-                    <button type="button" @click="closeImage()" aria-label="{{ __('threads.media.close_preview') }}" class="skuy-lightbox__control absolute right-3 top-3 sm:right-8 sm:top-8">
+                    <button
+                        type="button"
+                        x-ref="lightboxClose"
+                        @click="closeImage()"
+                        aria-label="{{ __('threads.media.close_preview') }}"
+                        class="skuy-lightbox__control absolute right-3 top-3 sm:right-8 sm:top-8"
+                    >
                         <x-fa-icon name="xmark" weight="solid" class="text-2xl" />
                     </button>
-                    <img :src="activeImage" alt="{{ __('threads.media.full_photo') }}" class="skuy-lightbox__image">
+                    <img
+                        :src="activeImage"
+                        alt="{{ __('threads.media.full_photo') }}"
+                        @pointerdown="startLightboxPointer($event)"
+                        @pointerup="endLightboxPointer($event)"
+                        @pointercancel="lightboxPointerStart = null"
+                        class="skuy-lightbox__image"
+                    >
                 </div>
 
                 @if ($posts->hasMorePages())

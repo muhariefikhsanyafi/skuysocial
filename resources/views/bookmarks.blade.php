@@ -66,9 +66,7 @@
                                                 {{ $displayPost->user->name }}
                                             </a>
                                             @if ($displayPost->user->is_verified)
-                                                <span class="inline-flex text-[var(--skuy-secondary)]" role="img" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
-                                                </span>
+                                                <x-verified-badge />
                                             @endif
                                             <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-post__username">
                                                 <span aria-hidden="true">@</span>{{ $displayPost->user->username }}

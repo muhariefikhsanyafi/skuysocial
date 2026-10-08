@@ -37,9 +37,7 @@
                                 <span class="skuy-post__display-name">{{ $displayPost->user->name }}</span>
                                 <span class="skuy-post__username">@{{ $displayPost->user->username }}</span>
                                 @if($displayPost->user->is_verified)
-                                    <span class="inline-flex text-[var(--skuy-secondary)]" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
-                                    </span>
+                                    <x-verified-badge />
                                 @endif
                                 <time datetime="{{ $displayPost->created_at->toIso8601String() }}" class="skuy-post__time">
                                     {{ $displayPost->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}
@@ -368,9 +366,7 @@
                             <span>{{ '@' . $displayPost->user->username }}</span>
                         </span>
                         @if ($displayPost->user->is_verified)
-                            <span class="skuy-post-detail__creator-verified" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                <x-fa-icon name="badge-check" weight="solid" />
-                            </span>
+                            <x-verified-badge />
                         @endif
                         <x-fa-icon name="arrow-up-right-from-square" class="skuy-post-detail__creator-icon" />
                     </a>

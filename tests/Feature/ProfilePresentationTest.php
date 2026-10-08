@@ -89,6 +89,7 @@ class ProfilePresentationTest extends TestCase
             ->assertSee('covers/profile-owner.jpg', false)
             ->assertSee('avatars/profile-owner.jpg', false)
             ->assertSee('aria-label="'.__('threads.verified').'"', false)
+            ->assertSee('data-verified-badge', false)
             ->assertSee('Profile Owner with a Long Display Name')
             ->assertSee('@profile.owner')
             ->assertSee('A thoughtful profile bio.')
@@ -98,6 +99,8 @@ class ProfilePresentationTest extends TestCase
             ->assertSee(route('posts.show', $post), false)
             ->assertSee('aria-current="page"', false)
             ->assertSee('aria-label="'.__('profile.threads').', '.__('profile.likes').'"', false);
+
+        $this->assertSame(2, substr_count($html, 'data-verified-badge'));
 
         $markers = [
             'class="skuy-profile-cover',
@@ -180,7 +183,8 @@ class ProfilePresentationTest extends TestCase
             ->assertSee(__('profile.no_bio'))
             ->assertSee('href="'.route('user.edit', $owner->username).'"', false)
             ->assertDontSee('class="skuy-profile-follow-button', false)
-            ->assertDontSee('class="skuy-profile-verified"', false);
+            ->assertDontSee('class="skuy-profile-verified"', false)
+            ->assertDontSee('data-verified-badge', false);
     }
 
     public function test_likes_empty_state_uses_localized_status_copy_and_keeps_likes_selected(): void

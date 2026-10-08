@@ -47,6 +47,8 @@ const translations: PostDetailTranslations = {
     comment_link_copied: 'Comment link copied!',
     reply_link_copied: 'Reply link copied!',
     photo: 'Photo',
+    photo_gallery: 'Photo gallery',
+    image_position: 'Photo :current of :total',
     full_photo: 'Full-size photo',
     close_preview: 'Close preview',
     previous_image: 'Previous image',

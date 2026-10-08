@@ -573,6 +573,8 @@ class PostController extends Controller
             'comment_link_copied' => __('threads.comment_link_copied'),
             'reply_link_copied' => __('threads.reply_link_copied'),
             'photo' => __('threads.media.photo'),
+            'photo_gallery' => __('threads.media.photo_gallery'),
+            'image_position' => __('threads.media.image_position'),
             'full_photo' => __('threads.media.full_photo'),
             'close_preview' => __('threads.media.close_preview'),
             'previous_image' => __('threads.media.previous_image'),

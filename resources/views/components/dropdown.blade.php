@@ -13,7 +13,7 @@ $width = match ($width) {
 };
 @endphp
 
-<div
+<div {{ $attributes->only('id') }}
     class="relative"
     x-data="{
         open: false,
@@ -27,6 +27,7 @@ $width = match ($width) {
             }
         }
     }"
+    x-init="$watch('open', value => { if ($el.id === 'desktop-profile-dropdown') $dispatch('desktop-profile-menu-toggle', value) })"
     @click.outside="closeMenu()"
     @keydown.escape.window="if (open) closeMenu(true)"
     @close.stop="closeMenu()"

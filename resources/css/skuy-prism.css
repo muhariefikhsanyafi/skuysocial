@@ -4,16 +4,10 @@
     --skuy-motion-fast: 140ms;
     --skuy-motion-panel: 220ms;
     --skuy-motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-    --skuy-surface-glass: rgb(255 254 250 / 0.78);
-    --skuy-glow-primary: rgb(13 107 101 / 0.16);
-    --skuy-glow-secondary: rgb(94 198 175 / 0.12);
 }
 
 .dark {
     --skuy-prism-glass-edge: color-mix(in srgb, #8de2d6 26%, var(--skuy-border-subtle));
-    --skuy-surface-glass: rgb(18 28 32 / 0.82);
-    --skuy-glow-primary: rgb(59 190 172 / 0.25);
-    --skuy-glow-secondary: rgb(120 236 203 / 0.16);
 }
 
 .skuy-app-shell__workspace {
@@ -1200,16 +1194,23 @@
 }
 
 /* Glass is reserved for navigation, the composer and contextual surfaces—not post rows. */
-@supports (backdrop-filter: blur(8px)) {
-    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,
-    .skuy-app-rail,
-    .skuy-mobile-nav,
+@supports (backdrop-filter: blur(1px)) {
+    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+
+    .skuy-mobile-nav {
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+
     .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-composer,
     .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-context-card,
     .skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__context-card,
     .skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__composer {
-        -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
     }
 }
 
@@ -1728,5 +1729,328 @@
         animation-duration: 1ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 1ms !important;
+    }
+}
+
+/* Tahap 1.2: one viewport-anchored ambient canvas beneath the entire shell. */
+:root {
+    --skuy-feed-context-sticky-offset: 94px;
+    --skuy-feed-context-menu-open-offset: 220px;
+    /* 56px feed-shell tail + 16px breathing room keeps the rail inside its grid end. */
+    --skuy-feed-context-menu-open-bottom-gap: 72px;
+}
+
+.skuy-app-shell {
+    position: relative;
+    isolation: isolate;
+    background: transparent;
+}
+
+.skuy-app-shell::before {
+    position: fixed;
+    z-index: -1;
+    inset: 0;
+    background-color: var(--skuy-bg-workspace);
+    background-image:
+        radial-gradient(58rem 46rem at 8% 18%, var(--skuy-glow-primary), transparent 74%),
+        radial-gradient(54rem 42rem at 78% 54%, var(--skuy-glow-secondary), transparent 74%);
+    content: '';
+    pointer-events: none;
+}
+
+.skuy-app-shell__workspace {
+    position: relative;
+    min-height: 100svh;
+    background: transparent;
+    background-image: none;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-composer,
+.skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__composer {
+    border-color: var(--skuy-prism-glass-edge);
+    background: var(--skuy-surface-glass);
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--skuy-surface-glass) 90%, transparent),
+        color-mix(in srgb, var(--skuy-surface-glass) 98%, var(--skuy-secondary) 2%)
+    );
+    box-shadow:
+        var(--skuy-shadow-raised),
+        inset 0 1px 0 color-mix(in srgb, white 24%, transparent),
+        inset 0 -1px 0 color-mix(in srgb, var(--skuy-secondary) 12%, transparent);
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-context-card,
+.skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__context-card {
+    border-color: var(--skuy-prism-glass-edge);
+    background: var(--skuy-surface-glass);
+    background: linear-gradient(
+        155deg,
+        color-mix(in srgb, var(--skuy-surface-glass) 94%, transparent),
+        color-mix(in srgb, var(--skuy-surface-raised) 96%, var(--skuy-secondary) 4%)
+    );
+    box-shadow:
+        var(--skuy-shadow-soft),
+        inset 0 1px 0 color-mix(in srgb, white 20%, transparent);
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-composer__topic {
+    align-items: flex-start;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-composer__topic > label {
+    padding-top: 10px;
+    line-height: 1;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-composer__topic-suggestions {
+    position: static;
+    z-index: auto;
+    width: min(100%, 12rem);
+    max-height: clamp(180px, 30vh, 240px);
+    margin-block-start: 8px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-color: var(--skuy-prism-glass-edge);
+    background: var(--skuy-surface-glass);
+    box-shadow:
+        var(--skuy-shadow-raised),
+        inset 0 1px 0 color-mix(in srgb, white 18%, transparent);
+    scrollbar-width: thin;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-composer__topic-option {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    text-align: start;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-composer__topic-option.is-active,
+.skuy-feed-page[data-skuy-prism-feed] .skuy-composer__topic-option:hover {
+    background: color-mix(in srgb, var(--skuy-secondary) 14%, var(--skuy-surface-raised));
+    color: var(--skuy-text-primary);
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-composer__topic-option:focus-visible {
+    outline: 2px solid var(--skuy-focus);
+    outline-offset: -2px;
+}
+
+.skuy-media-gallery {
+    position: relative;
+    min-width: 0;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post__media .skuy-media-track,
+.skuy-media-gallery .skuy-media-track {
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    touch-action: pan-x pan-y;
+    scrollbar-width: thin;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post__media--single .skuy-media-track {
+    overflow: hidden;
+    scroll-snap-type: none;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post__media--carousel .skuy-media-item {
+    flex: 0 0 min(74%, 28rem);
+    min-width: 0;
+    max-width: 100%;
+    scroll-snap-align: center;
+}
+
+.skuy-media-item {
+    -webkit-appearance: none;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    cursor: zoom-in;
+    -webkit-user-drag: none;
+}
+
+.skuy-media-item:focus-visible,
+.skuy-media-gallery__control:focus-visible {
+    outline: 3px solid var(--skuy-focus);
+    outline-offset: 3px;
+}
+
+.skuy-media-gallery__controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    margin-block-start: 8px;
+}
+
+@media (min-width: 768px) {
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post__media--carousel {
+        position: relative;
+    }
+
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post__media--carousel > .skuy-media-gallery__controls,
+    .skuy-media-gallery > .skuy-media-gallery__controls {
+        position: absolute;
+        inset-inline: 8px;
+        top: 50%;
+        z-index: 3;
+        min-height: 0;
+        margin-block-start: 0;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .skuy-media-gallery__control {
+        pointer-events: auto;
+        background: color-mix(in srgb, var(--skuy-surface-glass) 88%, transparent);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+    }
+}
+
+.skuy-media-gallery__control {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--skuy-prism-glass-edge);
+    border-radius: var(--radius-full);
+    background: var(--skuy-surface-glass);
+    color: var(--skuy-text-primary);
+    box-shadow: 0 6px 18px -12px rgb(0 0 0 / 0.5), inset 0 1px 0 color-mix(in srgb, white 22%, transparent);
+    cursor: pointer;
+}
+
+.skuy-media-gallery__control:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+}
+
+.skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post__media .skuy-media-dots,
+.skuy-media-gallery .skuy-media-dots {
+    position: static;
+    margin-block: 8px 0;
+}
+
+.skuy-lightbox__image {
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.skuy-verified-badge,
+.skuy-profile-verified {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--skuy-on-secondary) 12%, var(--skuy-secondary));
+    border-radius: var(--radius-full);
+    background: var(--skuy-secondary);
+    color: var(--skuy-on-secondary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--skuy-secondary) 12%, transparent);
+    vertical-align: middle;
+}
+
+.skuy-verified-badge svg,
+.skuy-profile-verified svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+}
+
+@media (min-width: 1200px) {
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-context {
+        position: sticky;
+        top: var(--skuy-feed-context-sticky-offset);
+        align-self: start;
+        max-height: calc(100vh - var(--skuy-feed-context-sticky-offset) - 16px);
+        max-height: calc(100dvh - var(--skuy-feed-context-sticky-offset) - 16px);
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+    }
+}
+
+@media (max-width: 767px) {
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-post__media--carousel .skuy-media-item {
+        flex-basis: 78%;
+    }
+
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-composer,
+    .skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__composer {
+        box-shadow:
+            var(--skuy-shadow-soft),
+            inset 0 1px 0 color-mix(in srgb, white 20%, transparent),
+            inset 0 -1px 0 color-mix(in srgb, var(--skuy-secondary) 10%, transparent);
+    }
+}
+
+@supports (backdrop-filter: blur(1px)) {
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-composer,
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-context-card,
+    .skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__context-card,
+    .skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__composer {
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+}
+
+@media (max-width: 767px) {
+    @supports (backdrop-filter: blur(1px)) {
+        .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-composer,
+        .skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__composer {
+            -webkit-backdrop-filter: blur(3px);
+            backdrop-filter: blur(3px);
+        }
+    }
+}
+
+@media (min-width: 1200px) {
+    .skuy-app-shell.skuy-desktop-account-menu-open .skuy-feed-context {
+        top: var(--skuy-feed-context-menu-open-offset);
+        max-height: calc(100vh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-menu-open-bottom-gap));
+        max-height: max(0px, calc(100dvh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-menu-open-bottom-gap)));
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .skuy-app-shell::before {
+        background-color: var(--skuy-bg-workspace);
+        background-image: none;
+    }
+
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-composer,
+    .skuy-feed-page[data-skuy-prism-feed] .skuy-feed-context-card,
+    .skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__context-card,
+    .skuy-post-detail-page[data-skuy-prism-detail] .skuy-post-detail__composer {
+        border-color: var(--skuy-border-strong);
+        background: var(--skuy-surface-raised);
+        box-shadow: var(--skuy-shadow-soft);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .skuy-media-gallery__control {
+        background: var(--skuy-surface-raised);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
 }

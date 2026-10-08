@@ -407,3 +407,88 @@
         background: var(--skuy-surface-raised);
     }
 }
+
+/* Tahap 1.2: crisp layered glass, with a lighter mobile blur budget. */
+.skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,
+.skuy-app-rail,
+.skuy-mobile-nav,
+.skuy-mobile-account-menu,
+.skuy-menu-surface,
+.skuy-appreciation__popover {
+    border-color: var(--skuy-prism-glass-edge);
+    background: var(--skuy-surface-glass);
+    background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--skuy-surface-glass) 94%, transparent),
+        color-mix(in srgb, var(--skuy-surface-raised) 96%, var(--skuy-secondary) 4%)
+    );
+    box-shadow:
+        var(--skuy-shadow-raised),
+        inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+        inset 0 -1px 0 color-mix(in srgb, var(--skuy-secondary) 10%, transparent);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+    .skuy-app-rail,
+    .skuy-mobile-nav,
+    .skuy-mobile-account-menu,
+    .skuy-menu-surface,
+    .skuy-appreciation__popover {
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+}
+
+@media (max-width: 1279px) {
+    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        background: color-mix(in srgb, var(--skuy-surface-glass) 94%, transparent);
+    }
+
+    @supports (backdrop-filter: blur(1px)) {
+        .skuy-app-rail,
+        .skuy-mobile-nav,
+        .skuy-mobile-account-menu,
+        .skuy-menu-surface,
+        .skuy-appreciation__popover {
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+        }
+    }
+}
+
+@media (max-width: 767px) {
+    @supports (backdrop-filter: blur(1px)) {
+        .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .skuy-mobile-nav {
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .skuy-app-rail,
+        .skuy-mobile-account-menu,
+        .skuy-menu-surface,
+        .skuy-appreciation__popover {
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+        }
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,
+    .skuy-app-rail,
+    .skuy-mobile-nav,
+    .skuy-mobile-account-menu,
+    .skuy-menu-surface,
+    .skuy-appreciation__popover {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        border-color: var(--skuy-border-strong);
+        background: var(--skuy-surface-raised);
+        box-shadow: var(--skuy-shadow-soft);
+    }
+}

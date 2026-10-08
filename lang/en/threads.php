@@ -83,6 +83,8 @@ return [
         'avatar' => 'Avatar',
         'avatar_of' => 'Avatar for :name',
         'photo' => 'Photo',
+        'photo_gallery' => 'Photo gallery',
+        'image_position' => 'Photo :current of :total',
         'photo_by' => 'Photo by :name',
         'full_photo' => 'Full-size photo',
         'preview' => 'Image preview',

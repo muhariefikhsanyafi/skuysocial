@@ -42,6 +42,7 @@
 <div
     x-data="{
         accountMenuOpen: false,
+        desktopAccountMenuOpen: false,
         sidebarOpen: window.matchMedia('(min-width: 1280px)').matches,
         isDesktop: window.matchMedia('(min-width: 1280px)').matches,
         navigationQuery: null,
@@ -138,6 +139,8 @@
             }
         }
     }"
+    @desktop-profile-menu-toggle.window="desktopAccountMenuOpen = Boolean($event.detail)"
+    x-effect="$el.closest('.skuy-app-shell')?.classList.toggle('skuy-desktop-account-menu-open', desktopAccountMenuOpen)"
     @keydown.escape.window="if (accountMenuOpen) closeAccountMenu(); else if (!isDesktop && sidebarOpen) closeNavigation()"
     class="skuy-navigation-shell"
     data-skuy-prism-shell
@@ -178,7 +181,7 @@
             </button>
 
             <div class="hidden sm:flex sm:items-center">
-                <x-dropdown align="right" width="48">
+                <x-dropdown id="desktop-profile-dropdown" align="right" width="48">
                     <x-slot name="trigger">
                         <button
                             id="desktop-profile-trigger"

@@ -198,6 +198,8 @@ export interface PostDetailTranslations {
     comment_link_copied: string;
     reply_link_copied: string;
     photo: string;
+    photo_gallery: string;
+    image_position: string;
     full_photo: string;
     close_preview: string;
     previous_image: string;

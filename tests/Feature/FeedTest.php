@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\User;
 use Carbon\Carbon;
 use DOMDocument;
+use DOMElement;
 use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -777,18 +778,18 @@ class FeedTest extends TestCase
             ->assertSee('@change="handleImageSelection($event)"', false)
             ->assertSee('new DataTransfer()', false)
             ->assertSee('URL.createObjectURL(file)', false)
-            ->assertSee('@click="openLightbox(selectedImages.map(item => item.previewUrl), index)"', false)
+            ->assertSee('@click="openLightbox(selectedImages.map(item => item.previewUrl), index, $event)"', false)
             ->assertSee(':aria-label="\'Lihat pratinjau gambar \' + (index + 1)"', false)
             ->assertSee('@click="closeImageIfActive(image.previewUrl); removeImage(index)"', false)
-            ->assertSee('openLightbox(images, index = 0)', false)
+            ->assertSee('openLightbox(images, index = 0, event = null)', false)
             ->assertSee('lightboxImages.length > 1', false)
             ->assertSee('@click.stop="previousImage()"', false)
             ->assertSee('@click.stop="nextImage()"', false)
-            ->assertSee('$event.key === \'ArrowLeft\'', false)
-            ->assertSee('$event.key === \'ArrowRight\'', false)
+            ->assertSee('event.key === \'ArrowLeft\'', false)
+            ->assertSee('event.key === \'ArrowRight\'', false)
             ->assertSee('aria-label="Gambar sebelumnya"', false)
             ->assertSee('aria-label="Gambar selanjutnya"', false)
-            ->assertSee('@keydown.escape.window="closeImage()"', false)
+            ->assertSee('@keydown.window="handleLightboxKeydown($event)"', false)
             ->assertSee(':aria-label="\'Hapus gambar \'', false)
             ->assertSee('Maksimal 4 gambar', false);
     }
@@ -1085,10 +1086,29 @@ class FeedTest extends TestCase
         $response->assertOk();
         $this->assertSame(['alpha', 'middle', 'zeta'], $availableTopics->all());
         $this->assertCount(3, $availableTopics);
+        $document = new DOMDocument();
+        $document->loadHTML((string) $response->getContent());
+        $xpath = new DOMXPath($document);
+        $topicComponentData = null;
+        foreach ($xpath->query('//*[@x-data]') ?: [] as $element) {
+            if (! $element instanceof DOMElement) {
+                continue;
+            }
+
+            $candidate = $element->getAttribute('x-data');
+            if (str_contains($candidate, 'feedTopicAutocomplete(')) {
+                $topicComponentData = $candidate;
+                break;
+            }
+        }
+        $this->assertIsString($topicComponentData);
         $this->assertStringContainsString(
-            'availableTopics: [&quot;alpha&quot;,&quot;middle&quot;,&quot;zeta&quot;]',
-            $response->getContent(),
+            'feedTopicAutocomplete',
+            $topicComponentData,
         );
+        $this->assertStringContainsString('alpha', $topicComponentData);
+        $this->assertStringContainsString('middle', $topicComponentData);
+        $this->assertStringContainsString('zeta', $topicComponentData);
     }
 
     public function test_feed_topic_suggestions_are_limited_to_twenty(): void
@@ -1108,6 +1128,121 @@ class FeedTest extends TestCase
         $this->assertSame('topic-01', $availableTopics->first());
         $this->assertSame('topic-20', $availableTopics->last());
         $this->assertNotContains('topic-21', $availableTopics->all());
+    }
+
+    public function test_feed_topic_combobox_exposes_an_in_flow_accessible_listbox_contract(): void
+    {
+        $viewer = User::factory()->create();
+        $this->createPost($viewer, ['topic' => 'alpha']);
+        $this->createPost($viewer, ['topic' => 'beta']);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+        $html = (string) $response->getContent();
+
+        $response->assertOk()
+            ->assertSee('x-data="feedTopicAutocomplete(', false)
+            ->assertSee('role="combobox"', false)
+            ->assertSee('aria-autocomplete="list"', false)
+            ->assertSee('aria-controls="composer-topic-suggestions"', false)
+            ->assertSee(':aria-expanded="expanded.toString()"', false)
+            ->assertSee(':aria-activedescendant="activeDescendant"', false)
+            ->assertSee('id="composer-topic-suggestions"', false)
+            ->assertSee('role="listbox"', false)
+            ->assertSee('role="option"', false)
+            ->assertSee('aria-selected', false)
+            ->assertDontSee('absolute left-0 top-full z-50', false);
+
+        $css = file_get_contents(resource_path('css/skuy-prism.css'));
+        $this->assertIsString($css);
+        $this->assertStringContainsString('max-height: clamp(180px, 30vh, 240px);', $css);
+        $this->assertStringContainsString('overflow-y: auto;', $css);
+    }
+
+    public function test_feed_carousel_exposes_touch_scroll_keyboard_and_desktop_controls(): void
+    {
+        $author = User::factory()->create();
+        $this->createPost($author, [
+            'content' => 'Three-image accessible carousel',
+            'images' => ['gallery-one.jpg', 'gallery-two.jpg', 'gallery-three.jpg'],
+        ]);
+
+        $response = $this->actingAs(User::factory()->create())->get(route('feed'));
+        $html = (string) $response->getContent();
+
+        $response->assertOk()
+            ->assertSee('role="region"', false)
+            ->assertSee('aria-roledescription="carousel"', false)
+            ->assertSee('data-feed-media-previous', false)
+            ->assertSee('data-feed-media-next', false)
+            ->assertSee('role="status" aria-live="polite"', false)
+            ->assertSee('@keydown.arrow-left.prevent.stop="moveSlide(-1)"', false)
+            ->assertSee('@keydown.arrow-right.prevent.stop="moveSlide(1)"', false)
+            ->assertSee('data-media-slide="true"', false)
+            ->assertSee('@click.stop="openLightbox(', false);
+
+        $this->assertSame(3, substr_count($html, 'data-media-slide="true"'));
+        $this->assertSame(3, substr_count($html, 'data-media-indicator-dot="true"'));
+        $this->assertStringContainsString('overflow-x: auto;', file_get_contents(resource_path('css/skuy-prism.css')));
+    }
+
+    public function test_feed_badge_uses_public_verification_for_original_author_not_email_or_reposter(): void
+    {
+        $verifiedAuthor = User::factory()->create(['username' => 'public.verified']);
+        $verifiedAuthor->forceFill(['is_verified' => true, 'email_verified_at' => null])->save();
+        $reposter = User::factory()->create(['username' => 'plain.reposter']);
+        $reposter->forceFill(['is_verified' => false])->save();
+        $emailOnlyAuthor = User::factory()->create(['username' => 'email.only']);
+        $emailOnlyAuthor->forceFill(['is_verified' => false, 'email_verified_at' => now()])->save();
+
+        $original = $this->createPost($verifiedAuthor, ['content' => 'Verified original author badge']);
+        $repost = $this->createPost($reposter, [
+            'repost_id' => $original->id,
+            'content' => null,
+            'created_at' => now()->addMinute(),
+            'updated_at' => now()->addMinute(),
+        ]);
+        $emailOnlyPost = $this->createPost($emailOnlyAuthor, ['content' => 'Email-only author is not public-verified']);
+
+        $response = $this->actingAs(User::factory()->create())->get(route('feed'));
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML((string) $response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+
+        foreach ([$original, $repost] as $feedItem) {
+            $article = $xpath->query('//article[@data-feed-thread-key="'.$feedItem->uid.'"]')->item(0);
+            $this->assertNotNull($article);
+            $this->assertSame(1, $xpath->query('.//*[@data-verified-badge]', $article)->length);
+        }
+
+        $emailOnlyArticle = $xpath->query('//article[@data-feed-thread-key="'.$emailOnlyPost->uid.'"]')->item(0);
+        $this->assertNotNull($emailOnlyArticle);
+        $this->assertSame(0, $xpath->query('.//*[@data-verified-badge]', $emailOnlyArticle)->length);
+        $response->assertSee(__('threads.reposted_by', ['username' => $reposter->username]));
+    }
+
+    public function test_feed_aurora_is_viewport_anchored_and_context_rail_is_height_bounded(): void
+    {
+        $css = file_get_contents(resource_path('css/skuy-prism.css'));
+        $this->assertIsString($css);
+
+        foreach ([
+            '.skuy-app-shell::before',
+            'position: fixed;',
+            'pointer-events: none;',
+            'radial-gradient(',
+            '@media (min-width: 1200px)',
+            'position: sticky;',
+            'max-height: calc(100dvh - var(--skuy-feed-context-sticky-offset) - 16px);',
+            '--skuy-feed-context-menu-open-bottom-gap: 72px;',
+            'max-height: max(0px, calc(100dvh - var(--skuy-feed-context-menu-open-offset) - var(--skuy-feed-context-menu-open-bottom-gap)));',
+            'overflow-y: auto;',
+            '@media (prefers-reduced-transparency: reduce)',
+        ] as $contract) {
+            $this->assertStringContainsString($contract, $css, "Missing feed layout/ambience contract: {$contract}");
+        }
     }
 
     public function test_feed_orders_posts_by_created_at_then_id_descending(): void
