@@ -3,6 +3,7 @@ import '../css/skuy-prism-navigation.css';
 import Alpine from 'alpinejs';
 import { acquireFeedPostActionLock } from './feedPostActionLock';
 import { feedTopicAutocomplete } from './feedTopicAutocomplete';
+import { postMediaViewerController, savedPageController } from './skuyPrismPageUi';
 import { initializeMessageComposers } from './messageComposer';
 import { initializeOneSignal } from './oneSignal';
 import { playSocialActionMotion } from './socialActionMotion';
@@ -566,5 +567,8 @@ Alpine.data('likeControl', (config = {}) => ({
         }
     },
 }));
+
+Alpine.data('skuySavedPage', savedPageController);
+Alpine.data('skuyPostMediaViewer', postMediaViewerController);
 
 Alpine.start();

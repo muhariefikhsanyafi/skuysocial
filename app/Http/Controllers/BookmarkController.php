@@ -18,7 +18,7 @@ class BookmarkController extends Controller
             ->select('posts.*')
             ->join('bookmarks', 'bookmarks.post_id', '=', 'posts.id')
             ->where('bookmarks.user_id', $viewerId)
-            ->with(['user', 'originalPost.user'])
+            ->withInteractiveListing((int) $viewerId)
             ->orderByDesc('bookmarks.created_at')
             ->orderByDesc('bookmarks.id')
             ->simplePaginate(15);

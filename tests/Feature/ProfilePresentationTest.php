@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\ModerationState;
+use App\Models\Bookmark;
+use App\Models\Like;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,7 +27,7 @@ class ProfilePresentationTest extends TestCase
 
         $positions = [
             strpos($html, '<main id="main-content"'),
-            strpos($html, '<div class="skuy-profile-page">'),
+            strpos($html, '<div class="skuy-profile-page" data-skuy-profile>'),
             strpos($html, 'class="skuy-profile-back"'),
             strpos($html, '<section class="skuy-profile-header"'),
             strpos($html, 'class="skuy-profile-cover '),
@@ -105,10 +107,10 @@ class ProfilePresentationTest extends TestCase
         $markers = [
             'class="skuy-profile-cover',
             'class="skuy-profile-avatar',
+            'class="skuy-profile-action"',
             'class="skuy-profile-identity"',
             'class="skuy-profile-username"',
             'class="skuy-profile-bio',
-            'class="skuy-profile-action"',
             'class="skuy-profile-stats"',
             'class="skuy-profile-tabs"',
         ];
@@ -119,6 +121,70 @@ class ProfilePresentationTest extends TestCase
         sort($sortedPositions);
         $this->assertSame($sortedPositions, $positions);
         $this->assertSame('@{username}', Route::getRoutes()->getByName('user.profile')?->uri());
+    }
+
+    public function test_prism_profile_uses_hero_hierarchy_owner_settings_and_feed_post_actions(): void
+    {
+        $owner = User::factory()->create([
+            'name' => 'A Long Profile Owner Name',
+            'username' => 'prism.profile.owner',
+            'bio' => 'A profile bio that remains readable below the hero.',
+        ]);
+        $owner->forceFill(['is_verified' => true])->save();
+        $post = Post::create([
+            'user_id' => $owner->id,
+            'content' => 'Profile feed action contract.',
+            'images' => ['media/profile-one.jpg', 'media/profile-two.jpg'],
+        ]);
+
+        $html = $this->actingAs($owner)->get(route('user.profile', $owner))->assertOk()->getContent();
+        $document = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML($html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new \DOMXPath($document);
+        $profile = $xpath->query('//*[@data-skuy-profile]')->item(0);
+
+        $this->assertNotNull($profile, 'The profile should expose a stable semantic root.');
+        $this->assertSame(1, $xpath->query('.//*[@data-profile-hero]', $profile)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-profile-identity]', $profile)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-profile-statistics]', $profile)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-profile-tabs]', $profile)->length);
+
+        $ownerActions = $xpath->query('.//*[@data-profile-owner-actions]', $profile)->item(0);
+        $this->assertNotNull($ownerActions);
+        $this->assertSame(1, $xpath->query('.//a[@href="'.route('user.edit', $owner->username).'"]', $ownerActions)->length);
+        $this->assertSame(1, $xpath->query('.//a[@href="'.route('profile.edit', $owner->username).'"]', $ownerActions)->length);
+
+        $postCard = $xpath->query('.//article[@data-feed-post-uid="'.$post->uid.'"]', $profile)->item(0);
+        $this->assertNotNull($postCard, 'Profile posts should use the shared Feed presentation.');
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-post-action="like"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-post-action="bookmark"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-media-slider="true"]', $postCard)->length);
+        $this->assertSame(2, $xpath->query('.//*[@data-verified-badge]', $profile)->length);
+    }
+
+    public function test_public_profile_uses_the_same_prism_hierarchy_without_owner_actions(): void
+    {
+        $profileOwner = User::factory()->create(['username' => 'prism.public.profile']);
+        $viewer = User::factory()->create();
+
+        $html = $this->actingAs($viewer)->get(route('user.profile', $profileOwner))->assertOk()->getContent();
+        $document = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML($html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new \DOMXPath($document);
+        $profile = $xpath->query('//*[@data-skuy-profile]')->item(0);
+
+        $this->assertNotNull($profile, 'Public profiles should use the shared profile composition.');
+        $this->assertSame(1, $xpath->query('.//*[@data-profile-hero]', $profile)->length);
+        $this->assertSame(0, $xpath->query('.//*[@data-profile-owner-actions]', $profile)->length);
+        $this->assertSame(1, $xpath->query('.//form[@action="'.route('user.follow', $profileOwner).'"]', $profile)->length);
+        $this->assertSame(0, $xpath->query('.//a[@href="'.route('user.edit', $profileOwner->username).'"]', $profile)->length);
+        $this->assertSame(0, $xpath->query('.//a[@href="'.route('profile.edit', $profileOwner->username).'"]', $profile)->length);
     }
 
     public function test_other_verified_profile_preserves_follow_state_and_tab_navigation(): void
@@ -217,12 +283,95 @@ class ProfilePresentationTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('skuy-profile-post', false)
+            ->assertSee('skuy-feed-post', false)
+            ->assertSee('data-feed-post-uid="'.$post->uid.'"', false)
+            ->assertSee('data-feed-post-action="like"', false)
             ->assertSee('data-media-slider="true"', false)
             ->assertSee('data-media-slide="true"', false)
             ->assertSee('media/first.jpg', false)
             ->assertSee('media/second.jpg', false)
             ->assertSee(route('posts.show', $post), false);
+    }
+
+    public function test_profile_stream_reuses_feed_media_geometry_without_covering_single_images(): void
+    {
+        $css = file_get_contents(resource_path('css/app.css'));
+        $this->assertIsString($css);
+        $rules = [
+            '.skuy-profile-post-list .skuy-feed-post__media {' => ['width: 100%;', 'margin: 8px 0;'],
+            '.skuy-profile-post-list .skuy-feed-post__media .skuy-media-item {' => ['aspect-ratio: auto;', 'width: fit-content;'],
+            '.skuy-profile-post-list .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview {' => ['aspect-ratio: 4 / 5;', 'overflow: hidden;'],
+            '.skuy-profile-post-list .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {' => ['max-height: 28rem;', 'height: auto;'],
+            '.skuy-profile-post-list .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item img {' => ['object-fit: contain;', 'max-height: 28rem;'],
+        ];
+
+        foreach ($rules as $selector => $declarations) {
+            $ruleStart = strpos($css, $selector);
+            $this->assertNotFalse($ruleStart, "Missing profile media rule: {$selector}");
+            $ruleEnd = strpos($css, '}', $ruleStart);
+            $this->assertNotFalse($ruleEnd, "Unclosed profile media rule: {$selector}");
+            $rule = substr($css, $ruleStart, $ruleEnd - $ruleStart + 1);
+
+            foreach ($declarations as $declaration) {
+                $this->assertStringContainsString($declaration, $rule);
+            }
+        }
+    }
+
+    public function test_profile_repost_uses_original_post_viewer_interaction_state_without_leaking_other_appreciations(): void
+    {
+        $profileOwner = User::factory()->create(['username' => 'profile.reposter']);
+        $originalAuthor = User::factory()->create();
+        $otherAppreciator = User::factory()->create();
+        $original = Post::create([
+            'user_id' => $originalAuthor->id,
+            'content' => 'Original profile repost interaction state.',
+        ]);
+        $repost = Post::create([
+            'user_id' => $profileOwner->id,
+            'content' => null,
+            'repost_id' => $original->id,
+        ]);
+        Like::create(['post_id' => $original->id, 'user_id' => $profileOwner->id]);
+        Bookmark::create(['post_id' => $original->id, 'user_id' => $profileOwner->id]);
+        DB::table('post_appreciations')->insert([
+            'post_id' => $original->id,
+            'user_id' => $otherAppreciator->id,
+            'type' => 'bermanfaat',
+            'points_spent' => 5,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($profileOwner)->get(route('user.profile', $profileOwner));
+        $response->assertOk();
+        $listedRepost = $response->viewData('posts')->first();
+        $displayPost = $listedRepost->originalPost;
+
+        $this->assertSame($repost->id, $listedRepost->id);
+        $this->assertSame($original->id, $displayPost->id);
+        $this->assertSame(1, $displayPost->likes_count);
+        $this->assertTrue((bool) $displayPost->liked_by_me);
+        $this->assertSame(1, $displayPost->reposts_count);
+        $this->assertTrue((bool) $displayPost->reposted_by_me);
+        $this->assertTrue((bool) $displayPost->bookmarked_by_me);
+        $this->assertSame(1, $displayPost->appreciations_count);
+        $this->assertTrue($displayPost->relationLoaded('appreciations'));
+        $this->assertCount(0, $displayPost->appreciations, 'The display post must include only the viewer\'s appreciation state.');
+        $this->assertTrue($displayPost->relationLoaded('feedComments'));
+
+        $document = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML($response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new \DOMXPath($document);
+        $card = $xpath->query('//article[@data-feed-thread-key="'.$repost->uid.'"]')->item(0);
+        $this->assertNotNull($card);
+        $this->assertSame('true', $xpath->evaluate('string(.//*[@data-feed-post-action="like"]/@aria-pressed)', $card));
+        $this->assertSame('true', $xpath->evaluate('string(.//*[@data-feed-post-action="repost"]/@aria-pressed)', $card));
+        $this->assertSame('true', $xpath->evaluate('string(.//*[@data-feed-post-action="bookmark"]/@aria-pressed)', $card));
+        $this->assertSame(1, $xpath->query('.//*[@data-post-appreciation-trigger]', $card)->length, 'Another user\'s appreciation must not be presented as the viewer\'s.');
     }
 
     public function test_profile_and_settings_named_routes_use_the_canonical_username_urls(): void

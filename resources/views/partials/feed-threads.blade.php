@@ -2,6 +2,14 @@
     @php
         $isRepost = $post->repost_id !== null;
         $displayPost = $isRepost ? $post->originalPost : $post;
+        $mediaImages = collect(is_array($displayPost->images) ? $displayPost->images : [])
+            ->filter(fn ($image) => is_string($image) && trim($image) !== '')
+            ->unique()
+            ->values();
+
+        if ($mediaImages->isEmpty() && is_string($displayPost->image) && trim($displayPost->image) !== '') {
+            $mediaImages = collect([$displayPost->image]);
+        }
     @endphp
 
     <article
@@ -181,13 +189,27 @@
                 <div class="skuy-post__content">
                     <p class="skuy-post__text">{!! preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="'.url('/tags').'/$1" class="skuy-hashtag">#$1</a>', e($displayPost->content)) !!}</p>
 
-                    @if ($displayPost->images && count($displayPost->images) > 0)
+                    @if ($mediaImages->isNotEmpty())
                         @php
-                            $postImageUrls = collect($displayPost->images)
+                            $postImageUrls = $mediaImages
                                 ->map(fn ($image) => asset('storage/' . $image))
                                 ->values();
                         @endphp
 
+                        @if ($mediaImages->count() === 1)
+                            <div class="skuy-feed-post__media skuy-feed-post__media--single">
+                                <div class="skuy-media-track skuy-feed-media-track--single">
+                                    <button
+                                        type="button"
+                                        @click.stop="openLightbox(@js($postImageUrls), 0, $event)"
+                                        aria-label="{{ __('threads.media.image_position', ['current' => 1, 'total' => 1]) }}"
+                                        class="skuy-media-item"
+                                    >
+                                        <img src="{{ asset('storage/' . $mediaImages->first()) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
+                                    </button>
+                                </div>
+                            </div>
+                        @else
                         <div
                             x-data="{
                                 activeSlide: 0,
@@ -234,13 +256,13 @@
                                     this.activeSlide = targetIndex;
                                 }
                             }"
-                            class="skuy-feed-post__media skuy-feed-post__media--{{ count($displayPost->images) === 1 ? 'single' : 'carousel' }}"
+                            class="skuy-feed-post__media skuy-feed-post__media--{{ $mediaImages->count() === 1 ? 'single' : 'carousel' }}"
                         >
                             <div
                                 data-media-slider="true"
                                 x-ref="mediaTrack"
                                 @scroll.passive="updateDots"
-                                @if (count($displayPost->images) > 1)
+                                @if ($mediaImages->count() > 1)
                                     role="region"
                                     aria-label="{{ __('threads.media.photo_gallery') }}"
                                     aria-roledescription="carousel"
@@ -248,39 +270,40 @@
                                     @keydown.arrow-left.prevent.stop="moveSlide(-1)"
                                     @keydown.arrow-right.prevent.stop="moveSlide(1)"
                                 @endif
-                                class="skuy-media-track{{ count($displayPost->images) === 1 ? ' skuy-feed-media-track--single' : ' skuy-feed-media-track--carousel' }}"
+                                class="skuy-media-track{{ $mediaImages->count() === 1 ? ' skuy-feed-media-track--single' : ' skuy-feed-media-track--carousel' }}"
                             >
-                                @foreach ($displayPost->images as $index => $imgUrl)
+                                @foreach ($mediaImages as $index => $imgUrl)
                                     <button
                                         type="button"
                                         data-media-slide="true"
                                         @click.stop="openLightbox(@js($postImageUrls), {{ $loop->index }}, $event)"
                                         :aria-current="activeSlide === {{ $loop->index }} ? 'true' : null"
-                                        aria-label="{{ __('threads.media.image_position', ['current' => $loop->iteration, 'total' => count($displayPost->images)]) }}"
-                                        class="skuy-media-item{{ count($displayPost->images) > 1 ? ' skuy-feed-media-item--portrait-preview' : '' }}"
+                                        aria-label="{{ __('threads.media.image_position', ['current' => $loop->iteration, 'total' => $mediaImages->count()]) }}"
+                                        class="skuy-media-item{{ $mediaImages->count() > 1 ? ' skuy-feed-media-item--portrait-preview' : '' }}"
                                     >
                                         <img src="{{ asset('storage/' . $imgUrl) }}" alt="{{ __('threads.media.photo_by', ['name' => $displayPost->user->name]) }}">
                                     </button>
                                 @endforeach
                             </div>
 
-                            @if (count($displayPost->images) > 1)
+                            @if ($mediaImages->count() > 1)
                                 <div class="skuy-media-gallery__controls" role="group" aria-label="{{ __('threads.media.photo_gallery') }}">
                                     <button type="button" data-feed-media-previous="true" @click.stop="moveSlide(-1)" :disabled="activeSlide === 0" aria-label="{{ __('threads.media.previous_image') }}" class="skuy-media-gallery__control">
                                         <x-fa-icon name="chevron-left" />
                                     </button>
-                                    <button type="button" data-feed-media-next="true" @click.stop="moveSlide(1)" :disabled="activeSlide === {{ count($displayPost->images) - 1 }}" aria-label="{{ __('threads.media.next_image') }}" class="skuy-media-gallery__control">
+                                    <button type="button" data-feed-media-next="true" @click.stop="moveSlide(1)" :disabled="activeSlide === {{ $mediaImages->count() - 1 }}" aria-label="{{ __('threads.media.next_image') }}" class="skuy-media-gallery__control">
                                         <x-fa-icon name="chevron-right" />
                                     </button>
                                 </div>
                                 <div data-media-indicator="true" class="skuy-media-dots" aria-hidden="true">
-                                    @foreach ($displayPost->images as $index => $img)
+                                    @foreach ($mediaImages as $index => $img)
                                         <div data-media-indicator-dot="true" class="skuy-media-dot" :class="activeSlide === {{ $index }} ? 'is-active' : ''"></div>
                                     @endforeach
                                 </div>
-                                <span class="sr-only" role="status" aria-live="polite" x-text="'{{ __('threads.media.image_position', ['current' => '__CURRENT__', 'total' => count($displayPost->images)]) }}'.replace('__CURRENT__', activeSlide + 1)"></span>
+                                <span class="sr-only" role="status" aria-live="polite" x-text="'{{ __('threads.media.image_position', ['current' => '__CURRENT__', 'total' => $mediaImages->count()]) }}'.replace('__CURRENT__', activeSlide + 1)"></span>
                             @endif
                         </div>
+                        @endif
                     @endif
                 </div>
             </div>

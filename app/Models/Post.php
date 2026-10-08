@@ -90,32 +90,34 @@ class Post extends Model
      */
     public function scopeWithInteractiveListing(Builder $query, int $viewerId): Builder
     {
-        $bookmarkState = [
+        $interactionCounts = [
+            'likes',
+            'comments',
+            'comments as root_comments_count' => fn (Builder $query) => $query->whereNull('parent_id'),
+            'reposts',
+        ];
+        $viewerInteractionState = [
+            'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
+            'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
             'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
         ];
-
-        $loadDisplayPost = fn ($query) => $query
-            ->with('user')
-            ->withExists($bookmarkState);
-
-        return $query
+        $loadInteractionState = static fn ($query) => $query
             ->withAppreciationState($viewerId)
+            ->withCount($interactionCounts)
+            ->withExists($viewerInteractionState);
+        $loadDisplayPost = static fn ($query) => $loadInteractionState($query)
+            ->with([
+                'user',
+                'feedComments.user',
+                'feedComments.feedReplies.user',
+            ]);
+
+        return $loadInteractionState($query)
             ->with([
                 'user',
                 'originalPost' => $loadDisplayPost,
                 'feedComments.user',
                 'feedComments.feedReplies.user',
-            ])
-            ->withCount([
-                'likes',
-                'comments',
-                'comments as root_comments_count' => fn (Builder $query) => $query->whereNull('parent_id'),
-                'reposts',
-            ])
-            ->withExists([
-                'likes as liked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
-                'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
-                'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
             ]);
     }
 	

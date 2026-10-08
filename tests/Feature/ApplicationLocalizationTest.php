@@ -222,11 +222,11 @@ class ApplicationLocalizationTest extends TestCase
     {
         $cases = [
             'id' => [
-                'saved' => ['Tersimpan', 'Utas yang kamu simpan', 'Belum ada utas tersimpan'],
+                'saved' => ['Tersimpan', 'Utas pilihanmu, tertata untuk dibaca kembali.', 'Belum ada utas tersimpan'],
                 'search' => ['Cari Sesuatu?', 'Cari nama, nama pengguna, atau topik...', 'Tidak ada akun yang cocok.', 'Tidak ada utas yang cocok dengan kata kunci ini.'],
             ],
             'en' => [
-                'saved' => ['Saved', 'Threads you have saved', 'No saved Threads yet'],
+                'saved' => ['Saved', 'Your saved threads, ready to revisit.', 'No saved Threads yet'],
                 'search' => ['Looking for Something?', 'Search names, usernames, or topics...', 'No matching accounts.', 'No Threads match this search.'],
             ],
         ];

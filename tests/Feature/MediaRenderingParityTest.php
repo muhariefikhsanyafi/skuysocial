@@ -301,10 +301,11 @@ class MediaRenderingParityTest extends TestCase
                 $this->assertSame(count($mediaPaths), substr_count($content, 'data-media-indicator-dot="true"'));
                 $this->assertStringContainsString('activeSlide: 0', $content);
                 $this->assertStringContainsString('@scroll.passive="updateDots"', $content);
-                $this->assertStringContainsString('overflow-x-auto snap-x snap-mandatory', $content);
+                $this->assertStringContainsString('class="skuy-media-track', $content);
                 $this->assertStringContainsString('activeSlide === 0', $content);
                 $this->assertStringContainsString('activeSlide === '.(count($mediaPaths) - 1), $content);
-                $this->assertStringContainsString('w-1.5 sm:w-2 bg-gray-300 dark:bg-[#242424]', $content);
+                $this->assertStringContainsString('class="skuy-media-dots"', $content);
+                $this->assertStringContainsString('class="skuy-media-dot"', $content);
             } else {
                 $this->assertSame(0, substr_count($content, 'data-media-slider="true"'));
                 $this->assertSame(0, substr_count($content, 'data-media-slide="true"'));

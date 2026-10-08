@@ -547,12 +547,12 @@ class FeedTest extends TestCase
             '.dark .skuy-feed-page .skuy-feed-post,' => [
                 'background: var(--skuy-surface-subtle);',
             ],
-            '.skuy-feed-page .skuy-feed-post__media {' => [
+            '.skuy-feed-page .skuy-feed-post__media,' => [
                 'width: 100%;',
                 'min-width: 0;',
                 'margin: 8px 0;',
             ],
-            '.skuy-feed-page .skuy-feed-post__media .skuy-media-track {' => [
+            '.skuy-feed-page .skuy-feed-post__media .skuy-media-track,' => [
                 'align-items: stretch;',
                 'gap: 8px;',
                 'padding-bottom: 0;',
@@ -560,11 +560,11 @@ class FeedTest extends TestCase
             '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--carousel' => [
                 'scroll-behavior: smooth;',
             ],
-            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single {' => [
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single,' => [
                 'overflow: hidden;',
                 'scroll-snap-type: none;',
             ],
-            '.skuy-feed-page .skuy-feed-post__media .skuy-media-item {' => [
+            '.skuy-feed-page .skuy-feed-post__media .skuy-media-item,' => [
                 'display: flex;',
                 'flex: 0 0 auto;',
                 'width: fit-content;',
@@ -573,27 +573,27 @@ class FeedTest extends TestCase
                 'border-radius: var(--radius-small);',
                 'background: transparent;',
             ],
-            '.skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview {' => [
+            '.skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview,' => [
                 'flex: 0 0 min(66%, 28rem);',
                 'aspect-ratio: 4 / 5;',
                 'height: auto;',
                 'overflow: hidden;',
                 'border-radius: var(--radius-small);',
             ],
-            '.skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview img {' => [
+            '.skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview img,' => [
                 'width: 100%;',
                 'height: 100%;',
                 'object-fit: cover;',
                 'object-position: center;',
             ],
-            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item {' => [
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item,' => [
                 'flex: 0 1 auto;',
                 'width: max-content;',
                 'max-width: 100%;',
                 'height: auto;',
                 'max-height: 28rem;',
             ],
-            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item img {' => [
+            '.skuy-feed-page .skuy-feed-post__media .skuy-feed-media-track--single .skuy-media-item img,' => [
                 'width: auto;',
                 'height: auto;',
                 'max-width: 100%;',
@@ -716,7 +716,7 @@ class FeedTest extends TestCase
         $css = file_get_contents(resource_path('css/app.css'));
         $this->assertIsString($css);
 
-        $selector = '.skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview {';
+        $selector = '.skuy-feed-page .skuy-feed-post__media--carousel .skuy-feed-media-item--portrait-preview,';
         $ruleStart = strrpos($css, $selector);
         $this->assertIsInt($ruleStart, "Missing mobile carousel item rule: {$selector}");
 

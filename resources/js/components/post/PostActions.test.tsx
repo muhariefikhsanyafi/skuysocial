@@ -412,7 +412,7 @@ describe('PostActions like state', () => {
         expect(screen.getByText('You appreciated this post with Useful.')).toBeTruthy();
         expect(document.querySelector('.skuy-appreciation__count')?.textContent).toBe('1');
         const activeAppreciation = screen.getByRole('button', { name: 'You appreciated this post with Useful.' });
-        expect(activeAppreciation.querySelector('.skuy-fa-icon')?.classList.contains('skuy-social-motion--appreciation')).toBe(true);
+        await waitFor(() => expect(activeAppreciation.querySelector('.skuy-fa-icon')?.classList.contains('skuy-social-motion--appreciation')).toBe(true));
         expect(screen.queryByRole('group', { name: 'Choose an Appreciation type' })).toBeNull();
         expect(screen.getByRole('button', { name: /Like/ }).className).toContain('skuy-action--reaction');
     });

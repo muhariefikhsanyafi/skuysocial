@@ -41,6 +41,18 @@ class UserController extends Controller
         $loadDisplayPost = fn ($query) => $query
             ->with('user')
             ->withExists($bookmarkState);
+        $addPresentationData = static function ($query) use ($viewerId, $loadDisplayPost, $bookmarkState) {
+            if ($viewerId !== null) {
+                return $query->withInteractiveListing((int) $viewerId);
+            }
+
+            return $query
+                ->with([
+                    'user',
+                    'originalPost' => $loadDisplayPost,
+                ])
+                ->withExists($bookmarkState);
+        };
 
         $isFollowing = $viewer !== null
             && $viewer->isNot($user)
@@ -53,27 +65,19 @@ class UserController extends Controller
         $activeTab = $request->query('tab') === 'likes' ? 'likes' : 'threads';
 
         if ($activeTab === 'likes') {
-            $posts = Post::query()
+            $likesQuery = Post::query()
                 ->select('posts.*')
                 ->join('likes', 'likes.post_id', '=', 'posts.id')
-                ->where('likes.user_id', $user->id)
-                ->with([
-                    'user',
-                    'originalPost' => $loadDisplayPost,
-                ])
-                ->withExists($bookmarkState)
+                ->where('likes.user_id', $user->id);
+
+            $posts = $addPresentationData($likesQuery)
                 ->orderByDesc('likes.created_at')
                 ->orderByDesc('likes.id')
                 ->simplePaginate(15)
                 ->withQueryString();
         } else {
             // Ambil postingan miliknya (termasuk hasil repost)
-            $posts = $user->posts()
-                ->with([
-                    'user',
-                    'originalPost' => $loadDisplayPost,
-                ])
-                ->withExists($bookmarkState)
+            $posts = $addPresentationData($user->posts())
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->simplePaginate(15);

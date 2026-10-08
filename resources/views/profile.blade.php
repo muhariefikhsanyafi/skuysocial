@@ -3,14 +3,14 @@
         $profilePostCount = $user->posts()->count();
     @endphp
 
-    <div class="skuy-profile-page">
+    <div class="skuy-profile-page" data-skuy-profile>
         <div class="skuy-profile-shell">
             <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-profile-back">
                 <x-fa-icon name="arrow-left-long" class="text-xl" />
                 <span>{{ __('navigation.back_to_feed') }}</span>
             </a>
 
-            <section class="skuy-profile-header" aria-labelledby="profile-title">
+            <section class="skuy-profile-header" data-profile-hero aria-labelledby="profile-title">
                 <div class="skuy-profile-cover {{ $user->cover ? 'skuy-profile-cover--image' : 'skuy-profile-cover--empty' }}" data-profile-cover="{{ $user->cover ? 'image' : 'fallback' }}">
                     @if ($user->cover)
                         <img src="{{ asset('storage/' . $user->cover) }}" alt="{{ __('profile.media.cover_of', ['name' => $user->name]) }}" class="skuy-profile-cover__image">
@@ -20,17 +20,55 @@
                 </div>
 
                 <div class="skuy-profile-header__body">
-                    <div class="skuy-profile-header__top">
-                        <div class="skuy-profile-avatar">
+                    <div class="skuy-profile-hero-row">
+                        <div class="skuy-profile-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
                             @if ($user->avatar)
                                 <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $user->name]) }}">
                             @else
                                 <span aria-hidden="true">{{ mb_substr($user->name, 0, 1) }}</span>
                             @endif
                         </div>
+
+                        <div class="skuy-profile-action" data-profile-actions>
+                            @if (auth()->id() === $user->id)
+                                <div class="skuy-profile-owner-actions" data-profile-owner-actions>
+                                    <a href="{{ route('user.edit', $user->username) }}" class="skuy-button skuy-button--primary">
+                                        <x-fa-icon name="pen-to-square" />
+                                        <span>{{ __('profile.edit') }}</span>
+                                    </a>
+                                    <a href="{{ route('profile.edit', $user->username) }}" class="skuy-button skuy-profile-settings-button">
+                                        <x-fa-icon name="gear" />
+                                        <span>{{ __('navigation.settings') }}</span>
+                                    </a>
+                                </div>
+                            @elseif (auth()->check())
+                                <div class="skuy-profile-visitor-actions">
+                                    <form action="{{ route('user.follow', $user->username) }}" method="POST">
+                                        @csrf
+                                        <button
+                                            type="submit"
+                                            aria-pressed="{{ $isFollowing ? 'true' : 'false' }}"
+                                            class="skuy-button skuy-profile-follow-button{{ $isFollowing ? ' skuy-profile-follow-button--following' : '' }}"
+                                        >
+                                            {{ $isFollowing ? __('profile.following') : __('profile.follow') }}
+                                        </button>
+                                    </form>
+
+                                    @if ($canStartConversation)
+                                        <form action="{{ route('messages.start', $user->username) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="skuy-button skuy-profile-message-button">
+                                                <x-fa-icon name="comment-lines" />
+                                                <span>{{ __('messages.message') }}</span>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
-                    <div class="skuy-profile-identity">
+                    <div class="skuy-profile-identity" data-profile-identity>
                         <h1 id="profile-title" class="skuy-profile-title">
                             <span>{{ $user->name }}</span>
                             @if ($user->is_verified)
@@ -40,68 +78,45 @@
                         <p class="skuy-profile-username">{{ '@' . $user->username }}</p>
                     </div>
 
-                    <p class="skuy-profile-bio{{ filled(trim($user->bio ?? '')) ? '' : ' skuy-profile-bio--empty' }}">{{ filled(trim($user->bio ?? '')) ? $user->bio : __('profile.no_bio') }}</p>
+                    <div class="skuy-profile-details">
+                        <p class="skuy-profile-bio{{ filled(trim($user->bio ?? '')) ? '' : ' skuy-profile-bio--empty' }}">{{ filled(trim($user->bio ?? '')) ? $user->bio : __('profile.no_bio') }}</p>
 
-                    @if ($user->profileLinks->isNotEmpty())
-                        <ul class="mt-3 flex flex-wrap gap-x-2 gap-y-1" aria-label="{{ __('profile.links') }}">
-                            @foreach ($user->profileLinks as $profileLink)
-                                <li class="min-w-0 max-w-full">
-                                    <a href="{{ $profileLink->url }}" target="_blank" rel="noopener noreferrer nofollow ugc" class="inline-flex min-h-[44px] max-w-full items-center gap-2 break-all rounded-[var(--radius-small)] px-2 text-sm font-semibold text-[var(--skuy-secondary)] transition-colors hover:bg-[var(--skuy-surface-subtle)] hover:text-[var(--skuy-secondary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
-                                        <x-fa-icon name="link" class="shrink-0 text-sm" />
-                                        <span>{{ $profileLink->label }}</span>
-                                        <span class="sr-only">{{ __('profile.opens_new_tab') }}</span>
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-
-                    <div class="skuy-profile-action">
-                        @if (auth()->id() === $user->id)
-                            <a href="{{ route('user.edit', $user->username) }}" class="skuy-button skuy-button--primary">
-                                {{ __('profile.edit') }}
-                            </a>
-                        @elseif (auth()->check())
-                            <form action="{{ route('user.follow', $user->username) }}" method="POST">
-                                @csrf
-                                <button
-                                    type="submit"
-                                    aria-pressed="{{ $isFollowing ? 'true' : 'false' }}"
-                                    class="skuy-button skuy-profile-follow-button{{ $isFollowing ? ' skuy-profile-follow-button--following' : '' }}"
-                                >
-                                    {{ $isFollowing ? __('profile.following') : __('profile.follow') }}
-                                </button>
-                            </form>
-                        @endif
-
-                        @if ($canStartConversation)
-                            <form action="{{ route('messages.start', $user->username) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="skuy-button skuy-profile-message-button">
-                                    <x-fa-icon name="comment-lines" />
-                                    <span>{{ __('messages.message') }}</span>
-                                </button>
-                            </form>
+                        @if ($user->profileLinks->isNotEmpty())
+                            <ul class="skuy-profile-links" aria-label="{{ __('profile.links') }}">
+                                @foreach ($user->profileLinks as $profileLink)
+                                    <li>
+                                        <a href="{{ $profileLink->url }}" target="_blank" rel="noopener noreferrer nofollow ugc">
+                                            <x-fa-icon name="link" aria-hidden="true" />
+                                            <span>{{ $profileLink->label }}</span>
+                                            <span class="sr-only">{{ __('profile.opens_new_tab') }}</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
                         @endif
                     </div>
 
-                    <div class="skuy-profile-stats" role="group" aria-label="{{ __('profile.threads') }}, {{ __('profile.followers') }}, {{ __('profile.following') }}">
-                        <div class="skuy-profile-stat">
+                    <ul class="skuy-profile-stats" role="list" aria-label="{{ __('profile.threads') }}, {{ __('profile.followers') }}, {{ __('profile.following') }}" data-profile-statistics>
+                        <li class="skuy-profile-stat">
                             <span class="skuy-profile-stat__value">{{ $profilePostCount }}</span>
                             <span class="skuy-profile-stat__label">{{ __('profile.threads') }}</span>
-                        </div>
-                        <a href="{{ route('user.followers', $user) }}" class="skuy-profile-stat">
-                            <span class="skuy-profile-stat__value">{{ $followersCount }}</span>
-                            <span class="skuy-profile-stat__label">{{ __('profile.followers') }}</span>
-                        </a>
-                        <a href="{{ route('user.following', $user) }}" class="skuy-profile-stat">
-                            <span class="skuy-profile-stat__value">{{ $followingsCount }}</span>
-                            <span class="skuy-profile-stat__label">{{ __('profile.following') }}</span>
-                        </a>
-                    </div>
+                        </li>
+                        <li>
+                            <a href="{{ route('user.followers', $user) }}" class="skuy-profile-stat">
+                                <span class="skuy-profile-stat__value">{{ $followersCount }}</span>
+                                <span class="skuy-profile-stat__label">{{ __('profile.followers') }}</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('user.following', $user) }}" class="skuy-profile-stat">
+                                <span class="skuy-profile-stat__value">{{ $followingsCount }}</span>
+                                <span class="skuy-profile-stat__label">{{ __('profile.following') }}</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
 
-                <nav class="skuy-profile-tabs" aria-label="{{ __('profile.threads') }}, {{ __('profile.likes') }}">
+                <nav class="skuy-profile-tabs" data-profile-tabs aria-label="{{ __('profile.threads') }}, {{ __('profile.likes') }}">
                     <a
                         href="{{ route('user.profile', $user) }}"
                         aria-current="{{ $activeTab === 'threads' ? 'page' : 'false' }}"
@@ -116,6 +131,23 @@
             </section>
 
             <section class="skuy-profile-content" aria-label="{{ $activeTab === 'likes' ? __('profile.likes') : __('profile.threads') }}">
+                @auth
+                    @if ($posts->count() > 0)
+                        <div class="skuy-profile-post-list" data-profile-post-stream x-data="skuyPostMediaViewer">
+                            @include('partials.feed-threads', ['posts' => $posts])
+                            @include('partials.post-media-lightbox')
+                        </div>
+                    @else
+                        <div class="skuy-profile-empty" role="status">
+                            <h2 class="skuy-profile-empty__title">
+                                {{ $activeTab === 'likes' ? __('profile.empty.liked_threads_title') : __('profile.empty.threads_title') }}
+                            </h2>
+                            <p class="skuy-profile-empty__description">
+                                {{ $activeTab === 'likes' ? __('profile.empty.liked_threads_description') : __('profile.empty.threads_description') }}
+                            </p>
+                        </div>
+                    @endif
+                @else
                 @if ($posts->count() > 0)
                     <div class="skuy-profile-post-list">
                         @foreach ($posts as $post)
@@ -255,6 +287,7 @@
                         </p>
                     </div>
                 @endif
+                @endauth
 
                 @if ($posts->hasPages())
                     <div class="skuy-profile-pagination">

@@ -155,7 +155,7 @@ class SearchActivitySavedPresentationTest extends TestCase
         $this->assertTrue(str_contains($html, 'role="status"'));
     }
 
-    public function test_saved_posts_use_feed_identity_media_and_keep_the_existing_unsave_destination(): void
+    public function test_saved_posts_use_feed_identity_media_actions_and_owner_scoped_unsave_state(): void
     {
         $viewer = User::factory()->create();
         $author = User::factory()->create([
@@ -180,18 +180,38 @@ class SearchActivitySavedPresentationTest extends TestCase
         $response->assertOk();
         $html = $response->getContent();
 
-        $this->assertTrue(str_contains($html, 'Saved Display Name'), 'The saved post should lead with its author display name.');
-        $this->assertTrue(str_contains($html, __('threads.verified')), 'Saved verified authors should retain the available verification badge.');
-        $this->assertTrue(str_contains($html, '@</span>saved.author'), 'The username should remain secondary identity metadata.');
-        $this->assertTrue(str_contains($html, 'skuy-feed-post__media--carousel'), 'Saved media should reuse Feed carousel geometry.');
-        $this->assertTrue(str_contains($html, 'skuy-saved-post__single-image'), 'Single saved media should remain visible and preserve its intrinsic ratio.');
-        $this->assertTrue(str_contains($html, route('posts.show', $post->uid)), 'The post destination must remain unchanged.');
-        $this->assertTrue(str_contains($html, route('bookmarks.destroy', $post->uid)), 'The existing unsave destination must remain unchanged.');
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $savedPage = $xpath->query('//*[@data-skuy-prism-saved]')->item(0);
+        $this->assertNotNull($savedPage, 'Saved should have a stable Prism page root.');
+        $this->assertSame(1, $xpath->query('.//*[@data-saved-page-header]', $savedPage)->length);
+        $this->assertSame(2, $xpath->query('.//article[@data-feed-post-uid]', $savedPage)->length);
+
+        $postCard = $xpath->query('.//article[@data-feed-post-uid="'.$post->uid.'"]', $savedPage)->item(0);
+        $this->assertNotNull($postCard);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-post-action="like"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-post-action="repost"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-post-action="bookmark"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-comment-action]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-post-appreciation]', $postCard)->length);
+        $this->assertSame(3, $xpath->query('.//*[@data-media-slide="true"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-skuy-media-viewer]', $savedPage)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-saved-post-collection]', $savedPage)->length);
+
+        $singleImageCard = $xpath->query('.//article[@data-feed-post-uid="'.$singleImagePost->uid.'"]', $savedPage)->item(0);
+        $this->assertNotNull($singleImageCard);
+        $this->assertSame(0, $xpath->query('.//*[@data-media-slide="true"]', $singleImageCard)->length);
+        $this->assertTrue(str_contains($html, asset('storage/posts/saved-single.jpg')), 'Legacy single-image posts must remain visible in Saved.');
+        $this->assertTrue(str_contains($html, 'Saved Display Name'));
+        $this->assertTrue(str_contains($html, __('threads.verified')));
+        $this->assertTrue(str_contains($html, '@</span>saved.author'));
+        $this->assertTrue(str_contains($html, route('posts.show', $post->uid)));
+        $this->assertTrue(str_contains($html, route('bookmarks.destroy', $post->uid)));
         $this->assertTrue(str_contains($html, 'aria-label="'.e(__('threads.actions.remove_from_saved')).'"'));
-        $this->assertSame(3, substr_count($html, 'skuy-feed-media-item--portrait-preview'));
     }
 
-    public function test_saved_empty_state_is_compact_and_announced(): void
+    public function test_saved_empty_state_has_a_premium_status_and_feed_destination(): void
     {
         $viewer = User::factory()->create();
 
@@ -199,9 +219,46 @@ class SearchActivitySavedPresentationTest extends TestCase
         $response->assertOk();
         $html = $response->getContent();
 
-        $this->assertTrue(str_contains($html, 'class="skuy-social-empty"'));
-        $this->assertTrue(str_contains($html, 'role="status"'));
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $savedPage = $xpath->query('//*[@data-skuy-prism-saved]')->item(0);
+        $this->assertNotNull($savedPage);
+        $emptyState = $xpath->query('.//*[@data-saved-empty-state]', $savedPage)->item(0);
+        $this->assertNotNull($emptyState);
+        $this->assertSame('status', $emptyState->getAttribute('role'));
+        $this->assertSame(0, $xpath->query('.//article[@data-feed-post-uid]', $savedPage)->length);
+        $this->assertSame(1, $xpath->query('.//a[@href="'.route('feed').'"]', $emptyState)->length);
         $this->assertTrue(str_contains($html, __('saved.empty')));
+        $this->assertTrue(str_contains($html, __('saved.empty_description')));
+    }
+
+    public function test_saved_empty_later_page_keeps_navigation_to_the_collection(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+
+        foreach (range(1, 15) as $index) {
+            $post = Post::create([
+                'user_id' => $author->id,
+                'content' => 'Saved page fixture '.$index,
+            ]);
+            Bookmark::create(['user_id' => $viewer->id, 'post_id' => $post->id]);
+        }
+
+        $response = $this->actingAs($viewer)->get(route('bookmarks.index', ['page' => 2]));
+        $response->assertOk();
+        $posts = $response->viewData('posts');
+        $this->assertSame(2, $posts->currentPage());
+        $this->assertTrue($posts->isEmpty());
+        $this->assertGreaterThan(1, $posts->currentPage());
+
+        $html = $response->getContent();
+        $this->assertTrue(str_contains($html, __('saved.page_empty_title')));
+        $this->assertTrue(str_contains($html, __('saved.page_empty_description')));
+        $this->assertTrue(str_contains($html, 'data-saved-collection-link'));
+        $this->assertTrue(str_contains($html, 'href="'.route('bookmarks.index').'"'), 'An empty later page must still link back to the first Saved page.');
+        $this->assertFalse(str_contains($html, 'data-saved-feed-link'), 'A later empty page should lead back through Saved rather than the global Feed empty state.');
     }
 
     public function test_restricted_activity_keeps_the_notice_inside_the_shell(): void
