@@ -393,6 +393,26 @@
                     <div id="feed-thread-list" x-ref="feedThreads" :aria-busy="isLoadingMore.toString()" class="skuy-feed-list">
                         @include('partials.feed-threads', ['posts' => $posts])
                     </div>
+
+                    <div
+                        x-show="isLoadingMore"
+                        style="display: none;"
+                        class="skuy-feed-loading-state"
+                        role="status"
+                        aria-live="polite"
+                        aria-label="{{ __('threads.actions.loading_threads') }}"
+                    >
+                        <span class="sr-only">{{ __('threads.actions.loading_threads') }}</span>
+                        @for ($skeletonIndex = 0; $skeletonIndex < 2; $skeletonIndex++)
+                            <div class="skuy-feed-loading-state__row" aria-hidden="true">
+                                <span class="skuy-feed-loading-state__avatar sk-skeleton"></span>
+                                <span class="skuy-feed-loading-state__lines">
+                                    <span class="skuy-feed-loading-state__line sk-skeleton"></span>
+                                    <span class="skuy-feed-loading-state__line sk-skeleton"></span>
+                                </span>
+                            </div>
+                        @endfor
+                    </div>
                 </div>
 
                 <div

@@ -1,9 +1,21 @@
+@php
+    $skuyV2Page = match (true) {
+        request()->routeIs('feed') => 'feed',
+        request()->routeIs('user.profile') => 'profile',
+        request()->routeIs('bookmarks.index') => 'saved',
+        request()->routeIs('posts.show') => 'post-detail',
+        default => null,
+    };
+@endphp
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    data-theme="light"
+    @if ($skuyV2Page) data-skuy-v2-page="{{ $skuyV2Page }}" @endif
     x-data="{ darkMode: localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches }"
     x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
     :class="{ 'dark': darkMode }"
+    :data-theme="darkMode ? 'dark' : 'light'"
 >
     <head>
         <meta charset="utf-8">
@@ -12,20 +24,28 @@
 
         <title>SkuySocial</title>
 
+        <script>
+            (() => {
+                const savedTheme = window.localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const useDarkTheme = savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark);
+
+                document.documentElement.classList.toggle('dark', useDarkTheme);
+                document.documentElement.dataset.theme = useDarkTheme ? 'dark' : 'light';
+            })();
+        </script>
+
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
-        @if (request()->routeIs('feed', 'user.profile'))
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        @endif
-
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/regular.min.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/solid.min.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/brands.min.css') }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if ($skuyV2Page)
+            @vite(['resources/css/skuy-design-v2.css'])
+        @endif
     </head>
     <body class="skuy-product antialiased">
         @if (auth()->check() && (bool) config('services.onesignal.enabled', false) && filled(config('services.onesignal.app_id')))

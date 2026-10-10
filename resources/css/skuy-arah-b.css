@@ -1,23 +1,23 @@
 /*
- * Arah B — Turquoise Lagoon.
- * Component values are ported from the supplied Claude HTML/CSS source;
- * this scoped layer preserves the existing Blade actions and business rules.
+ * Arah B — Minimalist Glassmorphism.
+ * Preserve the Claude-derived layout, Blade actions, and business rules while
+ * using a neutral canvas and restrained glass surfaces.
  */
 .skuy-app-shell[data-skuy-arah-b-pages] {
-    --arah-b-bg: #f4fbfa;
-    --arah-b-text: #16353d;
-    --arah-b-muted: #61777d;
+    --arah-b-bg: #ffffff;
+    --arah-b-text: #191a1d;
+    --arah-b-muted: #62666e;
     --arah-b-glass: rgb(255 255 255 / 82%);
-    --arah-b-glass-raised: rgb(255 255 255 / 92%);
+    --arah-b-glass-raised: rgb(255 255 255 / 94%);
     --arah-b-solid-surface: #ffffff;
-    --arah-b-edge: rgb(13 148 136 / 20%);
-    --arah-b-highlight: rgb(255 255 255 / 76%);
-    --arah-b-shadow: 0 12px 40px rgb(16 53 61 / 12%), inset 0 1px 0 rgb(255 255 255 / 76%);
-    --arah-b-mint: #0d9f91;
-    --arah-b-mint-soft: rgb(13 159 145 / 12%);
-    --arah-b-cyan: #168fc1;
-    --arah-b-cyan-soft: rgb(22 143 193 / 12%);
-    --arah-b-like: #e45e73;
+    --arah-b-edge: rgb(22 25 30 / 10%);
+    --arah-b-highlight: rgb(255 255 255 / 82%);
+    --arah-b-shadow: 0 12px 30px rgb(16 18 22 / 6%), inset 0 1px 0 rgb(255 255 255 / 82%);
+    --arah-b-mint: #202226;
+    --arah-b-mint-soft: rgb(26 29 34 / 5%);
+    --arah-b-cyan: #565b63;
+    --arah-b-cyan-soft: rgb(26 29 34 / 4%);
+    --arah-b-like: #d94f65;
     --arah-b-danger: #bb394c;
     --arah-b-nav-left: max(16px, calc((100vw - 1280px) / 2 + 46px));
     --arah-b-content-left: calc(var(--arah-b-nav-left) + 244px);
@@ -32,53 +32,49 @@
     color: var(--arah-b-text);
     font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
     background-color: var(--arah-b-bg);
-    background-image:
-        radial-gradient(ellipse 370px 370px at 140px 100px, rgb(18 181 166 / 24%) 0 70%, transparent 100%),
-        radial-gradient(ellipse 350px 350px at calc(100% + 100px) 500px, rgb(45 212 191 / 14%) 0 69%, transparent 100%),
-        radial-gradient(ellipse 380px 330px at calc(34% + 260px) calc(100% - 30px), rgb(79 70 229 / 8%) 0 68%, transparent 100%);
-    background-attachment: fixed;
+    background-image: none;
 
-    --skuy-bg-canvas: #f4fbfa;
-    --skuy-bg-workspace: #f4fbfa;
-    --skuy-background: #f4fbfa;
+    --skuy-bg-canvas: #ffffff;
+    --skuy-bg-workspace: #ffffff;
+    --skuy-background: #ffffff;
     --skuy-surface: rgb(255 255 255 / 82%);
-    --skuy-surface-elevated: rgb(255 255 255 / 92%);
-    --skuy-surface-subtle: rgb(13 148 136 / 7%);
-    --skuy-surface-glass: rgb(255 255 255 / 78%);
-    --skuy-text-primary: #16353d;
-    --skuy-text-secondary: #385a62;
-    --skuy-text-muted: #61777d;
-    --skuy-border-subtle: rgb(13 148 136 / 20%);
-    --skuy-border-strong: rgb(13 148 136 / 36%);
-    --skuy-secondary: #0d9f91;
-    --skuy-secondary-hover: #087e74;
+    --skuy-surface-elevated: rgb(255 255 255 / 94%);
+    --skuy-surface-subtle: rgb(26 29 34 / 4%);
+    --skuy-surface-glass: rgb(255 255 255 / 80%);
+    --skuy-text-primary: #191a1d;
+    --skuy-text-secondary: #454950;
+    --skuy-text-muted: #636770;
+    --skuy-border-subtle: rgb(22 25 30 / 10%);
+    --skuy-border-strong: rgb(22 25 30 / 22%);
+    --skuy-secondary: #202226;
+    --skuy-secondary-hover: #101114;
     --skuy-on-secondary: #ffffff;
-    --skuy-brand: #0d9f91;
-    --skuy-brand-hover: #087e74;
-    --skuy-brand-pressed: #075e58;
+    --skuy-brand: #202226;
+    --skuy-brand-hover: #101114;
+    --skuy-brand-pressed: #090a0c;
     --skuy-on-brand: #ffffff;
-    --skuy-accent: #168fc1;
+    --skuy-accent: #575c65;
     --skuy-on-accent: #ffffff;
-    --skuy-focus: #087e74;
-    --skuy-selected: rgb(13 159 145 / 14%);
-    --skuy-on-selected: #087e74;
-    --skuy-reaction: #e45e73;
+    --skuy-focus: #3e4a59;
+    --skuy-selected: rgb(22 25 30 / 6%);
+    --skuy-on-selected: #191a1d;
+    --skuy-reaction: #b87400;
     --skuy-on-reaction: #ffffff;
     --skuy-danger: #bb394c;
     --skuy-on-danger: #ffffff;
-    --skuy-prism-glass-edge: rgb(13 148 136 / 22%);
+    --skuy-prism-glass-edge: rgb(22 25 30 / 10%);
     --skuy-social-post-elevation: var(--arah-b-shadow);
     --skuy-social-media-radius: 16px;
-    --skuy-surface-base: #f4fbfa;
-    --skuy-surface-raised: rgb(255 255 255 / 84%);
+    --skuy-surface-base: #ffffff;
+    --skuy-surface-raised: rgb(255 255 255 / 90%);
     --skuy-surface-overlay: rgb(255 255 255 / 96%);
-    --skuy-surface-accent: rgb(13 159 145 / 12%);
-    --skuy-border-soft: rgb(13 148 136 / 18%);
-    --skuy-shadow-soft: 0 8px 24px rgb(16 53 61 / 9%);
+    --skuy-surface-accent: rgb(26 29 34 / 5%);
+    --skuy-border-soft: rgb(22 25 30 / 8%);
+    --skuy-shadow-soft: 0 8px 24px rgb(16 18 22 / 5%);
     --skuy-shadow-raised: var(--arah-b-shadow);
-    --skuy-shadow-floating: 0 20px 54px -32px rgb(16 53 61 / 24%);
-    --skuy-glow-primary: rgb(45 212 191 / 18%);
-    --skuy-glow-secondary: rgb(56 189 248 / 12%);
+    --skuy-shadow-floating: 0 20px 46px -34px rgb(16 18 22 / 20%);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
     --skuy-shell-nav-width: 220px;
     --skuy-shell-gutter: 20px;
     --radius-small: 8px;
@@ -87,104 +83,103 @@
 }
 
 html.dark .skuy-app-shell[data-skuy-arah-b-pages] {
-    --arah-b-bg: #04141a;
-    --arah-b-text: #f4f5fb;
-    --arah-b-muted: rgb(244 245 251 / 62%);
-    --arah-b-glass: rgb(120 255 235 / 5%);
-    --arah-b-glass-raised: rgb(120 255 235 / 8%);
-    --arah-b-solid-surface: #0b2026;
-    --arah-b-edge: rgb(120 255 235 / 18%);
-    --arah-b-highlight: rgb(255 255 255 / 10%);
-    --arah-b-shadow: 0 12px 40px rgb(0 0 0 / 40%), inset 0 1px 0 rgb(255 255 255 / 10%);
-    --arah-b-mint: #2dd4bf;
-    --arah-b-mint-soft: rgb(45 212 191 / 16%);
-    --arah-b-cyan: #38bdf8;
-    --arah-b-cyan-soft: rgb(56 189 248 / 16%);
-    --arah-b-like: #fb7185;
-    --arah-b-danger: #f87171;
-    background-image:
-        radial-gradient(ellipse 370px 370px at 140px 100px, rgb(18 181 166 / 55%) 0 70%, transparent 100%),
-        radial-gradient(ellipse 350px 350px at calc(100% + 100px) 500px, rgb(45 212 191 / 38%) 0 69%, transparent 100%),
-        radial-gradient(ellipse 380px 330px at calc(34% + 260px) calc(100% - 30px), rgb(79 70 229 / 30%) 0 68%, transparent 100%);
+    --arah-b-bg: #101114;
+    --arah-b-text: #f3f4f6;
+    --arah-b-muted: rgb(243 244 246 / 64%);
+    --arah-b-glass: rgb(26 27 31 / 84%);
+    --arah-b-glass-raised: rgb(31 32 36 / 94%);
+    --arah-b-solid-surface: #17181c;
+    --arah-b-edge: rgb(255 255 255 / 10%);
+    --arah-b-highlight: rgb(255 255 255 / 6%);
+    --arah-b-shadow: 0 14px 38px rgb(0 0 0 / 30%), inset 0 1px 0 rgb(255 255 255 / 5%);
+    --arah-b-mint: #f1f2f4;
+    --arah-b-mint-soft: rgb(255 255 255 / 7%);
+    --arah-b-cyan: #c8cbd1;
+    --arah-b-cyan-soft: rgb(255 255 255 / 6%);
+    --arah-b-like: #ff879b;
+    --arah-b-danger: #ff8f87;
 
-    --skuy-bg-canvas: #04141a;
-    --skuy-bg-workspace: #04141a;
-    --skuy-background: #04141a;
-    --skuy-surface: rgb(120 255 235 / 5%);
-    --skuy-surface-elevated: rgb(120 255 235 / 8%);
-    --skuy-surface-subtle: rgb(120 255 235 / 8%);
-    --skuy-surface-glass: rgb(120 255 235 / 5%);
-    --skuy-text-primary: #f4f5fb;
-    --skuy-text-secondary: rgb(244 245 251 / 78%);
-    --skuy-text-muted: rgb(244 245 251 / 62%);
-    --skuy-border-subtle: rgb(120 255 235 / 18%);
-    --skuy-border-strong: rgb(120 255 235 / 34%);
-    --skuy-secondary: #2dd4bf;
-    --skuy-secondary-hover: #65e7d5;
-    --skuy-on-secondary: #04141a;
-    --skuy-brand: #2dd4bf;
-    --skuy-brand-hover: #65e7d5;
-    --skuy-brand-pressed: #38bdf8;
-    --skuy-on-brand: #04141a;
-    --skuy-accent: #38bdf8;
-    --skuy-on-accent: #04141a;
-    --skuy-focus: #38bdf8;
-    --skuy-selected: rgb(45 212 191 / 16%);
-    --skuy-on-selected: #2dd4bf;
-    --skuy-reaction: #fb7185;
-    --skuy-on-reaction: #04141a;
-    --skuy-danger: #f87171;
-    --skuy-on-danger: #04141a;
-    --skuy-prism-glass-edge: rgb(120 255 235 / 18%);
+    --skuy-bg-canvas: #101114;
+    --skuy-bg-workspace: #101114;
+    --skuy-background: #101114;
+    --skuy-surface: rgb(26 27 31 / 84%);
+    --skuy-surface-elevated: rgb(31 32 36 / 94%);
+    --skuy-surface-subtle: rgb(255 255 255 / 5%);
+    --skuy-surface-glass: rgb(26 27 31 / 84%);
+    --skuy-text-primary: #f3f4f6;
+    --skuy-text-secondary: #d0d2d8;
+    --skuy-text-muted: #a0a3ab;
+    --skuy-border-subtle: rgb(255 255 255 / 10%);
+    --skuy-border-strong: rgb(255 255 255 / 20%);
+    --skuy-secondary: #f1f2f4;
+    --skuy-secondary-hover: #ffffff;
+    --skuy-on-secondary: #101114;
+    --skuy-brand: #f1f2f4;
+    --skuy-brand-hover: #ffffff;
+    --skuy-brand-pressed: #dfe1e5;
+    --skuy-on-brand: #101114;
+    --skuy-accent: #d0d2d8;
+    --skuy-on-accent: #101114;
+    --skuy-focus: #d0d2d8;
+    --skuy-selected: rgb(255 255 255 / 8%);
+    --skuy-on-selected: #f3f4f6;
+    --skuy-reaction: #e8b94f;
+    --skuy-on-reaction: #34250d;
+    --skuy-danger: #ff8f87;
+    --skuy-on-danger: #341513;
+    --skuy-prism-glass-edge: rgb(255 255 255 / 10%);
     --skuy-social-post-elevation: var(--arah-b-shadow);
     --skuy-social-media-radius: 16px;
-    --skuy-surface-base: #04141a;
-    --skuy-surface-raised: rgb(120 255 235 / 6%);
-    --skuy-surface-overlay: rgb(7 28 35 / 96%);
-    --skuy-surface-accent: rgb(45 212 191 / 12%);
-    --skuy-border-soft: rgb(120 255 235 / 16%);
-    --skuy-shadow-soft: 0 8px 24px rgb(0 0 0 / 26%);
+    --skuy-surface-base: #101114;
+    --skuy-surface-raised: rgb(31 32 36 / 92%);
+    --skuy-surface-overlay: #202126;
+    --skuy-surface-accent: rgb(255 255 255 / 7%);
+    --skuy-border-soft: rgb(255 255 255 / 8%);
+    --skuy-shadow-soft: 0 8px 24px rgb(0 0 0 / 28%);
     --skuy-shadow-raised: var(--arah-b-shadow);
-    --skuy-shadow-floating: 0 24px 64px -34px rgb(0 0 0 / 54%);
-    --skuy-glow-primary: rgb(45 212 191 / 22%);
-    --skuy-glow-secondary: rgb(56 189 248 / 15%);
-}
-
-@media (max-width: 640px) {
-    .skuy-app-shell[data-skuy-arah-b-pages] {
-        background-image:
-            radial-gradient(ellipse 260px 260px at 80px 60px, rgb(18 181 166 / 20%) 0 69%, transparent 100%),
-            radial-gradient(ellipse 240px 240px at calc(100% + 40px) 460px, rgb(45 212 191 / 12%) 0 67%, transparent 100%),
-            radial-gradient(ellipse 250px 220px at calc(20% + 160px) calc(100% - 10px), rgb(79 70 229 / 7%) 0 65%, transparent 100%);
-    }
-
-    html.dark .skuy-app-shell[data-skuy-arah-b-pages] {
-        background-image:
-            radial-gradient(ellipse 260px 260px at 80px 60px, rgb(18 181 166 / 55%) 0 69%, transparent 100%),
-            radial-gradient(ellipse 240px 240px at calc(100% + 40px) 460px, rgb(45 212 191 / 36%) 0 67%, transparent 100%),
-            radial-gradient(ellipse 250px 220px at calc(20% + 160px) calc(100% - 10px), rgb(79 70 229 / 28%) 0 65%, transparent 100%);
-    }
+    --skuy-shadow-floating: 0 24px 60px -40px rgb(0 0 0 / 52%);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages]::before {
     content: none;
 }
 
-html:has(.skuy-app-shell[data-skuy-arah-b-pages]),
-body:has(.skuy-app-shell[data-skuy-arah-b-pages]) {
-    scrollbar-width: none;
+html:has(.skuy-app-shell[data-skuy-arah-b-pages]) {
+    color-scheme: light;
+    background-color: #ffffff;
+    background-image: none;
 }
 
-html:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar,
-body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
+html.dark:has(.skuy-app-shell[data-skuy-arah-b-pages]) {
+    color-scheme: dark;
+    background-color: #101114;
+    background-image: none;
+}
+
+body:has(.skuy-app-shell[data-skuy-arah-b-pages]) {
+    background-color: #ffffff;
+    background-image: none;
+}
+
+html.dark body:has(.skuy-app-shell[data-skuy-arah-b-pages]) {
+    background-color: #101114;
+    background-image: none;
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] :where(button, input, textarea, select, a):focus-visible {
     outline: 2px solid var(--skuy-focus);
     outline-offset: 3px;
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages].skuy-desktop-account-menu-open .skuy-app-rail {
+    z-index: 120;
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail__backdrop,
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-account-scrim {
+    background: rgb(16 17 20 / 38%);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-shell__workspace {
@@ -205,8 +200,17 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-topbar,
-.skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail__inner,
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-nav,
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-appreciation__popover {
+    border: 1px solid var(--arah-b-edge);
+    border-radius: 18px;
+    background: var(--arah-b-glass);
+    box-shadow: var(--arah-b-shadow);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail__inner,
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-post,
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-feed-composer,
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-context-card,
@@ -219,8 +223,14 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     border-radius: 18px;
     background: var(--arah-b-glass);
     box-shadow: var(--arah-b-shadow);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail__inner {
@@ -339,10 +349,10 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-button--primary,
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-feed-composer__submit {
     border: 0;
-    background: linear-gradient(110deg, #2dd4bf, #38bdf8);
-    color: #04141a;
+    background: var(--skuy-brand);
+    color: var(--skuy-on-brand);
     font-weight: 700;
-    box-shadow: 0 12px 28px -18px rgb(45 212 191 / 70%), inset 0 1px 0 rgb(255 255 255 / 25%);
+    box-shadow: 0 8px 20px -16px rgb(16 18 22 / 26%);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail__compose {
@@ -427,8 +437,8 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     background: var(--arah-b-glass-raised);
     color: var(--arah-b-text);
     box-shadow: var(--skuy-shadow-floating), inset 0 1px 0 var(--arah-b-highlight);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-feed-page,
@@ -545,6 +555,44 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     gap: 14px;
 }
 
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-feed-post,
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-post {
+    border: 1px solid var(--arah-b-edge);
+    background: var(--arah-b-glass);
+    box-shadow: var(--arah-b-shadow);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-lightbox__control,
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-lightbox__counter {
+    border: 1px solid rgb(255 255 255 / 24%);
+    border-radius: 14px;
+    background: rgb(26 27 31 / 72%);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 20%), inset 0 1px 0 rgb(255 255 255 / 6%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-lightbox__control {
+    color: #ffffff;
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-lightbox__control:hover {
+    background: rgb(255 255 255 / 94%);
+    color: #101114;
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-lightbox__control:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+
+.skuy-app-shell[data-skuy-arah-b-pages] .skuy-lightbox__counter {
+    padding: 7px 11px;
+    color: #ffffff;
+}
+
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-post-list {
     gap: 13px;
 }
@@ -586,7 +634,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     height: 40px;
     border: 1px solid var(--arah-b-edge);
     border-radius: 14px;
-    background: linear-gradient(135deg, var(--arah-b-mint-soft), var(--arah-b-cyan-soft));
+    background: var(--arah-b-glass-raised);
     color: var(--arah-b-mint);
     font-size: 12px;
     font-weight: 700;
@@ -784,23 +832,23 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
 
 .skuy-app-shell[data-skuy-arah-b-pages="feed"] .skuy-feed-post__avatar[data-avatar-tone="0"],
 .skuy-app-shell[data-skuy-arah-b-pages="feed"] .skuy-feed-context-creator__avatar[data-avatar-tone="0"] {
-    border-color: transparent;
-    background: linear-gradient(135deg, #38d4c4, #4567e7);
-    color: #ffffff;
+    border-color: var(--arah-b-edge);
+    background: var(--arah-b-glass-raised);
+    color: var(--arah-b-text);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages="feed"] .skuy-feed-post__avatar[data-avatar-tone="1"],
 .skuy-app-shell[data-skuy-arah-b-pages="feed"] .skuy-feed-context-creator__avatar[data-avatar-tone="1"] {
-    border-color: transparent;
-    background: linear-gradient(135deg, #f0676c, #a6378e);
-    color: #ffffff;
+    border-color: var(--arah-b-edge);
+    background: var(--arah-b-glass-raised);
+    color: var(--arah-b-text);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages="feed"] .skuy-feed-post__avatar[data-avatar-tone="2"],
 .skuy-app-shell[data-skuy-arah-b-pages="feed"] .skuy-feed-context-creator__avatar[data-avatar-tone="2"] {
-    border-color: transparent;
-    background: linear-gradient(135deg, #db49b4, #6046cf);
-    color: #ffffff;
+    border-color: var(--arah-b-edge);
+    background: var(--arah-b-glass-raised);
+    color: var(--arah-b-text);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-post__layout {
@@ -916,7 +964,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     z-index: 1;
     width: 2px;
     height: auto;
-    background: linear-gradient(180deg, var(--arah-b-mint), transparent);
+    background: var(--arah-b-edge);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-feed-thread-connector::after {
@@ -927,10 +975,10 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     width: 20px;
     height: 20px;
     place-items: center;
-    border: 1px solid transparent;
+    border: 1px solid var(--arah-b-edge);
     border-radius: 7px;
-    background: linear-gradient(135deg, #f0676c, #a6378e);
-    color: #ffffff;
+    background: var(--arah-b-glass-raised);
+    color: var(--arah-b-text);
     content: attr(data-initial);
     font-size: 8px;
     font-weight: 700;
@@ -1107,17 +1155,27 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--arah-b-mint), var(--arah-b-cyan));
+    background: var(--arah-b-mint-soft);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__option:nth-of-type(1) .skuy-poll__bar > span,
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__result:nth-child(1) .skuy-poll__bar > span {
-    background: rgb(45 212 191 / 38%);
+    background: rgb(22 25 30 / 8%);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__option:nth-of-type(2) .skuy-poll__bar > span,
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__result:nth-child(2) .skuy-poll__bar > span {
-    background: rgb(56 189 248 / 38%);
+    background: rgb(22 25 30 / 12%);
+}
+
+html.dark .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__option:nth-of-type(1) .skuy-poll__bar > span,
+html.dark .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__result:nth-child(1) .skuy-poll__bar > span {
+    background: rgb(255 255 255 / 8%);
+}
+
+html.dark .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__option:nth-of-type(2) .skuy-poll__bar > span,
+html.dark .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__result:nth-child(2) .skuy-poll__bar > span {
+    background: rgb(255 255 255 / 12%);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__vote {
@@ -1243,9 +1301,9 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-post__options > .skuy-action {
-    width: 36px;
-    min-width: 36px;
-    min-height: 36px;
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
 }
 
@@ -1531,7 +1589,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     overflow: hidden;
     border: 1px solid var(--arah-b-edge);
     border-radius: 12px;
-    background: linear-gradient(135deg, var(--arah-b-mint-soft), var(--arah-b-cyan-soft));
+    background: var(--arah-b-glass-raised);
     color: var(--arah-b-mint);
     font-size: 10px;
     font-weight: 700;
@@ -1663,7 +1721,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     height: 104px;
     overflow: hidden;
     border-radius: 17px 17px 0 0;
-    background: linear-gradient(120deg, var(--arah-b-mint-soft), var(--arah-b-cyan-soft));
+    background: var(--arah-b-glass-raised);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-cover__image {
@@ -1705,7 +1763,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     overflow: hidden;
     border: 3px solid var(--arah-b-bg);
     border-radius: 24px;
-    background: linear-gradient(135deg, var(--arah-b-mint-soft), var(--arah-b-cyan-soft));
+    background: var(--arah-b-glass-raised);
     color: var(--arah-b-mint);
     font-size: 28px;
     font-weight: 700;
@@ -1896,8 +1954,8 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-visitor-actions .skuy-profile-follow-button,
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-owner-actions .skuy-button--primary {
     border: 0;
-    background: linear-gradient(110deg, #2dd4bf, #38bdf8);
-    color: #04141a;
+    background: var(--skuy-brand);
+    color: var(--skuy-on-brand);
 }
 
 .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-visitor-actions .skuy-profile-follow-button--following {
@@ -2201,24 +2259,25 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
         inset: 0 0 auto;
         display: block !important;
         width: 100%;
-        height: 60px;
+        height: calc(60px + env(safe-area-inset-top, 0px));
         border: 0;
         border-bottom: 1px solid var(--arah-b-edge);
         border-radius: 0;
         background: color-mix(in srgb, var(--arah-b-bg) 86%, transparent);
         box-shadow: none;
-        -webkit-backdrop-filter: blur(18px) saturate(150%);
-        backdrop-filter: blur(18px) saturate(150%);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-topbar__inner {
         display: flex;
         width: 100%;
-        height: 60px;
+        height: calc(60px + env(safe-area-inset-top, 0px));
+        box-sizing: border-box;
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        padding: 0 16px;
+        padding: env(safe-area-inset-top, 0px) 16px 0;
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-topbar__brand-group {
@@ -2308,8 +2367,8 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
         overflow: hidden;
         border: 1px solid var(--arah-b-edge);
         border-radius: 14px;
-        background: linear-gradient(135deg, #2dd4bf, #38bdf8);
-        color: #04141a;
+        background: var(--arah-b-glass-raised);
+        color: var(--arah-b-text);
         font-size: 11px;
         font-weight: 700;
     }
@@ -2341,7 +2400,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-shell__workspace {
         width: 100%;
         margin: 0;
-        padding: 60px 0 0;
+        padding: calc(60px + env(safe-area-inset-top, 0px)) 0 0;
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-nav {
@@ -2358,12 +2417,8 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
         border-radius: 20px;
         background: color-mix(in srgb, var(--arah-b-bg) 80%, transparent);
         box-shadow: var(--arah-b-shadow);
-        -webkit-backdrop-filter: blur(24px) saturate(150%);
-        backdrop-filter: blur(24px) saturate(150%);
-    }
-
-    html.dark .skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-nav {
-        background: linear-gradient(110deg, rgb(8 37 50 / 92%), rgb(15 40 72 / 92%));
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-nav__item {
@@ -2396,7 +2451,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
         min-height: 52px;
         justify-self: center;
         border-radius: 16px;
-        color: #04141a;
+        color: var(--skuy-on-brand);
         font-size: 21px;
     }
 
@@ -2710,7 +2765,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-header {
-        min-height: 307px;
+        min-height: 0;
         grid-column: 1;
         grid-row: 1;
         padding: 19px;
@@ -2726,7 +2781,7 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-header__body {
-        min-height: 267px;
+        min-height: 0;
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-avatar {
@@ -2757,7 +2812,12 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
         gap: 8px;
     }
 
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-identity {
+        order: 1;
+    }
+
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-details {
+        order: 2;
         margin-top: 28px;
     }
 
@@ -2801,13 +2861,15 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-action {
-        right: 0;
-        bottom: -4px;
-        left: 0;
+        position: static;
+        order: 4;
+        width: 100%;
+        margin-top: 18px;
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-visitor-actions,
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-owner-actions {
+        flex-wrap: wrap;
         gap: 7px;
     }
 
@@ -2881,13 +2943,14 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-visitor-actions,
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-owner-actions {
+        flex-wrap: wrap;
         gap: 5px;
     }
 
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-visitor-actions .skuy-button,
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-owner-actions .skuy-button {
-        padding-inline: 5px;
-        font-size: 9px;
+        padding-inline: 8px;
+        font-size: 11px;
     }
 }
 
@@ -2915,15 +2978,31 @@ body:has(.skuy-app-shell[data-skuy-arah-b-pages])::-webkit-scrollbar {
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-tabs,
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-empty,
     .skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-account-menu,
-    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-menu-surface {
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-menu-surface,
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-appreciation__popover,
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-feed-post,
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-post {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
         background: var(--arah-b-solid-surface);
+    }
+
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail__backdrop,
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-account-scrim {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
 
     html.dark .skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-nav {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
         background: var(--arah-b-solid-surface);
+    }
+
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-lightbox__control,
+    .skuy-app-shell[data-skuy-arah-b-pages] .skuy-lightbox__counter {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        box-shadow: none;
     }
 }

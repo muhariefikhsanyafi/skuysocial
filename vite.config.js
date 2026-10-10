@@ -7,6 +7,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/skuy-design-v2.css',
                 'resources/js/app.js',
                 'resources/js/inertia.tsx',
             ],

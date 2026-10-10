@@ -5,8 +5,8 @@
 This document is the authoritative design specification for SkuySocial
 public/product UI.
 
-- Status: Active product authority, extended by the Premium Visual Revolution.
-- Direction: SkuySocial Expressive Clean.
+- Status: Active product authority. Claude handoff v2 governs every artboard-covered route and state in section 28.
+- Direction: Restrained neutral glassmorphism for Claude v2 routes; existing SkuySocial direction remains on other product surfaces.
 - Product surface: public and signed-in product experiences.
 - Admin surface: Filament Admin is outside this authority and keeps its
   existing visual language.
@@ -14,13 +14,16 @@ public/product UI.
 This authority covers the home feed, post composer, post detail,
 replies/comments, profiles, search and Explore, notifications, settings,
 authentication and other public product screens, plus future messaging or
-chat product UI.
+chat product UI. Section 28 is the latest visual authority for the routes and
+states explicitly covered by Claude handoff v2. Other product surfaces retain
+their current scope until separately designed.
 
 The previous Neo-Brutalism public/product direction is retired. Full Liquid
-Glass remains outside the SkuySocial visual direction. Restrained
-glassmorphism-lite is permitted only for contextual overlays under the surface
-rules below; it does not create a second theme or design system. Filament Admin
-keeps its existing visual language.
+Glass remains outside the SkuySocial direction. The routes in section 28 use
+restrained, neutral glassmorphism; that owner-approved scope
+supersedes conflicting canvas, surface, glow, and gradient rules only on those
+routes. Other product screens retain their established visual authority.
+Filament Admin keeps its existing visual language.
 
 Existing public UI that conflicts with this document should be migrated
 intentionally over time. A migration may preserve behavior and content while
@@ -1280,12 +1283,12 @@ A public/product UI change is complete when:
 
 ## 27. SkuySocial Expressive Clean — Premium Visual Revolution
 
-This section is the focused authority for the authenticated shell and the
-Dashboard's premium visual evolution. It clarifies the surface, depth, and
-responsive rules above; all non-conflicting Expressive Clean, accessibility,
-localization, and product-behavior rules remain in force. It does not change the
-design authority for Filament Admin or authorize a full redesign of other
-product surfaces.
+This section remains the focused authority for the Dashboard's premium visual
+evolution. It does not govern the Home Feed or Profile; section 28 is the
+latest owner-approved visual authority for those surfaces. All
+non-conflicting accessibility, localization, and product-behavior rules remain
+in force. It does not change the design authority for Filament Admin or
+authorize a redesign of other product surfaces.
 
 ### Semantic token policy
 
@@ -1324,9 +1327,9 @@ aliases unless the established radius tokens are actually retired.
 - Raised surfaces use semantic fills, crisp soft borders, and contextual
   shadows. Reserve the strongest contrast/depth for the Dashboard hero and
   account module; shortcuts remain legible, tactile, and subordinate.
-- The shell canvas may inherit across authenticated pages. This is shared shell
-  styling, not permission to redesign Feed, Profile, Search, Activity, Saved,
-  or Settings.
+- The shell canvas may inherit across authenticated pages. Home Feed and Profile
+  follow the explicit section 28 override. This shared-shell rule does not
+  authorize redesign of Search, Activity, Saved, or Settings.
 
 ### Glassmorphism-lite and the shell
 
@@ -1394,14 +1397,57 @@ aliases unless the established radius tokens are actually retired.
   copying Sngine or any other product 1:1. Use references for broad principles
   only. SkuySocial Expressive Clean remains the sole design authority.
 
+## 28. Owner Revision: Claude Handoff v2 — Covered Routes and States
+
+This section is the latest visual authority for Feed, Profile, Saved, Post
+Detail, Welcome, Login, Register, Forgot Password, and Reset Password across
+desktop/mobile and light/dark themes. It also covers Feed Loading, Login Error,
+Forgot Password Sent, and Saved Empty states. It supersedes conflicting canvas,
+surface, glow, gradient, and shell rules above only on these routes and states;
+all existing content, routes, privacy, actions, and business rules remain
+unchanged. Translate the artboards into the current Blade/Alpine/Inertia
+components; do not copy static mockup markup into the application.
+
+### Canvas and color
+
+- Light canvas is flat `#FFFFFF`; dark canvas is flat `#101114`, following the
+  owner's explicit override to the handoff's sample dark token. Apply these
+  values to the full page background, including safe-area/overscroll regions.
+- Remove aurora, decorative gradients, ambient glow, and colored lighting on
+  these routes. Use neutral ink, gray, and charcoal for backgrounds and
+  surfaces. Keep brand/semantic accents on controls and meaningful states only.
+
+### Restrained glass surfaces
+
+- Cards, composer, and side panels use flat translucent `.sk-surface` fills
+  without blur. Restrict `.sk-glass` to floating headers, mobile dock, menus,
+  modals, and appreciation popovers; use a neutral fill, blur up to 6px, a thin
+  border, and a soft shadow.
+- Light glass stays close to white; dark glass stays close to neutral charcoal.
+  Keep text and controls readable over either theme and keep borders visible.
+- Honor `prefers-reduced-transparency` by using solid neutral surfaces and no
+  backdrop filter, without changing layout or control behavior.
+
+### Responsive composition and behavior
+
+- Preserve the existing Claude-derived information hierarchy and functional
+  component roles. Do not add, remove, duplicate, or relocate business actions
+  without an explicit product requirement.
+- Keep the artboard hierarchy and current page content. Desktop uses a balanced
+  navigation / primary content / context composition; intermediate widths
+  collapse secondary context before primary content becomes cramped. Mobile
+  uses one top bar, one five-item bottom dock, a single-column flow, and safe
+  area/dock clearance.
+- Keep composer fields and primary media affordance usable when compact; expand
+  secondary controls on focus. Menus must layer predictably, remain scrollable,
+  and never obscure their own close/keyboard focus path. Cards and action rows
+  must wrap without horizontal page overflow at narrow supported widths.
+- Preserve 44px touch targets, keyboard focus, zoom, localization resilience,
+  readable long-form content, reduced motion, and all existing route, privacy,
+  poll, post, profile, authentication, saved, and account-action behavior.
+
 ## Next Design Deliverables
 
-Before implementation, the next design deliverables are:
-
-1. Home Feed, desktop mockup/spec.
-2. Home Feed, mobile mockup/spec.
-3. Profile, responsive mockup/spec.
-4. Search / Explore, responsive mockup/spec.
-
-These remain future design deliverables; implement them only within their
-separately scoped milestones.
+Home Feed and Profile are governed by section 28. The next separately scoped
+design deliverable is Search / Explore, responsive for both themes. Implement
+it only within its own approved milestone.

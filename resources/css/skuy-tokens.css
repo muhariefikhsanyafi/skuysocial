@@ -1,0 +1,94 @@
+/* SkuySocial design tokens v2. Themes are selected on <html> with data-theme. */
+:root {
+    --sk-accent: #6A48F5;
+    --sk-radius-card: 24px;
+    --sk-radius-ctl: 14px;
+    --sk-touch: 44px;
+    --sk-font: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+    --sk-bg: #101114;
+    --sk-surface: rgb(255 255 255 / 4%);
+    --sk-glass: rgb(25 26 30 / 78%);
+    --sk-line: rgb(255 255 255 / 9%);
+    --sk-line-2: rgb(255 255 255 / 18%);
+    --sk-ink: #F2F3F7;
+    --sk-ink-2: rgb(242 243 247 / 72%);
+    --sk-ink-3: rgb(242 243 247 / 58%);
+    --sk-accent-hover: #7A5BF7;
+    --sk-link: #B3A8FF;
+    --sk-hover: rgb(255 255 255 / 6%);
+    --sk-active: rgb(255 255 255 / 10%);
+    --sk-on-active: #F2F3F7;
+    --sk-danger: #FF9C93;
+    --sk-danger-bg: rgb(255 156 147 / 10%);
+    --sk-success: #8DDBB3;
+    --sk-success-bg: rgb(141 219 179 / 10%);
+    --sk-shadow: 0 10px 30px rgb(0 0 0 / 30%);
+    --sk-highlight: inset 0 1px 0 rgb(255 255 255 / 6%);
+    --sk-skeleton: rgb(255 255 255 / 8%);
+}
+
+[data-theme="light"] {
+    --sk-bg: #FFFFFF;
+    --sk-surface: rgb(18 19 28 / 2.5%);
+    --sk-glass: rgb(255 255 255 / 84%);
+    --sk-line: rgb(18 19 28 / 9%);
+    --sk-line-2: rgb(18 19 28 / 18%);
+    --sk-ink: #12131C;
+    --sk-ink-2: rgb(18 19 28 / 72%);
+    --sk-ink-3: rgb(18 19 28 / 64%);
+    --sk-accent-hover: #5A38E5;
+    --sk-link: #4B2FD6;
+    --sk-hover: rgb(18 19 28 / 5%);
+    --sk-active: rgb(106 72 245 / 12%);
+    --sk-on-active: #3B1FB8;
+    --sk-danger: #C62828;
+    --sk-danger-bg: rgb(198 40 40 / 7%);
+    --sk-success: #18794E;
+    --sk-success-bg: rgb(24 121 78 / 7%);
+    --sk-shadow: 0 10px 30px rgb(20 20 60 / 8%);
+    --sk-highlight: inset 0 1px 0 rgb(255 255 255 / 86%);
+    --sk-skeleton: rgb(18 19 28 / 7%);
+}
+
+/* Flat surfaces are used for cards, composers, and side panels. */
+.sk-surface {
+    background: var(--sk-surface);
+    border: 1px solid var(--sk-line);
+    border-radius: var(--sk-radius-card);
+    box-shadow: var(--sk-highlight);
+}
+
+/* Glass is reserved for floating navigation, menus, dialogs, and popovers. */
+.sk-glass {
+    background: var(--sk-glass);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--sk-line);
+    border-radius: var(--sk-radius-card);
+    box-shadow: var(--sk-shadow), var(--sk-highlight);
+}
+
+.sk-skeleton {
+    background: var(--sk-skeleton);
+    border-radius: 8px;
+    animation: sk-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes sk-pulse {
+    50% { opacity: 0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sk-skeleton { animation: none; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .sk-glass {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--sk-bg);
+    }
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light" data-skuy-v2-page="welcome">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,24 @@
             const savedTheme = window.localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-            if (savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark)) {
-                document.documentElement.classList.add('dark');
-            }
+            const useDarkTheme = savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark);
+
+            document.documentElement.classList.toggle('dark', useDarkTheme);
+            document.documentElement.dataset.theme = useDarkTheme ? 'dark' : 'light';
         </script>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/skuy-design-v2.css'])
     </head>
     <body class="skuy-product skuy-guest-surface antialiased">
         <div
             class="skuy-guest-shell skuy-public-shell"
             x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
             x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
-            x-effect="document.documentElement.classList.toggle('dark', darkMode)"
+            x-effect="document.documentElement.classList.toggle('dark', darkMode); document.documentElement.dataset.theme = darkMode ? 'dark' : 'light'"
         >
             @if (Route::has('login'))
                 @auth

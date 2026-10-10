@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    data-theme="light"
+    @if (request()->routeIs('posts.show')) data-skuy-v2-page="post-detail" @endif
     x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
     x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
-    x-effect="document.documentElement.classList.toggle('dark', darkMode)"
+    x-effect="document.documentElement.classList.toggle('dark', darkMode); document.documentElement.dataset.theme = darkMode ? 'dark' : 'light'"
 >
     <head>
         <meta charset="utf-8">
@@ -20,6 +22,7 @@
                 if (savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark)) {
                     document.documentElement.classList.add('dark');
                 }
+                document.documentElement.dataset.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
             })();
         </script>
 
@@ -33,6 +36,9 @@
 
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/inertia.tsx'])
+        @if (request()->routeIs('posts.show'))
+            @vite(['resources/css/skuy-design-v2.css'])
+        @endif
         @inertiaHead
     </head>
     <body class="skuy-product antialiased">

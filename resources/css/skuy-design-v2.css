@@ -1,0 +1,502 @@
+@import './skuy-tokens.css';
+
+/* This entry is linked only by layouts for Claude v2 artboard routes. */
+html[data-skuy-v2-page] {
+    color-scheme: light;
+    background-color: var(--sk-bg);
+    background-image: none;
+    --skuy-bg-canvas: var(--sk-bg);
+    --skuy-bg-workspace: var(--sk-bg);
+    --skuy-background: var(--sk-bg);
+    --skuy-surface: var(--sk-surface);
+    --skuy-surface-elevated: var(--sk-surface);
+    --skuy-surface-raised: var(--sk-surface);
+    --skuy-surface-base: var(--sk-bg);
+    --skuy-surface-overlay: var(--sk-bg);
+    --skuy-surface-subtle: var(--sk-hover);
+    --skuy-surface-glass: var(--sk-glass);
+    --skuy-surface-accent: var(--sk-active);
+    --skuy-text-primary: var(--sk-ink);
+    --skuy-text-secondary: var(--sk-ink-2);
+    --skuy-text-muted: var(--sk-ink-3);
+    --skuy-border-subtle: var(--sk-line);
+    --skuy-border-soft: var(--sk-line);
+    --skuy-border-strong: var(--sk-line-2);
+    --skuy-prism-glass-edge: var(--sk-line);
+    --skuy-brand: var(--sk-accent);
+    --skuy-brand-hover: var(--sk-accent-hover);
+    --skuy-brand-pressed: var(--sk-accent-hover);
+    --skuy-secondary: var(--sk-accent);
+    --skuy-secondary-hover: var(--sk-accent-hover);
+    --skuy-accent: var(--sk-accent);
+    --skuy-focus: var(--sk-link);
+    --skuy-selected: var(--sk-active);
+    --skuy-on-selected: var(--sk-on-active);
+    --skuy-danger: var(--sk-danger);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-aurora: none;
+    --skuy-prism-aurora: none;
+    --arah-b-aurora: none;
+}
+
+html[data-skuy-v2-page][data-theme="dark"] {
+    color-scheme: dark;
+}
+
+html[data-skuy-v2-page] body {
+    background-color: var(--sk-bg);
+    background-image: none;
+    color: var(--sk-ink);
+    font-family: var(--sk-font);
+}
+
+html[data-skuy-v2-page] .skuy-app-shell__workspace {
+    background-color: transparent;
+    background-image: none;
+}
+
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] {
+    --arah-b-bg: var(--sk-bg);
+    --arah-b-text: var(--sk-ink);
+    --arah-b-muted: var(--sk-ink-2);
+    --arah-b-glass: var(--sk-surface);
+    --arah-b-glass-raised: var(--sk-surface);
+    --arah-b-solid-surface: var(--sk-bg);
+    --arah-b-edge: var(--sk-line);
+    --arah-b-highlight: var(--sk-highlight);
+    --arah-b-shadow: var(--sk-shadow);
+    --arah-b-mint: var(--sk-accent);
+    --arah-b-mint-soft: var(--sk-active);
+    --arah-b-cyan: var(--sk-link);
+    --arah-b-cyan-soft: var(--sk-hover);
+    --arah-b-like: #E45E73;
+    --arah-b-danger: var(--sk-danger);
+    --skuy-bg-canvas: var(--sk-bg);
+    --skuy-bg-workspace: var(--sk-bg);
+    --skuy-background: var(--sk-bg);
+    --skuy-surface: var(--sk-surface);
+    --skuy-surface-elevated: var(--sk-surface);
+    --skuy-surface-raised: var(--sk-surface);
+    --skuy-surface-base: var(--sk-bg);
+    --skuy-surface-overlay: var(--sk-bg);
+    --skuy-surface-subtle: var(--sk-hover);
+    --skuy-surface-glass: var(--sk-glass);
+    --skuy-surface-accent: var(--sk-active);
+    --skuy-text-primary: var(--sk-ink);
+    --skuy-text-secondary: var(--sk-ink-2);
+    --skuy-text-muted: var(--sk-ink-3);
+    --skuy-border-subtle: var(--sk-line);
+    --skuy-border-soft: var(--sk-line);
+    --skuy-border-strong: var(--sk-line-2);
+    --skuy-prism-glass-edge: var(--sk-line);
+    --skuy-brand: var(--sk-accent);
+    --skuy-brand-hover: var(--sk-accent-hover);
+    --skuy-brand-pressed: var(--sk-accent-hover);
+    --skuy-secondary: var(--sk-accent);
+    --skuy-secondary-hover: var(--sk-accent-hover);
+    --skuy-accent: var(--sk-accent);
+    --skuy-focus: var(--sk-link);
+    --skuy-selected: var(--sk-active);
+    --skuy-on-selected: var(--sk-on-active);
+    --skuy-danger: var(--sk-danger);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-aurora: none;
+    --skuy-prism-aurora: none;
+    --arah-b-aurora: none;
+    background-color: var(--sk-bg);
+    background-image: none;
+    color: var(--sk-ink);
+    font-family: var(--sk-font);
+}
+
+html[data-skuy-v2-page] .skuy-feed-composer,
+html[data-skuy-v2-page] .skuy-feed-post,
+html[data-skuy-v2-page] .skuy-context-card,
+html[data-skuy-v2-page] .skuy-profile-header,
+html[data-skuy-v2-page] .skuy-profile-tabs,
+html[data-skuy-v2-page] .skuy-profile-context-card,
+html[data-skuy-v2-page] .skuy-profile-empty,
+html[data-skuy-v2-page] .skuy-saved-header,
+html[data-skuy-v2-page] .skuy-saved-empty,
+html[data-skuy-v2-page] .skuy-post--detail-root,
+html[data-skuy-v2-page] .skuy-post-detail__composer,
+html[data-skuy-v2-page] .skuy-post-detail__reply,
+html[data-skuy-v2-page] .skuy-post-detail__context-card,
+html[data-skuy-v2-page] .skuy-auth-panel,
+html[data-skuy-v2-page] .skuy-thread-preview {
+    border-color: var(--sk-line);
+    border-radius: 18px;
+    background-color: var(--sk-surface);
+    background-image: none;
+    box-shadow: var(--sk-highlight);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-skuy-v2-page] .skuy-feed-post:hover,
+html[data-skuy-v2-page] .skuy-profile-post:hover,
+html[data-skuy-v2-page] .skuy-post--detail-root:hover {
+    border-color: var(--sk-line-2);
+    background-color: var(--sk-surface);
+}
+
+html[data-skuy-v2-page] .skuy-topbar,
+html[data-skuy-v2-page] .skuy-mobile-nav,
+html[data-skuy-v2-page] .skuy-mobile-account-menu,
+html[data-skuy-v2-page] .skuy-menu-surface,
+html[data-skuy-v2-page] .skuy-appreciation__popover,
+html[data-skuy-v2-page] .skuy-post-media-lightbox__panel {
+    background-color: var(--sk-glass);
+    background-image: none;
+    border-color: var(--sk-line);
+    box-shadow: var(--sk-shadow), var(--sk-highlight);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+html[data-skuy-v2-page] .skuy-app-rail__backdrop,
+html[data-skuy-v2-page] .skuy-mobile-account-scrim {
+    background: rgb(16 17 20 / 38%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-skuy-v2-page] :where(button, input, textarea, select, a):focus-visible {
+    outline: 2px solid var(--sk-link);
+    outline-offset: 3px;
+}
+
+html[data-skuy-v2-page] .skuy-action,
+html[data-skuy-v2-page] .skuy-button,
+html[data-skuy-v2-page] .skuy-mobile-nav__item,
+html[data-skuy-v2-page] .skuy-auth-password-toggle,
+html[data-skuy-v2-page] .skuy-feed-composer__attach {
+    min-width: var(--sk-touch);
+    min-height: var(--sk-touch);
+}
+
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-action,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-button,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-icon-button,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail__account-more,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-mobile-nav__item,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-nav__link,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-feed-tabs a,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-feed-tabs button,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-feed-composer__attach,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-feed-composer__submit,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-media-gallery__control,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-poll__vote,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-follow-button,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-message-button {
+    min-width: 44px;
+    min-height: 44px;
+}
+
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-post__options > .skuy-action,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-media-gallery__control,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-app-rail__account-more,
+html[data-skuy-v2-page] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-message-button:not(.skuy-profile-mention-button) {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+}
+
+html[data-skuy-v2-page] .skuy-app-rail__compose,
+html[data-skuy-v2-page] .skuy-mobile-nav__item--compose,
+html[data-skuy-v2-page] .skuy-button--primary,
+html[data-skuy-v2-page] .skuy-feed-composer__submit,
+html[data-skuy-v2-page] .skuy-profile-follow-button,
+html[data-skuy-v2-page] .skuy-auth-primary-action,
+html[data-skuy-v2-page] .skuy-public-button--primary {
+    border-color: transparent;
+    background: var(--sk-accent);
+    color: #FFFFFF;
+}
+
+html[data-skuy-v2-page] .skuy-app-rail__compose:hover,
+html[data-skuy-v2-page] .skuy-mobile-nav__item--compose:hover,
+html[data-skuy-v2-page] .skuy-button--primary:hover,
+html[data-skuy-v2-page] .skuy-feed-composer__submit:hover,
+html[data-skuy-v2-page] .skuy-profile-follow-button:hover,
+html[data-skuy-v2-page] .skuy-auth-primary-action:hover,
+html[data-skuy-v2-page] .skuy-public-button--primary:hover {
+    background: var(--sk-accent-hover);
+    color: #FFFFFF;
+}
+
+html[data-skuy-v2-page] .skuy-mobile-nav__item[aria-current="page"],
+html[data-skuy-v2-page] .skuy-app-nav__link[aria-current="page"],
+html[data-skuy-v2-page] .skuy-feed-tab[aria-current="page"],
+html[data-skuy-v2-page] .skuy-profile-tab[aria-current="page"] {
+    background-color: var(--sk-active);
+    color: var(--sk-on-active);
+}
+
+html[data-skuy-v2-page] .skuy-auth-main {
+    width: min(calc(100% - 32px), 480px);
+    align-items: center;
+    padding: 32px 0 max(32px, env(safe-area-inset-bottom, 0px));
+}
+
+html[data-skuy-v2-page^="auth-"] .skuy-guest-shell {
+    min-height: 100vh;
+    background-color: var(--sk-bg);
+    background-image: none;
+    color: var(--sk-ink);
+    font-family: var(--sk-font);
+}
+
+html[data-skuy-v2-page^="auth-"] .skuy-auth-panel {
+    width: 100%;
+    padding: clamp(22px, 4vw, 32px);
+    border: 1px solid var(--sk-line);
+    border-radius: 24px;
+    background: var(--sk-surface);
+    box-shadow: var(--sk-highlight);
+}
+
+html[data-skuy-v2-page^="auth-"] .skuy-auth-content {
+    gap: 24px;
+}
+
+html[data-skuy-v2-page^="auth-"] .skuy-auth-form {
+    gap: 18px;
+}
+
+html[data-skuy-v2-page] .skuy-auth-heading,
+html[data-skuy-v2-page] .skuy-welcome__hero-copy h1 {
+    color: var(--sk-ink);
+    letter-spacing: -0.025em;
+}
+
+html[data-skuy-v2-page] .skuy-auth-intro__copy,
+html[data-skuy-v2-page] .skuy-auth-label,
+html[data-skuy-v2-page] .skuy-welcome__hero-copy > p {
+    color: var(--sk-ink-2);
+}
+
+html[data-skuy-v2-page] .skuy-auth-input,
+html[data-skuy-v2-page] .skuy-composer__topic-input,
+html[data-skuy-v2-page] .skuy-poll-composer__question,
+html[data-skuy-v2-page] .skuy-poll-composer__option-input,
+html[data-skuy-v2-page] .skuy-inline-input {
+    border-color: var(--sk-line-2);
+    border-radius: var(--sk-radius-ctl);
+    background: var(--sk-surface);
+    color: var(--sk-ink);
+}
+
+html[data-skuy-v2-page] .skuy-auth-input:focus,
+html[data-skuy-v2-page] .skuy-composer__topic-input:focus,
+html[data-skuy-v2-page] .skuy-poll-composer__question:focus,
+html[data-skuy-v2-page] .skuy-inline-input:focus {
+    border-color: var(--sk-link);
+}
+
+html[data-skuy-v2-page] .skuy-auth-input[aria-invalid="true"] {
+    border-color: var(--sk-danger);
+}
+
+html[data-skuy-v2-page] .skuy-auth-error,
+html[data-skuy-v2-page] .skuy-form-error,
+html[data-skuy-v2-page] [role="alert"].skuy-auth-status {
+    border-color: var(--sk-danger);
+    border-radius: var(--sk-radius-ctl);
+    background: var(--sk-danger-bg);
+    color: var(--sk-danger);
+}
+
+html[data-skuy-v2-page] .skuy-auth-status {
+    border-color: var(--sk-success);
+    border-radius: var(--sk-radius-ctl);
+    background: var(--sk-success-bg);
+    color: var(--sk-success);
+}
+
+html[data-skuy-v2-page] .skuy-auth-signup__link,
+html[data-skuy-v2-page] .skuy-auth-link,
+html[data-skuy-v2-page] .skuy-profile-primary-link,
+html[data-skuy-v2-page] .skuy-profile-links a {
+    color: var(--sk-link);
+}
+
+html[data-skuy-v2-page="profile"] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-primary-link,
+html[data-skuy-v2-page="profile"] .skuy-app-shell[data-skuy-arah-b-pages] .skuy-profile-links a {
+    min-height: 44px;
+}
+
+html[data-skuy-v2-page="welcome"] .skuy-public-shell,
+html[data-skuy-v2-page="welcome"] .skuy-welcome {
+    background-color: var(--sk-bg);
+    background-image: none;
+}
+
+html[data-skuy-v2-page="welcome"] .skuy-welcome::before {
+    content: none;
+}
+
+html[data-skuy-v2-page="welcome"] .skuy-thread-preview__topbar {
+    border-color: var(--sk-line);
+    background: transparent;
+}
+
+html[data-skuy-v2-page="welcome"] .skuy-welcome-story,
+html[data-skuy-v2-page="welcome"] .skuy-welcome__closing {
+    border-color: var(--sk-line);
+    background: var(--sk-surface);
+    box-shadow: var(--sk-highlight);
+}
+
+html[data-skuy-v2-page="feed"] .skuy-feed-shell,
+html[data-skuy-v2-page="profile"] .skuy-profile-shell,
+html[data-skuy-v2-page="saved"] .skuy-saved-content,
+html[data-skuy-v2-page="post-detail"] .skuy-post-detail__layout {
+    min-width: 0;
+}
+
+html[data-skuy-v2-page="saved"] .skuy-saved-empty {
+    min-height: 0;
+    padding: 28px 22px;
+    background-image: none;
+}
+
+html[data-skuy-v2-page="post-detail"] .skuy-post-detail__content {
+    width: 100%;
+    max-width: 44rem;
+    padding-inline: 16px;
+}
+
+html[data-skuy-v2-page] .skuy-post-detail__header,
+html[data-skuy-v2-page] .skuy-post-detail__reply-heading {
+    border-color: var(--sk-line);
+}
+
+html[data-skuy-v2-page] .skuy-feed-loading-state {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid var(--sk-line);
+    border-radius: 18px;
+    background: var(--sk-surface);
+}
+
+html[data-skuy-v2-page] .skuy-feed-loading-state__row {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+
+html[data-skuy-v2-page] .skuy-feed-loading-state__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+html[data-skuy-v2-page] .skuy-feed-loading-state__lines {
+    display: grid;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+html[data-skuy-v2-page] .skuy-feed-loading-state__line {
+    height: 10px;
+}
+
+html[data-skuy-v2-page] .skuy-feed-loading-state__line:last-child {
+    width: 68%;
+}
+
+@media (max-width: 1279px) {
+    html[data-skuy-v2-page] .skuy-topbar {
+        background: var(--sk-glass);
+        border-color: var(--sk-line);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+}
+
+@media (max-width: 767px) {
+    html[data-skuy-v2-page] .skuy-app-shell__workspace {
+        padding-block-end: calc(92px + env(safe-area-inset-bottom, 0px));
+    }
+
+    html[data-skuy-v2-page] .skuy-mobile-nav {
+        inset-block-end: calc(10px + env(safe-area-inset-bottom, 0px));
+        background: var(--sk-glass);
+        border-color: var(--sk-line);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+
+    html[data-skuy-v2-page] .skuy-feed-composer {
+        padding: 14px;
+    }
+
+    html[data-skuy-v2-page] .skuy-post-detail__content {
+        padding-inline: 12px;
+    }
+
+    html[data-skuy-v2-page^="auth-"] .skuy-auth-main {
+        width: min(calc(100% - 24px), 480px);
+        padding-block: 24px max(24px, env(safe-area-inset-bottom, 0px));
+    }
+
+    html[data-skuy-v2-page^="auth-"] .skuy-auth-panel {
+        padding: 22px;
+    }
+
+    html[data-skuy-v2-page="welcome"] .skuy-welcome__hero {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+        padding-block: 36px 48px;
+    }
+
+    html[data-skuy-v2-page="welcome"] .skuy-welcome__hero-copy h1 {
+        font-size: clamp(2rem, 8vw, 2.5rem);
+    }
+
+    html[data-skuy-v2-page="welcome"] .skuy-welcome__actions .skuy-public-button {
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 360px) {
+    html[data-skuy-v2-page^="auth-"] .skuy-auth-panel {
+        padding: 18px;
+    }
+
+    html[data-skuy-v2-page] .skuy-profile-visitor-actions,
+    html[data-skuy-v2-page] .skuy-profile-owner-actions,
+    html[data-skuy-v2-page] .skuy-feed-post__actions {
+        flex-wrap: wrap;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    html[data-skuy-v2-page] .skuy-glass,
+    html[data-skuy-v2-page] .skuy-topbar,
+    html[data-skuy-v2-page] .skuy-mobile-nav,
+    html[data-skuy-v2-page] .skuy-mobile-account-menu,
+    html[data-skuy-v2-page] .skuy-menu-surface,
+    html[data-skuy-v2-page] .skuy-appreciation__popover,
+    html[data-skuy-v2-page] .skuy-post-media-lightbox__panel {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--sk-bg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-skuy-v2-page] *,
+    html[data-skuy-v2-page] *::before,
+    html[data-skuy-v2-page] *::after {
+        scroll-behavior: auto;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
