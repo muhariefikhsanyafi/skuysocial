@@ -107,6 +107,68 @@ class FlowFeedTest extends TestCase
         $this->assertStringNotContainsString('linear-gradient(', $css);
     }
 
+    public function test_flow_feed_mobile_chrome_metadata_and_desktop_context_follow_layout_contracts(): void
+    {
+        $css = file_get_contents(resource_path('css/skuy-flow-feed.css'));
+        $feedView = file_get_contents(resource_path('views/feed.blade.php'));
+        $this->assertIsString($css);
+        $this->assertIsString($feedView);
+
+        $topbarRule = $this->lastCssRule($css, '.skuy-topbar');
+        $this->assertStringContainsString('border-radius: 0 0 12px 12px;', $topbarRule);
+        $this->assertStringContainsString('border-bottom: 1px solid var(--flow-border);', $topbarRule);
+
+        $mobileNavRule = $this->lastCssRule($css, '.skuy-mobile-nav');
+        foreach ([
+            'position: fixed;',
+            'inset-inline-start: 0;',
+            'inset-inline-end: 0;',
+            'bottom: 0;',
+            'width: 100%;',
+            'display: grid;',
+            'grid-template-columns: repeat(5, minmax(0, 1fr));',
+            'border-radius: 14px 14px 0 0;',
+            'overflow: visible;',
+        ] as $contract) {
+            $this->assertStringContainsString($contract, $mobileNavRule, "Missing mobile navigation contract: {$contract}");
+        }
+
+        $badgeRule = $this->lastCssRule($css, '.skuy-mobile-nav__badge');
+        foreach (['min-width: 32px;', 'white-space: nowrap;', 'z-index: 1;'] as $contract) {
+            $this->assertStringContainsString($contract, $badgeRule, "Missing mobile notification badge contract: {$contract}");
+        }
+
+        $this->assertStringContainsString('<h1 id="feed-title" class="sr-only">', $feedView);
+        $this->assertStringContainsString('grid-template-columns: 40px minmax(0, 1fr);', $css);
+        $this->assertStringContainsString('grid-template-columns: 36px minmax(0, 1fr);', $css);
+        $this->assertStringContainsString('padding-inline-end: 56px;', $this->lastCssRule($css, '.skuy-feed-post__header:has(.skuy-post__options)'));
+        $this->assertStringContainsString('max-width: 100%;', $this->lastCssRule($css, '.skuy-post__identity'));
+        $this->assertStringContainsString('overflow-wrap: anywhere;', $this->lastCssRule($css, '.skuy-post__display-name'));
+
+        $usernameRule = $this->lastCssRule($css, '.skuy-post__username');
+        foreach (['overflow: hidden;', 'text-overflow: ellipsis;', 'white-space: nowrap;'] as $contract) {
+            $this->assertStringContainsString($contract, $usernameRule, "Missing post username truncation contract: {$contract}");
+        }
+
+        $this->assertStringContainsString('color: var(--flow-accent-ink);', $this->lastCssRule($css, '.skuy-verified-badge'));
+
+        $contextRule = $this->lastCssRule($css, '.skuy-feed-context');
+        foreach (['position: static;', 'max-height: none;', 'overflow: visible;'] as $contract) {
+            $this->assertStringContainsString($contract, $contextRule, "Missing desktop context scroll contract: {$contract}");
+        }
+    }
+
+    private function lastCssRule(string $css, string $selector): string
+    {
+        $matchCount = preg_match_all('/' . preg_quote($selector, '/') . '\\s*\\{([^}]*)\\}/s', $css, $matches);
+        $this->assertGreaterThan(0, $matchCount, "Missing CSS rule for {$selector}");
+
+        $rule = end($matches[1]);
+        $this->assertIsString($rule);
+
+        return $rule;
+    }
+
     private function createPost(User $user, array $attributes = []): Post
     {
         $post = Post::create(array_merge([

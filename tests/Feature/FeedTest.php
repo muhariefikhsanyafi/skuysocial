@@ -196,18 +196,28 @@ class FeedTest extends TestCase
         $this->assertTrue(str_contains($navigationCss, '@media (min-width: 1280px) and (prefers-reduced-transparency: reduce) {'));
     }
 
-    public function test_feed_exposes_a_visible_social_stream_heading(): void
+    public function test_feed_keeps_an_accessible_stream_heading_without_a_visible_feed_title(): void
     {
         $viewer = User::factory()->create();
         $author = User::factory()->create();
-        $this->createPost($author, ['content' => 'Visible stream heading contract']);
+        $this->createPost($author, ['content' => 'Accessible stream heading contract']);
 
         $response = $this->actingAs($viewer)->get(route('feed'));
+        $response->assertOk()->assertSee('class="skuy-feed-page__header"', false);
 
-        $response->assertOk()
-            ->assertSee('class="skuy-feed-page__header"', false)
-            ->assertSee('class="skuy-feed-page__title"', false)
-            ->assertSee(__('navigation.feed'));
+        $dom = new \DOMDocument();
+        $previousLibxmlSetting = libxml_use_internal_errors(true);
+        $dom->loadHTML($response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousLibxmlSetting);
+
+        $heading = $dom->getElementById('feed-title');
+        $this->assertInstanceOf(\DOMElement::class, $heading);
+        $classTokens = preg_split('/\s+/', trim($heading->getAttribute('class'))) ?: [];
+
+        $this->assertContains('sr-only', $classTokens);
+        $this->assertNotContains('skuy-feed-page__title', $classTokens);
+        $this->assertSame(__('navigation.feed'), trim($heading->textContent));
     }
 
     public function test_social_foundations_define_the_compact_spacing_and_type_scale(): void

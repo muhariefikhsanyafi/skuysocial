@@ -191,7 +191,7 @@
                 x-init="nextFeedUrl = $el.dataset.feedNextUrl || ''"
             >
                 <header class="skuy-feed-page__header">
-                    <h1 id="feed-title" class="skuy-feed-page__title">{{ __('navigation.feed') }}</h1>
+                    <h1 id="feed-title" class="sr-only">{{ __('navigation.feed') }}</h1>
                     <nav class="skuy-flow-feed-tabs" data-flow-feed-tabs aria-label="{{ __('navigation.feed_filters') }}">
                         <a
                             href="{{ route('feed') }}"

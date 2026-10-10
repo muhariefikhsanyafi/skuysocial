@@ -533,10 +533,14 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post {
 
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__header {
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-columns: 40px minmax(0, 1fr);
     align-items: start;
     gap: 10px;
     min-width: 0;
+}
+
+html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__header:has(.skuy-post__options) {
+    padding-inline-end: 56px;
 }
 
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__avatar {
@@ -550,12 +554,15 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-post__identity
     align-items: baseline;
     gap: 3px 7px;
     min-width: 0;
+    max-width: 100%;
 }
 
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-post__display-name {
     color: var(--flow-text);
     font-size: 15px;
     font-weight: 700;
+    min-width: 0;
+    max-width: 100%;
     overflow-wrap: anywhere;
 }
 
@@ -564,7 +571,24 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-post__time,
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-post__topic {
     color: var(--flow-text-muted);
     font-size: 13px;
+    min-width: 0;
+    max-width: 100%;
     overflow-wrap: anywhere;
+}
+
+html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-post__username {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-verified-badge {
+    flex: 0 0 auto;
+}
+
+html[data-flow-page="feed"].dark .skuy-feed-page[data-flow-feed] .skuy-verified-badge {
+    color: var(--flow-accent-ink);
 }
 
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-post__content {
@@ -751,8 +775,11 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] #composer {
     html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-context {
         display: grid;
         gap: 14px;
-        position: sticky;
-        top: 24px;
+        position: static;
+        top: auto;
+        align-self: start;
+        max-height: none;
+        overflow: visible;
     }
 }
 
@@ -782,6 +809,10 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] #composer {
     html[data-flow-page="feed"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
         min-height: calc(58px + env(safe-area-inset-top, 0px));
         padding-block-start: env(safe-area-inset-top, 0px);
+        border: 0;
+        border-bottom: 1px solid var(--flow-border);
+        border-radius: 0 0 12px 12px;
+        box-shadow: var(--skuy-shadow-soft);
         -webkit-backdrop-filter: blur(4px);
         backdrop-filter: blur(4px);
     }
@@ -827,7 +858,7 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] #composer {
     }
 
     html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__header {
-        grid-template-columns: 36px minmax(0, 1fr) auto;
+        grid-template-columns: 36px minmax(0, 1fr);
         gap: 8px;
         margin-bottom: 6px;
     }
@@ -877,15 +908,52 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] #composer {
     }
 
     html[data-flow-page="feed"] .skuy-mobile-nav {
-        width: min(480px, calc(100vw - 16px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
-        min-height: 70px;
-        padding: 6px 5px;
+        position: fixed;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
+        inset-block-end: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: center;
+        gap: 0;
+        width: 100%;
+        max-width: none;
+        min-height: calc(70px + env(safe-area-inset-bottom, 0px));
+        padding: 6px max(5px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(5px, env(safe-area-inset-left, 0px));
+        border-inline: 0;
+        border-bottom: 0;
+        border-radius: 14px 14px 0 0;
+        transform: none;
+        overflow: visible;
     }
 
     html[data-flow-page="feed"] .skuy-mobile-nav__item {
         min-width: 44px;
         min-height: 54px;
         padding-inline: 2px;
+        overflow: visible;
+    }
+
+    html[data-flow-page="feed"] .skuy-mobile-nav__icon-wrap {
+        z-index: 1;
+        overflow: visible;
+    }
+
+    html[data-flow-page="feed"] .skuy-mobile-nav__badge {
+        top: -4px;
+        right: -8px;
+        z-index: 1;
+        min-width: 32px;
+        width: max-content;
+        max-width: none;
+        min-height: 20px;
+        padding-inline: 5px;
+        font-size: 10px;
+        line-height: 1;
+        white-space: nowrap;
     }
 
     html[data-flow-page="feed"] .skuy-mobile-nav__item > span:last-child {
