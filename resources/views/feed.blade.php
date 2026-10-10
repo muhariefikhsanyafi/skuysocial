@@ -8,7 +8,7 @@
 @endphp
 
 <x-app-layout>
-    <div class="skuy-feed-page" data-skuy-prism-feed>
+    <div class="skuy-feed-page" data-skuy-prism-feed data-flow-feed>
         <div class="skuy-feed-shell">
             <section
                 class="skuy-feed-content"
@@ -192,6 +192,18 @@
             >
                 <header class="skuy-feed-page__header">
                     <h1 id="feed-title" class="skuy-feed-page__title">{{ __('navigation.feed') }}</h1>
+                    <nav class="skuy-flow-feed-tabs" data-flow-feed-tabs aria-label="{{ __('navigation.feed_filters') }}">
+                        <a
+                            href="{{ route('feed') }}"
+                            data-flow-tab="for-you"
+                            @if (! $isFollowingFeed) aria-current="page" @endif
+                        >{{ __('navigation.for_you') }}</a>
+                        <a
+                            href="{{ route('feed', ['feed' => 'following']) }}"
+                            data-flow-tab="following"
+                            @if ($isFollowingFeed) aria-current="page" @endif
+                        >{{ __('navigation.following_feed') }}</a>
+                    </nav>
                 </header>
 
                 @include('partials.feed-stories-placeholder')
@@ -357,7 +369,7 @@
 
                                 <button type="submit" :disabled="isSubmitting || content.trim() === ''" :aria-busy="isSubmitting.toString()" aria-label="{{ __('threads.actions.post') }}" title="{{ __('threads.actions.post') }}" class="skuy-feed-composer__submit">
                                     <x-fa-icon name="arrow-up" weight="solid" class="text-lg" />
-                                    <span class="sr-only" x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
+                                    <span x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
                                     <span class="sr-only" x-show="isSubmitting" style="display: none;">...</span>
                                 </button>
                             </div>
@@ -365,7 +377,16 @@
                     </div>
 
                     <div id="feed-thread-list" x-ref="feedThreads" :aria-busy="isLoadingMore.toString()" class="skuy-feed-list">
-                        @include('partials.feed-threads', ['posts' => $posts])
+                            @if ($posts->getCollection()->isEmpty())
+                                <div class="skuy-flow-feed-empty" data-flow-empty role="status">
+                                    <p>{{ $isFollowingFeed ? __('navigation.empty_following_feed') : __('navigation.empty_feed') }}</p>
+                                    @if ($isFollowingFeed)
+                                        <a href="{{ route('feed') }}">{{ __('navigation.return_to_for_you') }}</a>
+                                    @endif
+                                </div>
+                            @else
+                                @include('partials.feed-threads', ['posts' => $posts])
+                            @endif
                     </div>
                 </div>
 

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    data-flow-page="{{ request()->routeIs('feed') ? 'feed' : '' }}"
     x-data="{ darkMode: localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches }"
     x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
     :class="{ 'dark': darkMode }"
@@ -21,6 +22,9 @@
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/brands.min.css') }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if (request()->routeIs('feed'))
+            @vite('resources/css/skuy-flow-feed.css')
+        @endif
     </head>
     <body class="skuy-product antialiased">
         @if (auth()->check() && (bool) config('services.onesignal.enabled', false) && filled(config('services.onesignal.app_id')))

@@ -6,6 +6,24 @@ afterEach(() => {
 });
 
 describe('playSocialActionMotion', () => {
+    it('finishes a pending animation if the test window is torn down', async () => {
+        const originalWindow = window;
+        vi.useFakeTimers();
+
+        try {
+            const button = document.createElement('button');
+            button.innerHTML = '<svg aria-hidden="true"></svg>';
+            const finished = playSocialActionMotion(button, 'like');
+
+            vi.stubGlobal('window', undefined);
+            expect(() => vi.advanceTimersByTime(300)).not.toThrow();
+            await expect(finished).resolves.toBeUndefined();
+        } finally {
+            vi.stubGlobal('window', originalWindow);
+            vi.useRealTimers();
+        }
+    });
+
     it('plays a named action motion until its CSS animation ends', async () => {
         vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false } as MediaQueryList)));
         const button = document.createElement('button');
