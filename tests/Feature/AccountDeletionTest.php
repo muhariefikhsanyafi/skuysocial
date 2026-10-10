@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ModerationEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AccountDeletionTest extends TestCase
@@ -78,6 +79,34 @@ class AccountDeletionTest extends TestCase
         $this->assertNotSame($sessionIdBeforeDeletion, session()->getId());
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
         $this->assertDatabaseHas('users', ['id' => $otherUser->id]);
+    }
+
+    public function test_account_deletion_removes_votes_cast_in_other_users_polls(): void
+    {
+        $voter = User::factory()->create(['username' => 'poll.voter.to.delete']);
+        $pollAuthor = User::factory()->create();
+        $post = $pollAuthor->posts()->create(['content' => 'Poll survives voter deletion.']);
+        $poll = $post->poll()->create(['question' => 'Keep this poll?']);
+        $option = $poll->options()->create(['label' => 'Yes', 'position' => 0]);
+        $poll->votes()->create(['option_id' => $option->id, 'user_id' => $voter->id]);
+        $pinnedPost = $voter->posts()->create(['content' => 'Remove this pinned post with its owner.']);
+        DB::table('user_pinned_posts')->insert([
+            'user_id' => $voter->id,
+            'post_id' => $pinnedPost->id,
+            'pinned_at' => now(),
+        ]);
+
+        $this->actingAs($voter)
+            ->delete(route('profile.destroy'), [
+                'password' => 'password',
+                'username_confirmation' => $voter->username,
+            ])
+            ->assertRedirect('/');
+
+        $this->assertDatabaseMissing('users', ['id' => $voter->id]);
+        $this->assertDatabaseMissing('post_poll_votes', ['user_id' => $voter->id]);
+        $this->assertDatabaseMissing('user_pinned_posts', ['user_id' => $voter->id]);
+        $this->assertDatabaseHas('post_polls', ['id' => $poll->id]);
     }
 
     public function test_get_profile_legacy_route_does_not_delete_the_account(): void

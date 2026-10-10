@@ -1,9 +1,16 @@
 @php
     $user = auth()->user();
     $profileUrl = route('user.profile', $user->username);
+    $myLikesUrl = route('user.profile', ['username' => $user->username, 'tab' => 'likes']);
+    $isOwnLikesProfile = request()->routeIs('user.profile')
+        && request()->route('username') === $user->username
+        && request()->query('tab') === 'likes';
     $isDashboard = request()->routeIs('dashboard');
     $isFeed = request()->routeIs('feed');
+    $arahBNavigationBreakpoint = request()->routeIs('feed', 'user.profile') ? '641px' : '1280px';
+    $profileMessageTarget = request()->attributes->get('profile_message_target');
     $showDashboardNavigation = $user->hasVerifiedEmail() || $isDashboard;
+    $feedNavigationLabel = request()->routeIs('feed', 'user.profile') ? __('navigation.home') : __('navigation.feed');
     $unreadNotificationCount = (int) ($unreadNotificationCount ?? 0);
     $unreadMessageCount = (int) ($unreadMessageCount ?? 0);
     $unreadAnnouncementCount = (int) ($unreadAnnouncementCount ?? 0);
@@ -20,18 +27,19 @@
         ? __('navigation.messages') . ', ' . __('navigation.unread_messages_count', ['count' => $unreadMessageCount])
         : __('navigation.messages');
     $brandHref = $showDashboardNavigation ? route('dashboard') : route('feed');
-    $brandLabel = $showDashboardNavigation ? __('navigation.dashboard') : __('navigation.feed');
-    $responsiveNavigationItems = $showDashboardNavigation
-        ? [['key' => 'dashboard', 'href' => route('dashboard'), 'label' => __('navigation.dashboard'), 'active' => $isDashboard, 'icon' => 'gauge', 'surfaces' => 'mobile-secondary']]
-        : [];
-    $responsiveNavigationItems = array_merge($responsiveNavigationItems, [
-        ['key' => 'feed', 'href' => route('feed'), 'label' => __('navigation.feed'), 'active' => $isFeed, 'icon' => 'house', 'surfaces' => 'desktop-primary'],
+    $brandLabel = $showDashboardNavigation ? __('navigation.dashboard') : $feedNavigationLabel;
+    $responsiveNavigationItems = [
+        ['key' => 'feed', 'href' => route('feed'), 'label' => $feedNavigationLabel, 'active' => $isFeed, 'icon' => 'house', 'surfaces' => 'desktop-primary'],
         ['key' => 'search', 'href' => route('search'), 'label' => __('navigation.search'), 'active' => request()->routeIs('search'), 'icon' => 'magnifying-glass', 'surfaces' => 'desktop-primary'],
         ['key' => 'activity', 'href' => route('activity.index'), 'label' => __('navigation.activity'), 'active' => request()->routeIs('activity.index'), 'icon' => 'bell', 'surfaces' => 'desktop-primary'],
         ['key' => 'messages', 'href' => route('messages.index'), 'label' => __('navigation.messages'), 'active' => request()->routeIs('messages.*'), 'icon' => 'comment-lines', 'surfaces' => 'desktop-primary'],
+        ['key' => 'profile', 'href' => $profileUrl, 'label' => __('navigation.profile'), 'active' => request()->routeIs('user.profile'), 'icon' => 'user', 'surfaces' => 'desktop-primary mobile-secondary'],
         ['key' => 'saved', 'href' => route('bookmarks.index'), 'label' => __('navigation.saved'), 'active' => request()->routeIs('bookmarks.index'), 'icon' => 'bookmark', 'surfaces' => 'desktop-primary mobile-secondary'],
-        ['key' => 'announcements', 'href' => route('announcements.index'), 'label' => __('navigation.announcements'), 'active' => request()->routeIs('announcements.*'), 'icon' => 'bullhorn', 'surfaces' => 'mobile-secondary'],
-    ]);
+    ];
+    if ($showDashboardNavigation) {
+        $responsiveNavigationItems[] = ['key' => 'dashboard', 'href' => route('dashboard'), 'label' => __('navigation.dashboard'), 'active' => $isDashboard, 'icon' => 'gauge', 'surfaces' => 'desktop-primary mobile-secondary'];
+    }
+    $responsiveNavigationItems[] = ['key' => 'announcements', 'href' => route('announcements.index'), 'label' => __('navigation.announcements'), 'active' => request()->routeIs('announcements.*'), 'icon' => 'bullhorn', 'surfaces' => 'desktop-primary mobile-secondary'];
     $bottomHomeHref = route('feed');
     $bottomHomeLabel = __('navigation.home');
     $bottomHomeIcon = 'house';
@@ -43,8 +51,8 @@
     x-data="{
         accountMenuOpen: false,
         desktopAccountMenuOpen: false,
-        sidebarOpen: window.matchMedia('(min-width: 1280px)').matches,
-        isDesktop: window.matchMedia('(min-width: 1280px)').matches,
+        sidebarOpen: window.matchMedia('(min-width: {{ $arahBNavigationBreakpoint }})').matches,
+        isDesktop: window.matchMedia('(min-width: {{ $arahBNavigationBreakpoint }})').matches,
         navigationQuery: null,
         accountMenuQuery: null,
         navigationReturnFocus: null,
@@ -59,7 +67,7 @@
                 this.closeAccountMenu(false);
                 this.$nextTick(() => document.querySelector('#desktop-profile-trigger')?.focus());
             });
-            this.navigationQuery = window.matchMedia('(min-width: 1280px)');
+            this.navigationQuery = window.matchMedia('(min-width: {{ $arahBNavigationBreakpoint }})');
             this.navigationQuery.addEventListener('change', event => {
                 this.isDesktop = event.matches;
                 this.sidebarOpen = event.matches;
@@ -148,6 +156,11 @@
 <nav class="skuy-topbar">
     <div class="skuy-topbar__inner">
         <div class="skuy-topbar__brand-group">
+            @if (request()->routeIs('user.profile'))
+                <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-icon-button skuy-navigation-trigger skuy-profile-mobile-back xl:hidden">
+                    <x-fa-icon name="arrow-left-long" class="text-xl" />
+                </a>
+            @else
             <button
                 @click="toggleNavigation()"
                 :aria-label="sidebarOpen && !isDesktop ? '{{ __('navigation.close_navigation_menu') }}' : '{{ __('navigation.open_navigation_menu') }}'"
@@ -159,26 +172,50 @@
                 <x-fa-icon name="bars" weight="solid" class="text-xl" />
                 <span class="sr-only">{{ __('navigation.open_navigation_menu') }}</span>
             </button>
+            @endif
 
-            <a href="{{ $brandHref }}" class="skuy-brand" aria-label="SkuySocial, {{ $brandLabel }}">
-                <span class="skuy-brand__accent">Skuy</span><span>Social</span>
-            </a>
+            @if (request()->routeIs('feed', 'user.profile'))
+                <a href="{{ $brandHref }}" class="skuy-brand skuy-brand--arah-b" aria-label="SkuySocial, {{ $brandLabel }}">
+                    <svg class="skuy-brand__mark" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="12" r="6"></circle>
+                        <circle cx="15" cy="12" r="6"></circle>
+                    </svg>
+                    <span>SkuySocial</span>
+                </a>
+            @else
+                <a href="{{ $brandHref }}" class="skuy-brand" aria-label="SkuySocial, {{ $brandLabel }}">
+                    <span class="skuy-brand__accent">Skuy</span><span>Social</span>
+                </a>
+            @endif
         </div>
 
         <div class="skuy-topbar__actions">
-            <x-language-switcher variant="app" />
+            <div class="skuy-claude-language-control"><x-language-switcher variant="app" instance="topbar" /></div>
 
             <button
                 @click="darkMode = !darkMode"
                 :aria-label="darkMode ? '{{ __('navigation.enable_light_mode') }}' : '{{ __('navigation.enable_dark_mode') }}'"
                 :aria-pressed="darkMode"
                 type="button"
-                class="skuy-icon-button"
+                class="skuy-icon-button skuy-claude-theme-toggle"
             >
                 <x-fa-icon x-show="!darkMode" name="moon" weight="solid" class="text-xl" />
                 <x-fa-icon x-show="darkMode" style="display: none;" name="sun" weight="solid" class="text-xl" />
                 <span class="sr-only" x-text="darkMode ? '{{ __('navigation.dark') }}' : '{{ __('navigation.light') }}'"></span>
             </button>
+
+            @if ($isFeed)
+                <span class="skuy-mobile-topbar-wallet" aria-label="{{ number_format((int) ($user->pointWallet?->balance ?? 0), 0, ',', '.') }} {{ __('points.unit') }}">
+                    <x-fa-icon name="sparkles" class="text-sm" />
+                    <span>{{ number_format((int) ($user->pointWallet?->balance ?? 0), 0, ',', '.') }}</span>
+                </span>
+            @endif
+
+            @if (request()->routeIs('user.profile'))
+                <a href="{{ route('activity.index') }}" class="skuy-icon-button skuy-profile-toolbar__notifications" aria-label="{{ __('navigation.activity') }}">
+                    <x-fa-icon name="bell" class="text-lg" />
+                </a>
+            @endif
 
             <div class="hidden sm:flex sm:items-center">
                 <x-dropdown id="desktop-profile-dropdown" align="right" width="48">
@@ -202,6 +239,9 @@
                         <div id="desktop-profile-menu" role="menu" aria-labelledby="desktop-profile-trigger" class="skuy-menu-surface">
                             <x-dropdown-link :href="route('user.profile', auth()->user()->username)" class="skuy-menu-link" role="menuitem" data-account-menu-key="profile">
                                 {{ __('navigation.my_profile') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="$myLikesUrl" class="skuy-menu-link" role="menuitem" data-account-menu-key="likes" aria-current="{{ $isOwnLikesProfile ? 'page' : 'false' }}">
+                                {{ __('profile.tabs.likes') }}
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('profile.edit', $user->username)" class="skuy-menu-link" role="menuitem" data-account-menu-key="settings">
                                 {{ __('navigation.settings') }}
@@ -227,7 +267,17 @@
                     type="button"
                     class="skuy-icon-button"
                 >
-                    <x-fa-icon x-show="!accountMenuOpen" name="user" class="skuy-profile-icon text-xl" />
+                    @if ($isFeed)
+                        <span x-show="!accountMenuOpen" class="skuy-mobile-topbar-avatar" aria-hidden="true">
+                            @if ($user->avatar)
+                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="">
+                            @else
+                                {{ \App\Support\NameInitials::from($user->name) }}
+                            @endif
+                        </span>
+                    @else
+                        <x-fa-icon x-show="!accountMenuOpen" name="{{ request()->routeIs('user.profile') ? 'ellipsis' : 'user' }}" class="skuy-profile-icon text-xl" />
+                    @endif
                     <x-fa-icon x-show="accountMenuOpen" style="display: none;" name="xmark" weight="solid" class="skuy-profile-icon text-xl" />
                 </button>
             </div>
@@ -272,8 +322,25 @@
         </header>
 
         <nav class="skuy-mobile-account-menu__items" aria-label="{{ __('navigation.my_profile') }}">
-            <a href="{{ route('user.profile', $user->username) }}" class="skuy-menu-link" data-account-menu-key="profile" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === $user->username ? 'page' : 'false' }}" @click="closeAccountMenu(false)">{{ __('navigation.my_profile') }}</a>
+            <a href="{{ route('user.profile', $user->username) }}" class="skuy-menu-link" data-account-menu-key="profile" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === $user->username && ! $isOwnLikesProfile ? 'page' : 'false' }}" @click="closeAccountMenu(false)">{{ __('navigation.my_profile') }}</a>
+            <a href="{{ $myLikesUrl }}" class="skuy-menu-link" data-account-menu-key="likes" aria-current="{{ $isOwnLikesProfile ? 'page' : 'false' }}" @click="closeAccountMenu(false)">{{ __('profile.tabs.likes') }}</a>
             <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link" data-account-menu-key="settings" @click="closeAccountMenu(false)">{{ __('navigation.settings') }}</a>
+            @if (is_string($profileMessageTarget))
+                <form method="POST" action="{{ route('messages.start', $profileMessageTarget) }}" data-profile-message>
+                    @csrf
+                    <button type="submit" class="skuy-menu-link w-full text-left" data-account-menu-key="message">
+                        <x-fa-icon name="comment-lines" class="mr-2" />{{ __('messages.message') }}
+                    </button>
+                </form>
+            @endif
+            <button type="button" class="skuy-menu-link w-full text-left" @click="darkMode = !darkMode; closeAccountMenu(false)">
+                <x-fa-icon x-show="!darkMode" name="moon" class="mr-2" />
+                <x-fa-icon x-show="darkMode" style="display: none;" name="sun" class="mr-2" />
+                <span x-text="darkMode ? '{{ __('navigation.enable_light_mode') }}' : '{{ __('navigation.enable_dark_mode') }}">{{ __('navigation.theme') }}</span>
+            </button>
+            <div class="skuy-account-menu-language" data-account-menu-key="language">
+                <x-language-switcher variant="app" instance="mobile-account" />
+            </div>
             <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
                 @csrf
                 <button type="submit" class="skuy-menu-link min-h-[44px] text-[var(--skuy-danger)]" data-account-menu-key="sign-out">{{ __('navigation.sign_out') }}</button>
@@ -301,9 +368,19 @@
     <div class="skuy-app-rail__inner">
         <div class="skuy-app-rail__mobile-heading">
             <div>
-                <a href="{{ $brandHref }}" class="skuy-app-rail__mobile-brand" aria-label="SkuySocial, {{ $brandLabel }}">
-                    <span class="skuy-brand__accent">Skuy</span><span>Social</span>
-                </a>
+                @if (request()->routeIs('feed', 'user.profile'))
+                    <a href="{{ $brandHref }}" class="skuy-app-rail__mobile-brand skuy-app-rail__mobile-brand--arah-b" aria-label="SkuySocial, {{ $brandLabel }}">
+                        <svg class="skuy-brand__mark" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="9" cy="12" r="6"></circle>
+                            <circle cx="15" cy="12" r="6"></circle>
+                        </svg>
+                        <span>SkuySocial</span>
+                    </a>
+                @else
+                    <a href="{{ $brandHref }}" class="skuy-app-rail__mobile-brand" aria-label="SkuySocial, {{ $brandLabel }}">
+                        <span class="skuy-brand__accent">Skuy</span><span>Social</span>
+                    </a>
+                @endif
                 <p>{{ __('navigation.secondary_navigation') }}</p>
             </div>
             <button type="button" x-ref="navigationClose" data-drawer-close class="skuy-icon-button" aria-label="{{ __('navigation.close_navigation_menu') }}" @click="closeNavigation()">
@@ -311,9 +388,19 @@
             </button>
         </div>
 
-        <a href="{{ $brandHref }}" class="skuy-app-rail__brand" aria-label="SkuySocial, {{ $brandLabel }}">
-            <span class="skuy-brand__accent">Skuy</span><span>Social</span>
-        </a>
+        @if (request()->routeIs('feed', 'user.profile'))
+            <a href="{{ $brandHref }}" class="skuy-app-rail__brand skuy-app-rail__brand--arah-b" aria-label="SkuySocial, {{ $brandLabel }}">
+                <svg class="skuy-brand__mark" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="9" cy="12" r="6"></circle>
+                    <circle cx="15" cy="12" r="6"></circle>
+                </svg>
+                <span>SkuySocial</span>
+            </a>
+        @else
+            <a href="{{ $brandHref }}" class="skuy-app-rail__brand" aria-label="SkuySocial, {{ $brandLabel }}">
+                <span class="skuy-brand__accent">Skuy</span><span>Social</span>
+            </a>
+        @endif
         <p class="skuy-app-nav__eyebrow">{{ __('home.public.primary_navigation') }}</p>
 
         <nav class="skuy-app-nav skuy-app-nav--responsive" :aria-label="isDesktop ? '{{ __('home.public.primary_navigation') }}' : '{{ __('navigation.secondary_navigation') }}'" data-navigation-kind="responsive" data-rail-slot="desktop-primary">
@@ -338,18 +425,25 @@
                             <span class="skuy-feed-nav__badge" aria-label="{{ __('announcements.unread') }}: {{ $unreadAnnouncementCount }}">{{ $displayUnreadAnnouncementCount }}</span>
                         @endif
                     </a>
+                    @if ($item['key'] === 'saved' && $user->canPerformSocialWrites())
+                        <a
+                            href="{{ route('feed') }}#composer"
+                            class="skuy-app-rail__compose"
+                            aria-label="{{ __('navigation.create_thread') }}"
+                            @click="closeNavigation(false)"
+                            data-desktop-create-cta
+                            data-rail-slot="create"
+                        >
+                            <x-fa-icon name="plus" weight="solid" class="text-xl" />
+                            <span>{{ __('navigation.create_thread') }}</span>
+                        </a>
+                        <div class="skuy-app-nav__divider" data-rail-slot="create-divider" aria-hidden="true"></div>
+                    @endif
                 @endforeach
             </div>
         </nav>
 
         <div class="skuy-app-rail__spacer" data-rail-slot="spacer" aria-hidden="true"></div>
-
-        @if ($user->canPerformSocialWrites())
-            <a href="{{ route('feed') }}#composer" class="skuy-app-rail__compose" data-desktop-create-cta data-rail-slot="create">
-                <x-fa-icon name="plus" weight="solid" class="text-xl" />
-                <span>{{ __('navigation.create_thread') }}</span>
-            </a>
-        @endif
 
         <div class="skuy-app-rail__footer" data-rail-slot="account" x-data="{ accountMenuOpen: false }" @click.outside="accountMenuOpen = false" @keydown.escape.window="accountMenuOpen = false">
             <div class="skuy-app-rail__account-card">
@@ -358,7 +452,7 @@
                         @if ($user->avatar)
                             <img src="{{ asset('storage/' . $user->avatar) }}" alt="">
                         @else
-                            {{ mb_substr($user->name, 0, 1) }}
+                            {{ \App\Support\NameInitials::from($user->name) }}
                         @endif
                     </span>
                     <span class="skuy-app-rail__account-copy">
@@ -370,8 +464,25 @@
                     <x-fa-icon name="ellipsis" class="text-lg" />
                 </button>
                 <div id="rail-account-menu" x-show="accountMenuOpen" x-transition style="display: none;" role="menu" aria-label="{{ __('navigation.my_profile') }}" class="skuy-menu-surface skuy-app-rail__account-menu">
-                    <a href="{{ $profileUrl }}" class="skuy-menu-link" role="menuitem" data-account-menu-key="profile">{{ __('navigation.my_profile') }}</a>
+                    <a href="{{ $profileUrl }}" class="skuy-menu-link" role="menuitem" data-account-menu-key="profile" aria-current="{{ request()->routeIs('user.profile') && request()->route('username') === $user->username && ! $isOwnLikesProfile ? 'page' : 'false' }}">{{ __('navigation.my_profile') }}</a>
+                    <a href="{{ $myLikesUrl }}" class="skuy-menu-link" role="menuitem" data-account-menu-key="likes" aria-current="{{ $isOwnLikesProfile ? 'page' : 'false' }}">{{ __('profile.tabs.likes') }}</a>
                     <a href="{{ route('profile.edit', $user->username) }}" class="skuy-menu-link" role="menuitem" data-account-menu-key="settings">{{ __('navigation.settings') }}</a>
+                    @if (is_string($profileMessageTarget))
+                        <form method="POST" action="{{ route('messages.start', $profileMessageTarget) }}" data-profile-message>
+                            @csrf
+                            <button type="submit" class="skuy-menu-link w-full text-left" role="menuitem" data-account-menu-key="message">
+                                <x-fa-icon name="comment-lines" class="mr-2" />{{ __('messages.message') }}
+                            </button>
+                        </form>
+                    @endif
+                    <button type="button" class="skuy-menu-link w-full text-left" role="menuitem" @click="darkMode = !darkMode; accountMenuOpen = false">
+                        <x-fa-icon x-show="!darkMode" name="moon" class="mr-2" />
+                        <x-fa-icon x-show="darkMode" style="display: none;" name="sun" class="mr-2" />
+                        <span x-text="darkMode ? '{{ __('navigation.enable_light_mode') }}' : '{{ __('navigation.enable_dark_mode') }}">{{ __('navigation.theme') }}</span>
+                    </button>
+                    <div class="skuy-account-menu-language" data-account-menu-key="language">
+                        <x-language-switcher variant="app" instance="rail-account" :menu-item="true" />
+                    </div>
                     <form method="POST" action="{{ route('logout') }}" data-onesignal-logout>
                         @csrf
                         <button type="submit" class="skuy-menu-link min-h-[44px] text-[var(--skuy-danger)]" role="menuitem" data-account-menu-key="sign-out">{{ __('navigation.sign_out') }}</button>

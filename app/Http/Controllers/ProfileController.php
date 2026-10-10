@@ -90,6 +90,8 @@ class ProfileController extends Controller
                 }
             }
 
+            DB::table('post_poll_votes')->where('user_id', $user->getKey())->delete();
+
             if (! $user->delete()) {
                 throw new RuntimeException('Failed to delete account.');
             }

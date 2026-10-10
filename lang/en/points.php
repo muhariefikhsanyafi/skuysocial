@@ -2,6 +2,7 @@
 
 return [
     'unit' => 'Points',
+    'appreciation_cost_unit' => 'Points',
     'wallet' => [
         'heading' => 'Points Wallet',
         'description' => 'Review the Points balance and transactions recorded for this account.',

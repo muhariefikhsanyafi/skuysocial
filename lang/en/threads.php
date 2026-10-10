@@ -53,9 +53,21 @@ return [
         'network' => 'The connection failed. Your comment action was not updated.',
     ],
 
+    'feed_filters' => [
+        'label' => 'Feed filters',
+        'for_you' => 'For You',
+        'following' => 'Following',
+    ],
+
+    'suggestions' => [
+        'title' => 'Suggested accounts',
+        'empty' => 'No account suggestions right now.',
+    ],
+
     'composer' => [
         'topic_placeholder' => 'Thread topic',
-        'content_placeholder' => 'Start a new Thread...',
+        'content_placeholder' => 'What’s on your mind?',
+        'mobile_content_placeholder' => 'Start a new thread...',
         'max_images' => 'Maximum 4 images',
     ],
 
@@ -97,9 +109,10 @@ return [
     ],
 
     'trending' => [
-        'title' => 'Trending',
+        'title' => 'Popular topics',
         'thread_count' => '{0} 0 Threads|{1} :count Thread|[2,*] :count Threads',
-        'empty' => 'No trending topics today.',
+        'caption' => 'Popular topics across SkuySocial',
+        'empty' => 'No popular topics yet.',
     ],
 
     'community' => [

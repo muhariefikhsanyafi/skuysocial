@@ -159,7 +159,7 @@ class HashtagTrendingTest extends TestCase
         $this->assertSame(2, DB::table('hashtag_post')->count());
     }
 
-    public function test_trending_returns_top_five_with_deterministic_ties(): void
+    public function test_trending_returns_the_three_reference_topics_with_deterministic_ties(): void
     {
         $user = User::factory()->create();
         $names = ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta'];
@@ -184,10 +184,10 @@ class HashtagTrendingTest extends TestCase
         $trending = $response->viewData('trendingHashtags');
 
         $this->assertSame(
-            ['alpha', 'beta', 'delta', 'epsilon', 'gamma'],
+            ['alpha', 'beta', 'delta'],
             array_keys($trending),
         );
-        $this->assertCount(5, $trending);
+        $this->assertCount(3, $trending);
         $this->assertSame(2, $trending['alpha']);
     }
 
@@ -199,7 +199,7 @@ class HashtagTrendingTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Belum ada topik hangat hari ini.');
+            ->assertSee(__('threads.trending.empty'));
         $this->assertSame([], $response->viewData('trendingHashtags'));
     }
 

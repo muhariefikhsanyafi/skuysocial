@@ -96,7 +96,7 @@ class ApplicationLocalizationTest extends TestCase
                     'Akunmu',
                     'Mau ke mana sekarang?',
                 ],
-                'feed' => ['Beranda', 'Cari', 'Aktivitas', 'Profil', 'Topik Utas', 'Mulai utas baru...', 'Posting', 'Sedang Hangat'],
+                'feed' => ['Beranda', 'Cari', 'Aktivitas', 'Profil', 'Topik Utas', 'Mulai utas baru...', 'Posting', 'Topik populer'],
             ],
             'en' => [
                 'dashboard' => [
@@ -107,7 +107,7 @@ class ApplicationLocalizationTest extends TestCase
                     'Your account',
                     'Where do you want to go?',
                 ],
-                'feed' => ['Home', 'Search', 'Activity', 'Profile', 'Thread topic', 'Start a new Thread...', 'Post', 'Trending'],
+                'feed' => ['Home', 'Search', 'Activity', 'Profile', 'Thread topic', 'Start a new thread...', 'Post', 'Popular topics'],
             ],
         ];
 

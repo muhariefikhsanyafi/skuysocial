@@ -16,6 +16,23 @@ export interface PostMedia {
     full_alt: string;
 }
 
+export interface PostPollOptionPresentation {
+    id: number;
+    label: string;
+    vote_count: number;
+    percentage: number;
+    is_viewer_choice: boolean;
+}
+
+export interface PostPollPresentation {
+    id: number;
+    question: string;
+    total_votes: number;
+    total_label: string;
+    viewer_vote_option_id: number | null;
+    options: PostPollOptionPresentation[];
+}
+
 export type AppreciationTypeValue = 'bermanfaat' | 'inspiratif' | 'solutif';
 
 export interface PostInteractions {
@@ -44,6 +61,7 @@ export interface DisplayPost {
     author: PostAuthor;
     topic: string | null;
     media: PostMedia[];
+    poll: PostPollPresentation | null;
     interactions: PostInteractions;
     capabilities: PostCapabilities;
 }
@@ -118,6 +136,7 @@ export interface PostDetailRoutes {
     bookmark_store: string;
     bookmark_destroy: string;
     comment: string;
+    poll_vote: string;
     share: string;
     tags_base: string;
     edit: string | null;
@@ -206,6 +225,10 @@ export interface PostDetailTranslations {
     next_image: string;
     pagination_previous: string;
     pagination_next: string;
+    poll: {
+        vote: string;
+        results: string;
+    };
     feedback: PostDetailFeedbackTranslations;
     comment_feedback: CommentFeedbackTranslations;
     appreciation: PostAppreciationTranslations;
@@ -230,4 +253,5 @@ export interface PostDetailPageProps extends SharedProps {
     };
     routes: PostDetailRoutes;
     translations: PostDetailTranslations;
+    errors?: Partial<Record<string, string>>;
 }

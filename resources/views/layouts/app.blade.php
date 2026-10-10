@@ -10,10 +10,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>SkuySocial</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
+        @if (request()->routeIs('feed', 'user.profile'))
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        @endif
 
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/regular.min.css') }}">
@@ -33,7 +38,7 @@
             ></div>
         @endif
 
-        <div class="skuy-app-shell">
+        <div class="skuy-app-shell" @if (request()->routeIs('feed', 'user.profile')) data-skuy-arah-b-pages="{{ request()->routeIs('feed') ? 'feed' : (auth()->check() ? 'profile' : 'profile-guest') }}" @endif>
             @if (auth()->check())
                 @include('layouts.navigation')
                 <div class="skuy-app-shell__workspace">

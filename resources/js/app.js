@@ -1,5 +1,6 @@
 import '../css/skuy-prism.css';
 import '../css/skuy-prism-navigation.css';
+import '../css/skuy-arah-b.css';
 import Alpine from 'alpinejs';
 import { acquireFeedPostActionLock } from './feedPostActionLock';
 import { feedTopicAutocomplete } from './feedTopicAutocomplete';

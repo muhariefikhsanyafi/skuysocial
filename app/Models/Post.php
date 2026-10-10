@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Post extends Model
 {
@@ -17,6 +18,7 @@ class Post extends Model
 	
 	protected $casts = [
     'images' => 'array',
+    'pinned_at' => 'datetime',
 ];
 
     // Relasi: Setiap satu postingan itu pasti dimiliki oleh satu user
@@ -34,6 +36,11 @@ class Post extends Model
     public function appreciations(): HasMany
     {
         return $this->hasMany(PostAppreciation::class);
+    }
+
+    public function poll(): HasOne
+    {
+        return $this->hasOne(PostPoll::class);
     }
 
     public function bookmarks(): HasMany
@@ -76,13 +83,43 @@ class Post extends Model
             ->orderByDesc('id');
     }
 
+    public function scopeWhereHasMedia(Builder $query): Builder
+    {
+        return $query->where(static function (Builder $query): void {
+            $query->where(static function (Builder $query): void {
+                $query->whereNotNull('image')->where('image', '<>', '');
+            })->orWhereJsonLength('images', '>', 0);
+        });
+    }
+
     public function scopeWithAppreciationState(Builder $query, int $viewerId): Builder
     {
         return $query
-            ->withCount('appreciations')
+            ->withCount([
+                'appreciations',
+                'appreciations as appreciation_bermanfaat_count' => static fn (Builder $query) => $query->where('type', 'bermanfaat'),
+                'appreciations as appreciation_inspiratif_count' => static fn (Builder $query) => $query->where('type', 'inspiratif'),
+                'appreciations as appreciation_solutif_count' => static fn (Builder $query) => $query->where('type', 'solutif'),
+            ])
+            ->withSum('appreciations', 'points_spent')
             ->with(['appreciations' => static fn ($query) => $query
                 ->where('user_id', $viewerId)
                 ->select(['id', 'post_id', 'type'])]);
+    }
+
+    public function scopeWithPollPresentation(Builder $query, ?int $viewerId): Builder
+    {
+        return $query->with([
+            'poll.options' => static fn ($options) => $options->withCount('votes'),
+            'poll.viewerVotes' => static function ($votes) use ($viewerId): void {
+                if ($viewerId === null) {
+                    $votes->whereRaw('1 = 0');
+                    return;
+                }
+
+                $votes->where('user_id', $viewerId);
+            },
+        ]);
     }
 
     /**
@@ -106,6 +143,7 @@ class Post extends Model
             ->withCount($interactionCounts)
             ->withExists($viewerInteractionState);
         $loadDisplayPost = static fn ($query) => $loadInteractionState($query)
+            ->withPollPresentation($viewerId)
             ->with([
                 'user',
                 'feedComments.user',
@@ -118,7 +156,8 @@ class Post extends Model
                 'originalPost' => $loadDisplayPost,
                 'feedComments.user',
                 'feedComments.feedReplies.user',
-            ]);
+            ])
+            ->withPollPresentation($viewerId);
     }
 	
 	// Relasi ke tabel hashtags

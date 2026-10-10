@@ -95,6 +95,39 @@ class InertiaPostDetailTest extends TestCase
         );
     }
 
+    public function test_inertia_post_detail_includes_poll_results_and_the_vote_route(): void
+    {
+        config(['frontend.post_detail_inertia' => true]);
+
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $otherVoter = User::factory()->create();
+        $post = $this->createPost($author, ['content' => 'Poll details']);
+        $poll = $post->poll()->create(['question' => 'Where do you work best?']);
+        $cafe = $poll->options()->create(['label' => 'Cafe', 'position' => 0]);
+        $home = $poll->options()->create(['label' => 'Home', 'position' => 1]);
+        $poll->votes()->create(['option_id' => $cafe->id, 'user_id' => $viewer->id]);
+        $poll->votes()->create(['option_id' => $home->id, 'user_id' => $otherVoter->id]);
+
+        $response = $this->actingAs($viewer)
+            ->withHeaders($this->inertiaHeaders())
+            ->get(route('posts.show', $post));
+
+        $response->assertOk()
+            ->assertJsonPath('props.display_post.poll.question', 'Where do you work best?')
+            ->assertJsonPath('props.display_post.poll.total_votes', 2)
+            ->assertJsonPath('props.display_post.poll.total_label', trans_choice('polls.votes', 2, ['count' => 2]))
+            ->assertJsonPath('props.display_post.poll.viewer_vote_option_id', $cafe->id)
+            ->assertJsonPath('props.display_post.poll.options.0.id', $cafe->id)
+            ->assertJsonPath('props.display_post.poll.options.0.vote_count', 1)
+            ->assertJsonPath('props.display_post.poll.options.0.percentage', 50)
+            ->assertJsonPath('props.display_post.poll.options.0.is_viewer_choice', true)
+            ->assertJsonPath('props.display_post.poll.options.1.id', $home->id)
+            ->assertJsonPath('props.routes.poll_vote', route('posts.poll-votes', $post))
+            ->assertJsonPath('props.translations.poll.vote', __('polls.vote'))
+            ->assertJsonPath('props.translations.poll.results', __('polls.results'));
+    }
+
     public function test_inertia_post_detail_preserves_repost_context_and_non_owner_capabilities(): void
     {
         config(['frontend.post_detail_inertia' => true]);

@@ -116,6 +116,7 @@
                         </div>
                     </div>
                 @endif
+                                @include('partials.post-poll', ['displayPost' => $displayPost])
                             </div>
                         </div>
 

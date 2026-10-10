@@ -1,14 +1,5 @@
-@php
-    $feedCreators = collect($posts->items())
-        ->map(fn ($post) => $post->repost_id !== null ? $post->originalPost?->user : $post->user)
-        ->filter(fn ($creator) => $creator && $creator->id !== auth()->id())
-        ->unique('id')
-        ->take(5)
-        ->values();
-@endphp
-
 <x-app-layout>
-    <div class="skuy-feed-page" data-skuy-prism-feed>
+    <div class="skuy-feed-page" data-skuy-prism-feed data-skuy-arah-b-feed data-feed-mode="{{ $feedTab }}">
         <div class="skuy-feed-shell">
             <section
                 class="skuy-feed-content"
@@ -191,8 +182,13 @@
                 x-init="nextFeedUrl = $el.dataset.feedNextUrl || ''"
             >
                 <header class="skuy-feed-page__header">
-                    <h1 id="feed-title" class="skuy-feed-page__title">{{ __('navigation.feed') }}</h1>
+                    <h1 id="feed-title" class="skuy-feed-page__title">{{ __('navigation.home') }}</h1>
                 </header>
+
+                <nav class="skuy-feed-tabs" aria-label="{{ __('threads.feed_filters.label') }}" data-feed-tabs>
+                    <a href="{{ route('feed') }}" data-feed-tab="for-you" aria-current="{{ $feedTab === 'for-you' ? 'page' : 'false' }}">{{ __('threads.feed_filters.for_you') }}</a>
+                    <a href="{{ route('feed', ['feed' => 'following']) }}" data-feed-tab="following" aria-current="{{ $feedTab === 'following' ? 'page' : 'false' }}">{{ __('threads.feed_filters.following') }}</a>
+                </nav>
 
                 @include('partials.feed-stories-placeholder')
 
@@ -200,9 +196,18 @@
                     <div id="composer" data-composer class="skuy-composer skuy-feed-composer">
                         <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" class="skuy-feed-composer__form" x-data="{
                             isSubmitting: false,
-                            content: '',
+                            content: @js(filled(request()->query('mention')) ? '@'.ltrim((string) request()->query('mention'), '@').' ' : ''),
                             selectedImages: [],
                             mediaMessage: '',
+                            pollOpen: false,
+                            pollQuestion: '',
+                            pollOptions: ['', ''],
+                            addPollOption() {
+                                if (this.pollOptions.length < 4) this.pollOptions.push('');
+                            },
+                            removePollOption(index) {
+                                if (this.pollOptions.length > 2) this.pollOptions.splice(index, 1);
+                            },
                             imageIdentity(file) {
                                 return [file.name, file.size, file.type, file.lastModified].join('|');
                             },
@@ -258,13 +263,14 @@
                                     </div>
                                 @else
                                     <div class="skuy-avatar skuy-feed-composer__avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => Auth::user()->name]) }}">
-                                        {{ mb_substr(Auth::user()->name, 0, 1) }}
+                                        {{ \App\Support\NameInitials::from(Auth::user()->name) }}
                                     </div>
                                 @endif
 
                                 <div class="skuy-feed-composer__field">
+                                    <span class="skuy-feed-composer__identity">{{ Auth::user()->username }}</span>
                                     <label for="feed-composer-body" class="sr-only">{{ __('threads.composer.content_placeholder') }}</label>
-                                    <textarea id="feed-composer-body" name="content" rows="2" x-model="content" class="skuy-composer__textarea" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
+                                    <textarea id="feed-composer-body" name="content" rows="2" x-model="content" x-init="const syncPlaceholder = () => { $el.placeholder = window.matchMedia('(max-width: 767px)').matches ? $el.dataset.mobilePlaceholder : $el.dataset.desktopPlaceholder; }; syncPlaceholder(); window.addEventListener('resize', syncPlaceholder, { passive: true });" data-mobile-placeholder="{{ __('threads.composer.mobile_content_placeholder') }}" data-desktop-placeholder="{{ __('threads.composer.content_placeholder') }}" class="skuy-composer__textarea" placeholder="{{ __('threads.composer.content_placeholder') }}" required></textarea>
                                 </div>
                             </div>
 
@@ -334,10 +340,14 @@
                             <div class="skuy-composer__tools skuy-feed-composer__tools">
                                 <div class="skuy-feed-composer__attachments min-w-0 flex-1">
                                     <input id="feed-composer-images" type="file" name="images[]" multiple accept="image/*" x-ref="imagesInput" @change="handleImageSelection($event)" class="skuy-upload skuy-feed-composer__file-input">
-                                    <label for="feed-composer-images" class="skuy-feed-composer__attach">
+                                    <label for="feed-composer-images" class="skuy-feed-composer__attach" aria-label="{{ __('threads.media.photo') }}">
                                         <x-fa-icon name="image" class="text-base" />
-                                        <span>{{ __('threads.media.photo') }}</span>
+                                        <span class="sr-only">{{ __('threads.media.photo') }}</span>
                                     </label>
+                                    <button type="button" aria-label="{{ __('polls.create') }}" class="skuy-feed-composer__attach skuy-feed-composer__poll-toggle" @click="pollOpen = !pollOpen" :aria-pressed="pollOpen.toString()">
+                                        <x-fa-icon name="square-poll-vertical" class="text-base" />
+                                        <span class="sr-only">{{ __('polls.create') }}</span>
+                                    </button>
 
                                     <div x-show="selectedImages.length > 0" style="display: none;" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="{{ __('threads.media.preview') }}">
                                         <template x-for="(image, index) in selectedImages" :key="image.identity">
@@ -352,12 +362,28 @@
                                         </template>
                                     </div>
 
+                                    <fieldset x-show="pollOpen" style="display: none;" class="skuy-poll-composer" :disabled="!pollOpen">
+                                        <legend class="skuy-poll-composer__legend">{{ __('polls.create') }}</legend>
+                                        <label for="feed-poll-question" class="sr-only">{{ __('polls.question_placeholder') }}</label>
+                                        <input id="feed-poll-question" type="text" name="poll_question" x-model="pollQuestion" :required="pollOpen" maxlength="180" placeholder="{{ __('polls.question_placeholder') }}" class="skuy-poll-composer__question">
+                                        <div class="skuy-poll-composer__options">
+                                            <template x-for="(option, index) in pollOptions" :key="index">
+                                                <div class="skuy-poll-composer__option">
+                                                    <label class="sr-only" :for="`feed-poll-option-${index}`" x-text="'{{ __('polls.option_placeholder', ['number' => '__NUMBER__']) }}'.replace('__NUMBER__', index + 1)"></label>
+                                                    <input :id="`feed-poll-option-${index}`" type="text" name="poll_options[]" x-model="pollOptions[index]" :required="pollOpen" maxlength="80" :placeholder="'{{ __('polls.option_placeholder', ['number' => '__NUMBER__']) }}'.replace('__NUMBER__', index + 1)" class="skuy-poll-composer__option-input">
+                                                    <button type="button" @click="removePollOption(index)" :disabled="pollOptions.length <= 2" :aria-label="'{{ __('polls.remove_option', ['number' => '__NUMBER__']) }}'.replace('__NUMBER__', index + 1)" class="skuy-poll-composer__remove"><x-fa-icon name="xmark" /></button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <button type="button" @click="addPollOption()" :disabled="pollOptions.length >= 4" class="skuy-poll-composer__add">{{ __('polls.add_option') }}</button>
+                                    </fieldset>
+
                                     <div x-show="mediaMessage" x-text="mediaMessage" style="display: none;" role="status" aria-live="polite" class="mt-2 text-sm font-semibold text-[var(--skuy-danger)]"></div>
                                 </div>
 
                                 <button type="submit" :disabled="isSubmitting || content.trim() === ''" :aria-busy="isSubmitting.toString()" aria-label="{{ __('threads.actions.post') }}" title="{{ __('threads.actions.post') }}" class="skuy-feed-composer__submit">
-                                    <x-fa-icon name="arrow-up" weight="solid" class="text-lg" />
-                                    <span class="sr-only" x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
+                                    <x-fa-icon name="arrow-up" weight="solid" class="skuy-feed-composer__submit-icon text-lg" />
+                                    <span class="skuy-feed-composer__submit-label" x-show="!isSubmitting">{{ __('threads.actions.post') }}</span>
                                     <span class="sr-only" x-show="isSubmitting" style="display: none;">...</span>
                                 </button>
                             </div>
@@ -443,44 +469,55 @@
                 @endif
             </section>
 
-            <aside class="skuy-context skuy-feed-context" aria-label="{{ __('threads.trending.title') }}">
+            <aside class="skuy-context skuy-feed-context" aria-label="{{ __('threads.suggestions.title') . ', ' . __('threads.trending.title') }}">
+                <div class="skuy-context-card skuy-feed-context-card skuy-feed-context-creators" aria-labelledby="feed-creators-title" data-feed-suggestions>
+                    <h2 id="feed-creators-title" class="skuy-context-card__title">{{ __('threads.suggestions.title') }}</h2>
+                    @if ($feedCreators->isNotEmpty())
+                        <div class="skuy-feed-context-creators__list">
+                            @foreach ($feedCreators as $creator)
+                                <div class="skuy-feed-context-suggestion" data-feed-suggestion-user="{{ $creator->id }}">
+                                    <a href="{{ route('user.profile', $creator->username) }}" class="skuy-feed-context-creator skuy-feed-suggestion__profile">
+                                        <span class="skuy-feed-context-creator__avatar" data-avatar-tone="{{ abs(crc32($creator->username)) % 3 }}" aria-hidden="true">
+                                            @if ($creator->avatar)
+                                                <img src="{{ asset('storage/' . $creator->avatar) }}" alt="">
+                                            @else
+                                                {{ \App\Support\NameInitials::from($creator->name) }}
+                                            @endif
+                                        </span>
+                                        <span class="skuy-feed-context-creator__identity">
+                                            <strong>{{ $creator->username }}</strong>
+                                            @if (filled($creator->bio))
+                                                <span class="skuy-feed-context-creator__bio">{{ $creator->bio }}</span>
+                                            @endif
+                                        </span>
+                                    </a>
+                                    <form action="{{ route('user.follow', $creator) }}" method="POST" class="skuy-feed-suggestion__form" data-feed-suggestion-action>
+                                        @csrf
+                                        <button type="submit" class="skuy-feed-suggestion__follow" aria-label="{{ __('profile.follow') . ' @' . $creator->username }}">
+                                            {{ __('profile.follow') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="skuy-feed-suggestions-empty">{{ __('threads.suggestions.empty') }}</p>
+                    @endif
+                </div>
+
                 <div class="skuy-context-card skuy-feed-context-card">
                     <h2 class="skuy-context-card__title">{{ __('threads.trending.title') }}</h2>
                     <div class="skuy-context-card__list">
                         @forelse($trendingHashtags ?? [] as $tag => $count)
                             <a href="{{ route('search', ['q' => '#' . $tag]) }}" class="skuy-context-topic">
                                 <span class="skuy-context-topic__name">#{{ $tag }}</span>
-                                <span class="skuy-context-topic__count">{{ trans_choice('threads.trending.thread_count', $count, ['count' => $count]) }}</span>
+                                <span class="skuy-context-topic__count">{{ __('threads.trending.caption') }}</span>
                             </a>
                         @empty
                             <p class="text-sm text-[var(--skuy-text-muted)]">{{ __('threads.trending.empty') }}</p>
                         @endforelse
                     </div>
                 </div>
-
-                @if ($feedCreators->isNotEmpty())
-                    <div class="skuy-context-card skuy-feed-context-card skuy-feed-context-creators" aria-labelledby="feed-creators-title">
-                        <h2 id="feed-creators-title" class="skuy-context-card__title">{{ __('navigation.profile') }}</h2>
-                        <div class="skuy-feed-context-creators__list">
-                            @foreach ($feedCreators as $creator)
-                                <a href="{{ route('user.profile', $creator->username) }}" class="skuy-feed-context-creator">
-                                    <span class="skuy-feed-context-creator__avatar" aria-hidden="true">
-                                        @if ($creator->avatar)
-                                            <img src="{{ asset('storage/' . $creator->avatar) }}" alt="">
-                                        @else
-                                            {{ mb_substr($creator->name, 0, 1) }}
-                                        @endif
-                                    </span>
-                                    <span class="skuy-feed-context-creator__identity">
-                                        <strong>{{ $creator->name }}</strong>
-                                        <span>{{ '@' . $creator->username }}</span>
-                                    </span>
-                                    <x-fa-icon name="arrow-up-right-from-square" class="skuy-feed-context-creator__icon" />
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
 
                 <div class="skuy-context-card skuy-context-card--accent skuy-feed-context-card skuy-feed-context-card--community">
                     <h2 class="skuy-context-card__title">SkuySocial</h2>

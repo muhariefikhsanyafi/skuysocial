@@ -53,9 +53,21 @@ return [
         'network' => 'Koneksi gagal. Aksi komentar tidak diperbarui.',
     ],
 
+    'feed_filters' => [
+        'label' => 'Filter beranda',
+        'for_you' => 'Untuk Anda',
+        'following' => 'Mengikuti',
+    ],
+
+    'suggestions' => [
+        'title' => 'Saran untuk diikuti',
+        'empty' => 'Belum ada saran akun untuk saat ini.',
+    ],
+
     'composer' => [
         'topic_placeholder' => 'Topik Utas',
-        'content_placeholder' => 'Mulai utas baru...',
+        'content_placeholder' => 'Apa yang sedang kamu pikirkan?',
+        'mobile_content_placeholder' => 'Mulai utas baru...',
         'max_images' => 'Maksimal 4 gambar',
     ],
 
@@ -97,9 +109,10 @@ return [
     ],
 
     'trending' => [
-        'title' => 'Sedang Hangat',
+        'title' => 'Topik populer',
         'thread_count' => '{0} 0 Utas|{1} :count Utas|[2,*] :count Utas',
-        'empty' => 'Belum ada topik hangat hari ini.',
+        'caption' => 'Topik populer di SkuySocial',
+        'empty' => 'Belum ada topik populer.',
     ],
 
     'community' => [

@@ -49,4 +49,8 @@ return [
         ],
     ],
 
+    'skuy' => [
+        'feed_page_size' => max(1, min(50, (int) env('SKUY_FEED_PAGE_SIZE', 10))),
+    ],
+
 ];

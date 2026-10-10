@@ -18,6 +18,7 @@ class NavigationTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('feed'));
         $html = $response->getContent();
+        $xpath = $this->xpath($html);
 
         $response
             ->assertOk()
@@ -25,7 +26,10 @@ class NavigationTest extends TestCase
 
         $this->assertSame(2, substr_count($html, 'href="'.route('search').'"'));
         $this->assertSame(2, substr_count($html, 'href="'.route('activity.index').'"'));
-        $this->assertStringContainsString('<div class="skuy-app-shell">', $html);
+        $this->assertSame(1, $xpath->query('//*[@class="skuy-app-shell" and @data-skuy-arah-b-pages="feed"]')->length);
+        $feedNavigationLabel = $xpath->query('//nav[@data-navigation-kind="responsive"]//*[@data-nav-key="feed"]//span[contains(@class, "skuy-app-nav__label")]')->item(0);
+        $this->assertNotNull($feedNavigationLabel);
+        $this->assertSame(__('navigation.home'), trim($feedNavigationLabel->textContent));
         $this->assertStringContainsString('<div class="skuy-app-shell__workspace">', $html);
         $this->assertStringContainsString('aria-controls="mobile-navigation"', $html);
         $this->assertStringContainsString(':aria-expanded="(sidebarOpen && !isDesktop).toString()"', $html);
@@ -41,6 +45,7 @@ class NavigationTest extends TestCase
         $this->assertStringContainsString('role="menu"', $html);
         $this->assertStringContainsString('role="menuitem"', $html);
         $this->assertStringContainsString('data-account-menu-key="profile"', $html);
+        $this->assertStringContainsString('data-account-menu-key="likes"', $html);
         $this->assertStringContainsString('data-account-menu-key="settings"', $html);
         $this->assertStringContainsString('data-account-menu-key="sign-out"', $html);
         $this->assertStringContainsString('@keydown.tab="trapOverlayFocus($event, $el)"', $html);
@@ -48,7 +53,7 @@ class NavigationTest extends TestCase
         $this->assertStringContainsString('aria-label="Cari"', $html);
         $this->assertStringContainsString('aria-label="Aktivitas"', $html);
         $this->assertStringContainsString('skuy-profile-icon', $html);
-        $this->assertStringContainsString('aria-label="Buat utas"', $html);
+        $this->assertStringContainsString('aria-label="Buat Utas"', $html);
         $this->assertStringContainsString(':aria-pressed="darkMode"', $html);
         $this->assertStringContainsString(":aria-label=\"darkMode ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'\"", $html);
         $this->assertMatchesRegularExpression('/href="'.preg_quote(route('feed'), '/').'"[^>]*aria-current="page"/', $html);
@@ -57,14 +62,13 @@ class NavigationTest extends TestCase
 
         $bottomNavStart = strpos($html, '<nav class="skuy-mobile-nav"');
         $this->assertNotFalse($bottomNavStart);
-        $xpath = $this->xpath($html);
 
         $this->assertSame(
-            ['feed', 'search', 'activity', 'messages', 'saved'],
+            ['feed', 'search', 'activity', 'messages', 'profile', 'saved', 'dashboard', 'announcements'],
             $this->attributeValues($xpath, '//nav[@data-navigation-kind="responsive"]//*[@data-nav-surfaces="desktop-primary" or contains(@data-nav-surfaces, "desktop-primary mobile-secondary")]/@data-nav-key'),
         );
         $this->assertSame(
-            ['dashboard', 'saved', 'announcements'],
+            ['profile', 'saved', 'dashboard', 'announcements'],
             $this->attributeValues($xpath, '//nav[@data-navigation-kind="responsive"]//*[@data-nav-surfaces="mobile-secondary" or contains(@data-nav-surfaces, "desktop-primary mobile-secondary")]/@data-nav-key'),
         );
         $this->assertSame(
@@ -74,16 +78,39 @@ class NavigationTest extends TestCase
         $this->assertSame(1, $xpath->query('//*[@data-nav-key="announcements"]')->length);
         $this->assertSame(1, $xpath->query('//*[@data-nav-key="saved"]')->length);
         $this->assertSame(0, $xpath->query('//nav[@data-navigation-kind="responsive"]//*[@data-nav-surfaces="mobile-secondary" or contains(@data-nav-surfaces, "desktop-primary mobile-secondary")][@data-nav-key="feed" or @data-nav-key="search" or @data-nav-key="activity" or @data-nav-key="messages"]')->length);
-        $this->assertSame(0, $xpath->query('//nav[@data-navigation-kind="responsive"]//*[@data-rail-slot="create"]')->length);
+        $this->assertSame(1, $xpath->query('//nav[@data-navigation-kind="responsive"]//*[@data-rail-slot="create"]')->length);
         $this->assertSame(
-            ['profile', 'settings', 'sign-out'],
+            ['profile', 'likes', 'settings', 'language', 'sign-out'],
             $this->attributeValues($xpath, '//*[@id="mobile-profile-menu"]//*[@data-account-menu-key]/@data-account-menu-key'),
         );
+        $this->assertSame(1, $xpath->query('//*[@id="mobile-profile-menu"]//a[@data-account-menu-key="likes" and @href="'.route('user.profile', ['username' => $user->username, 'tab' => 'likes']).'"]')->length);
+        $this->assertSame(1, $xpath->query('//*[@id="rail-account-menu"]//a[@data-account-menu-key="likes" and @href="'.route('user.profile', ['username' => $user->username, 'tab' => 'likes']).'"]')->length);
 
         $railSlots = $this->attributeValues($xpath, '//*[@id="mobile-navigation"]//*[@data-rail-slot]/@data-rail-slot');
-        $this->assertLessThan(array_search('account', $railSlots, true), array_search('create', $railSlots, true));
-        $this->assertGreaterThan(array_search('desktop-primary', $railSlots, true), array_search('create', $railSlots, true));
+        $this->assertSame(['desktop-primary', 'create', 'create-divider', 'spacer', 'account'], $railSlots);
+        $this->assertSame(1, $xpath->query('//nav[@data-rail-slot="desktop-primary"]//*[@data-rail-slot="create"]')->length);
+        $savedPosition = strpos($html, 'data-nav-key="saved"');
+        $createPosition = strpos($html, 'data-rail-slot="create"');
+        $dashboardPosition = strpos($html, 'data-nav-key="dashboard"');
+        $this->assertIsInt($savedPosition);
+        $this->assertIsInt($createPosition);
+        $this->assertIsInt($dashboardPosition);
+        $this->assertLessThan($createPosition, $savedPosition);
+        $this->assertLessThan($dashboardPosition, $createPosition);
         $this->assertStringContainsString('flex: 1 0 24px;', file_get_contents(resource_path('css/skuy-prism-navigation.css')));
+    }
+
+    public function test_mobile_wallet_aria_label_uses_the_current_locale_for_points(): void
+    {
+        $user = User::factory()->create(['locale' => 'id']);
+        $response = $this->actingAs($user)->get(route('feed'));
+        $response->assertOk();
+
+        $xpath = $this->xpath((string) $response->getContent());
+        $wallet = $xpath->query('//*[@class="skuy-mobile-topbar-wallet"]')->item(0);
+
+        $this->assertNotNull($wallet);
+        $this->assertSame('0 Poin', $wallet->getAttribute('aria-label'));
     }
 
     public function test_mobile_account_menu_shows_identity_and_only_account_destinations(): void
@@ -151,8 +178,16 @@ class NavigationTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('href="'.route('feed').'#composer" class="skuy-app-rail__compose"', false)
             ->assertSeeText(__('navigation.create_thread'));
+
+        $xpath = $this->xpath($response->getContent());
+        $cta = $xpath->query('//a[@data-desktop-create-cta and contains(concat(" ", normalize-space(@class), " "), " skuy-app-rail__compose ")]');
+        $this->assertNotFalse($cta);
+        $this->assertSame(1, $cta->length);
+        $ctaElement = $cta->item(0);
+        $this->assertInstanceOf(\DOMElement::class, $ctaElement);
+        $this->assertSame(route('feed').'#composer', $ctaElement->getAttribute('href'));
+        $this->assertSame(__('navigation.create_thread'), trim($ctaElement->textContent));
         $this->assertIsString($css);
 
         preg_match_all('/\.skuy-app-rail__compose(?::(?:hover|active|focus-visible))?\s*\{[^}]*\}/', $css, $ctaRules);

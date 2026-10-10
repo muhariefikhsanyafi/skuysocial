@@ -425,16 +425,12 @@ class BookmarkTest extends TestCase
         $bookmarkLinks = $xpath->query('//a[@href="'.$bookmarkUrl.'"]');
 
         $this->assertSame(1, $bookmarkLinks->length, 'Saved should be one responsive navigation item, not duplicated markup.');
-
-        $prismCss = file_get_contents(resource_path('css/skuy-prism.css'));
-        $this->assertIsString($prismCss);
-        $hiddenNavigationSelector = ".skuy-app-nav__link[data-nav-key='dashboard'],";
-        $hiddenNavigationStart = strpos($prismCss, $hiddenNavigationSelector);
-        $this->assertIsInt($hiddenNavigationStart, "Missing desktop rail visibility rule: {$hiddenNavigationSelector}");
-        $hiddenNavigationEnd = strpos($prismCss, '}', $hiddenNavigationStart);
-        $this->assertIsInt($hiddenNavigationEnd, 'Unclosed desktop rail visibility rule.');
-        $hiddenNavigationRule = substr($prismCss, $hiddenNavigationStart, $hiddenNavigationEnd - $hiddenNavigationStart);
-        $this->assertStringNotContainsString("data-nav-key='saved'", $hiddenNavigationRule);
+        $bookmarkLink = $bookmarkLinks->item(0);
+        if (! ($bookmarkLink instanceof \DOMElement)) {
+            throw new \LogicException('Expected the responsive Saved link to be an HTML element.');
+        }
+        $this->assertSame('saved', $bookmarkLink->getAttribute('data-nav-key'));
+        $this->assertSame('desktop-primary mobile-secondary', $bookmarkLink->getAttribute('data-nav-surfaces'));
 
         $savedLabel = __('navigation.saved');
         $explicitAriaLabels = 0;

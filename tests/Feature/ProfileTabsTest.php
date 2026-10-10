@@ -22,9 +22,12 @@ class ProfileTabsTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('user.profile', $user));
 
-        $response->assertOk()->assertViewHas('activeTab', 'threads');
-        $this->assertStringContainsString('>Utas</span>', $response->getContent());
-        $this->assertStringContainsString('>Suka</span>', $response->getContent());
+        $response->assertOk()
+            ->assertViewHas('activeTab', 'threads')
+            ->assertSee('data-profile-tab="threads"', false)
+            ->assertDontSee('data-profile-tab="likes"', false)
+            ->assertSee('data-account-menu-key="likes"', false)
+            ->assertSee(route('user.profile', ['username' => $user->username, 'tab' => 'likes']), false);
     }
 
     public function test_explicit_threads_tab_uses_threads_query_and_active_state(): void

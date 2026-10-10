@@ -80,6 +80,45 @@ class ProfileLinksPrivacyTest extends TestCase
             ->assertSee('rel="noopener noreferrer nofollow ugc"', false);
     }
 
+    public function test_profile_supplemental_links_are_not_duplicated_and_remain_visible_and_keyboard_reachable(): void
+    {
+        $profile = User::factory()->create();
+        $profile->profileLinks()->createMany([
+            ['label' => 'Portfolio', 'url' => 'https://portfolio.example.test', 'sort_order' => 0],
+            ['label' => 'Community', 'url' => 'https://community.example.test', 'sort_order' => 1],
+        ]);
+
+        $response = $this->actingAs($profile)->get(route('user.profile', $profile->username));
+        $response->assertOk();
+
+        $document = new \DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML((string) $response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new \DOMXPath($document);
+
+        $this->assertSame(1, $xpath->query('//a[@href="https://portfolio.example.test"]')->length);
+        $this->assertSame(1, $xpath->query('//a[@href="https://community.example.test"]')->length);
+        $this->assertSame(1, $xpath->query('//ul[contains(concat(" ", normalize-space(@class), " "), " skuy-profile-links ")]//a[@href="https://community.example.test"]')->length);
+
+        $css = file_get_contents(resource_path('css/skuy-arah-b.css'));
+        $this->assertIsString($css);
+        $this->assertSame(1, preg_match('/\.skuy-app-shell\[data-skuy-arah-b-pages\]\s+\.skuy-profile-links\s*\{([^}]*)\}/s', $css, $linksRule));
+        $this->assertStringContainsString('display: flex;', $linksRule[1]);
+        $this->assertStringContainsString('clip: auto;', $linksRule[1]);
+    }
+
+    public function test_arah_b_surfaces_respect_reduced_transparency_preference(): void
+    {
+        $css = file_get_contents(resource_path('css/skuy-arah-b.css'));
+
+        $this->assertIsString($css);
+        $this->assertStringContainsString('@media (prefers-reduced-transparency: reduce)', $css);
+        $this->assertStringContainsString('backdrop-filter: none;', $css);
+        $this->assertStringContainsString('background: var(--arah-b-solid-surface);', $css);
+    }
+
     public function test_profile_settings_show_links_and_profile_page_privacy_controls(): void
     {
         $owner = User::factory()->create();

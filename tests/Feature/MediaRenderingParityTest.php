@@ -172,6 +172,27 @@ class MediaRenderingParityTest extends TestCase
         $this->assertStringNotContainsString('data-media-indicator', $content);
     }
 
+    public function test_blade_post_detail_renders_poll_choices_and_the_vote_total(): void
+    {
+        $author = User::factory()->create();
+        $voter = User::factory()->create();
+        $post = $this->createPost($author, ['content' => 'Poll detail post']);
+        $poll = $post->poll()->create(['question' => 'Where do you work best?']);
+        $cafe = $poll->options()->create(['label' => 'Cafe', 'position' => 0]);
+        $home = $poll->options()->create(['label' => 'Home', 'position' => 1]);
+        $poll->votes()->create(['option_id' => $cafe->id, 'user_id' => $voter->id]);
+
+        $response = $this->actingAs($author)->get(route('posts.show', $post));
+
+        $response->assertOk()
+            ->assertSee('data-post-poll="'.$poll->id.'"', false)
+            ->assertSeeText('Where do you work best?')
+            ->assertSeeText('Cafe')
+            ->assertSeeText('Home')
+            ->assertSeeText(trans_choice('polls.votes', 1, ['count' => 1]))
+            ->assertSee(route('posts.poll-votes', $post), false);
+    }
+
     public function test_post_detail_repost_slider_uses_original_media(): void
     {
         $originalAuthor = User::factory()->create();

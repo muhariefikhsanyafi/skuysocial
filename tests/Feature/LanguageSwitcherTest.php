@@ -199,7 +199,7 @@ class LanguageSwitcherTest extends TestCase
                 ->assertDontSee('grid gap-4 sm:grid-cols-2', false)
                 ->assertDontSee('name="user_id"', false);
 
-            $this->assertSame(1, substr_count($response->getContent(), 'aria-controls="language-menu-'));
+            $this->assertResponsiveLanguageSwitchers($response->getContent());
         }
     }
 
@@ -215,7 +215,7 @@ class LanguageSwitcherTest extends TestCase
             ->assertSee('aria-haspopup="menu"', false)
             ->assertDontSee('grid gap-4 sm:grid-cols-2', false);
 
-        $this->assertSame(1, substr_count($response->getContent(), 'aria-controls="language-menu-'));
+        $this->assertResponsiveLanguageSwitchers($response->getContent());
     }
 
     public function test_authenticated_switch_updates_only_the_current_user_and_preserves_local_return(): void
@@ -264,6 +264,33 @@ class LanguageSwitcherTest extends TestCase
         ])
             ->assertRedirect('/')
             ->assertSessionHasErrors('return_to');
+    }
+
+    private function assertResponsiveLanguageSwitchers(string $html): void
+    {
+        $document = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML($html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new \DOMXPath($document);
+        $contexts = [
+            'topbar' => '//nav[contains(concat(" ", normalize-space(@class), " "), " skuy-topbar ")]',
+            'mobile account' => '//*[@id="mobile-profile-menu"]',
+            'desktop rail account' => '//*[@id="rail-account-menu"]',
+        ];
+        $controls = [];
+
+        foreach ($contexts as $context => $selector) {
+            $switchers = $xpath->query($selector.'//*[@aria-controls and starts-with(@aria-controls, "language-menu-")]');
+            $this->assertNotFalse($switchers);
+            $this->assertSame(1, $switchers->length, "Expected one language switcher in the {$context} surface.");
+            $switcher = $switchers->item(0);
+            $this->assertInstanceOf(\DOMElement::class, $switcher);
+            $controls[] = $switcher->getAttribute('aria-controls');
+        }
+
+        $this->assertCount(3, array_unique($controls), 'Each responsive language switcher needs a unique menu ID.');
     }
 
     private function assertRootLanguage($response, string $locale): void

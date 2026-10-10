@@ -13,6 +13,7 @@ use App\Http\Controllers\MessagePrivacyController;
 use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\PostAppreciationController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostPollController;
 use App\Http\Controllers\PointWalletController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
@@ -127,6 +128,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/post/{post}/repost', [PostController::class, 'repost'])
         ->middleware('moderation.active')
         ->name('posts.repost');
+    Route::post('/posts/{post}/poll-votes', [PostPollController::class, 'vote'])
+        ->middleware(['moderation.active', 'throttle:10,1'])
+        ->name('posts.poll-votes');
+    Route::post('/posts/{post}/pin', [PostController::class, 'togglePin'])
+        ->middleware('moderation.active')
+        ->name('posts.pin');
 
     // Rute Fitur Edit & Hapus Postingan
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');

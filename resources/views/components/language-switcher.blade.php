@@ -1,4 +1,4 @@
-@props(['variant' => 'default'])
+@props(['variant' => 'default', 'instance' => 'main', 'menuItem' => false])
 
 @php
     $isAppVariant = $variant === 'app';
@@ -20,7 +20,8 @@
         $returnTo .= '?'.$queryString;
     }
 
-    $menuId = 'language-menu-'.substr(md5($returnTo), 0, 8);
+    $menuInstance = preg_replace('/[^a-z0-9-]/i', '-', (string) $instance);
+    $menuId = 'language-menu-'.$menuInstance.'-'.substr(md5($returnTo), 0, 8);
 @endphp
 
 <div
@@ -35,6 +36,7 @@
         aria-expanded="false"
         :aria-expanded="open"
         aria-haspopup="menu"
+        @if ($menuItem) role="menuitem" @endif
         aria-controls="{{ $menuId }}"
         aria-label="{{ __('localization.choose_language') }}"
         class="{{ $isAppVariant ? 'skuy-icon-button' : 'skuy-guest-language-trigger' }}"
@@ -48,6 +50,9 @@
             </svg>
         @endif
         <span class="sr-only">{{ __('localization.choose_language') }}</span>
+        @if ($isAppVariant && $instance !== 'topbar')
+            <span class="skuy-language-switcher__visible-label">{{ __('localization.choose_language') }}</span>
+        @endif
     </button>
 
     <div

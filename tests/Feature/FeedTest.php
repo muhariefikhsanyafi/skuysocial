@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Comment;
+use App\Models\Hashtag;
 use App\Models\Like;
 use App\Models\Post;
 use App\Models\User;
@@ -40,6 +41,76 @@ class FeedTest extends TestCase
         });
     }
 
+    public function test_feed_keeps_indonesian_relative_time_localized(): void
+    {
+        $viewer = User::factory()->create(['locale' => 'id']);
+        $author = User::factory()->create(['locale' => 'id']);
+        $post = $this->createPost($author, ['content' => 'Waktu relatif Indonesia']);
+        $post->forceFill(['created_at' => now()->subDay()])->save();
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+        $response->assertOk();
+
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML((string) $response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+        $time = $xpath->query('//*[@data-feed-post-uid="'.$post->uid.'"]//time[contains(concat(" ", normalize-space(@class), " "), " skuy-post__time ")]')->item(0);
+
+        $this->assertNotNull($time);
+        $this->assertSame('1 hari', preg_replace('/\s+/', ' ', trim($time->textContent)));
+    }
+
+    public function test_trending_caption_is_timeframe_neutral_for_all_time_topics_in_english(): void
+    {
+        $viewer = User::factory()->create(['locale' => 'en']);
+        $author = User::factory()->create();
+        $post = $this->createPost($author, ['created_at' => now()->subDays(30)]);
+        $post->hashtags()->attach(Hashtag::query()->create(['name' => 'all-time-topic'])->id);
+
+        $this->actingAs($viewer)
+            ->get(route('feed'))
+            ->assertOk()
+            ->assertSeeText('Popular topics across SkuySocial')
+            ->assertDontSeeText('Being discussed today');
+    }
+
+    public function test_trending_caption_is_timeframe_neutral_for_all_time_topics_in_indonesian(): void
+    {
+        $viewer = User::factory()->create(['locale' => 'id']);
+        $author = User::factory()->create();
+        $post = $this->createPost($author, ['created_at' => now()->subDays(30)]);
+        $post->hashtags()->attach(Hashtag::query()->create(['name' => 'topik-lama'])->id);
+
+        $this->actingAs($viewer)
+            ->get(route('feed'))
+            ->assertOk()
+            ->assertSeeText('Topik populer di SkuySocial')
+            ->assertDontSeeText('Sedang dibicarakan hari ini');
+    }
+
+    public function test_feed_uses_the_configured_page_size_for_cursor_pagination(): void
+    {
+        $viewer = User::factory()->create();
+        $creator = User::factory()->create();
+
+        foreach (range(1, 4) as $number) {
+            $this->createPost($creator, ['content' => 'Page-sized post '.$number]);
+        }
+
+        config()->set('services.skuy.feed_page_size', 3);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+
+        $response->assertOk()->assertViewHas('posts', function ($posts): bool {
+            return $posts instanceof CursorPaginator
+                && count($posts->items()) === 3
+                && $posts->hasMorePages();
+        });
+    }
+
     public function test_feed_renders_the_skuy_prism_composition_with_real_feed_creators(): void
     {
         $viewer = User::factory()->create();
@@ -52,6 +123,7 @@ class FeedTest extends TestCase
             ->assertSee('data-skuy-prism-shell', false)
             ->assertSee('data-skuy-desktop-rail', false)
             ->assertSee('data-skuy-prism-feed', false)
+            ->assertSee('data-skuy-arah-b-feed', false)
             ->assertSee('data-skuy-stories-placeholder', false)
             ->assertSeeText(__('navigation.stories'))
             ->assertSeeText(__('navigation.stories_coming_soon'))
@@ -75,6 +147,108 @@ class FeedTest extends TestCase
         $this->assertSame(0, $xpath->query('//*[@data-skuy-stories-placeholder]//a | //*[@data-skuy-stories-placeholder]//button')->length);
         $this->assertSame(0, $xpath->query('//*[@data-skuy-stories-placeholder]//*[@data-creator-id or @data-user-id]')->length);
         $this->assertStringNotContainsString('skuy-feed-creator', $stories->item(0)->textContent);
+    }
+
+    public function test_feed_suggestions_can_show_profiles_without_published_posts(): void
+    {
+        $viewer = User::factory()->create(['username' => 'empty-feed-suggestions-viewer']);
+        $suggestedCreator = User::factory()->create([
+            'username' => 'new-profile-without-posts',
+            'bio' => 'Penulis ilustrasi',
+        ]);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+
+        $response->assertOk()->assertSeeText('Penulis ilustrasi');
+
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML((string) $response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+        $suggestion = $xpath->query('//*[@data-feed-suggestion-user="'.$suggestedCreator->id.'"]')->item(0);
+
+        $this->assertNotNull($suggestion);
+    }
+
+    public function test_feed_suggestions_offer_follow_actions_only_for_unfollowed_accounts(): void
+    {
+        $viewer = User::factory()->create(['username' => 'suggestions-viewer']);
+        $followedCreator = User::factory()->create(['username' => 'already-followed-creator']);
+        $suggestedCreator = User::factory()->create([
+            'username' => 'suggested-feed-creator',
+            'bio' => 'Desainer produk',
+        ]);
+        $viewer->followings()->attach($followedCreator->id);
+        $this->createPost($followedCreator, ['content' => 'Already followed creator post']);
+        $this->createPost($suggestedCreator, ['content' => 'Suggested creator post']);
+
+        $queries = [];
+        DB::listen(static function ($query) use (&$queries): void {
+            $queries[] = $query->sql;
+        });
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+
+        $response->assertOk()
+            ->assertViewMissing('followingIds')
+            ->assertSeeText(__('threads.suggestions.title'))
+            ->assertSeeText('Desainer produk');
+
+        $materializedFollowingIdsQueries = array_values(array_filter(
+            $queries,
+            static fn (string $sql): bool => preg_match('/^select\s+"users"\."id"\s+from\s+"users"\s+inner join\s+"follows"/i', $sql) === 1,
+        ));
+        $this->assertSame([], $materializedFollowingIdsQueries);
+
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML((string) $response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+        $rows = $xpath->query('//*[@data-feed-suggestion-user]');
+        $suggestedRow = $xpath->query('//*[@data-feed-suggestion-user="'.$suggestedCreator->id.'"]')->item(0);
+
+        $this->assertNotFalse($rows);
+        $this->assertSame(1, $rows->length);
+        $this->assertNotNull($suggestedRow);
+        $this->assertSame(0, $xpath->query('//*[@data-feed-suggestion-user="'.$followedCreator->id.'"]')->length);
+
+        $form = $xpath->query('.//form[@data-feed-suggestion-action]', $suggestedRow)->item(0);
+        $button = $form ? $xpath->query('.//button[@type="submit"]', $form)->item(0) : null;
+
+        $this->assertNotNull($form);
+        $this->assertSame(route('user.follow', $suggestedCreator), $form->getAttribute('action'));
+        $this->assertSame(__('profile.follow'), trim($button?->textContent ?? ''));
+    }
+
+    public function test_following_feed_suggestions_are_independent_of_followed_feed_authors(): void
+    {
+        $viewer = User::factory()->create(['username' => 'following-suggestions-viewer']);
+        $followedCreator = User::factory()->create(['username' => 'following-suggestions-followed']);
+        $suggestedCreator = User::factory()->create(['username' => 'following-suggestions-new']);
+        $viewer->followings()->attach($followedCreator->id);
+        $followedPost = $this->createPost($followedCreator, ['content' => 'Following tab post']);
+        $this->createPost($suggestedCreator, ['content' => 'Creator eligible for suggestions']);
+
+        $response = $this->actingAs($viewer)->get(route('feed', ['feed' => 'following']));
+
+        $response->assertOk()
+            ->assertViewHas('feedTab', 'following')
+            ->assertSee($followedPost->content);
+
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML((string) $response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+        $suggestion = $xpath->query('//*[@data-feed-suggestion-user="'.$suggestedCreator->id.'"]')->item(0);
+
+        $this->assertNotNull($suggestion, 'Following-feed suggestions should not be limited to the followed feed authors.');
+        $this->assertSame(0, $xpath->query('//*[@data-feed-suggestion-user="'.$followedCreator->id.'"]')->length);
     }
 
     public function test_mobile_primary_navigation_has_exactly_five_items_in_product_order(): void
@@ -196,18 +370,43 @@ class FeedTest extends TestCase
         $this->assertTrue(str_contains($navigationCss, '@media (min-width: 1280px) and (prefers-reduced-transparency: reduce) {'));
     }
 
-    public function test_feed_exposes_a_visible_social_stream_heading(): void
+    public function test_following_feed_only_renders_posts_from_accounts_the_viewer_follows(): void
+    {
+        $viewer = User::factory()->create();
+        $followed = User::factory()->create();
+        $notFollowed = User::factory()->create();
+        $viewer->followings()->attach($followed->id);
+        $followedPost = $this->createPost($followed, ['content' => 'Visible in following feed']);
+        $notFollowedPost = $this->createPost($notFollowed, ['content' => 'Hidden from following feed']);
+
+        $response = $this->actingAs($viewer)->get(route('feed', ['feed' => 'following']));
+
+        $response->assertOk()
+            ->assertViewHas('feedTab', 'following')
+            ->assertSee($followedPost->content)
+            ->assertDontSee($notFollowedPost->content)
+            ->assertSee('data-feed-tab="following"', false)
+            ->assertSee('data-feed-tab="for-you"', false);
+    }
+
+    public function test_feed_exposes_the_home_page_heading_in_its_title_region(): void
     {
         $viewer = User::factory()->create();
         $author = User::factory()->create();
         $this->createPost($author, ['content' => 'Visible stream heading contract']);
 
         $response = $this->actingAs($viewer)->get(route('feed'));
+        $response->assertOk()->assertSee('class="skuy-feed-page__header"', false);
 
-        $response->assertOk()
-            ->assertSee('class="skuy-feed-page__header"', false)
-            ->assertSee('class="skuy-feed-page__title"', false)
-            ->assertSee(__('navigation.feed'));
+        $document = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML($response->getContent());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $title = (new \DOMXPath($document))->query('//h1[@id="feed-title"]')->item(0);
+
+        $this->assertNotNull($title);
+        $this->assertSame(__('navigation.home'), trim($title->textContent));
     }
 
     public function test_social_foundations_define_the_compact_spacing_and_type_scale(): void
@@ -1408,6 +1607,51 @@ class FeedTest extends TestCase
         $response->assertDontSee('Lihat Utas Lainnya');
     }
 
+    public function test_following_feed_preserves_its_filter_across_enhanced_cursor_pages(): void
+    {
+        $viewer = User::factory()->create();
+        $followedCreator = User::factory()->create();
+        $unfollowedCreator = User::factory()->create();
+        $viewer->followings()->attach($followedCreator->id);
+        $baseTime = Carbon::create(2026, 8, 31, 12, 0, 0);
+
+        for ($number = 1; $number <= 11; $number++) {
+            $timestamp = $baseTime->copy()->addSeconds($number * 2);
+            $this->createPost($followedCreator, [
+                'content' => "Followed cursor post {$number}",
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]);
+        }
+
+        $this->createPost($unfollowedCreator, [
+            'content' => 'Unfollowed cursor leak',
+            'created_at' => $baseTime->copy()->addSeconds(3),
+            'updated_at' => $baseTime->copy()->addSeconds(3),
+        ]);
+
+        $firstPage = $this->actingAs($viewer)->get(route('feed', ['feed' => 'following']));
+        $firstPagePosts = $firstPage->viewData('posts');
+        $nextPageUrl = $firstPagePosts->nextPageUrl();
+
+        $this->assertCount(10, $firstPagePosts->getCollection());
+        $this->assertTrue($firstPagePosts->hasMorePages());
+        $this->assertNotNull($nextPageUrl);
+
+        $nextPage = $this->withHeader('X-Feed-Fragment', '1')->get($nextPageUrl);
+
+        $nextPage->assertOk()->assertJsonPath('has_more', false);
+        $nextPageHtml = $nextPage->json('html');
+
+        $this->assertIsString($nextPageHtml);
+        $this->assertStringContainsString('Followed cursor post 1', $nextPageHtml);
+        $this->assertStringNotContainsString('Unfollowed cursor leak', $nextPageHtml);
+
+        $nextPageQuery = [];
+        parse_str((string) parse_url($nextPageUrl, PHP_URL_QUERY), $nextPageQuery);
+        $this->assertSame('following', $nextPageQuery['feed'] ?? null);
+    }
+
     public function test_enhanced_feed_returns_bounded_server_rendered_cursor_batches_without_duplicates(): void
     {
         $user = User::factory()->create();
@@ -1908,6 +2152,7 @@ class FeedTest extends TestCase
 
     private function measureFeedQueryCount(User $viewer): int
     {
+        $viewer->loadMissing('pointWallet');
         DB::flushQueryLog();
         DB::enableQueryLog();
 

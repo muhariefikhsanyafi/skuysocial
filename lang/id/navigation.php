@@ -21,7 +21,7 @@ return [
     'theme' => 'Tema',
     'light' => 'TERANG',
     'dark' => 'GELAP',
-    'create_thread' => 'Buat utas',
+    'create_thread' => 'Buat Utas',
     'back_to_feed' => 'Kembali ke beranda',
     'back_to_profile' => 'Kembali ke profil',
     'open_navigation_menu' => 'Buka menu navigasi',

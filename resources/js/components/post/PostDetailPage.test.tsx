@@ -44,6 +44,7 @@ const props = {
         author,
         topic: 'design-topic',
         media: [],
+        poll: null,
         interactions: {
             liked: false,
             like_count: 0,
@@ -87,6 +88,7 @@ const props = {
         bookmark_store: '/posts/detail-post/bookmark',
         bookmark_destroy: '/posts/detail-post/bookmark',
         comment: '/posts/detail-post/comments',
+        poll_vote: '/posts/detail-post/poll-votes',
         share: '/post/detail-post',
         tags_base: '/tags',
         edit: null,
@@ -169,6 +171,11 @@ const props = {
                 network: 'The connection failed.',
             },
         },
+        poll: {
+            vote: 'Vote',
+            results: 'Poll results',
+            already_voted: 'You have already voted in this poll.',
+        },
     },
 } as PostDetailPageProps;
 
@@ -239,6 +246,70 @@ describe('Post detail composition', () => {
 
         const conversation = screen.getByRole('region', { name: 'Replies' });
         expect(conversation.classList.contains('skuy-post-detail__conversation')).toBe(true);
+    });
+
+    it('renders poll choices and totals and submits the selected option', () => {
+        usePageMock.mockReturnValue({
+            props: {
+                ...props,
+                display_post: {
+                    ...props.display_post,
+                    poll: {
+                        id: 8,
+                        question: 'Where do you work best?',
+                        total_votes: 2,
+                        total_label: '2 votes',
+                        viewer_vote_option_id: null,
+                        options: [
+                            { id: 21, label: 'Cafe', vote_count: 1, percentage: 50, is_viewer_choice: false },
+                            { id: 22, label: 'Home', vote_count: 1, percentage: 50, is_viewer_choice: false },
+                        ],
+                    },
+                },
+            } as PostDetailPageProps,
+        });
+
+        render(<Show />);
+
+        expect(screen.getByRole('region', { name: 'Where do you work best?' })).not.toBeNull();
+        expect(screen.getByText('2 votes')).not.toBeNull();
+        fireEvent.click(screen.getByRole('radio', { name: /Cafe/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Vote' }));
+
+        expect(routerPostMock).toHaveBeenCalledWith(
+            '/posts/detail-post/poll-votes',
+            { option_id: 21 },
+            expect.objectContaining({ preserveScroll: true }),
+        );
+    });
+
+    it('shows poll results and selected option after the viewer has voted', () => {
+        usePageMock.mockReturnValue({
+            props: {
+                ...props,
+                display_post: {
+                    ...props.display_post,
+                    poll: {
+                        id: 8,
+                        question: 'Where do you work best?',
+                        total_votes: 2,
+                        total_label: '2 votes',
+                        viewer_vote_option_id: 22,
+                        options: [
+                            { id: 21, label: 'Cafe', vote_count: 1, percentage: 50, is_viewer_choice: false },
+                            { id: 22, label: 'Home', vote_count: 1, percentage: 50, is_viewer_choice: true },
+                        ],
+                    },
+                },
+            } as PostDetailPageProps,
+        });
+
+        render(<Show />);
+
+        expect(screen.queryByRole('button', { name: 'Vote' })).toBeNull();
+        expect(screen.getByRole('list', { name: 'Poll results' })).not.toBeNull();
+        expect(document.querySelector('.skuy-poll__result.is-selected')?.textContent).toContain('Home');
+        expect(screen.getByText('2 votes')).not.toBeNull();
     });
 
     it('keeps Save and Remove from Saved in the mobile post-options menu', () => {

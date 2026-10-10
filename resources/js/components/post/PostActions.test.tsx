@@ -92,6 +92,7 @@ const translations: PostDetailTranslations = {
             network: 'The connection failed.',
         },
     },
+    poll: { vote: 'Vote', results: 'Poll results' },
 };
 
 const post: DisplayPost = {
@@ -108,6 +109,7 @@ const post: DisplayPost = {
     },
     topic: null,
     media: [],
+    poll: null,
     interactions: {
         liked: false,
         like_count: 1,
@@ -135,6 +137,7 @@ const routes: PostDetailRoutes = {
     bookmark_store: '/posts/post-1/bookmark',
     bookmark_destroy: '/posts/post-1/bookmark',
     comment: '/posts/post-1/comments',
+    poll_vote: '/posts/post-1/poll-votes',
     share: '/post/post-1',
     tags_base: '/tags',
     edit: null,

@@ -2,6 +2,9 @@
     @php
         $isRepost = $post->repost_id !== null;
         $displayPost = $isRepost ? $post->originalPost : $post;
+        $relativeTime = $displayPost->created_at->locale(app()->getLocale())->diffForHumans(null, true);
+        $isProfileSurface = request()->routeIs('user.profile');
+        $threadConnectorComment = $displayPost->feedComments->first();
         $mediaImages = collect(is_array($displayPost->images) ? $displayPost->images : [])
             ->filter(fn ($image) => is_string($image) && trim($image) !== '')
             ->unique()
@@ -28,6 +31,10 @@
         @click="if(!$event.target.closest('button, a, form, img, input, textarea, select, [contenteditable]')) window.location='{{ route('posts.show', $displayPost->uid) }}'"
         class="skuy-post skuy-feed-post skuy-social-post cursor-pointer"
     >
+        @if ($threadConnectorComment && ($displayPost->pinned_at || (int) ($displayPost->appreciations_count ?? 0) > 0))
+            <span class="skuy-feed-thread-connector" data-initial="{{ mb_substr(\App\Support\NameInitials::from($threadConnectorComment->user?->name), 0, 1) }}" aria-hidden="true"></span>
+        @endif
+
         @if ($isRepost)
             <div class="skuy-post__repost skuy-feed-post__repost">
                 <x-fa-icon name="retweet" class="text-base" />
@@ -35,21 +42,35 @@
             </div>
         @endif
 
+        @if ($displayPost->pinned_at && ! $isProfileSurface)
+            <div class="skuy-post__pinned" data-pinned-post="{{ $displayPost->uid }}">
+                <x-fa-icon name="thumbtack" class="text-sm" />
+                <span>{{ __('polls.pinned') }}</span>
+            </div>
+        @endif
+
         <div class="skuy-post__body">
+            @if ($displayPost->pinned_at && $isProfileSurface)
+                <div class="skuy-post__pinned" data-pinned-post="{{ $displayPost->uid }}">
+                    <x-fa-icon name="thumbtack" class="text-sm" />
+                    <span>{{ __('polls.pinned') }}</span>
+                </div>
+            @endif
+
             <div class="skuy-post__body-main">
                 <div class="skuy-post__header skuy-feed-post__header">
-                    <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-avatar skuy-feed-post__avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
+                    <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-avatar skuy-feed-post__avatar" data-avatar-tone="{{ abs(crc32($displayPost->user->username)) % 3 }}" aria-label="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
                         @if ($displayPost->user->avatar)
                             <img src="{{ asset('storage/' . $displayPost->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $displayPost->user->name]) }}">
                         @else
-                            {{ mb_substr($displayPost->user->name, 0, 1) }}
+                            {{ \App\Support\NameInitials::from($displayPost->user->name) }}
                         @endif
                     </a>
                     <div class="skuy-post__identity">
                         <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-post__display-name">
                             {{ $displayPost->user->name }}
                         </a>
-                        <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-post__username">
+                        <a href="{{ route('user.profile', $displayPost->user->username) }}" class="skuy-post__username" aria-label="{{ $displayPost->user->name }} ({{ '@'.$displayPost->user->username }})">
                             <span aria-hidden="true">@</span>{{ $displayPost->user->username }}
                         </a>
 
@@ -63,7 +84,7 @@
                         @endif
 
                         <time datetime="{{ $displayPost->created_at->toIso8601String() }}" class="skuy-post__time">
-                            {{ $displayPost->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}
+                            {{ $relativeTime }}
                         </time>
                     </div>
 
@@ -166,6 +187,13 @@
                                         style="display: none;"
                                         class="px-3 py-2 text-xs font-semibold text-[var(--skuy-danger)]"
                                     ></p>
+                                </form>
+                                <form action="{{ route('posts.pin', $displayPost->uid) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="skuy-menu-link flex w-full items-center gap-2" role="menuitem" aria-pressed="{{ $displayPost->pinned_at ? 'true' : 'false' }}">
+                                        <x-fa-icon name="thumbtack" class="text-base" />
+                                        {{ $displayPost->pinned_at ? __('polls.unpin_from_profile') : __('polls.pin_to_profile') }}
+                                    </button>
                                 </form>
                                 <a href="{{ route('posts.edit', $displayPost->uid) }}" class="skuy-menu-link flex items-center gap-2" role="menuitem">
                                     <x-fa-icon name="pen-to-square" class="text-base" />
@@ -305,6 +333,8 @@
                         </div>
                         @endif
                     @endif
+                    @include('partials.post-poll', ['displayPost' => $displayPost])
+                    @include('partials.post-appreciation-summary', ['displayPost' => $displayPost])
                 </div>
             </div>
 
@@ -482,7 +512,7 @@
                             </form>
 
                             <button data-mobile-primary-action="share" @click="copyAndToast('{{ route('posts.show', $displayPost->uid) }}', '{{ __('threads.thread_link_copied') }}')" type="button" aria-label="{{ __('threads.actions.share') }}" title="{{ __('threads.actions.share') }}" class="skuy-action">
-                                <x-fa-icon name="share-nodes" class="text-xl" />
+                                <x-fa-icon name="paper-plane" class="text-xl" />
                             </button>
                         </div>
                         <div class="min-h-5">

@@ -64,6 +64,7 @@ const translations = {
             network: 'Network failed',
         },
     },
+    poll: { vote: 'Vote', results: 'Poll results' },
 } as PostDetailTranslations;
 
 const routes: PostDetailRoutes = {
@@ -75,6 +76,7 @@ const routes: PostDetailRoutes = {
     bookmark_store: '/posts/post-1/bookmark',
     bookmark_destroy: '/posts/post-1/bookmark',
     comment: '/posts/post-1/comments',
+    poll_vote: '/posts/post-1/poll-votes',
     share: '/post/post-1',
     tags_base: '/tags',
     edit: null,

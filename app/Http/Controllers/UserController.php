@@ -6,6 +6,7 @@ use App\Enums\MessageEligibility;
 use App\Enums\ProfileVisibility;
 use App\Http\Requests\ProfilePresentationUpdateRequest;
 use App\Jobs\SendSocialPushNotification;
+use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
 use App\Services\MessagingEligibility;
@@ -40,7 +41,8 @@ class UserController extends Controller
         ];
         $loadDisplayPost = fn ($query) => $query
             ->with('user')
-            ->withExists($bookmarkState);
+            ->withExists($bookmarkState)
+            ->withPollPresentation($viewerId);
         $addPresentationData = static function ($query) use ($viewerId, $loadDisplayPost, $bookmarkState) {
             if ($viewerId !== null) {
                 return $query->withInteractiveListing((int) $viewerId);
@@ -51,7 +53,8 @@ class UserController extends Controller
                     'user',
                     'originalPost' => $loadDisplayPost,
                 ])
-                ->withExists($bookmarkState);
+                ->withExists($bookmarkState)
+                ->withPollPresentation($viewerId);
         };
 
         $isFollowing = $viewer !== null
@@ -59,28 +62,85 @@ class UserController extends Controller
             && $viewer->isFollowing($user);
         $canStartConversation = $viewer !== null
             && $eligibility->evaluate($viewer, $user) === MessageEligibility::Allowed;
+        $request->attributes->set('profile_message_target', $canStartConversation ? $user->username : null);
         $followersCount = (int) $user->followers_count;
         $followingsCount = (int) $user->followings_count;
+        $profileFollowers = $followersCount > 0
+            ? $user->followers()
+                ->when($viewer === null, static fn ($query) => $query->where('users.profile_visibility', ProfileVisibility::Public->value))
+                ->orderByDesc('follows.created_at')
+                ->orderByDesc('follows.id')
+                ->limit(4)
+                ->get(['users.id', 'users.name', 'users.username', 'users.avatar'])
+            : collect();
+        $profileFollowings = $followingsCount > 0
+            ? $user->followings()
+                ->when($viewer === null, static fn ($query) => $query->where('users.profile_visibility', ProfileVisibility::Public->value))
+                ->orderByDesc('follows.created_at')
+                ->orderByDesc('follows.id')
+                ->limit(4)
+                ->get(['users.id', 'users.name', 'users.username', 'users.avatar'])
+            : collect();
 
-        $activeTab = $request->query('tab') === 'likes' ? 'likes' : 'threads';
+        $similarAccounts = User::query()
+            ->where('users.id', '<>', $user->id)
+            ->when($viewer !== null, static function ($query) use ($viewer): void {
+                $query->where('users.id', '<>', $viewer->id)
+                    ->whereNotIn('users.id', $viewer->followings()->select('users.id'));
+            })
+            ->whereHas('posts')
+            ->when($viewer === null, static fn ($query) => $query->where('users.profile_visibility', ProfileVisibility::Public->value))
+            ->withMax('posts', 'created_at')
+            ->orderByDesc('posts_max_created_at')
+            ->orderBy('users.id')
+            ->limit(2)
+            ->get(['users.id', 'users.name', 'users.username', 'users.avatar']);
 
-        if ($activeTab === 'likes') {
-            $likesQuery = Post::query()
-                ->select('posts.*')
-                ->join('likes', 'likes.post_id', '=', 'posts.id')
-                ->where('likes.user_id', $user->id);
+        $requestedTab = $request->query('tab');
+        $activeTab = is_string($requestedTab) && in_array($requestedTab, ['threads', 'replies', 'media', 'reposts', 'likes'], true)
+            ? $requestedTab
+            : 'threads';
+        $profileReplies = null;
 
-            $posts = $addPresentationData($likesQuery)
-                ->orderByDesc('likes.created_at')
-                ->orderByDesc('likes.id')
+        if ($activeTab === 'replies') {
+            $profileReplies = Comment::query()
+                ->where('comments.user_id', $user->id)
+                ->whereHas('post')
+                ->when($viewer === null, static fn ($query) => $query->whereHas(
+                    'post.user',
+                    static fn ($authorQuery) => $authorQuery->where('profile_visibility', ProfileVisibility::Public->value),
+                ))
+                ->with(['user', 'post.user'])
+                ->orderByDesc('comments.created_at')
+                ->orderByDesc('comments.id')
                 ->simplePaginate(15)
                 ->withQueryString();
+            $posts = Post::query()->whereRaw('1 = 0')->simplePaginate(15);
         } else {
-            // Ambil postingan miliknya (termasuk hasil repost)
-            $posts = $addPresentationData($user->posts())
-                ->orderByDesc('created_at')
-                ->orderByDesc('id')
-                ->simplePaginate(15);
+            if ($activeTab === 'likes') {
+                $tabPosts = Post::query()
+                    ->select('posts.*')
+                    ->join('likes', 'likes.post_id', '=', 'posts.id')
+                    ->where('likes.user_id', $user->id);
+            } else {
+                $tabPosts = $user->posts()->select('posts.*');
+
+                if ($activeTab === 'media') {
+                    $tabPosts->whereHasMedia();
+                } elseif ($activeTab === 'reposts') {
+                    $tabPosts->whereNotNull('repost_id');
+                }
+            }
+
+            $postsQuery = $addPresentationData($tabPosts);
+            if ($activeTab === 'threads') {
+                $postsQuery->orderByRaw('CASE WHEN posts.pinned_at IS NULL THEN 1 ELSE 0 END');
+            }
+            $posts = $postsQuery
+                ->when($activeTab === 'likes', static fn ($query) => $query->orderByDesc('likes.created_at')->orderByDesc('likes.id'))
+                ->when($activeTab !== 'likes', static fn ($query) => $query->orderByDesc('posts.created_at')->orderByDesc('posts.id'))
+                ->simplePaginate(15)
+                ->withQueryString();
         }
 
         return view('profile', compact(
@@ -91,6 +151,10 @@ class UserController extends Controller
             'canStartConversation',
             'followersCount',
             'followingsCount',
+            'profileFollowers',
+            'profileFollowings',
+            'similarAccounts',
+            'profileReplies',
         ));
     }
 

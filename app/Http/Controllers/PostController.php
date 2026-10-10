@@ -27,10 +27,13 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $isEnhancedFeedRequest = $request->header('X-Feed-Fragment') === '1';
+        $feedTab = $request->query('feed') === 'following' ? 'following' : 'for-you';
         $viewerId = $request->user()->getKey();
+        $feedPageSize = max(1, min(50, (int) config('services.skuy.feed_page_size', 10)));
         $loadDisplayPost = function ($query) use ($viewerId): void {
             $query
                 ->withAppreciationState($viewerId)
+                ->withPollPresentation((int) $viewerId)
                 ->with(['user', 'feedComments.user', 'feedComments.feedReplies.user'])
                 ->withCount([
                     'likes',
@@ -45,9 +48,15 @@ class PostController extends Controller
                 ]);
         };
 
+        $feedQuery = Post::query();
+        if ($feedTab === 'following') {
+            $feedQuery->whereIn('user_id', $request->user()->followings()->select('users.id'));
+        }
+
         try {
-            $posts = Post::query()
+            $posts = $feedQuery
                 ->withAppreciationState($viewerId)
+                ->withPollPresentation((int) $viewerId)
                 ->with([
                     'user',
                     'feedComments.user',
@@ -67,7 +76,8 @@ class PostController extends Controller
                 ])
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
-                ->cursorPaginate(10);
+                ->cursorPaginate($feedPageSize)
+                ->appends($feedTab === 'following' ? ['feed' => 'following'] : []);
         } catch (UnexpectedValueException $exception) {
             if (! $isEnhancedFeedRequest) {
                 throw $exception;
@@ -105,15 +115,25 @@ class PostController extends Controller
             ->groupBy('hashtags.id', 'hashtags.name')
             ->orderByDesc('post_count')
             ->orderBy('hashtags.name')
-            ->limit(5)
+            ->limit(3)
             ->get()
             ->mapWithKeys(fn (Hashtag $hashtag): array => [
                 $hashtag->name => (int) $hashtag->post_count,
             ])
             ->all();
 
+        $feedCreators = User::query()
+            ->where('users.id', '<>', $viewerId)
+            ->whereNotIn('users.id', $request->user()->followings()->select('users.id'))
+            ->orderByDesc('users.created_at')
+            ->orderBy('users.id')
+            ->limit(3)
+            ->get(['users.id', 'users.name', 'users.username', 'users.avatar', 'users.bio']);
+
         return view('feed', compact(
             'posts',
+            'feedTab',
+            'feedCreators',
             'trendingHashtags',
             'availableTopics',
         ));
@@ -128,7 +148,14 @@ class PostController extends Controller
             'images' => 'nullable|array|max:4',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
             'topic' => 'nullable|string|max:50',
+            'poll_question' => 'nullable|string|max:180|required_with:poll_options',
+            'poll_options' => 'nullable|array|min:2|max:4|required_with:poll_question',
+            'poll_options.*' => 'required|string|max:80|distinct',
         ]);
+
+        $pollQuestion = $validated['poll_question'] ?? null;
+        $pollOptions = array_values($validated['poll_options'] ?? []);
+        unset($validated['poll_question'], $validated['poll_options']);
 
         $imagePaths = [];
 
@@ -148,9 +175,21 @@ class PostController extends Controller
                 $validated['images'] = $imagePaths;
             }
 
-            DB::transaction(function () use ($request, $validated): void {
+            DB::transaction(function () use ($request, $validated, $pollQuestion, $pollOptions): void {
                 // Simpan postingan atas nama user yang sedang login
                 $post = $request->user()->posts()->create($validated);
+
+                if ($pollQuestion !== null) {
+                    $poll = $post->poll()->create(['question' => trim($pollQuestion)]);
+                    $poll->options()->createMany(array_map(
+                        static fn (string $label, int $position): array => [
+                            'label' => trim($label),
+                            'position' => $position,
+                        ],
+                        $pollOptions,
+                        array_keys($pollOptions),
+                    ));
+                }
 
                 $this->syncHashtags($post);
             });
@@ -163,6 +202,53 @@ class PostController extends Controller
         return redirect()->route('feed');
     }
 
+    public function togglePin(Post $post)
+    {
+        $ownerId = (int) auth()->id();
+        abort_unless($ownerId > 0 && (int) $post->user_id === $ownerId, 403);
+
+        DB::transaction(function () use ($post, $ownerId): void {
+            User::query()->whereKey($ownerId)->lockForUpdate()->firstOrFail();
+            $lockedPost = Post::query()
+                ->whereKey($post->getKey())
+                ->where('user_id', $ownerId)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedPost->pinned_at !== null) {
+                $lockedPost->pinned_at = null;
+                $lockedPost->save();
+                DB::table('user_pinned_posts')
+                    ->where('user_id', $ownerId)
+                    ->where('post_id', $lockedPost->getKey())
+                    ->delete();
+
+                return;
+            }
+
+            $pinnedAt = now();
+            Post::query()
+                ->where('user_id', $ownerId)
+                ->whereNotNull('pinned_at')
+                ->update(['pinned_at' => null, 'updated_at' => $pinnedAt]);
+
+            DB::table('user_pinned_posts')->upsert(
+                [[
+                    'user_id' => $ownerId,
+                    'post_id' => $lockedPost->getKey(),
+                    'pinned_at' => $pinnedAt,
+                ]],
+                ['user_id'],
+                ['post_id', 'pinned_at'],
+            );
+
+            $lockedPost->pinned_at = $pinnedAt;
+            $lockedPost->save();
+        });
+
+        return back();
+    }
+
     // Menampilkan Halaman Detail Postingan Tunggal
     public function show(Request $request, Post $post)
     {
@@ -171,6 +257,10 @@ class PostController extends Controller
         $post->load(['user', 'originalPost.user']);
 
         $displayPost = $post->interactionTarget();
+        $displayPost->load([
+            'poll.options' => static fn ($options) => $options->withCount('votes'),
+            'poll.viewerVotes' => static fn ($votes) => $votes->where('user_id', $viewerId),
+        ]);
         $displayPost->user->loadCount(['posts', 'followers', 'followings']);
         $displayPost
             ->loadCount(['likes', 'comments', 'reposts', 'appreciations'])
@@ -381,6 +471,7 @@ class PostController extends Controller
                 'bookmark_store' => route('bookmarks.store', $displayPost),
                 'bookmark_destroy' => route('bookmarks.destroy', $displayPost),
                 'comment' => route('comments.store', $displayPost),
+                'poll_vote' => route('posts.poll-votes', $displayPost),
                 'share' => $request->url(),
                 'tags_base' => url('/tags'),
                 'edit' => $canEditForPage ? route('posts.edit', $post) : null,
@@ -407,6 +498,7 @@ class PostController extends Controller
             'author' => $this->serializeAuthor($post->user),
             'topic' => $post->topic,
             'media' => $this->serializeMedia($post),
+            'poll' => $this->serializePoll($post),
             'interactions' => [
                 'liked' => (bool) ($post->liked_by_current_user ?? false),
                 'like_count' => (int) ($post->likes_count ?? 0),
@@ -423,6 +515,42 @@ class PostController extends Controller
                 'can_delete' => $canDelete,
                 'can_perform_social_writes' => $canPerformSocialWrites,
             ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function serializePoll(Post $post): ?array
+    {
+        $poll = $post->poll;
+
+        if ($poll === null || $poll->options->isEmpty()) {
+            return null;
+        }
+
+        $options = $poll->options;
+        $totalVotes = (int) $options->sum('votes_count');
+        $viewerVoteOptionId = $poll->viewerVotes->first()?->option_id;
+
+        return [
+            'id' => (int) $poll->getKey(),
+            'question' => (string) $poll->question,
+            'total_votes' => $totalVotes,
+            'total_label' => trans_choice('polls.votes', $totalVotes, ['count' => $totalVotes]),
+            'viewer_vote_option_id' => $viewerVoteOptionId === null ? null : (int) $viewerVoteOptionId,
+            'options' => $options->map(static function ($option) use ($totalVotes, $viewerVoteOptionId): array {
+                $voteCount = (int) ($option->votes_count ?? 0);
+
+                return [
+                    'id' => (int) $option->getKey(),
+                    'label' => (string) $option->label,
+                    'vote_count' => $voteCount,
+                    'percentage' => $totalVotes > 0 ? (int) round(($voteCount / $totalVotes) * 100) : 0,
+                    'is_viewer_choice' => $viewerVoteOptionId !== null
+                        && (int) $viewerVoteOptionId === (int) $option->getKey(),
+                ];
+            })->values()->all(),
         ];
     }
 
@@ -581,6 +709,10 @@ class PostController extends Controller
             'next_image' => __('threads.media.next_image'),
             'pagination_previous' => str_replace('&laquo;', '«', __('pagination.previous')),
             'pagination_next' => str_replace('&raquo;', '»', __('pagination.next')),
+            'poll' => [
+                'vote' => __('polls.vote'),
+                'results' => __('polls.results'),
+            ],
             'feedback' => [
                 'liked' => __('threads.feedback.liked'),
                 'unliked' => __('threads.feedback.unliked'),

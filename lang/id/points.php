@@ -2,6 +2,7 @@
 
 return [
     'unit' => 'Poin',
+    'appreciation_cost_unit' => 'Poin',
     'wallet' => [
         'heading' => 'Dompet Poin',
         'description' => 'Pantau saldo Poin dan transaksi yang tercatat di akun ini.',

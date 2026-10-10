@@ -1,4 +1,4 @@
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { PostDetailPageProps, ReactiveCommentCreationResponse } from '../../types/post';
 import { Avatar } from '../../components/post/Avatar';
@@ -28,6 +28,90 @@ function renderContent(content: string, tagsBaseUrl: string): ReactNode[] {
     });
 }
 
+interface PostPollSectionProps {
+    poll: NonNullable<PostDetailPageProps['display_post']['poll']>;
+    actionUrl: string;
+    canPerformSocialWrites: boolean;
+    error?: string;
+    translations: PostDetailPageProps['translations']['poll'];
+}
+
+function PostPollSection({ poll, actionUrl, canPerformSocialWrites, error, translations }: PostPollSectionProps) {
+    const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
+    const [pending, setPending] = useState(false);
+    const canVote = canPerformSocialWrites && poll.viewer_vote_option_id === null;
+
+    const submitVote = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!canVote || selectedOptionId === null || pending) return;
+
+        router.post(actionUrl, { option_id: selectedOptionId }, {
+            preserveScroll: true,
+            onStart: () => setPending(true),
+            onFinish: () => setPending(false),
+        });
+    };
+
+    return (
+        <section className="skuy-poll" data-post-poll={poll.id} aria-label={poll.question}>
+            <h3 className="skuy-poll__question">{poll.question}</h3>
+
+            {canVote ? (
+                <form onSubmit={submitVote} className="skuy-poll__form">
+                    {poll.options.map((option) => (
+                        <label key={option.id} className="skuy-poll__option">
+                            <input
+                                className="skuy-poll__radio"
+                                type="radio"
+                                name="option_id"
+                                value={option.id}
+                                checked={selectedOptionId === option.id}
+                                onChange={() => setSelectedOptionId(option.id)}
+                                required
+                            />
+                            <span className="skuy-poll__option-content">
+                                <span className="skuy-poll__option-heading">
+                                    <span>{option.label}</span>
+                                    <strong>{option.percentage}%</strong>
+                                </span>
+                                <span className="skuy-poll__bar" aria-hidden="true">
+                                    <span style={{ width: `${option.percentage}%` }} />
+                                </span>
+                            </span>
+                        </label>
+                    ))}
+                    <button className="skuy-poll__vote" type="submit" disabled={selectedOptionId === null || pending} aria-busy={pending}>
+                        {translations.vote}
+                    </button>
+                </form>
+            ) : (
+                <div className="skuy-poll__results" role="list" aria-label={translations.results}>
+                    {poll.options.map((option) => (
+                        <div
+                            key={option.id}
+                            className={`skuy-poll__result${option.is_viewer_choice ? ' is-selected' : ''}`}
+                            role="listitem"
+                            aria-label={`${option.label}: ${option.percentage}%`}
+                        >
+                            <span className="skuy-poll__option-heading">
+                                <span>{option.label}</span>
+                                <strong>{option.percentage}%</strong>
+                            </span>
+                            <span className="skuy-poll__bar" aria-hidden="true">
+                                <span style={{ width: `${option.percentage}%` }} />
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {error && <p className="skuy-poll__error" role="alert">{error}</p>}
+            <p className="skuy-poll__total">{poll.total_label}</p>
+        </section>
+    );
+}
+
 export default function Show() {
     const { props } = usePage<PostDetailPageProps>();
     const {
@@ -40,6 +124,7 @@ export default function Show() {
         viewer,
         routes,
         translations,
+        errors,
     } = props;
     const [commentCount, setCommentCount] = useState(displayPost.interactions.comment_count);
     const [createdComments, setCreatedComments] = useState<ReactiveCommentCreationResponse[]>([]);
@@ -118,6 +203,15 @@ export default function Show() {
                             <div className="skuy-post__content">
                                 <p className="skuy-post__text">{renderContent(displayPost.content, routes.tags_base)}</p>
                                 <MediaViewer media={displayPost.media} translations={translations} />
+                                {displayPost.poll && (
+                                    <PostPollSection
+                                        poll={displayPost.poll}
+                                        actionUrl={routes.poll_vote}
+                                        canPerformSocialWrites={viewer.can_perform_social_writes}
+                                        error={errors?.option_id}
+                                        translations={translations.poll}
+                                    />
+                                )}
                             </div>
                         </div>
 
