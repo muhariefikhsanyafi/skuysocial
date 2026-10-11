@@ -48,7 +48,7 @@
         <x-fa-icon name="xmark" weight="solid" class="text-2xl" />
     </button>
     <img
-        :src="activeImage"
+        :src="activeImage || null"
         alt="{{ __('threads.media.full_photo') }}"
         @pointerdown="startLightboxPointer($event)"
         @pointerup="endLightboxPointer($event)"

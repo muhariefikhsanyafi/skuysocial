@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    data-flow-page="{{ request()->routeIs('feed') ? 'feed' : '' }}"
+    data-flow-page="{{ request()->routeIs('feed') ? 'feed' : (request()->routeIs('user.profile') ? 'profile' : '') }}"
     x-data="{ darkMode: localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches }"
     x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
     :class="{ 'dark': darkMode }"
@@ -24,6 +24,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @if (request()->routeIs('feed'))
             @vite('resources/css/skuy-flow-feed.css')
+        @elseif (request()->routeIs('user.profile'))
+            @vite(['resources/css/skuy-flow-profile.css', 'resources/js/skuy-flow-profile.js'])
         @endif
     </head>
     <body class="skuy-product antialiased">
@@ -70,7 +72,7 @@
 
         <div
             x-data="{ showToast: false, toastMessage: '', toastTimeout: null }"
-            @show-toast.window="
+            x-on:show-toast.window="
                 toastMessage = $event.detail;
                 showToast = true;
                 clearTimeout(toastTimeout);

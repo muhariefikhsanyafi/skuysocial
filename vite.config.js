@@ -8,7 +8,9 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/css/skuy-flow-feed.css',
+                'resources/css/skuy-flow-profile.css',
                 'resources/js/app.js',
+                'resources/js/skuy-flow-profile.js',
                 'resources/js/inertia.tsx',
             ],
             refresh: true,
