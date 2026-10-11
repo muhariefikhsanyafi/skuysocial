@@ -107,6 +107,88 @@ class FlowFeedTest extends TestCase
         $this->assertStringNotContainsString('linear-gradient(', $css);
     }
 
+    public function test_flow_mobile_notification_badge_is_positioned_at_the_bells_upper_right_without_forcing_a_wide_pill(): void
+    {
+        $flowCss = file_get_contents(resource_path('css/skuy-flow-feed.css'));
+        $appCss = file_get_contents(resource_path('css/app.css'));
+        $navigationView = file_get_contents(resource_path('views/layouts/navigation.blade.php'));
+        $this->assertIsString($flowCss);
+        $this->assertIsString($appCss);
+        $this->assertIsString($navigationView);
+
+        $iconWrapRule = $this->lastCssRule($appCss, '.skuy-mobile-nav__icon-wrap');
+        $this->assertStringContainsString('position: relative;', $iconWrapRule);
+        $this->assertStringContainsString('width: 24px;', $iconWrapRule);
+        $this->assertStringContainsString('<span class="skuy-mobile-nav__icon-wrap">', $navigationView);
+        $this->assertStringContainsString('<x-fa-icon name="bell"', $navigationView);
+        $this->assertStringContainsString('class="skuy-feed-nav__badge skuy-mobile-nav__badge"', $navigationView);
+
+        $this->assertStringContainsString(
+            'html[data-flow-page="feed"] .skuy-mobile-nav__item > .skuy-mobile-nav__icon-wrap > .skuy-mobile-nav__badge',
+            $flowCss,
+        );
+        $badgeRule = $this->lastCssRule($flowCss, '.skuy-mobile-nav__badge');
+        foreach ([
+            'display: inline-flex;',
+            'top: -8px;',
+            'right: -14px;',
+            'min-width: 18px;',
+            'width: max-content;',
+            'max-width: none;',
+            'min-height: 18px;',
+            'padding-inline: 4px;',
+            'overflow: visible;',
+            'text-overflow: clip;',
+            'transform: translate(50%, -25%);',
+            'white-space: nowrap;',
+            'z-index: 1;',
+        ] as $contract) {
+            $this->assertStringContainsString($contract, $badgeRule, "Missing mobile notification badge contract: {$contract}");
+        }
+    }
+
+    public function test_dark_feed_verified_component_uses_violet_fill_and_a_contrasting_checkmark(): void
+    {
+        $css = file_get_contents(resource_path('css/skuy-flow-feed.css'));
+        $component = file_get_contents(resource_path('views/components/verified-badge.blade.php'));
+        $feedPartial = file_get_contents(resource_path('views/partials/feed-threads.blade.php'));
+        $this->assertIsString($css);
+        $this->assertIsString($component);
+        $this->assertIsString($feedPartial);
+
+        $this->assertStringContainsString('<x-verified-badge />', $feedPartial);
+        $this->assertStringContainsString('data-verified-badge', $component);
+        $this->assertStringContainsString('stroke="currentColor"', $component);
+        $this->assertStringContainsString(
+            'html[data-flow-page="feed"].dark .skuy-feed-page[data-flow-feed] [data-verified-badge]',
+            $css,
+        );
+
+        $verifiedRule = $this->lastCssRule($css, '[data-verified-badge]');
+        foreach ([
+            'background: var(--flow-accent-ink);',
+            'border-color: var(--flow-accent-ink);',
+            'color: var(--flow-canvas);',
+            'box-shadow: none;',
+        ] as $contract) {
+            $this->assertStringContainsString($contract, $verifiedRule, "Missing dark verified badge contract: {$contract}");
+        }
+    }
+
+    public function test_verified_author_renders_the_actual_badge_in_a_feed_post_header(): void
+    {
+        $viewer = User::factory()->create();
+        $verifiedAuthor = User::factory()->create(['is_verified' => true]);
+        $post = $this->createPost($verifiedAuthor, ['content' => 'Verified feed badge fixture post']);
+
+        $response = $this->actingAs($viewer)->get(route('feed'));
+
+        $response->assertOk()
+            ->assertSee($post->content)
+            ->assertSee('data-verified-badge', false)
+            ->assertSee('stroke="currentColor"', false);
+    }
+
     public function test_flow_feed_mobile_chrome_metadata_and_desktop_context_follow_layout_contracts(): void
     {
         $css = file_get_contents(resource_path('css/skuy-flow-feed.css'));
@@ -134,7 +216,7 @@ class FlowFeedTest extends TestCase
         }
 
         $badgeRule = $this->lastCssRule($css, '.skuy-mobile-nav__badge');
-        foreach (['min-width: 32px;', 'white-space: nowrap;', 'z-index: 1;'] as $contract) {
+        foreach (['min-width: 18px;', 'white-space: nowrap;', 'z-index: 1;'] as $contract) {
             $this->assertStringContainsString($contract, $badgeRule, "Missing mobile notification badge contract: {$contract}");
         }
 
@@ -149,8 +231,6 @@ class FlowFeedTest extends TestCase
         foreach (['overflow: hidden;', 'text-overflow: ellipsis;', 'white-space: nowrap;'] as $contract) {
             $this->assertStringContainsString($contract, $usernameRule, "Missing post username truncation contract: {$contract}");
         }
-
-        $this->assertStringContainsString('color: var(--flow-accent-ink);', $this->lastCssRule($css, '.skuy-verified-badge'));
 
         $contextRule = $this->lastCssRule($css, '.skuy-feed-context');
         foreach (['position: static;', 'max-height: none;', 'overflow: visible;'] as $contract) {
