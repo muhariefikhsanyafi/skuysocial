@@ -56,6 +56,7 @@
                       isSubmitting: false
                   }"
                   @submit="isSubmitting = true"
+                  @avatar-saved.window="avatarPreview = $event.detail.url; $refs.avatarInput.value = ''"
                   class="skuy-settings-panel skuy-settings-panel--flush">
                 @csrf
                 <input type="hidden" name="profile_links_present" value="1">
@@ -80,11 +81,11 @@
                 </div>
 
                 <div class="relative px-4 pb-6 sm:px-6">
-                    <div class="relative z-10 -mt-10 mb-6 flex items-end justify-between sm:-mt-12">
+                    <div class="relative z-10 -mt-10 mb-6 flex items-end justify-between gap-3 sm:-mt-12">
                         <div class="group relative cursor-pointer">
                             <div class="flex-shrink-0">
                                 <template x-if="avatarPreview">
-                                    <img :src="avatarPreview" alt="{{ __('profile.media.avatar_preview') }}" class="relative z-10 h-20 w-20 rounded-full border-2 border-[var(--skuy-surface)] bg-[var(--skuy-surface)] object-cover ring-1 ring-[var(--skuy-border-subtle)] sm:h-24 sm:w-24">
+                                    <img :src="avatarPreview" x-on:error="avatarPreview = ''" alt="{{ __('profile.media.avatar_preview') }}" class="relative z-10 h-20 w-20 rounded-full border-2 border-[var(--skuy-surface)] bg-[var(--skuy-surface)] object-cover ring-1 ring-[var(--skuy-border-subtle)] sm:h-24 sm:w-24">
                                 </template>
                                 <template x-if="!avatarPreview">
                                     <div class="relative z-10 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[var(--skuy-surface)] bg-[var(--skuy-selected)] text-3xl font-bold text-[var(--skuy-on-selected)] ring-1 ring-[var(--skuy-border-subtle)] sm:h-24 sm:w-24 sm:text-4xl">
@@ -98,6 +99,7 @@
                             </button>
                             <input id="avatar" x-ref="avatarInput" type="file" name="avatar" class="hidden" accept="image/*" @change="updateAvatar">
                         </div>
+                        <button type="button" class="skuy-avatar-studio-launch" @click="$dispatch('open-avatar-studio')">{{ __('avatar.title') }}</button>
                     </div>
 
                     @if ($errors->any())
@@ -207,6 +209,8 @@
                     </div>
                 </div>
             </form>
+
+            @include('partials.avatar-studio')
 
         </div>
     </div>

@@ -38,7 +38,7 @@ class H1UploadReliabilityTest extends TestCase
         ]);
     }
 
-    public function test_custom_profile_avatar_replacement_removes_old_file_after_success(): void
+    public function test_custom_profile_avatar_replacement_preserves_old_file_after_success(): void
     {
         $this->assertSuccessfulProfileReplacement('user.update', 'post', 'avatar');
     }
@@ -189,7 +189,11 @@ class H1UploadReliabilityTest extends TestCase
         $this->assertIsString($newPath);
         $this->assertNotSame($field === 'avatar' ? $oldAvatar : $oldCover, $newPath);
         Storage::disk('public')->assertExists($newPath);
-        Storage::disk('public')->assertMissing($field === 'avatar' ? $oldAvatar : $oldCover);
+        if ($field === 'avatar') {
+            Storage::disk('public')->assertExists($oldAvatar);
+        } else {
+            Storage::disk('public')->assertMissing($oldCover);
+        }
 
         if ($field === 'avatar') {
             $this->assertSame($oldCover, $user->cover);

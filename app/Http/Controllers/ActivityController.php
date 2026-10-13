@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\User;
 
 class ActivityController extends Controller
 {
@@ -19,6 +19,13 @@ class ActivityController extends Controller
             ->orderByDesc('id')
             ->simplePaginate(20);
 
-        return view('activity', compact('notifications'));
+        $actorIds = collect($notifications->items())
+            ->map(fn ($notification) => $notification->data['user_id'] ?? null)
+            ->filter(fn ($id) => is_numeric($id))
+            ->unique()->values();
+        $notificationActors = User::query()->whereIn('id', $actorIds)
+            ->get(['id', 'avatar'])->keyBy('id');
+
+        return view('activity', compact('notifications', 'notificationActors'));
     }
 }

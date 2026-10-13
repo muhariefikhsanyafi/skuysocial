@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\AvatarStudioController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DailyCheckInController;
@@ -33,6 +34,10 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/pengaturan/avatar/preview/{style}', [AvatarStudioController::class, 'preview'])
+        ->middleware('throttle:60,1')->name('avatar.preview');
+    Route::post('/pengaturan/avatar', [AvatarStudioController::class, 'store'])
+        ->middleware(['moderation.active', 'throttle:10,1'])->name('avatar.store');
     Route::get('/pengumuman', [AnnouncementController::class, 'index'])->name('announcements.index');
     Route::get('/pengumuman/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
     Route::get('/@{username}/pengaturan-akun', [ProfileController::class, 'edit'])->name('profile.edit');
