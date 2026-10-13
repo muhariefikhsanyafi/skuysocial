@@ -1,150 +1,114 @@
 # SkuySocial — Codex Project Guidelines
 
-## Project
-SkuySocial is a Laravel-based social media application inspired by Threads, with a Neo Brutalism visual direction.
+## Project Baseline
 
-## Stack
-- Laravel 13.x
-- PHP 8.3+
-- Blade
-- Alpine.js
-- Tailwind CSS
-- Vite
-- SQLite for the included development database; production database may differ
+SkuySocial is a social product built with Laravel. Preserve its working product behavior and current architecture while moving through the roadmap incrementally.
 
-## Product principles
-1. Preserve SkuySocial's Neo Brutalism identity and existing UX patterns.
-2. Prefer incremental changes over rewrites.
-3. Existing working behavior is the baseline; do not remove or change it without a clear reason.
-4. Design social features for growth: pagination, indexes, eager loading, efficient counts, and bounded queries.
-5. Treat authorization and data ownership as first-class requirements.
+Audit snapshot for this guidance update:
 
-## Coding rules
-- Follow Laravel conventions and PSR-12 style.
-- Use Form Requests for non-trivial validation where practical.
-- Prefer route model binding and typed controller signatures.
-- Prefer policies/gates or explicit authorization over ad-hoc ownership checks when a rule is reused.
-- Avoid N+1 queries; use eager loading and constrained relationships intentionally.
-- Do not load unbounded collections for feed, notifications, comments, followers, search, or trending data.
-- Use database constraints for invariants that must always hold (for example unique user/post likes and unique follows).
-- Use transactions when one user action changes multiple related records and partial completion would be incorrect.
-- Do not trust client-supplied foreign keys such as comment parent IDs without checking their relationship to the current resource.
-- Keep notification payloads stable and use the actual public route key (`uid` for posts) rather than assuming a nonexistent slug.
-- Validate upload type and size; do not expose raw storage paths unnecessarily.
-- Never commit or print `.env`, API keys, passwords, tokens, or other secrets.
-- Never add a public web route that executes migrations, destructive maintenance, or arbitrary Artisan commands.
+- Repository: D:\SKUYSOCIAL\skuysocial-flow-zcode
+- Branch: feat/skuysocial-flow-ui
+- Local HEAD: d0380fa570f9d820016fea9c04ef4c31a3f833b1; the working tree was clean before this AGENTS.md edit.
+- The project brief reports SkuySocial Flow Stage 1 (Feed) and Stage 2 (Profile) as complete, deployed to Production, and passed through Production QA. Production was not accessed or independently checked for this update.
+- Treat Feed and Profile as completed work. Do not repeat their implementation unless a regression is verified with reproducible evidence and the task is scoped to address it.
 
-## Database rules
-- Review existing migrations before creating new ones.
-- Prefer additive migrations for existing environments.
-- Add indexes based on actual query patterns.
-- Foreign keys should generally use cascading deletes only where domain behavior clearly requires it.
-- Use unique constraints for one-to-one-per-user interactions.
-- When changing a column type/nullability, check compatibility with the existing database driver and deployed data.
+Recheck branch, HEAD, and working tree before each new task. The values above are an audit point, not a permanent branch requirement.
 
-## Social feature rules
-- Likes: a user can like a post at most once.
-- Comment likes: a user can like a comment at most once.
-- Follows: a user cannot follow themselves or duplicate an existing follow.
-- Comments/replies: a reply parent must belong to the same post unless the product explicitly supports cross-post references.
-- Reposts: prevent duplicate reposts by the same user for the same original post; preserve the original post relationship.
-- Notifications: do not notify users about their own actions unless the product explicitly requires it; avoid duplicate notifications where practical.
+## Stack and Rendering Architecture
 
-## Feed and scale
-- Do not use `->get()` for an unbounded global feed.
-- Prefer `paginate()`/`cursorPaginate()` according to the UI/query pattern.
-- Select only columns needed when practical.
-- Avoid loading all likes/comments merely to compute counts or current-user state.
-- Revisit trending/search implementation before production scale; avoid scanning every post's full text into PHP.
+The manifests and source tree currently show:
 
-## Testing expectations
-For meaningful changes:
-1. Add or update Feature/Unit tests for the behavior.
-2. Run focused tests first.
-3. Run the full test suite before considering the change complete when dependencies are available.
-4. Run Pint on changed PHP files where appropriate.
+- Laravel 13.x with PHP 8.3 or later; composer.json requires Laravel ^13.17 and PHP ^8.3.
+- Blade and Alpine.js are the primary rendering and interaction pattern for product surfaces. The audited tree contains 75 Blade view files and Alpine directives in those views.
+- React and TypeScript are used selectively through Inertia. The audited tree has one Inertia page, resources/js/pages/Post/Show.tsx, with React components supporting it. Do not migrate another surface to React by default; follow its existing integration unless the task calls for a deliberate change.
+- Filament ~5.0 is installed for the admin application. Keep admin UI work separate from public/product design unless explicitly requested.
+- The frontend manifest declares React ^19.3, @inertiajs/react ^3.7.1, Inertia Laravel ^3.3, TypeScript ^7.0.2, Alpine.js ^3.4.2, and Vite ^8.0.
+- package.json currently declares tailwindcss ^3.1 alongside @tailwindcss/vite ^4.0. Check the lockfile, CSS entry points, and active build setup before changing Tailwind configuration or dependencies; do not assume a single Tailwind major version or silently normalize the setup.
 
-## Current known issues to prioritize
-- Feed/topic/profile/hashtag queries are currently mostly unbounded `get()` calls.
-- Trending hashtags are computed by scanning post content in PHP.
-- Comment `parent_id` validation does not yet guarantee that the parent belongs to the same post.
-- `comment_likes` lacks a database-level unique `(comment_id, user_id)` constraint.
-- Notification payloads reference `post->slug`, while posts currently use `uid` as the route key.
-- Public maintenance routes exist for running migrations and repairing usernames; these must not remain public in production.
-- Profile update logic contains duplicated filling/validation flow and should be simplified carefully.
+These counts and package declarations describe the audited baseline. Recheck current source and manifests before relying on them in later work.
 
-## Change discipline
-- Before editing, inspect the relevant model, migration, controller, route, view, and tests.
-- Keep changes scoped to the requested feature unless a directly related correctness/security issue must be fixed.
-- Explain migrations and backward-compatibility implications in the change summary.
+## Current Product Design Direction
 
-# SkuySocial Project Instructions
+The current product direction supplied for this guidance update is **SkuySocial Flow — Minimalist Glassmorphism**:
 
-## Design Authority
+- Light Mode uses clean white, #FFFFFF. Dark Mode uses neutral dark, #0D0E13.
+- Use violet selectively as an accent. Keep the interface content-first, readable, and responsive.
+- Use subtle glassmorphism for navigation, menus, and floating elements. Keep text and controls legible in both themes and avoid making every surface translucent.
+- Do not add aurora effects, decorative gradients, or excessive glow.
+- Mobile bottom navigation has exactly five items, in this order: Beranda, Cari, Buat, Aktivitas, Pesan. Preserve real destinations and behavior, accessible labels, selected state, safe-area spacing, and sufficient content clearance.
 
-For any work involving:
+Read DESIGN.md before UI work. The current DESIGN.md still names SkuySocial Expressive Clean and specifies a warm-neutral/teal/mint/saffron palette with limited shell glow and gradient treatments. Those visual directions conflict with the current product direction above. This task is scoped to AGENTS.md, so DESIGN.md is unchanged. Until it is reconciled in separately scoped work, this section records the latest explicit product direction for palette, visual effects, and the five-item mobile navigation; use DESIGN.md for its non-conflicting guidance on behavior, responsive composition, accessibility, localization, and interface states. Do not blend the conflicting palettes or effects. Surface any additional unresolved design conflict before implementing UI.
 
-- UI
-- UX
-- Blade presentation
-- styling
-- responsive behavior
-- accessibility
-- copywriting
-- localization
-- email presentation
+Anti-Slop is a quality filter, not an alternate design system. It must not expand an approved scope or override intentional SkuySocial patterns. For backend-only work, do not use Anti-Slop findings to trigger unrelated UI, Blade, CSS, copy, or design changes; report them only. If a generic suggestion materially conflicts with an intentional project decision, preserve the project direction and report the conflict.
 
-Codex MUST:
+Keep Filament Admin's separate visual language unless an admin design task explicitly changes that scope. Preserve existing SkuySocial patterns and do not redesign established surfaces without a scoped request.
 
-1. Read DESIGN.md before making relevant changes.
-2. Treat DESIGN.md as authoritative for SkuySocial design.
-3. Treat Anti-Slop as a quality filter, not a replacement design system.
-4. Preserve intentional existing SkuySocial patterns.
-5. Never expand approved scope because Anti-Slop finds unrelated issues.
-6. Report out-of-scope findings instead of modifying them.
-7. Do not redesign established surfaces unless explicitly requested.
-8. Preserve responsive and accessibility correctness.
-9. Respect the active id/en localization architecture.
-10. Stop and report if a generic Anti-Slop rule materially conflicts with an
-    intentional SkuySocial design decision and cannot be reconciled safely.
+## Product and Social Feature Invariants
 
-## Backend Scope Guard
+Preserve existing working features, including social interactions, Points, appreciation, authentication, privacy, and authorization. Do not create fake controls, active-looking placeholders, invented counts, or behaviors that do not work.
 
-For backend-focused tasks including:
+- Treat authorization and data ownership as first-class requirements. Use policies/gates or explicit checks; validate ownership and relationships on the server even when the UI hides an action.
+- Use Laravel conventions, PSR-12, typed controller signatures, route model binding, and Form Requests for non-trivial validation where practical.
+- A user can like a post or comment at most once. A user cannot follow themselves or create duplicate follows.
+- A reply parent must belong to the same post unless cross-post references are an explicit product decision.
+- Prevent duplicate reposts by the same user for the same original post, preserve the original-post relationship, and enforce important invariants in the database where appropriate.
+- Do not notify users about their own actions unless explicitly required. Avoid duplicate notifications where practical and keep payloads stable.
+- Build notification and other URLs with the route key actually configured for the model; verify route binding instead of assuming a slug or hard-coding an identifier.
+- Validate upload type and size, and avoid exposing raw storage paths.
+- Do not add public routes that run migrations, destructive maintenance, or arbitrary Artisan commands.
 
-- migrations
-- database
-- models
-- services
-- middleware
-- security
-- infrastructure
-- authentication logic
+## Database and Scale
 
-Anti-Slop MUST NOT trigger unrelated:
+- Review existing migrations, models, and query patterns before changing the schema or adding an index.
+- Prefer additive migrations for existing environments. Check driver compatibility and deployed data before changing column type or nullability.
+- Use transactions when one action changes multiple records and partial completion would be incorrect. Use foreign keys and cascading deletes only when domain behavior supports them.
+- Use unique constraints for one-user-per-resource interactions and other invariants that must always hold.
+- Bound feed, profile, topic, hashtag, search, notification, follower, and comment queries. Use pagination or cursor pagination to fit the UI.
+- Avoid N+1 queries, unbounded global get() calls, loading every like/comment for counts or current-user state, and scanning all post text into PHP for trending results.
+- Select only needed columns and add indexes from measured query patterns.
+- Never run tests or migrations against Production. Do not run migrate:fresh against a persistent, project, or Production database. Run a migration only when required by the task and only after confirming it targets an isolated local database.
+- Never delete, move, overwrite, clean, or otherwise alter persistent Production data. In particular, preserve storage/app.pre-final/.
 
-- UI cleanup
-- Blade changes
-- CSS changes
-- copy edits
-- design changes
-- unrelated refactors
+## Privacy and Security
 
-Out-of-scope findings are report-only.
+- Do not read or display .env, API keys, passwords, tokens, or other secrets unless a concrete task requires it. Never include them in command output, diffs, logs, or reports.
+- skuysocial-app.zip is intentionally excluded from project work: do not open, read, copy, modify, stage, or delete it.
+- Do not modify Production infrastructure unless explicitly requested and scoped.
+- Do not access Production for this project workflow unless the user explicitly requests and scopes it. Do not use Production credentials for local development or tests.
+- Do not add a route that exposes maintenance operations or arbitrary Artisan commands.
+- Do not commit, push, merge, or deploy without the user's explicit approval.
+- Do not use force push, destructive resets, broad staging, or production data repair as a shortcut.
+- Keep changes limited to the requested scope. Report unrelated findings rather than fixing them opportunistically.
 
-## Git / Production Safety
+## Testing and QA
 
-Preserve the project's existing disciplined workflow.
+For meaningful application changes, choose checks based on the changed layer and report what actually ran:
 
-Do not:
+- Run focused PHP Feature/Unit tests first, then the full PHP suite when dependencies are available.
+- Run relevant frontend tests with npm run test:client, typecheck with npm run typecheck, and compile with npm run build as appropriate to the change.
+- For UI work, perform browser QA on the affected flows, themes, responsive widths, keyboard behavior, and id/en localization states. Never claim QA that was not performed.
+- Run Pint on changed PHP files where appropriate.
+- Use an isolated local test database. The audited phpunit.xml forces APP_ENV=testing, DB_CONNECTION=sqlite, and DB_DATABASE=:memory:; preserve those safeguards and verify test configuration before running tests. Do not point tests at a persistent or Production database.
+- Do not run tests, migrations, or build steps for a documentation-only change unless the task specifically requires them.
 
-- force push
-- use broad staging when selective staging is required
-- touch unrelated files
-- destructively reset production data
-- use migrate:fresh against persistent/project/production data
-- expose secrets
-- modify production infrastructure unless explicitly requested
+The composer.json setup script copies/creates .env, generates an application key, and runs php artisan migrate --force before installing frontend dependencies and building. Do not invoke the setup script casually in an existing checkout. Inspect its steps and confirm an isolated local environment before using any setup command; never run it against Production or persistent project data.
 
-skuysocial-app.zip is intentionally excluded from project work and must remain
-unopened, unread, untouched, unstaged, and not deleted.
+## Documentation Status
+
+- DESIGN.md is the product design reference, subject to the current explicit direction and conflict handling documented above.
+- README.md is still the Laravel starter README and is not a project-specific setup guide.
+- SKUYSOCIAL-AUDIT.md is titled as an initial technical audit and lists candidate issues from an earlier snapshot. Treat it as historical context, not a live backlog. Verify any listed condition in the current code and tests before treating it as open or changing it.
+- Do not repeat an old issue list as current status without verification.
+
+## Windows and Laragon Workflow
+
+- Use PowerShell from the repository root. Verify the root, active branch, and git status before edits; check command resolution and versions with Get-Command and each tool's version command rather than assuming PATH contents.
+- The audited host had Git on PATH from the Codex runtime. Laragon Git was also found at C:\laragon\bin\git\cmd\git.exe and C:\laragon\bin\git\bin\git.exe. If Git is absent from PATH, verify the installed Laragon path with Test-Path and invoke that executable by its full path. Laragon may be installed on a different drive on another machine.
+- On the audited host, PHP resolved to C:\php\php.exe, Node resolved from C:\laragon\bin\nodejs\node-v22, and Composer was not available as a PowerShell command. Resolve and verify the actual PHP/Composer pair before Composer or Artisan work; do not assume all tools come from the same Laragon installation. These are host observations, not portable path requirements.
+- Avoid relying on Bash-only shell syntax in Windows tasks. Quote Windows paths and use PowerShell-native commands for file operations.
+- Check a Composer script's steps before running it. In particular, the project setup script includes a forced migration and writes local environment/key files as described above.
+- Keep local development and test databases isolated from Production. Do not read secret configuration just to discover a tool path or run routine tests.
+
+## Change Discipline
+
+Before application edits, inspect the relevant current models, migrations, controllers, routes, views/components, and tests. Keep the diff limited to the approved task, preserve existing behavior, and include compatibility implications when a schema change is required. Work on the branch appropriate to the task and stop after the requested deliverable; wait for approval before any commit, push, merge, or deployment.
