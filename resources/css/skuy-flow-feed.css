@@ -1011,11 +1011,29 @@ html[data-flow-page="feed"] .skuy-flow-points-widget a {
 }
 
 @media (min-width: 1280px) {
+    html[data-flow-page="feed"] .skuy-app-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    html[data-flow-page="feed"] .skuy-navigation-shell[data-skuy-prism-shell],
+    html[data-flow-page="feed"] .skuy-app-shell__workspace {
+        grid-area: 1 / 1;
+    }
+
+    html[data-flow-page="feed"] .skuy-navigation-shell[data-skuy-prism-shell] {
+        width: 0;
+        min-width: 0;
+        justify-self: start;
+    }
+
     html[data-flow-page="feed"] .skuy-flow-topbar-shortcuts { display: flex; }
 
     html[data-flow-page="feed"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail {
-        position: absolute;
-        inset: 96px auto auto max(20px, calc((100vw - 1440px) / 2 + 24px));
+        position: sticky;
+        inset-block-start: calc(72px + env(safe-area-inset-top, 0px) + 24px);
+        margin-inline-start: max(20px, calc((100vw - 1440px) / 2 + 24px));
+        align-self: start;
         width: 216px;
         height: auto;
         min-height: 0;
@@ -1051,8 +1069,8 @@ html[data-flow-page="feed"] .skuy-flow-points-widget a {
     html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-context {
         display: grid;
         gap: 14px;
-        position: static;
-        top: auto;
+        position: sticky;
+        top: calc(72px + env(safe-area-inset-top, 0px) + 24px);
         align-self: start;
         max-height: none;
         overflow: visible;
