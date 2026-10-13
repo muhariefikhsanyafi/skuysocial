@@ -33,7 +33,8 @@ class GravatarAvatar
 
         $hash = $this->hash($user);
         $key = 'avatar-studio:v1:'.$hash.':'.$style;
-        $cached = Cache::get($key);
+        $cache = Cache::store('file');
+        $cached = $cache->get($key);
         if (is_string($cached)) {
             return $cached;
         }
@@ -41,13 +42,13 @@ class GravatarAvatar
             throw new RuntimeException('Avatar temporarily unavailable.');
         }
 
-        $lock = Cache::lock($key.':lock', 15);
+        $lock = $cache->lock($key.':lock', 15);
         if (! $lock->get()) {
             throw new RuntimeException('Avatar generation in progress.');
         }
 
         try {
-            $cached = Cache::get($key);
+            $cached = $cache->get($key);
             if (is_string($cached)) {
                 return $cached;
             }
@@ -85,11 +86,11 @@ class GravatarAvatar
                 throw new RuntimeException('Invalid avatar response.');
             }
 
-            Cache::put($key, $body, now()->addDays(7));
+            $cache->put($key, $body, now()->addDays(7));
 
             return $body;
         } catch (Throwable $exception) {
-            Cache::put($key, false, now()->addMinutes(5));
+            $cache->put($key, false, now()->addMinutes(5));
             throw new RuntimeException('Avatar temporarily unavailable.', previous: $exception);
         } finally {
             $lock->release();

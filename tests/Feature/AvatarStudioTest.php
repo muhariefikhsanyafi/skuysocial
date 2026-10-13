@@ -8,19 +8,51 @@ use App\Models\Post;
 use App\Models\User;
 use App\Notifications\PostLiked;
 use App\Services\GravatarAvatar;
+use Illuminate\Cache\CacheManager;
+use Illuminate\Cache\Repository;
 use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\TestCase;
 
 class AvatarStudioTest extends TestCase
 {
     use RefreshDatabase;
+
+    private CacheManager $cacheManager;
+
+    private string $avatarCacheDirectory;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->cacheManager = Cache::getFacadeRoot();
+        $this->avatarCacheDirectory = sys_get_temp_dir().DIRECTORY_SEPARATOR.'skuysocial-avatar-studio-'.Str::uuid();
+
+        config([
+            'cache.stores.file.path' => $this->avatarCacheDirectory,
+            'cache.stores.file.lock_path' => $this->avatarCacheDirectory,
+        ]);
+        $this->cacheManager->purge('file');
+    }
+
+    protected function tearDown(): void
+    {
+        Cache::swap($this->cacheManager);
+        $this->cacheManager->purge('file');
+        File::deleteDirectory($this->avatarCacheDirectory);
+
+        parent::tearDown();
+    }
 
     private function owner(): User
     {
@@ -211,7 +243,7 @@ class AvatarStudioTest extends TestCase
         $user = $this->owner();
         Http::fake();
         $key = 'avatar-studio:v1:'.app(GravatarAvatar::class)->hash($user).':wavatar:lock';
-        $lock = Cache::lock($key, 15);
+        $lock = Cache::store('file')->lock($key, 15);
         $lock->get();
         $this->actingAs($user)->get($this->preview($user, 'wavatar'))->assertStatus(503);
         Http::assertNothingSent();
@@ -225,9 +257,11 @@ class AvatarStudioTest extends TestCase
         $lock = \Mockery::mock(Lock::class);
         $lock->shouldReceive('get')->once()->andReturn(true);
         $lock->shouldReceive('release')->once()->andReturn(true);
-        Cache::shouldReceive('get')->twice()->andReturn(null, false);
-        Cache::shouldReceive('lock')->once()->andReturn($lock);
-        Cache::shouldReceive('put')->andReturn(true);
+        $cache = \Mockery::mock(Repository::class);
+        $cache->shouldReceive('get')->twice()->andReturn(null, false);
+        $cache->shouldReceive('lock')->once()->andReturn($lock);
+        $cache->shouldReceive('put')->once()->andReturn(true);
+        Cache::shouldReceive('store')->with('file')->once()->andReturn($cache);
 
         $failed = false;
         try {
@@ -237,6 +271,86 @@ class AvatarStudioTest extends TestCase
         }
         $this->assertTrue($failed, 'A failure cached between the first read and acquiring the lock must be respected.');
         Http::assertNothingSent();
+    }
+
+    public function test_gravatar_png_cache_uses_file_store_when_default_is_database(): void
+    {
+        $originalDefault = config('cache.default');
+        config(['cache.default' => 'database']);
+        Cache::purge('database');
+
+        $user = $this->owner();
+        $png = $this->png();
+        Http::fake(['https://www.gravatar.com/avatar/*' => Http::response($png, 200, ['Content-Type' => 'image/png'])]);
+
+        $key = 'avatar-studio:v1:'.app(GravatarAvatar::class)->hash($user).':wavatar';
+        $fileCache = Cache::store('file');
+        $databaseCache = Cache::store('database');
+        $this->assertNull($fileCache->get($key), 'A unique file cache should begin empty.');
+        $this->assertNull($databaseCache->get($key));
+
+        $connection = DB::connection();
+        $connection->flushQueryLog();
+        $connection->enableQueryLog();
+
+        try {
+            $first = app(GravatarAvatar::class)->image($user, 'wavatar');
+            $firstQueries = $connection->getQueryLog();
+            $connection->flushQueryLog();
+            $second = app(GravatarAvatar::class)->image($user, 'wavatar');
+            $secondQueries = $connection->getQueryLog();
+        } finally {
+            $connection->disableQueryLog();
+            config(['cache.default' => $originalDefault]);
+            Cache::purge('database');
+        }
+
+        $this->assertSame([], $firstQueries, 'A cold Gravatar lookup should not query the default database cache.');
+        $this->assertSame([], $secondQueries, 'A cache hit should not query the default database cache.');
+        $this->assertSame($png, $first);
+        $this->assertSame($png, $second);
+        $this->assertSame($png, $fileCache->get($key), 'FileStore must preserve every PNG byte.');
+        $this->assertNull($databaseCache->get($key), 'The PNG must not be written to the database cache.');
+        Http::assertSentCount(1);
+    }
+
+    public function test_gravatar_failure_is_negative_cached_in_file_store_when_default_is_database(): void
+    {
+        $originalDefault = config('cache.default');
+        config(['cache.default' => 'database']);
+        Cache::purge('database');
+
+        $user = $this->owner();
+        Http::fake(['https://www.gravatar.com/avatar/*' => Http::response('unavailable', 503)]);
+
+        $key = 'avatar-studio:v1:'.app(GravatarAvatar::class)->hash($user).':wavatar';
+        $fileCache = Cache::store('file');
+        $databaseCache = Cache::store('database');
+        $connection = DB::connection();
+        $connection->flushQueryLog();
+        $connection->enableQueryLog();
+
+        try {
+            $failures = 0;
+            for ($attempt = 0; $attempt < 2; $attempt++) {
+                try {
+                    app(GravatarAvatar::class)->image($user, 'wavatar');
+                } catch (RuntimeException) {
+                    $failures++;
+                }
+            }
+            $queries = $connection->getQueryLog();
+        } finally {
+            $connection->disableQueryLog();
+            config(['cache.default' => $originalDefault]);
+            Cache::purge('database');
+        }
+
+        $this->assertSame(2, $failures);
+        $this->assertSame([], $queries, 'Gravatar failure and negative-cache reads must avoid the database cache.');
+        $this->assertFalse($fileCache->get($key), 'The file store should retain the negative cache marker.');
+        $this->assertNull($databaseCache->get($key));
+        Http::assertSentCount(1);
     }
 
     public function test_preview_urls_are_account_scoped_and_foreign_hashes_are_rejected(): void
