@@ -192,6 +192,7 @@
             >
                 <header class="skuy-feed-page__header">
                     <h1 id="feed-title" class="sr-only">{{ __('navigation.feed') }}</h1>
+                    <span class="skuy-feed-page__title" aria-hidden="true">{{ __('navigation.home') }}</span>
                     <nav class="skuy-flow-feed-tabs" data-flow-feed-tabs aria-label="{{ __('navigation.feed_filters') }}">
                         <a
                             href="{{ route('feed') }}"
@@ -466,7 +467,7 @@
 
             <aside class="skuy-context skuy-feed-context" aria-label="{{ __('threads.trending.title') }}">
                 <div class="skuy-context-card skuy-feed-context-card">
-                    <h2 class="skuy-context-card__title">{{ __('threads.trending.title') }}</h2>
+                    <h2 class="skuy-context-card__title"><span class="skuy-flow-widget-icon skuy-flow-widget-icon--trending"><x-fa-icon name="fire" weight="solid" /></span>{{ __('threads.trending.title') }}</h2>
                     <div class="skuy-context-card__list">
                         @forelse($trendingHashtags ?? [] as $tag => $count)
                             <a href="{{ route('search', ['q' => '#' . $tag]) }}" class="skuy-context-topic">
@@ -481,7 +482,7 @@
 
                 @if ($feedCreators->isNotEmpty())
                     <div class="skuy-context-card skuy-feed-context-card skuy-feed-context-creators" aria-labelledby="feed-creators-title">
-                        <h2 id="feed-creators-title" class="skuy-context-card__title">{{ __('navigation.profile') }}</h2>
+                        <h2 id="feed-creators-title" class="skuy-context-card__title"><span class="skuy-flow-widget-icon skuy-flow-widget-icon--people"><x-fa-icon name="user-group" weight="solid" /></span>{{ __('navigation.feed_creators') }}</h2>
                         <div class="skuy-feed-context-creators__list">
                             @foreach ($feedCreators as $creator)
                                 <a href="{{ route('user.profile', $creator->username) }}" class="skuy-feed-context-creator">
@@ -502,6 +503,12 @@
                         </div>
                     </div>
                 @endif
+
+                <div class="skuy-context-card skuy-feed-context-card skuy-flow-points-widget">
+                    <h2 class="skuy-context-card__title"><span class="skuy-flow-widget-icon skuy-flow-widget-icon--points"><x-fa-icon name="coins" weight="solid" /></span>{{ __('points.wallet.heading') }}</h2>
+                    <p>{{ __('points.wallet.description') }}</p>
+                    <a href="{{ route('points.history') }}">{{ __('points.wallet.history_link') }}</a>
+                </div>
 
                 <div class="skuy-context-card skuy-context-card--accent skuy-feed-context-card skuy-feed-context-card--community">
                     <h2 class="skuy-context-card__title">SkuySocial</h2>

@@ -13,6 +13,8 @@ return [
     'stories' => 'Stories',
     'stories_coming_soon' => 'Coming soon',
     'search' => 'Search',
+    'search_placeholder' => 'Search people, topics, or threads',
+    'feed_creators' => 'From your feed',
     'activity' => 'Activity',
     'announcements' => 'Announcements',
     'messages' => 'Messages',

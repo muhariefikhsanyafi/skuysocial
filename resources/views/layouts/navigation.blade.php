@@ -165,7 +165,39 @@
             </a>
         </div>
 
+        @if ($isFeed)
+            <form action="{{ route('search') }}" method="GET" role="search" class="skuy-flow-topbar-search">
+                <x-fa-icon name="magnifying-glass" />
+                <label for="flow-navigation-search" class="sr-only">{{ __('navigation.search') }}</label>
+                <input id="flow-navigation-search" type="search" name="q" placeholder="{{ __('navigation.search_placeholder') }}" maxlength="100" autocomplete="off">
+                <button type="submit" aria-label="{{ __('navigation.search') }}">
+                    <x-fa-icon name="arrow-right" />
+                </button>
+            </form>
+        @endif
+
         <div class="skuy-topbar__actions">
+            @if ($isFeed)
+                <div class="skuy-flow-topbar-shortcuts">
+                    @if ($user->canPerformSocialWrites())
+                        <a href="#composer" class="skuy-icon-button" aria-label="{{ __('navigation.create_thread') }}" title="{{ __('navigation.create_thread') }}">
+                            <x-fa-icon name="plus" weight="solid" />
+                        </a>
+                    @endif
+                    <a href="{{ route('messages.index') }}" class="skuy-icon-button" aria-label="{{ $messagesMobileLabel }}" title="{{ __('navigation.messages') }}">
+                        <x-fa-icon name="comment-lines" />
+                        @if ($unreadMessageCount > 0)
+                            <span class="skuy-flow-topbar-badge" data-unread-messages-badge>{{ $displayUnreadMessageCount }}</span>
+                        @endif
+                    </a>
+                    <a href="{{ route('activity.index') }}" class="skuy-icon-button" aria-label="{{ $activityMobileLabel }}" title="{{ __('navigation.activity') }}">
+                        <x-fa-icon name="bell" />
+                        @if ($unreadNotificationCount > 0)
+                            <span class="skuy-flow-topbar-badge" data-unread-notifications-badge aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}">{{ $displayUnreadNotificationCount }}</span>
+                        @endif
+                    </a>
+                </div>
+            @endif
             <x-language-switcher variant="app" />
 
             <button
@@ -193,8 +225,19 @@
                             :aria-expanded="open"
                             aria-controls="desktop-profile-menu"
                         >
-                            <span class="skuy-profile-trigger__name">{{ Auth::user()->name }}</span>
-                            <x-fa-icon name="chevron-down" class="text-base" />
+                            @if ($isFeed)
+                                <span class="skuy-flow-topbar-avatar" aria-hidden="true">
+                                    @if ($user->avatar)
+                                        <img src="{{ asset('storage/' . $user->avatar) }}" alt="">
+                                    @else
+                                        {{ mb_substr($user->name, 0, 1) }}
+                                    @endif
+                                </span>
+                                <span class="sr-only">{{ Auth::user()->name }}</span>
+                            @else
+                                <span class="skuy-profile-trigger__name">{{ Auth::user()->name }}</span>
+                                <x-fa-icon name="chevron-down" class="text-base" />
+                            @endif
                         </button>
                     </x-slot>
 
@@ -328,7 +371,7 @@
                         @click="closeNavigation(false)"
                         class="skuy-app-nav__link"
                     >
-                        <x-fa-icon :name="$item['icon']" :weight="$item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
+                        <x-fa-icon :name="$item['icon']" :weight="$isFeed || $item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
                         <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
                         @if ($item['key'] === 'activity' && $unreadNotificationCount > 0)
                             <span class="skuy-feed-nav__badge" data-unread-notifications-badge aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}">{{ $displayUnreadNotificationCount }}</span>
@@ -354,12 +397,15 @@
         <div class="skuy-app-rail__footer" data-rail-slot="account" x-data="{ accountMenuOpen: false }" @click.outside="accountMenuOpen = false" @keydown.escape.window="accountMenuOpen = false">
             <div class="skuy-app-rail__account-card">
                 <a href="{{ $profileUrl }}" class="skuy-app-rail__account" aria-label="{{ __('navigation.my_profile') }}: {{ $user->name }}">
-                    <span class="skuy-app-rail__account-avatar" aria-hidden="true">
+                    <span class="skuy-app-rail__account-avatar" aria-hidden="true"
+                          x-data="{ avatarUrl: @js($user->avatar ? asset('storage/'.$user->avatar) : '') }"
+                          @avatar-saved.window="if ($event.detail.userId === {{ (int) $user->id }}) avatarUrl = $event.detail.url">
                         @if ($user->avatar)
-                            <img src="{{ asset('storage/' . $user->avatar) }}" alt="">
+                            <img src="{{ asset('storage/' . $user->avatar) }}" :src="avatarUrl" x-show="avatarUrl" x-on:error="avatarUrl = ''" alt="" decoding="async">
                         @else
-                            {{ mb_substr($user->name, 0, 1) }}
+                            <template x-if="avatarUrl"><img :src="avatarUrl" x-on:error="avatarUrl = ''" alt="" decoding="async"></template>
                         @endif
+                        <span x-show="!avatarUrl" @if ($user->avatar) style="display: none;" @endif>{{ mb_substr($user->name, 0, 1) }}</span>
                     </span>
                     <span class="skuy-app-rail__account-copy">
                         <strong>{{ $user->name }}</strong>

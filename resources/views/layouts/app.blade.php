@@ -2,7 +2,7 @@
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
     data-flow-page="{{ request()->routeIs('feed') ? 'feed' : (request()->routeIs('user.profile') ? 'profile' : '') }}"
-    x-data="{ darkMode: localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches }"
+    x-data="{ darkMode: localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : (@js(request()->routeIs('feed')) || window.matchMedia('(prefers-color-scheme: dark)').matches) }"
     x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
     :class="{ 'dark': darkMode }"
 >
@@ -15,6 +15,16 @@
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
+
+        @if (request()->routeIs('feed'))
+            <script>
+                try {
+                    document.documentElement.classList.toggle('dark', localStorage.getItem('theme') !== 'light');
+                } catch (error) {
+                    document.documentElement.classList.add('dark');
+                }
+            </script>
+        @endif
 
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/regular.min.css') }}">

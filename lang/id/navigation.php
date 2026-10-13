@@ -13,6 +13,8 @@ return [
     'stories' => 'Cerita',
     'stories_coming_soon' => 'Segera hadir',
     'search' => 'Cari',
+    'search_placeholder' => 'Cari orang, topik, atau utas',
+    'feed_creators' => 'Dari linimasa',
     'activity' => 'Aktivitas',
     'announcements' => 'Pengumuman',
     'messages' => 'Pesan',
