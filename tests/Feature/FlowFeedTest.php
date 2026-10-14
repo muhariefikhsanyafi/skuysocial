@@ -137,7 +137,8 @@ class FlowFeedTest extends TestCase
         $this->assertIsString($appCss);
         $this->assertIsString($navigationView);
 
-        $iconWrapRule = $this->lastCssRule($appCss, '.skuy-mobile-nav__icon-wrap');
+        preg_match('/\.skuy-mobile-nav__icon-wrap\s*\{([^}]*)\}/', $appCss, $iconWrapMatches);
+        $iconWrapRule = $iconWrapMatches[1] ?? '';
         $this->assertStringContainsString('position: relative;', $iconWrapRule);
         $this->assertStringContainsString('width: 24px;', $iconWrapRule);
         $this->assertStringContainsString('<span class="skuy-mobile-nav__icon-wrap">', $navigationView);
@@ -145,10 +146,11 @@ class FlowFeedTest extends TestCase
         $this->assertStringContainsString('class="skuy-feed-nav__badge skuy-mobile-nav__badge"', $navigationView);
 
         $this->assertStringContainsString(
-            'html[data-flow-page="feed"] .skuy-mobile-nav__item > .skuy-mobile-nav__icon-wrap > .skuy-mobile-nav__badge',
-            $flowCss,
+            '.skuy-mobile-nav__item > .skuy-mobile-nav__icon-wrap > .skuy-mobile-nav__badge',
+            $appCss,
         );
-        $badgeRule = $this->lastCssRule($flowCss, '.skuy-mobile-nav__badge');
+        $this->assertStringNotContainsString('.skuy-mobile-nav__badge', $flowCss);
+        $badgeRule = $this->lastCssRule($appCss, '.skuy-mobile-nav__badge');
         foreach ([
             'display: inline-flex;',
             'top: -8px;',
@@ -236,7 +238,7 @@ class FlowFeedTest extends TestCase
             $this->assertStringContainsString($contract, $mobileNavRule, "Missing mobile navigation contract: {$contract}");
         }
 
-        $badgeRule = $this->lastCssRule($css, '.skuy-mobile-nav__badge');
+        $badgeRule = $this->lastCssRule(file_get_contents(resource_path('css/app.css')), '.skuy-mobile-nav__badge');
         foreach (['min-width: 18px;', 'white-space: nowrap;', 'z-index: 1;'] as $contract) {
             $this->assertStringContainsString($contract, $badgeRule, "Missing mobile notification badge contract: {$contract}");
         }

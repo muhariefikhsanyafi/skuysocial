@@ -6,14 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ __('auth.common.page_title') }} - {{ config('app.name', 'SkuySocial') }}</title>
 
-        <script>
-            const savedTheme = window.localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-            if (savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark)) {
-                document.documentElement.classList.add('dark');
-            }
-        </script>
+        @include('partials.theme-bootstrap')
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -26,7 +19,7 @@
         <div
             class="skuy-guest-shell"
             x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
-            x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
+            x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
             x-effect="document.documentElement.classList.toggle('dark', darkMode)"
         >
             <x-guest-header />

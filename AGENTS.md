@@ -112,3 +112,9 @@ The composer.json setup script copies/creates .env, generates an application key
 ## Change Discipline
 
 Before application edits, inspect the relevant current models, migrations, controllers, routes, views/components, and tests. Keep the diff limited to the approved task, preserve existing behavior, and include compatibility implications when a schema change is required. Work on the branch appropriate to the task and stop after the requested deliverable; wait for approval before any commit, push, merge, or deployment.
+
+## Shared Theme and Navigation Regression Contracts
+
+- Include `partials.theme-bootstrap` in each product document head before any stylesheet. Alpine must adopt the root's resolved `dark` class and persist changes through `window.skuyTheme.persist`; do not resolve the initial preference a second time. Preserve saved dark/light preferences, Feed's dark-first default, and the system preference default elsewhere. Use the existing Vite nonce when a CSP nonce is configured; do not weaken CSP to permit the bootstrap.
+- Keep navigation markup in `layouts.navigation` and Mobile badge geometry in `resources/css/app.css`. Page styles must not override badge positioning, sizing, colors, or transform. The approved Feed badge is the reference. Preserve five Mobile destinations and real unread counts.
+- After changing a shared layout or adding a page stylesheet, build assets and run `npm run test:browser:theme-navigation -- --php=<local PHP 8.3+ executable> --browser=<installed Chromium/Edge executable>`. The runner creates its own temporary SQLite database and uses real routes. It checks first paint with the Alpine module held, theme navigation/reloads, icon-relative badge geometry, both themes, and Desktop sticky layout. Do not replace these rendering checks with CSS-string assertions. Never point the runner at Production or a persistent database.

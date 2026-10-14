@@ -2,8 +2,8 @@
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
     data-flow-page="{{ request()->routeIs('feed') ? 'feed' : (request()->routeIs('user.profile', 'user.edit') ? 'profile' : '') }}"
-    x-data="{ darkMode: localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : (@js(request()->routeIs('feed')) || window.matchMedia('(prefers-color-scheme: dark)').matches) }"
-    x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
+    x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
+    x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     :class="{ 'dark': darkMode }"
 >
     <head>
@@ -11,20 +11,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        @include('partials.theme-bootstrap', ['darkDefault' => request()->routeIs('feed')])
+
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
-
-        @if (request()->routeIs('feed'))
-            <script>
-                try {
-                    document.documentElement.classList.toggle('dark', localStorage.getItem('theme') !== 'light');
-                } catch (error) {
-                    document.documentElement.classList.add('dark');
-                }
-            </script>
-        @endif
 
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/regular.min.css') }}">

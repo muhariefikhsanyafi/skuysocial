@@ -1164,11 +1164,6 @@ html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] fo
         overflow: visible;
     }
 
-    html[data-flow-page="profile"] .skuy-mobile-nav__icon-wrap {
-        z-index: 1;
-        overflow: visible;
-    }
-
     html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-shell {
         width: min(calc(100% - 24px), 760px);
         padding-top: 14px;

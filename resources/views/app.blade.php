@@ -2,7 +2,7 @@
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
     x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
-    x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
+    x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     x-effect="document.documentElement.classList.toggle('dark', darkMode)"
 >
     <head>
@@ -12,16 +12,7 @@
 
         <title inertia>{{ config('app.name', 'SkuySocial') }}</title>
 
-        <script>
-            (() => {
-                const savedTheme = window.localStorage.getItem('theme');
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                if (savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark)) {
-                    document.documentElement.classList.add('dark');
-                }
-            })();
-        </script>
+        @include('partials.theme-bootstrap')
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />

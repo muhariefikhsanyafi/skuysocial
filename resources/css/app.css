@@ -4879,6 +4879,35 @@
     white-space: nowrap;
 }
 
+@media (max-width: 767px) {
+    .skuy-mobile-nav .skuy-mobile-nav__item > .skuy-mobile-nav__icon-wrap {
+        z-index: 1;
+        overflow: visible;
+    }
+
+    .skuy-mobile-nav__item > .skuy-mobile-nav__icon-wrap > .skuy-mobile-nav__badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        top: -8px;
+        right: -14px;
+        z-index: 1;
+        min-width: 18px;
+        width: max-content;
+        max-width: none;
+        min-height: 18px;
+        padding-inline: 4px;
+        overflow: visible;
+        text-overflow: clip;
+        background: #6e5bef;
+        color: #ffffff;
+        font-size: 10px;
+        line-height: 1;
+        white-space: nowrap;
+        transform: translate(50%, -25%);
+    }
+}
+
 .skuy-mobile-nav__item:hover,
 .skuy-mobile-nav__item[aria-current='page'] {
     border-color: color-mix(in srgb, var(--skuy-secondary) 25%, var(--skuy-border-soft));

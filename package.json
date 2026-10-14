@@ -6,7 +6,8 @@
         "build": "vite build",
         "dev": "vite",
         "test:client": "vitest run",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "test:browser:theme-navigation": "node tests/Browser/theme-navigation.mjs"
     },
     "devDependencies": {
         "@inertiajs/react": "^3.7.1",
