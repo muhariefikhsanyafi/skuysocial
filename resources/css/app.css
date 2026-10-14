@@ -7738,6 +7738,13 @@ a.skuy-message-row:focus-visible {
     color: var(--skuy-danger);
 }
 
+@media (min-width: 768px) {
+    .skuy-feed-post:has(.skuy-appreciation--inline [data-post-appreciation-trigger][aria-expanded='true']) {
+        position: relative;
+        z-index: 1;
+    }
+}
+
 @media (max-width: 767px) {
     .skuy-appreciation--inline .skuy-action--appreciation[aria-expanded='true'] {
         border-color: transparent;

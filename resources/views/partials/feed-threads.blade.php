@@ -485,7 +485,7 @@
                                 <x-fa-icon name="share-nodes" class="text-xl" />
                             </button>
                         </div>
-                        <div class="min-h-5">
+                        <div class="skuy-feed-post__feedback-region">
                             @include('partials.post-appreciation-feedback', ['displayPost' => $displayPost])
                             <p
                                 x-show="feedbackMessage"

@@ -668,11 +668,6 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__med
     background: var(--flow-panel-muted);
 }
 
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post .min-h-5 {
-    height: 0;
-    min-height: 0;
-}
-
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__comment-preview,
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__comments {
     min-width: 0;

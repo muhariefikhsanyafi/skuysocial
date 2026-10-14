@@ -53,7 +53,7 @@ function command(executable, args, cwd = root) {
         child.on('exit', code => code === 0 ? resolve(stdout) : reject(new Error(`${path.basename(executable)} exited ${code}: ${stderr.slice(-1500)} ${stdout.slice(-1500)}`)));
     });
 }
-const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], externalRequestsBlocked: [] };
+const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], appreciationVisual: [], externalRequestsBlocked: [] };
 function check(name, condition, evidence) {
     results.checks.push({ name, pass: Boolean(condition), evidence });
     if (!condition) console.log(`FAIL ${name}: ${JSON.stringify(evidence).slice(0,600)}`);
@@ -235,6 +235,188 @@ try {
         const { active, label, paintVisible, clippedBy, ...shape } = badge;
         return shape;
     }
+    if (options.appreciationOnly === '1') {
+        const statusUid = fixture.appreciationStatusPost;
+        await login(2);
+        for (const width of [1536, 1280, 390, 320]) {
+            const height = width === 1536 ? 864 : width === 1280 ? 800 : width === 390 ? 844 : 740;
+            await viewport(width, height);
+            for (const mode of ['dark', 'light']) {
+                await theme(mode);
+                await navigate(fixture.savedPage);
+                const shell = await cdp.evaluate(`(() => ({theme:document.documentElement.classList.contains('dark')?'dark':'light',width:innerWidth,nav:[...document.querySelectorAll('[data-mobile-nav-key]')].map(item=>item.dataset.mobileNavKey),dockVisible:Boolean(document.querySelector('.skuy-mobile-nav')?.getClientRects().length),topbar:Boolean(document.querySelector('.skuy-topbar')),rail:Boolean(document.querySelector('.skuy-app-rail')),badges:Object.fromEntries([...document.querySelectorAll('[data-mobile-nav-key]')].map(item=>[item.dataset.mobileNavKey,item.querySelector('.skuy-mobile-nav__badge')?.textContent.trim()??null])),overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth}))()`);
+                check(`Feed theme, navigation, badges and viewport ${width} ${mode}`, shell.theme === mode && shell.nav.join(',') === 'home,search,create,activity,messages' && shell.topbar && shell.rail && (width >= 768 || shell.dockVisible) && shell.badges.activity === '2' && shell.badges.messages === '2' && !shell.overflow, shell);
+                await cdp.evaluate(`(() => { const card=document.querySelector('[data-feed-post-uid="${statusUid}"]'); if(!card)return false; window.scrollBy(0,card.getBoundingClientRect().top-112); return true; })()`);
+                await pause(180);
+                const statusMetrics = await cdp.evaluate(`(() => {
+                    const card=document.querySelector('[data-feed-post-uid="${statusUid}"]');
+                    const status=card?.querySelector('.skuy-appreciation-status');
+                    const preview=card?.querySelector('.skuy-feed-post__comment-preview');
+                    const wrapper=status?.parentElement;
+                    if(!card||!status||!preview)return null;
+                    const s=status.getBoundingClientRect(),c=preview.getBoundingClientRect(),w=wrapper.getBoundingClientRect();
+                    return { statusText:status.innerText.trim(),statusTop:s.top,statusBottom:s.bottom,statusHeight:s.height,commentTop:c.top,commentBottom:c.bottom,gap:c.top-s.bottom,wrapperHeight:w.height,wrapperCssHeight:getComputedStyle(wrapper).height,wrapperMinHeight:getComputedStyle(wrapper).minHeight,commentText:preview.innerText.trim(),theme:document.documentElement.classList.contains('dark')?'dark':'light',width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth };
+                })()`);
+                const statusImage = await screenshot(`appreciation-status-${width}-${mode}`);
+                results.appreciationVisual.push({ kind: 'status-comment', width, height, mode, metrics: statusMetrics, image: statusImage });
+                check(`Appreciation status and comment stay in flow ${width} ${mode}`, Boolean(statusMetrics) && statusMetrics.gap >= -0.5 && statusMetrics.statusText.length > 0 && statusMetrics.commentText.length > 0 && !statusMetrics.overflow, statusMetrics);
+            }
+        }
+
+        await login(0);
+        for (const width of [1536, 1280, 390, 320]) {
+            const height = width === 1536 ? 864 : width === 1280 ? 800 : width === 390 ? 844 : 740;
+            await viewport(width, height);
+            for (const mode of ['dark', 'light']) {
+                await theme(mode);
+                await navigate(fixture.savedPage);
+                const listedUids = await cdp.evaluate(`([...document.querySelectorAll('.skuy-saved-post-list > [data-feed-post-uid]')].map(card=>card.dataset.feedPostUid))`);
+                check(`Saved fixture order ${width} ${mode}`, JSON.stringify(listedUids) === JSON.stringify(fixture.appreciationChoicePosts), { listedUids, expected: fixture.appreciationChoicePosts });
+                const commentStates = await cdp.evaluate(`(() => [...document.querySelectorAll('.skuy-saved-post-list > [data-feed-post-uid]')].map(card=>({uid:card.dataset.feedPostUid,hasComment:Boolean(card.querySelector('.skuy-feed-post__comment-preview'))})))()`);
+                check(`Saved fixture has comment and no-comment posts ${width} ${mode}`, commentStates.filter(item=>item.hasComment).length === 2 && commentStates.filter(item=>!item.hasComment).length === 1, commentStates);
+
+                for (const [index, position] of [[0, 'first'], [1, 'middle'], [2, 'last']]) {
+                    const uid = listedUids[index];
+                    const cardSelector = `[data-feed-post-uid="${uid}"]`;
+                    const triggerSelector = `${cardSelector} [data-post-appreciation-trigger]`;
+                    const popoverSelector = `${cardSelector} .skuy-appreciation__popover`;
+                    const overlaySelector = `${cardSelector} .skuy-appreciation__overlay`;
+                    await cdp.evaluate(`(() => { const card=document.querySelector(${JSON.stringify(cardSelector)}); if(!card)return false; window.scrollBy(0,card.getBoundingClientRect().top-112); return true; })()`);
+                    await pause(180);
+                    const triggerExists = await cdp.evaluate(`Boolean(document.querySelector(${JSON.stringify(triggerSelector)}))`);
+                    check(`Appreciation trigger available at ${position} Saved card ${width} ${mode}`, triggerExists, { uid, position });
+                    if (!triggerExists) continue;
+                    const clickAt = async selector => {
+                        const point = await cdp.evaluate(`(() => { const node=document.querySelector(${JSON.stringify(selector)}); if(!node)return null; const r=node.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; })()`);
+                        assert(point, `Missing click target ${selector}`);
+                        await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
+                        await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
+                        await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
+                        return point;
+                    };
+                    await clickAt(triggerSelector);
+                    await until(() => cdp.evaluate(`document.querySelector(${JSON.stringify(popoverSelector)}) && getComputedStyle(document.querySelector(${JSON.stringify(overlaySelector)})).display !== 'none'`), `popover opens on ${position} card ${width} ${mode}`);
+                    await pause(230);
+                    const optionSelector = `${cardSelector} .skuy-appreciation__choice`;
+                    const optionPoint = await cdp.evaluate(`(() => { const nodes=document.querySelectorAll(${JSON.stringify(optionSelector)}); const node=nodes[nodes.length-1]; if(!node)return null; const r=node.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; })()`);
+                    assert(optionPoint, `No Appreciation choices on ${position} card`);
+                    await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...optionPoint });
+                    await pause(120);
+                    const popupMetrics = await cdp.evaluate(`(() => {
+                        const card=document.querySelector(${JSON.stringify(cardSelector)}),overlay=card?.querySelector('.skuy-appreciation__overlay'),panel=card?.querySelector('.skuy-appreciation__popover');
+                        if(!card||!overlay||!panel)return null;
+                        const r=panel.getBoundingClientRect(),target=document.elementFromPoint(${optionPoint.x},${optionPoint.y}),dock=document.querySelector('.skuy-mobile-nav'),bound=dock&&dock.getClientRects().length?dock.getBoundingClientRect().top:innerHeight;
+                        const ancestorClipping=[...function*(){for(let node=overlay.parentElement;node&&node!==document.body&&node!==document.documentElement;node=node.parentElement)yield node}()].filter(node=>['hidden','clip'].includes(getComputedStyle(node).overflowY)||['hidden','clip'].includes(getComputedStyle(node).overflowX)).map(node=>({tag:node.tagName,class:node.className.toString(),overflowX:getComputedStyle(node).overflowX,overflowY:getComputedStyle(node).overflowY}));
+                        return {position:overlay.classList.contains('is-above')?'above':'below',presentation:panel.dataset.appreciationPresentation,choices:panel.querySelectorAll('.skuy-appreciation__choice').length,panel:{left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height},bound,viewport:{width:innerWidth,layoutWidth:document.documentElement.clientWidth,height:innerHeight},targetClass:target?.className?.toString()??target?.tagName??null,targetPost:target?.closest('[data-feed-post-uid]')?.dataset.feedPostUid??null,hoveredPostUids:[...document.querySelectorAll('.skuy-saved-post-list > [data-feed-post-uid]:hover')].map(node=>node.dataset.feedPostUid),sourcePost:card.dataset.feedPostUid,scrollWidth:document.documentElement.scrollWidth,horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,overlayPointerEvents:getComputedStyle(overlay).pointerEvents,ancestorClipping};
+                    })()`);
+                    const image = await screenshot(`appreciation-popover-${width}-${mode}-${position}`);
+                    results.appreciationVisual.push({ kind: 'popover', width, height, mode, position, metrics: popupMetrics, image });
+                    const withinViewport = popupMetrics && popupMetrics.panel.left >= 0 && popupMetrics.panel.top >= 0 && popupMetrics.panel.right <= popupMetrics.viewport.layoutWidth + 0.5 && popupMetrics.panel.bottom <= popupMetrics.bound + 0.5;
+                    check(`Appreciation popup is clickable and stays in viewport ${width} ${mode} ${position}`, Boolean(popupMetrics) && popupMetrics.choices === 3 && withinViewport && !popupMetrics.ancestorClipping.length && !popupMetrics.horizontalOverflow, popupMetrics);
+                    check(`Pointer over Appreciation does not hover a card behind it ${width} ${mode} ${position}`, Boolean(popupMetrics) && popupMetrics.targetPost === uid && popupMetrics.hoveredPostUids.every(postUid => postUid === uid), popupMetrics);
+
+                    await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                    await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                    await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(overlaySelector)})).display === 'none'`), `Escape closes ${position} popover`);
+                    await until(() => cdp.evaluate(`document.activeElement===document.querySelector(${JSON.stringify(triggerSelector)})`), `focus returns to ${position} trigger`);
+                    const escapeState = await cdp.evaluate(`({focus:document.activeElement===document.querySelector(${JSON.stringify(triggerSelector)}),bodyOverflow:document.body.style.overflow,expanded:document.querySelector(${JSON.stringify(triggerSelector)}).getAttribute('aria-expanded')})`);
+                    check(`Appreciation closes and restores focus ${width} ${mode} ${position}`, escapeState.focus && escapeState.expanded === 'false' && (width >= 768 || escapeState.bodyOverflow !== 'hidden'), escapeState);
+
+                    await clickAt(triggerSelector);
+                    await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(overlaySelector)})).display !== 'none'`), `reopen ${position} popover`);
+                    if (width < 768) {
+                        await clickAt(`${cardSelector} .skuy-appreciation__dismiss`);
+                        await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(overlaySelector)})).display === 'none'`), `dismiss ${position} mobile sheet`);
+                    } else {
+                        await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                        await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                        await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(overlaySelector)})).display === 'none'`), `repeat Escape closes ${position} popover`);
+                    }
+                }
+
+                if (width >= 768) {
+                    const edgeUid = listedUids[2];
+                    const edgeCard = `[data-feed-post-uid="${edgeUid}"]`;
+                    const edgeTrigger = `${edgeCard} [data-post-appreciation-trigger]`;
+                    const edgePanel = `${edgeCard} .skuy-appreciation__popover`;
+                    const edgeOverlay = `${edgeCard} .skuy-appreciation__overlay`;
+                    await cdp.evaluate(`(() => {const card=document.querySelector(${JSON.stringify(edgeCard)});if(!card)return false;const r=card.getBoundingClientRect();const desiredTop=Math.max(112,innerHeight-r.height-28);window.scrollBy(0,r.top-desiredTop);return true;})()`);
+                    await pause(180);
+                    const edgePoint = await cdp.evaluate(`(() => {const n=document.querySelector(${JSON.stringify(edgeTrigger)}),r=n?.getBoundingClientRect();return r?{x:r.left+r.width/2,y:r.top+r.height/2}:null;})()`);
+                    assert(edgePoint, `Missing viewport-edge trigger at ${width} ${mode}`);
+                    await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...edgePoint });
+                    await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...edgePoint, button: 'left', clickCount: 1 });
+                    await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...edgePoint, button: 'left', clickCount: 1 });
+                    await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(edgeOverlay)})).display !== 'none'`), `edge popover opens ${width} ${mode}`);
+                    await pause(230);
+                    const edgeMetrics = await cdp.evaluate(`(() => {const panel=document.querySelector(${JSON.stringify(edgePanel)}),overlay=document.querySelector(${JSON.stringify(edgeOverlay)}),r=panel?.getBoundingClientRect();return r?{placement:overlay.classList.contains('is-above')?'above':'below',panel:{left:r.left,top:r.top,right:r.right,bottom:r.bottom},layoutWidth:document.documentElement.clientWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth}:null;})()`);
+                    const edgeImage = await screenshot(`appreciation-popover-edge-${width}-${mode}`);
+                    results.appreciationVisual.push({ kind: 'viewport-edge', width, height, mode, metrics: edgeMetrics, image: edgeImage });
+                    check(`Appreciation adapts near viewport bottom ${width} ${mode}`, Boolean(edgeMetrics) && edgeMetrics.placement === 'above' && edgeMetrics.panel.top >= 0 && edgeMetrics.panel.left >= 0 && edgeMetrics.panel.right <= edgeMetrics.layoutWidth + 0.5 && edgeMetrics.panel.bottom <= edgeMetrics.height + 0.5 && edgeMetrics.scrollWidth <= edgeMetrics.layoutWidth, edgeMetrics);
+                    await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                    await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                    await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(edgeOverlay)})).display === 'none'`), `edge popover closes ${width} ${mode}`);
+                }
+            }
+        }
+
+        const choiceUid = fixture.appreciationChoicePosts[0];
+        const choiceCard = `[data-feed-post-uid="${choiceUid}"]`;
+        const choiceOverlay = `${choiceCard} .skuy-appreciation__overlay`;
+        await viewport(1536, 864);
+        await theme('dark');
+        await navigate(fixture.savedPage);
+        await cdp.evaluate(`(() => {const card=document.querySelector(${JSON.stringify(choiceCard)});if(!card)return false;window.scrollBy(0,card.getBoundingClientRect().top-112);return true;})()`);
+        const trigger = `${choiceCard} [data-post-appreciation-trigger]`;
+        await cdp.evaluate(`document.querySelector(${JSON.stringify(trigger)}).focus()`);
+        const clickTarget = async selector => {
+            const point = await cdp.evaluate(`(() => { const node=document.querySelector(${JSON.stringify(selector)}); if(!node)return null; const r=node.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2}; })()`);
+            assert(point, `Missing actual selection target ${selector}`);
+            await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
+            await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
+            await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
+        };
+        await clickTarget(trigger);
+        await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(choiceOverlay)})).display !== 'none'`), 'actual-choice popover opens');
+        await screenshot('appreciation-actual-choice-open');
+        await clickTarget(`${choiceCard} .skuy-appreciation__choice[value="bermanfaat"]`);
+        await until(() => cdp.evaluate(`location.pathname !== ${JSON.stringify(fixture.savedPage)} && document.readyState === 'complete'`), 'actual Appreciation click navigates or submits');
+        await pause(300);
+        const state = JSON.parse(await command(php, ['tests/Browser/fixtures/theme-navigation.php', 'appreciation-state', '0', choiceUid]));
+        await navigate(fixture.savedPage);
+        const selected = await cdp.evaluate(`(() => {const card=document.querySelector('[data-feed-post-uid="${choiceUid}"]');return {path:location.pathname,status:card?.querySelector('.skuy-appreciation-status')?.innerText.trim()??null,trigger:card?.querySelector('[data-post-appreciation-trigger]')??null,selected:card?.querySelector('.skuy-action--appreciated')?.getAttribute('aria-pressed')??null};})()`);
+        check('Actual pointer click selects Appreciation and spends only five QA points', selected.path === '/tersimpan' && state.appreciation === 'bermanfaat' && state.pointsSpent === 5 && state.balance === 95 && selected.selected === 'true' && !selected.trigger && Boolean(selected.status), { state, selected });
+        await screenshot('appreciation-actual-choice-saved');
+
+        for (const [width, height, mode] of [[1280, 800, 'dark'], [390, 844, 'light']]) {
+            await viewport(width, height);
+            await theme(mode);
+            for (const [surface, route] of [['feed', '/feed'], ['profile', fixture.otherProfile], ['search', fixture.searchResults]]) {
+                await navigate(route);
+                const firstPost = await cdp.evaluate(`(() => {const card=[...document.querySelectorAll('.skuy-feed-post[data-feed-post-uid]')].find(node=>node.dataset.feedThreadKey===node.dataset.feedPostUid&&node.querySelector('[data-post-appreciation-trigger]'));return card?card.dataset.feedPostUid:null;})()`);
+                check(`Shared Appreciation renders on ${surface} ${width} ${mode}`, Boolean(firstPost), { route, firstPost });
+                if (!firstPost) continue;
+                const cardSelector = `.skuy-feed-post[data-feed-post-uid="${firstPost}"]`;
+                const triggerSelector = `${cardSelector} [data-post-appreciation-trigger]`;
+                const overlaySelector = `${cardSelector} .skuy-appreciation__overlay`;
+                await cdp.evaluate(`(() => {const card=document.querySelector(${JSON.stringify(cardSelector)});if(!card)return false;window.scrollBy(0,card.getBoundingClientRect().top-112);return true;})()`);
+                await clickTarget(triggerSelector);
+                await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(overlaySelector)})).display !== 'none'`), `${surface} Appreciation opens`);
+                await pause(230);
+                const point = await cdp.evaluate(`(() => {const nodes=document.querySelectorAll(${JSON.stringify(`${cardSelector} .skuy-appreciation__choice`)}),node=nodes[nodes.length-1],r=node?.getBoundingClientRect();return r?{x:r.left+r.width/2,y:r.top+r.height/2}:null;})()`);
+                assert(point, `No Appreciation choice on ${surface}`);
+                await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
+                await pause(100);
+                const interaction = await cdp.evaluate(`(() => {const target=document.elementFromPoint(${point.x},${point.y}),card=document.querySelector(${JSON.stringify(cardSelector)});return {source:card?.dataset.feedPostUid,target:target?.closest('[data-feed-post-uid]')?.dataset.feedPostUid??null,targetNode:target?{tag:target.tagName,class:target.className?.toString()??''}:null,point:{x:${point.x},y:${point.y}},viewport:{width:innerWidth,height:innerHeight},hovered:[...document.querySelectorAll('.skuy-feed-post:hover')].map(node=>node.dataset.feedPostUid),overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth};})()`);
+                const image = await screenshot(`appreciation-shared-${surface}-${width}-${mode}`);
+                results.appreciationVisual.push({ kind: 'shared-surface', surface, width, height, mode, metrics: interaction, image });
+                check(`Shared Appreciation stays above adjacent posts on ${surface} ${width} ${mode}`, interaction.target === firstPost && interaction.hovered.every(uid => uid === firstPost) && !interaction.overflow, interaction);
+                await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                await until(() => cdp.evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(overlaySelector)})).display === 'none'`), `${surface} Appreciation closes`);
+            }
+        }
+    } else {
     await viewport(390, 844);
     await login(2);
     const own = fixture.accounts[2];
@@ -447,6 +629,7 @@ try {
             }), 'compare all 16 Feed states against before/results.json');
             check('Desktop navigation / sticky geometry unchanged', JSON.stringify(results.desktop.map(({width,mode,start,scroll})=>({width,mode,start,scroll})))===JSON.stringify(baseline.desktop.map(({width,mode,start,scroll})=>({width,mode,start,scroll}))), 'compare 1536/1280 dark/light before/after');
         }
+    }
     }
     check('request interception succeeded', !results.interceptionError, results.interceptionError ?? 'ok');
     results.externalRequestsBlocked = [...new Set(results.externalRequestsBlocked)];
