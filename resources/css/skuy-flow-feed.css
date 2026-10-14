@@ -668,55 +668,9 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__med
     background: var(--flow-panel-muted);
 }
 
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions {
-    display: flex;
-    width: 100%;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px;
-    min-width: 0;
-    margin-block-start: 8px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-}
-
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post .min-h-5 {
     height: 0;
     min-height: 0;
-}
-
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions .skuy-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 8px;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-    color: var(--flow-text-secondary);
-}
-
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions .skuy-action:hover {
-    background: var(--flow-panel-muted);
-    color: var(--flow-text);
-}
-
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions [data-mobile-primary-action="like"][aria-pressed="true"] {
-    color: var(--flow-like);
-}
-
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions .skuy-action--appreciation[aria-pressed="true"] {
-    color: var(--skuy-reaction);
-}
-
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions [data-mobile-primary-action="repost"][aria-pressed="true"],
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions .skuy-action--bookmark[aria-pressed="true"] {
-    color: var(--flow-accent-ink);
 }
 
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__comment-preview,
@@ -943,27 +897,6 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-composer_
     font-size: 19px;
 }
 
-html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions {
-    padding-block-start: 8px;
-    border-top: 1px solid var(--flow-border);
-}
-
-html[data-flow-page="feed"] .skuy-feed-post__actions [data-mobile-primary-action="like"] > .skuy-fa-icon {
-    color: var(--flow-like);
-}
-
-html[data-flow-page="feed"] .skuy-feed-post__actions .skuy-action--appreciation > .skuy-fa-icon {
-    color: var(--flow-nav-activity);
-}
-
-html[data-flow-page="feed"] .skuy-feed-post__actions [data-mobile-primary-action="comment"] > .skuy-fa-icon {
-    color: var(--flow-nav-search);
-}
-
-html[data-flow-page="feed"] .skuy-feed-post__actions [data-mobile-primary-action="repost"] > .skuy-fa-icon {
-    color: var(--flow-nav-messages);
-}
-
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-context-card__title {
     display: flex;
     align-items: center;
@@ -1164,19 +1097,6 @@ html[data-flow-page="feed"] .skuy-flow-points-widget a {
 
     html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-post__text {
         font-size: 16px;
-    }
-
-    html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 2px;
-        margin-block-start: 6px;
-    }
-
-    html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-post__actions .skuy-action {
-        width: 100%;
-        min-width: 44px;
-        padding: 6px 2px;
     }
 
     html[data-flow-page="feed"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__inner {

@@ -9,6 +9,7 @@ html[data-flow-page="profile"] {
     --flow-text-muted: #696a76;
     --flow-border: #e6e6eb;
     --flow-border-strong: #838492;
+    --flow-like: #be185d;
     --flow-nav-search: #0369a1;
     --flow-nav-activity: #b45309;
     --flow-nav-messages: #047857;
@@ -63,6 +64,7 @@ html[data-flow-page="profile"].dark {
     --flow-text-muted: #9899a5;
     --flow-border: #30313e;
     --flow-border-strong: #777989;
+    --flow-like: #f472b6;
     --flow-nav-search: #7dd3fc;
     --flow-nav-activity: #fbbf24;
     --flow-nav-messages: #6ee7b7;
@@ -780,23 +782,6 @@ html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profi
 
 html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-hashtag {
     color: var(--flow-accent-ink);
-}
-
-html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-feed-post__actions {
-    border-color: var(--flow-border);
-    background: transparent;
-}
-
-html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-feed-post__actions .skuy-action {
-    min-width: 44px;
-    min-height: 44px;
-    border-radius: 10px;
-    color: var(--flow-text-secondary);
-}
-
-html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-feed-post__actions .skuy-action:hover {
-    background: var(--flow-panel-muted);
-    color: var(--flow-text);
 }
 
 html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-profile-post__single-media img,

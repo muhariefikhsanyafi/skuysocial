@@ -33,9 +33,9 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @if (request()->routeIs('feed'))
-            @vite('resources/css/skuy-flow-feed.css')
+            @vite(['resources/css/skuy-flow-feed.css', 'resources/css/skuy-flow-post-actions.css'])
         @elseif (request()->routeIs('user.profile'))
-            @vite(['resources/css/skuy-flow-profile.css', 'resources/js/skuy-flow-profile.js'])
+            @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-post-actions.css', 'resources/js/skuy-flow-profile.js'])
         @elseif (request()->routeIs('user.edit'))
             @vite('resources/css/skuy-flow-profile.css')
         @endif

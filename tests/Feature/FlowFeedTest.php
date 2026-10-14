@@ -86,7 +86,11 @@ class FlowFeedTest extends TestCase
     public function test_flow_feed_styles_are_scoped_and_use_the_requested_flat_neutral_palette(): void
     {
         $css = file_get_contents(resource_path('css/skuy-flow-feed.css'));
+        $profileCss = file_get_contents(resource_path('css/skuy-flow-profile.css'));
+        $actionCss = file_get_contents(resource_path('css/skuy-flow-post-actions.css'));
         $this->assertIsString($css);
+        $this->assertIsString($profileCss);
+        $this->assertIsString($actionCss);
 
         foreach ([
             'html[data-flow-page="feed"]',
@@ -95,12 +99,29 @@ class FlowFeedTest extends TestCase
             '--flow-accent: #6e5bef;',
             'prefers-reduced-motion: reduce',
             'prefers-reduced-transparency: reduce',
-            'grid-template-columns: repeat(5, minmax(0, 1fr));',
             'env(safe-area-inset-bottom',
-            'min-width: 44px;',
-            'min-height: 44px;',
         ] as $contract) {
             $this->assertStringContainsString($contract, $css, "Missing Flow feed styling contract: {$contract}");
+        }
+
+        foreach ([
+            'html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed]',
+            'html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list',
+            '[data-mobile-primary-action="like"] > .skuy-fa-icon',
+            'justify-content: space-between;',
+            'grid-template-columns: repeat(5, minmax(0, 1fr));',
+            'min-width: 44px;',
+            'min-height: 44px;',
+            '[data-mobile-primary-action="like"][aria-pressed="true"]',
+            '.skuy-action--appreciation[aria-pressed="true"]',
+            '[data-mobile-primary-action="repost"][aria-pressed="true"]',
+            '.skuy-action--bookmark[aria-pressed="true"]',
+        ] as $contract) {
+            $this->assertStringContainsString($contract, $actionCss, "Missing shared post action styling contract: {$contract}");
+        }
+
+        foreach (['--flow-like: #be185d;', '--flow-like: #f472b6;'] as $contract) {
+            $this->assertStringContainsString($contract, $profileCss, "Missing Profile like color token: {$contract}");
         }
 
         $this->assertStringNotContainsString('radial-gradient(', $css);
@@ -240,7 +261,7 @@ class FlowFeedTest extends TestCase
 
     private function lastCssRule(string $css, string $selector): string
     {
-        $matchCount = preg_match_all('/' . preg_quote($selector, '/') . '\\s*\\{([^}]*)\\}/s', $css, $matches);
+        $matchCount = preg_match_all('/'.preg_quote($selector, '/').'\\s*\\{([^}]*)\\}/s', $css, $matches);
         $this->assertGreaterThan(0, $matchCount, "Missing CSS rule for {$selector}");
 
         $rule = end($matches[1]);
