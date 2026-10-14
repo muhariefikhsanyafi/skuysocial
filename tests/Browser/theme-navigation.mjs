@@ -53,7 +53,7 @@ function command(executable, args, cwd = root) {
         child.on('exit', code => code === 0 ? resolve(stdout) : reject(new Error(`${path.basename(executable)} exited ${code}: ${stderr.slice(-1500)} ${stdout.slice(-1500)}`)));
     });
 }
-const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], externalRequestsBlocked: [] };
+const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], externalRequestsBlocked: [] };
 function check(name, condition, evidence) {
     results.checks.push({ name, pass: Boolean(condition), evidence });
     if (!condition) console.log(`FAIL ${name}: ${JSON.stringify(evidence).slice(0,600)}`);
@@ -110,7 +110,13 @@ try {
     server = spawn(php, ['-S', `127.0.0.1:${port}`, '-t', path.join(root, 'public'), path.join(root, 'vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php')], { cwd: path.join(root, 'public'), env, windowsHide: true });
     server.stdout.on('data', chunk => { serverLog = (serverLog + chunk).slice(-12000); });
     server.stderr.on('data', chunk => { serverLog = (serverLog + chunk).slice(-12000); });
-    await until(() => fetch(base + '/login').then(response => response.ok).catch(() => false), 'isolated PHP server');
+    await until(() => fetch(base + '/login').then(async response => {
+        if (!response.ok) serverLog = (serverLog + `\nReadiness HTTP ${response.status}: ${(await response.text()).slice(0, 1000)}`).slice(-12000);
+        return response.ok;
+    }).catch(error => {
+        serverLog = (serverLog + `\nReadiness fetch error: ${error.message}; cause=${error.cause?.code ?? error.cause?.message ?? 'unknown'}; serverExit=${server.exitCode}`).slice(-12000);
+        return false;
+    }), 'isolated PHP server');
     browser = spawn(browserExecutable, ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--disable-component-update', '--disable-sync', '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1', `--user-data-dir=${path.join(temporary, 'browser')}`, 'about:blank'], { windowsHide: true, stdio: 'ignore' });
     const debuggingPort = await until(() => fs.readFile(path.join(temporary, 'browser/DevToolsActivePort'), 'utf8').then(text => text.split('\n')[0]).catch(() => false), 'browser CDP');
     const tabs = await fetch(`http://127.0.0.1:${debuggingPort}/json/list`).then(response => response.json());
@@ -166,9 +172,10 @@ try {
         await cdp.evaluate(value === null ? `localStorage.removeItem('theme')` : `localStorage.setItem('theme', ${JSON.stringify(value)})`);
     }
     async function navigate(route, reload = false) {
+        const pathname = new URL(route, base).pathname;
         if (reload) await cdp.send('Page.reload', { ignoreCache: true });
         else await cdp.send('Page.navigate', { url: base + route });
-        await until(() => cdp.evaluate(`document.readyState === 'complete' && location.pathname === ${JSON.stringify(route)} && (!!window.__themeQA?.alpine || !document.querySelector('[x-data]'))`).catch(() => false), 'complete route ' + route);
+        await until(() => cdp.evaluate(`document.readyState === 'complete' && location.pathname === ${JSON.stringify(pathname)} && (!!window.__themeQA?.alpine || !document.querySelector('[x-data]'))`).catch(() => false), 'complete route ' + route);
     }
     async function screenshot(name) {
         const shot = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
@@ -231,6 +238,69 @@ try {
     await viewport(390, 844);
     await login(2);
     const own = fixture.accounts[2];
+    for (const width of [1536, 1280, 1024, 390, 320]) {
+        const height = width === 1536 ? 960 : width === 1280 ? 900 : width === 1024 ? 900 : width === 390 ? 844 : 740;
+        await viewport(width, height);
+
+        for (const mode of ['dark', 'light']) {
+            await theme(mode);
+
+            for (const [page, route] of [
+                ['saved', fixture.savedPage],
+                ['search-initial', '/cari'],
+                ['search-results', fixture.searchResults],
+            ]) {
+                await navigate(route);
+                await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+
+                const metrics = await cdp.evaluate(`(() => {
+                    const rect = node => { const value = node.getBoundingClientRect(); return { x: value.x, y: value.y, width: value.width, height: value.height }; };
+                    const nav = [...document.querySelectorAll('[data-mobile-nav-key]')].map(node => node.dataset.mobileNavKey);
+                    const rail = document.querySelector('.skuy-app-rail');
+                    const context = document.querySelector('.skuy-feed-context');
+                    const scrollableSidebars = [rail, context].filter(node => node && ['auto', 'scroll'].includes(getComputedStyle(node).overflowY)).map(node => node.className);
+                    return {
+                        flowPage: document.documentElement.dataset.flowPage,
+                        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                        width: innerWidth,
+                        scrollWidth: document.documentElement.scrollWidth,
+                        overflow: document.documentElement.scrollWidth > innerWidth,
+                        nav,
+                        activeNav: [...document.querySelectorAll('.skuy-app-nav__link[aria-current="page"]')].map(node => node.dataset.navKey),
+                        savedPostCount: document.querySelectorAll('[data-skuy-prism-saved] [data-feed-post-uid]').length,
+                        searchPostCount: document.querySelectorAll('.skuy-discovery-post-list [data-feed-post-uid], .skuy-discovery-post-list > article').length,
+                        hasInitialSearchState: Boolean(document.querySelector('.skuy-discovery-empty--initial')),
+                        hasSearchInput: Boolean(document.querySelector('#discovery-search-input')),
+                        rail: rail ? { ...rect(rail), position: getComputedStyle(rail).position } : null,
+                        context: context ? { ...rect(context), position: getComputedStyle(context).position } : null,
+                        scrollableSidebars,
+                    };
+                })()`);
+                const image = await screenshot(`saved-search-${page}-${width}-${mode}`);
+                results.savedSearchVisual.push({ page, route, width, height, mode, metrics, image });
+
+                check(`${page} ${width}px ${mode}: viewport and five-item navigation`,
+                    !metrics.overflow && metrics.nav.join(',') === 'home,search,create,activity,messages', metrics);
+                if (width >= 1280) {
+                    check(`${page} ${width}px ${mode}: Feed rail remains sticky without internal scroll`,
+                        metrics.rail?.position === 'sticky' && metrics.scrollableSidebars.length === 0, metrics);
+                }
+                if (page === 'saved') {
+                    check(`Saved ${width}px ${mode}: synthetic saved item renders`, metrics.savedPostCount > 0, metrics);
+                }
+                if (page === 'search-initial') {
+                    check(`Search ${width}px ${mode}: usable initial state and input`, metrics.hasSearchInput && metrics.hasInitialSearchState, metrics);
+                }
+                if (page === 'search-results') {
+                    check(`Search ${width}px ${mode}: synthetic post results render`, metrics.searchPostCount > 0, metrics);
+                    await cdp.evaluate(`document.querySelector('.skuy-discovery-post-list')?.scrollIntoView({block:'start'})`);
+                    await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+                    const postsImage = await screenshot(`saved-search-search-posts-${width}-${mode}`);
+                    results.savedSearchVisual.push({ page: 'search-posts', route, width, height, mode, image: postsImage });
+                }
+            }
+        }
+    }
     for (const mode of ['dark', 'light']) {
         await theme(mode);
         await capture('/feed', mode, mode + '-feed-direct');
@@ -300,6 +370,40 @@ try {
         await navigate(fixture.otherProfile);
         check('Like and Mobile Bookmark persist on Profile',await cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector+' button')}).getAttribute('aria-pressed')==='true' && document.querySelector(${JSON.stringify(likeSelector+' button')}).getAttribute('aria-pressed')==='true'`),'real local controllers / synthetic post');
         await screenshot('profile-live-like-bookmark');
+
+        await navigate(fixture.savedPage);
+        const savedPostUid=fixture.savedPost.split('/').at(-1);
+        const savedCardSelector=`[data-feed-post-uid="${savedPostUid}"]`;
+        const savedBookmarkSelector=savedCardSelector+' .skuy-bookmark-menu-action';
+        check('Saved displays the persisted bookmark state',await cdp.evaluate(`document.querySelector(${JSON.stringify(savedBookmarkSelector+' button')})?.getAttribute('aria-pressed')==='true'`),'seeded bookmark for synthetic account 2');
+        await cdp.evaluate(`document.querySelector(${JSON.stringify(savedCardSelector)}).querySelector('[aria-haspopup="menu"]').click(); document.querySelector(${JSON.stringify(savedBookmarkSelector)}).requestSubmit()`);
+        await until(()=>cdp.evaluate(`document.querySelector(${JSON.stringify(savedCardSelector)})===null`),'saved item removed from collection');
+        await screenshot('saved-live-after-unsave');
+        await navigate(fixture.savedPage);
+        check('Saved removal persists and preserves other saved posts',await cdp.evaluate(`document.querySelector(${JSON.stringify(savedCardSelector)})===null && document.querySelector(${JSON.stringify(cardSelector+' .skuy-bookmark-menu-action button')})?.getAttribute('aria-pressed')==='true'`),'real bookmark destroy controller / synthetic posts');
+
+        await navigate(fixture.searchResults);
+        const searchCardSelector=`[data-feed-post-uid="${postUid}"]`;
+        const searchBookmarkSelector=searchCardSelector+' .skuy-bookmark-menu-action';
+        const sharedActions=await cdp.evaluate(`(() => {
+            const card=document.querySelector(${JSON.stringify(searchCardSelector)});
+            if(!card)return null;
+            return {
+                actions:['[data-feed-post-action="like"]','[data-post-appreciation]','[data-feed-comment-action]','[data-feed-post-action="repost"]','[data-feed-post-action="bookmark"]','[data-mobile-primary-action="share"]'].map(selector=>card.querySelectorAll(selector).length),
+                liked:card.querySelector('[data-feed-post-action="like"]')?.getAttribute('aria-pressed'),
+                bookmarked:card.querySelector('[data-feed-post-action="bookmark"]')?.getAttribute('aria-pressed'),
+                hasRealAuthor:card.querySelector('.skuy-post__display-name')?.textContent.trim()==='QA Theme Author',
+            };
+        })()`);
+        check('Search reuses the six Feed post actions and persisted state',sharedActions?.actions.every(count=>count===1) && sharedActions.liked==='true' && sharedActions.bookmarked==='true' && sharedActions.hasRealAuthor,sharedActions);
+        await cdp.evaluate(`document.querySelector(${JSON.stringify(searchCardSelector)}).scrollIntoView({block:'start'})`);
+        await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+        await screenshot('search-live-actions-active');
+        await cdp.evaluate(`document.querySelector(${JSON.stringify(searchCardSelector)}).querySelector('[aria-haspopup="menu"]').click(); document.querySelector(${JSON.stringify(searchBookmarkSelector)}).requestSubmit()`);
+        await until(()=>cdp.evaluate(`document.querySelector(${JSON.stringify(searchBookmarkSelector+' button')})?.getAttribute('aria-pressed')==='false'`),'search bookmark toggled off');
+        await navigate('/feed');
+        check('Search bookmark interaction persists to Feed',await cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector+' button')})?.getAttribute('aria-pressed')==='false' && document.querySelector(${JSON.stringify(likeSelector+' button')})?.getAttribute('aria-pressed')==='true'`),'real bookmark and like controllers / synthetic post');
+
         await navigate(own.settings);
         await cdp.evaluate(`document.querySelector('.skuy-avatar-studio-launch').focus();document.querySelector('.skuy-avatar-studio-launch').click()`);
         await until(()=>cdp.evaluate(`getComputedStyle(document.querySelector('.skuy-avatar-studio-scrim')).display!=='none'`),'Avatar Studio opens');

@@ -4,7 +4,7 @@
         $searchValue = is_string($searchValue) ? $searchValue : $query;
     @endphp
 
-    <div class="skuy-discovery-page">
+    <div class="skuy-discovery-page skuy-feed-page" data-flow-feed x-data="skuyPostMediaViewer">
         <div class="skuy-discovery-shell">
             <header class="skuy-discovery-header" aria-labelledby="search-page-title">
                 <div class="skuy-discovery-header__identity">
@@ -150,75 +150,8 @@
                                 <h3 class="skuy-discovery-empty__title">{{ __('search.empty.threads') }}</h3>
                             </div>
                         @else
-                            <div class="skuy-discovery-post-list">
-                                @foreach ($posts as $post)
-                                    <article class="skuy-post skuy-discovery-post" aria-labelledby="search-post-{{ $post->uid }}">
-                                        <div class="skuy-post__layout">
-                                            <div class="skuy-post__avatar-column">
-                                                <a href="{{ route('user.profile', $post->user->username) }}" class="skuy-avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $post->user->name]) }}">
-                                                    @if ($post->user->avatar)
-                                                        <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="{{ __('threads.media.avatar_of', ['name' => $post->user->name]) }}">
-                                                    @else
-                                                        <span aria-hidden="true">{{ substr($post->user->name, 0, 1) }}</span>
-                                                    @endif
-                                                </a>
-                                            </div>
-
-                                            <div class="skuy-post__body">
-                                                <div class="skuy-post__body-main">
-                                                    <header class="skuy-post__header">
-                                                        <div class="skuy-post__identity">
-                                                            <a id="search-post-{{ $post->uid }}" href="{{ route('user.profile', $post->user->username) }}" class="skuy-post__display-name">
-                                                                {{ $post->user->name }}
-                                                            </a>
-                                                            @if ($post->user->is_verified)
-                                                                <span class="skuy-discovery-verified" role="img" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
-                                                                </span>
-                                                            @endif
-                                                            <a href="{{ route('user.profile', $post->user->username) }}" class="skuy-post__username">
-                                                                <span aria-hidden="true">@</span>{{ $post->user->username }}
-                                                            </a>
-                                                            @if ($post->topic)
-                                                                <span aria-hidden="true" class="text-[var(--skuy-text-muted)]">&middot;</span>
-                                                                <a href="{{ route('topik.show', $post->topic) }}" class="skuy-post__topic">#{{ $post->topic }}</a>
-                                                            @endif
-                                                            <time datetime="{{ $post->created_at->toIso8601String() }}" class="skuy-post__time">
-                                                                {{ $post->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}
-                                                            </time>
-                                                        </div>
-                                                    </header>
-
-                                                    <div class="skuy-post__content">
-                                                        <p class="skuy-post__text">{!! preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="'.url('/tags').'/$1" class="skuy-hashtag">#$1</a>', e($post->content)) !!}</p>
-                                                    </div>
-                                                </div>
-
-                                                <footer class="skuy-discovery-post__footer">
-                                                    <a href="{{ route('posts.show', $post) }}" class="skuy-discovery-post__view-link">
-                                                        {{ __('threads.actions.view_thread') }}
-                                                    </a>
-                                                    @if ($post->bookmarked_by_me)
-                                                        <form action="{{ route('bookmarks.destroy', $post->uid) }}" method="POST">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" aria-label="{{ __('threads.actions.remove_from_saved') }}" title="{{ __('threads.actions.remove_from_saved') }}" aria-pressed="true" class="skuy-action skuy-action--bookmark">
-                                                                <x-fa-icon name="bookmark" weight="solid" class="text-xl" />
-                                                            </button>
-                                                        </form>
-                                                    @else
-                                                        <form action="{{ route('bookmarks.store', $post->uid) }}" method="POST">
-                                                            @csrf
-                                                            <button type="submit" aria-label="{{ __('threads.actions.save') }}" title="{{ __('threads.actions.save') }}" aria-pressed="false" class="skuy-action skuy-action--bookmark">
-                                                                <x-fa-icon name="bookmark" class="text-xl" />
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                </footer>
-                                            </div>
-                                        </div>
-                                    </article>
-                                @endforeach
+                            <div class="skuy-discovery-post-list skuy-feed-list">
+                                @include('partials.feed-threads', ['posts' => $posts])
                             </div>
 
                             @if ($posts->hasPages())
@@ -239,5 +172,6 @@
                 </section>
             @endif
         </div>
+        @include('partials.post-media-lightbox')
     </div>
 </x-app-layout>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    data-flow-page="{{ request()->routeIs('feed') ? 'feed' : (request()->routeIs('user.profile', 'user.edit') ? 'profile' : '') }}"
+    data-flow-page="{{ request()->routeIs('feed', 'bookmarks.index', 'search') ? 'feed' : (request()->routeIs('user.profile', 'user.edit') ? 'profile' : '') }}"
     x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
     x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     :class="{ 'dark': darkMode }"
@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/brands.min.css') }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @if (request()->routeIs('feed'))
+        @if (request()->routeIs('feed', 'bookmarks.index', 'search'))
             @vite(['resources/css/skuy-flow-feed.css', 'resources/css/skuy-flow-post-actions.css'])
         @elseif (request()->routeIs('user.profile'))
             @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-post-actions.css', 'resources/js/skuy-flow-profile.js'])

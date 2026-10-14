@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Bookmark;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Post;
@@ -34,10 +35,15 @@ $author = User::factory()->create([
     'name' => 'QA Theme Author', 'username' => 'qa.theme.author', 'email' => 'author@example.test',
 ]);
 $post = null;
+$savedPost = null;
 for ($index = 0; $index < 24; $index++) {
     $post = Post::query()->create([
         'user_id' => $author->id, 'content' => 'Synthetic theme and navigation regression post '.($index + 1),
     ]);
+
+    if ($index === 0) {
+        $savedPost = $post;
+    }
 }
 $accounts = [];
 foreach ([0, 1, 2, 12] as $count) {
@@ -45,6 +51,9 @@ foreach ([0, 1, 2, 12] as $count) {
         'name' => 'QA Theme '.$count, 'username' => 'qa.theme.'.$count, 'email' => 'theme'.$count.'@example.test',
     ]);
     $viewer->forceFill(['locale' => $count === 12 ? 'en' : 'id'])->save();
+    if ($count === 2) {
+        Bookmark::query()->create(['user_id' => $viewer->id, 'post_id' => $savedPost->id]);
+    }
     Post::query()->create(['user_id' => $viewer->id, 'content' => 'Synthetic own profile post']);
     Post::query()->create(['user_id' => $viewer->id, 'content' => '', 'repost_id' => $post->id]);
     $conversation = Conversation::query()->create([
@@ -69,6 +78,9 @@ foreach ([0, 1, 2, 12] as $count) {
 echo json_encode([
     'accounts' => $accounts, 'otherProfile' => route('user.profile', $author->username, false),
     'post' => route('posts.show', $post, false),
+    'savedPost' => route('posts.show', $savedPost, false),
+    'savedPage' => route('bookmarks.index', [], false),
+    'searchResults' => route('search', ['q' => 'theme'], false),
     'routes' => array_map(fn ($name) => route($name, [], false), [
         'feed', 'search', 'bookmarks.index', 'activity.index', 'messages.index', 'points.history', 'dashboard',
     ]),

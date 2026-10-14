@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="skuy-feed-page skuy-saved-page" data-skuy-prism-saved x-data="skuyPostMediaViewer">
+    <div class="skuy-feed-page skuy-saved-page" data-flow-feed data-skuy-prism-saved x-data="skuyPostMediaViewer">
         <div class="skuy-feed-content skuy-saved-content">
             <header class="skuy-list-page-header skuy-saved-header" data-saved-page-header>
                 <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action skuy-saved-header__back">

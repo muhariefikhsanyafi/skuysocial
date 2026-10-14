@@ -68,13 +68,44 @@ class SearchActivitySavedPresentationTest extends TestCase
             ->assertSee(route('tags.show', $hashtag->name), false)
             ->assertSee(route('topik.show', ['topic' => 'discovery-topic']), false);
 
-        $verificationCount = substr_count($html, 'class="skuy-discovery-verified"');
-        $this->assertGreaterThanOrEqual(
-            2,
-            $verificationCount,
-            'Verified users and post authors should show the existing verification marker.',
-        );
-        $this->assertSame($verificationCount, preg_match_all('/class="skuy-discovery-verified" role="img"/', $html), 'Assistive technology should identify each verification mark as an image with its existing label.');
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $postCard = $xpath->query('//*[@data-feed-post-uid="'.$post->uid.'"]')->item(0);
+
+        $this->assertNotNull($postCard, 'Search posts should reuse the shared Feed card.');
+        $this->assertGreaterThanOrEqual(2, $xpath->query('//*[@aria-label="'.e(__('threads.verified')).'"]')->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-post-action="like"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-post-action="repost"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-post-action="bookmark"]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-feed-comment-action]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-post-appreciation]', $postCard)->length);
+        $this->assertSame(1, $xpath->query('.//*[@data-mobile-primary-action="share"]', $postCard)->length);
+    }
+
+    public function test_search_post_actions_render_the_viewers_persisted_bookmark_state(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create(['username' => 'saved-search-author']);
+        $post = Post::create([
+            'user_id' => $author->id,
+            'content' => 'Saved search action parity query',
+        ]);
+        Bookmark::create(['user_id' => $viewer->id, 'post_id' => $post->id]);
+
+        $response = $this->actingAs($viewer)->get(route('search', ['q' => 'Saved search action parity']));
+        $html = $response->getContent();
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $postCard = $xpath->query('//*[@data-feed-post-uid="'.$post->uid.'"]')->item(0);
+        $bookmark = $xpath->query('.//*[@data-feed-post-action="bookmark"]', $postCard)->item(0);
+
+        $response->assertOk();
+        $this->assertNotNull($postCard);
+        $this->assertNotNull($bookmark);
+        $this->assertSame('true', $bookmark->getAttribute('aria-pressed'));
+        $this->assertSame(route('bookmarks.destroy', $post->uid), $bookmark->parentNode->getAttribute('action'));
     }
 
     public function test_search_validation_error_is_announced_and_the_string_query_is_preserved(): void
