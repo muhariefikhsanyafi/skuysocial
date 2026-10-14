@@ -6,9 +6,13 @@ html[data-flow-page="profile"] {
     --flow-panel-muted: #f7f7f9;
     --flow-text: #19191f;
     --flow-text-secondary: #5e5e68;
-    --flow-text-muted: #73747f;
+    --flow-text-muted: #696a76;
     --flow-border: #e6e6eb;
-    --flow-border-strong: #cfd0d8;
+    --flow-border-strong: #838492;
+    --flow-nav-search: #0369a1;
+    --flow-nav-activity: #b45309;
+    --flow-nav-messages: #047857;
+    --flow-nav-saved: #be185d;
     --flow-accent: #6e5bef;
     --flow-accent-hover: #5a49d7;
     --flow-accent-ink: #5848dd;
@@ -52,13 +56,17 @@ html[data-flow-page="profile"] {
 html[data-flow-page="profile"].dark {
     color-scheme: dark;
     --flow-canvas: #0d0e13;
-    --flow-panel: #15161c;
-    --flow-panel-muted: #191a21;
+    --flow-panel: #1b1c25;
+    --flow-panel-muted: #22232e;
     --flow-text: #f2f2f5;
     --flow-text-secondary: #c5c5ce;
     --flow-text-muted: #9899a5;
-    --flow-border: #292a33;
-    --flow-border-strong: #4e505d;
+    --flow-border: #30313e;
+    --flow-border-strong: #777989;
+    --flow-nav-search: #7dd3fc;
+    --flow-nav-activity: #fbbf24;
+    --flow-nav-messages: #6ee7b7;
+    --flow-nav-saved: #f9a8d4;
     --flow-accent: #6e5bef;
     --flow-accent-hover: #5d4be0;
     --flow-accent-ink: #c4baff;
@@ -121,13 +129,19 @@ html[data-flow-page="profile"] .skuy-app-shell__workspace {
 }
 
 html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
-    border: 1px solid var(--flow-border);
-    border-radius: 999px;
-    background: var(--flow-glass);
+    position: fixed;
+    inset: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: var(--flow-panel);
     box-shadow: var(--skuy-shadow-floating);
     color: var(--flow-text);
-    -webkit-backdrop-filter: blur(7px);
-    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail,
@@ -142,7 +156,7 @@ html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .sk
 
 html[data-flow-page="profile"] .skuy-app-nav__link {
     min-height: 44px;
-    border-radius: 12px;
+    border-radius: 10px;
     color: var(--flow-text-secondary);
 }
 
@@ -218,11 +232,11 @@ html[data-flow-page="profile"] .skuy-menu-surface,
 html[data-flow-page="profile"] .skuy-mobile-account-menu,
 html[data-flow-page="profile"] .skuy-appreciation__popover {
     border: 1px solid var(--flow-border);
-    background: var(--flow-glass);
+    background: var(--flow-panel);
     color: var(--flow-text);
     box-shadow: var(--flow-shadow);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
@@ -832,7 +846,243 @@ html[data-flow-page="profile"] body.skuy-product :where(a, button, input, textar
     outline-offset: 3px;
 }
 
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__inner {
+    width: 100%;
+    max-width: 1440px;
+    min-height: 72px;
+    padding-inline: 24px;
+    gap: 24px;
+}
+
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__brand-group {
+    display: flex;
+    flex-shrink: 0;
+}
+
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__actions {
+    position: static;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-search {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 520px;
+    max-width: 580px;
+    min-width: 0;
+    padding-inline-start: 14px;
+    border: 1px solid var(--flow-border-strong);
+    border-radius: 10px;
+    background: var(--flow-panel-muted);
+    color: var(--flow-text-muted);
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-search input {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--flow-text);
+    font-size: 13px;
+    box-shadow: none;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-search input::placeholder {
+    color: var(--flow-text-muted);
+    opacity: 1;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-search button {
+    flex: 0 0 44px;
+    min-height: 44px;
+    border-radius: 8px;
+    color: var(--flow-text-secondary);
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-shortcuts {
+    display: none;
+    gap: 8px;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-shortcuts .skuy-icon-button {
+    position: relative;
+    border-radius: 10px;
+    background: var(--flow-panel-muted);
+    font-size: 18px;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-badge {
+    position: absolute;
+    top: -4px;
+    right: -5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 19px;
+    min-height: 19px;
+    padding-inline: 4px;
+    border: 2px solid var(--flow-panel);
+    border-radius: 10px;
+    background: var(--flow-accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-avatar {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+    font-weight: 700;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+html[data-flow-page="profile"] .skuy-profile-trigger {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 5px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+}
+
+html[data-flow-page="profile"] .skuy-app-page-header {
+    border: 0;
+    background: transparent;
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-app-page-header__inner {
+    width: min(calc(100% - 48px), 760px);
+    margin-inline: auto;
+    padding: 20px 0 8px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] {
+    width: 100%;
+    min-width: 0;
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] .skuy-profile-shell {
+    width: min(calc(100% - 48px), 760px);
+    min-width: 0;
+    margin-inline: auto;
+    padding: 20px 0 56px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] form.skuy-settings-panel {
+    min-width: 0;
+    border: 1px solid var(--flow-border);
+    border-radius: 16px;
+    background: var(--flow-panel);
+    box-shadow: none;
+    color: var(--flow-text);
+}
+
 @media (min-width: 1280px) {
+    html[data-flow-page="profile"] .skuy-app-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell],
+    html[data-flow-page="profile"] .skuy-app-shell__workspace {
+        grid-area: 1 / 1;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] {
+        width: 0;
+        min-width: 0;
+        justify-self: start;
+    }
+
+    html[data-flow-page="profile"] .skuy-flow-topbar-search,
+    html[data-flow-page="profile"] .skuy-flow-topbar-shortcuts {
+        display: flex;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail {
+        position: sticky;
+        inset-block-start: calc(72px + env(safe-area-inset-top, 0px) + 24px);
+        margin-inline-start: max(20px, calc((100vw - 1440px) / 2 + 24px));
+        align-self: start;
+        width: 216px;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        overflow: visible;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__inner {
+        min-height: 0;
+        padding: 0;
+        background: transparent;
+    }
+
+    html[data-flow-page="profile"] .skuy-app-rail__brand { display: none; }
+    html[data-flow-page="profile"] .skuy-app-rail__spacer { flex: 0 0 24px; }
+    html[data-flow-page="profile"] .skuy-app-rail__compose { min-height: 46px; border-radius: 10px; box-shadow: none; }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        margin-inline-start: max(256px, calc((100vw - 1440px) / 2 + 256px));
+        margin-inline-end: max(0px, calc((100vw - 1440px) / 2));
+    }
+
+    html[data-flow-page="profile"] .skuy-app-nav__link .skuy-app-nav__icon {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--flow-panel-muted);
+        color: var(--flow-accent-ink);
+        font-size: 17px;
+    }
+
+    html[data-flow-page="profile"] [data-nav-key="search"] .skuy-app-nav__icon { color: var(--flow-nav-search); }
+    html[data-flow-page="profile"] [data-nav-key="activity"] .skuy-app-nav__icon { color: var(--flow-nav-activity); }
+    html[data-flow-page="profile"] [data-nav-key="messages"] .skuy-app-nav__icon { color: var(--flow-nav-messages); }
+    html[data-flow-page="profile"] [data-nav-key="saved"] .skuy-app-nav__icon { color: var(--flow-nav-saved); }
+
+    html[data-flow-page="profile"] .skuy-app-nav__link[data-nav-context-active="true"] {
+        background: var(--flow-accent-soft);
+        color: var(--skuy-on-selected);
+        font-weight: 700;
+    }
+
+    html[data-flow-page="profile"] .skuy-app-nav__link[data-nav-context-active="true"] .skuy-app-nav__icon,
+    html[data-flow-page="profile"] .skuy-app-nav__link[aria-current="page"] .skuy-app-nav__icon {
+        background: var(--flow-accent);
+        color: #fff;
+    }
+
     html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail {
         overflow: visible;
     }
@@ -853,6 +1103,10 @@ html[data-flow-page="profile"] body.skuy-product :where(a, button, input, textar
     }
 
     html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-shell {
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] .skuy-profile-shell {
         padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
     }
 }
@@ -931,6 +1185,17 @@ html[data-flow-page="profile"] body.skuy-product :where(a, button, input, textar
     }
 
     html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-shell {
+        width: min(calc(100% - 24px), 760px);
+        padding-top: 14px;
+    }
+
+    html[data-flow-page="profile"] .skuy-app-page-header__inner {
+        width: min(calc(100% - 24px), 760px);
+        padding-top: 14px;
+        padding-bottom: 4px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] .skuy-profile-shell {
         width: min(calc(100% - 24px), 760px);
         padding-top: 14px;
     }

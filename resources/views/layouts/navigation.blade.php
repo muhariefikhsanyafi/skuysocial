@@ -3,6 +3,8 @@
     $profileUrl = route('user.profile', $user->username);
     $isDashboard = request()->routeIs('dashboard');
     $isFeed = request()->routeIs('feed');
+    $isProfileFlow = request()->routeIs('user.profile', 'user.edit');
+    $isModernSocialShell = $isFeed || $isProfileFlow;
     $showDashboardNavigation = $user->hasVerifiedEmail() || $isDashboard;
     $unreadNotificationCount = (int) ($unreadNotificationCount ?? 0);
     $unreadMessageCount = (int) ($unreadMessageCount ?? 0);
@@ -165,7 +167,7 @@
             </a>
         </div>
 
-        @if ($isFeed)
+        @if ($isModernSocialShell)
             <form action="{{ route('search') }}" method="GET" role="search" class="skuy-flow-topbar-search">
                 <x-fa-icon name="magnifying-glass" />
                 <label for="flow-navigation-search" class="sr-only">{{ __('navigation.search') }}</label>
@@ -177,10 +179,10 @@
         @endif
 
         <div class="skuy-topbar__actions">
-            @if ($isFeed)
+            @if ($isModernSocialShell)
                 <div class="skuy-flow-topbar-shortcuts">
                     @if ($user->canPerformSocialWrites())
-                        <a href="#composer" class="skuy-icon-button" aria-label="{{ __('navigation.create_thread') }}" title="{{ __('navigation.create_thread') }}">
+                        <a href="{{ $composerHref }}" class="skuy-icon-button" aria-label="{{ __('navigation.create_thread') }}" title="{{ __('navigation.create_thread') }}">
                             <x-fa-icon name="plus" weight="solid" />
                         </a>
                     @endif
@@ -225,7 +227,7 @@
                             :aria-expanded="open"
                             aria-controls="desktop-profile-menu"
                         >
-                            @if ($isFeed)
+                            @if ($isModernSocialShell)
                                 <span class="skuy-flow-topbar-avatar" aria-hidden="true">
                                     @if ($user->avatar)
                                         <img src="{{ asset('storage/' . $user->avatar) }}" alt="">
@@ -366,12 +368,13 @@
                         href="{{ $item['href'] }}"
                         data-nav-key="{{ $item['key'] }}"
                         data-nav-surfaces="{{ $item['surfaces'] }}"
+                        @if ($item['key'] === 'feed' && $isProfileFlow) data-nav-context-active="true" @endif
                         aria-label="{{ $item['key'] === 'activity' && $unreadNotificationCount > 0 ? $activityMobileLabel : ($item['key'] === 'messages' && $unreadMessageCount > 0 ? $messagesMobileLabel : ($item['key'] === 'announcements' && $unreadAnnouncementCount > 0 ? $announcementsMobileLabel : $item['label'])) }}"
                         aria-current="{{ $item['active'] ? 'page' : 'false' }}"
                         @click="closeNavigation(false)"
                         class="skuy-app-nav__link"
                     >
-                        <x-fa-icon :name="$item['icon']" :weight="$isFeed || $item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
+                        <x-fa-icon :name="$item['icon']" :weight="$isModernSocialShell || $item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
                         <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
                         @if ($item['key'] === 'activity' && $unreadNotificationCount > 0)
                             <span class="skuy-feed-nav__badge" data-unread-notifications-badge aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}">{{ $displayUnreadNotificationCount }}</span>

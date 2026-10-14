@@ -22,7 +22,7 @@
         $profileLinksForForm = is_array($profileLinksForForm) ? array_values($profileLinksForForm) : [];
     @endphp
 
-    <div class="skuy-profile-page">
+    <div class="skuy-profile-page" data-skuy-profile-settings>
         <div class="skuy-profile-shell space-y-6">
             <form action="{{ route('user.update') }}" method="POST" enctype="multipart/form-data"
                   x-data="{
