@@ -178,3 +178,44 @@ jobs:
       - name: npm advisory audit (including dev dependencies)
         if: always()
         run: npm audit --audit-level=critical
+
+  temporary-lock-preview:
+    if: github.event_name == 'pull_request' && github.head_ref == 'ci/github-actions-quality-gates'
+    name: Temporary lockfile remediation (read-only preview)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout without persisting credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Upgrade affected Composer dependencies without application scripts
+        run: composer update filament/filament laravel/framework league/commonmark league/flysystem --with-all-dependencies --no-scripts --no-plugins --no-interaction --no-progress --no-audit
+
+      - name: Set up Node.js
+        if: always()
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+
+      - name: Refresh npm lockfile without lifecycle scripts or major version overrides
+        if: always()
+        run: npm audit fix --package-lock-only --ignore-scripts --no-fund --no-progress || true
+
+      - name: Print lockfile-only patch for review and commit through GitHub connector
+        if: always()
+        shell: bash
+        run: |
+          git diff --no-ext-diff --no-color -- composer.lock package-lock.json > /tmp/skuysocial-lockfiles.patch
+          echo 'BEGIN_LOCKFILE_PATCH_BASE64'
+          base64 --wrap=0 /tmp/skuysocial-lockfiles.patch
+          echo
+          echo 'END_LOCKFILE_PATCH_BASE64'

@@ -64,7 +64,7 @@ class FeedTest extends TestCase
 
         $document = new DOMDocument();
         $previous = libxml_use_internal_errors(true);
-        $document->loadHTML((string) $response->getContent());
+        @$document->loadHTML((string) $response->getContent());
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
         $xpath = new DOMXPath($document);
@@ -207,7 +207,7 @@ class FeedTest extends TestCase
 
         $dom = new \DOMDocument();
         $previousLibxmlSetting = libxml_use_internal_errors(true);
-        $dom->loadHTML($response->getContent());
+        @$dom->loadHTML($response->getContent());
         libxml_clear_errors();
         libxml_use_internal_errors($previousLibxmlSetting);
 
@@ -1150,7 +1150,7 @@ class FeedTest extends TestCase
         $this->assertSame(['alpha', 'middle', 'zeta'], $availableTopics->all());
         $this->assertCount(3, $availableTopics);
         $document = new DOMDocument();
-        $document->loadHTML((string) $response->getContent());
+        @$document->loadHTML((string) $response->getContent());
         $xpath = new DOMXPath($document);
         $topicComponentData = null;
         foreach ($xpath->query('//*[@x-data]') ?: [] as $element) {
@@ -1269,7 +1269,7 @@ class FeedTest extends TestCase
         $response = $this->actingAs(User::factory()->create())->get(route('feed'));
         $document = new DOMDocument();
         $previous = libxml_use_internal_errors(true);
-        $document->loadHTML((string) $response->getContent());
+        @$document->loadHTML((string) $response->getContent());
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
         $xpath = new DOMXPath($document);

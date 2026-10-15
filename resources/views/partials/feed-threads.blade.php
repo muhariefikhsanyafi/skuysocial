@@ -493,9 +493,9 @@
                                 :role="feedbackIsError ? 'alert' : 'status'"
                                 :aria-live="feedbackIsError ? 'assertive' : 'polite'"
                                 aria-atomic="true"
-                                style="display: none;"
+                                style="display: none; font-size: 0.75rem; font-weight: 600;"
                                 :class="feedbackIsError ? 'text-[var(--skuy-danger)]' : 'text-[var(--skuy-secondary)]'"
-                                class="min-h-5 text-xs font-semibold"
+                                class="min-h-5"
                             ></p>
                         </div>
                     </div>

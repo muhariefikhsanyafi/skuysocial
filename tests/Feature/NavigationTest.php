@@ -28,8 +28,8 @@ class NavigationTest extends TestCase
         $this->assertStringContainsString('<div class="skuy-app-shell">', $html);
         $this->assertStringContainsString('<div class="skuy-app-shell__workspace">', $html);
         $this->assertStringContainsString('aria-controls="mobile-navigation"', $html);
-        $this->assertStringContainsString(':aria-expanded="(sidebarOpen && !isDesktop).toString()"', $html);
-        $this->assertStringContainsString(":aria-label=\"sidebarOpen && !isDesktop ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
+        $this->assertStringContainsString(':aria-expanded="(sidebarOpen &amp;&amp; !isDesktop).toString()"', $html);
+        $this->assertStringContainsString(":aria-label=\"sidebarOpen &amp;&amp; !isDesktop ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
         $this->assertStringContainsString('id="mobile-navigation"', $html);
         $this->assertStringContainsString('aria-controls="mobile-profile-menu"', $html);
         $this->assertStringContainsString(':aria-expanded="accountMenuOpen.toString()"', $html);
