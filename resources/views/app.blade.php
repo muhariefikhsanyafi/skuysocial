@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    data-flow-page="feed"
     x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
     x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     x-effect="document.documentElement.classList.toggle('dark', darkMode)"
@@ -23,7 +24,7 @@
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/brands.min.css') }}">
 
         @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/inertia.tsx'])
+        @vite(['resources/css/app.css', 'resources/css/skuy-flow-feed.css', 'resources/css/skuy-flow-post-actions.css', 'resources/css/skuy-flow-thread.css', 'resources/js/app.js', 'resources/js/inertia.tsx'])
         @inertiaHead
     </head>
     <body class="skuy-product antialiased">

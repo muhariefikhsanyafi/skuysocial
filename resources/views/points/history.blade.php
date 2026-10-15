@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="skuy-feed-page skuy-points-page">
+    <div class="skuy-feed-page skuy-points-page" data-flow-support="points">
         <div class="skuy-feed-content skuy-points-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <header class="skuy-list-page-header">
                 <h1 class="skuy-list-page-header__title">{{ __('points.history.title') }}</h1>

@@ -1,0 +1,103 @@
+/* SkuySocial Flow supporting pages: follower lists and Points history. */
+/* Uses Feed's shared page palette and responsive navigation. */
+html[data-flow-page="feed"] .skuy-points-page,
+html[data-flow-page="feed"] .skuy-follow-list-page {
+    min-height: min(75vh, 680px);
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+html[data-flow-page="feed"] .skuy-points-page .skuy-points-content,
+html[data-flow-page="feed"] .skuy-follow-list-page > .skuy-feed-content {
+    box-sizing: border-box;
+    width: min(100%, 760px);
+    max-width: 760px;
+    margin-inline: auto;
+    padding: clamp(20px, 3vw, 36px) clamp(14px, 3vw, 28px) calc(112px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="feed"] .skuy-points-page .skuy-list-page-header,
+html[data-flow-page="feed"] .skuy-follow-list-page .skuy-feed-content > div:first-child {
+    padding-bottom: 20px;
+    margin-bottom: 22px;
+    border-color: var(--flow-border);
+}
+html[data-flow-page="feed"] .skuy-points-page .skuy-list-page-header__title,
+html[data-flow-page="feed"] .skuy-follow-list-page h1 {
+    color: var(--flow-text);
+    font-size: clamp(23px, 3vw, 29px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+}
+html[data-flow-page="feed"] .skuy-points-page .skuy-settings-panel {
+    border: 1px solid var(--flow-border);
+    border-radius: 18px;
+    padding: clamp(20px, 3vw, 28px);
+    background: var(--flow-panel);
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-points-page [data-points-balance] {
+    color: var(--flow-accent-ink);
+    font-size: clamp(26px, 4vw, 34px);
+    font-weight: 800;
+}
+html[data-flow-page="feed"] .skuy-points-page .skuy-social-empty,
+html[data-flow-page="feed"] .skuy-follow-list-page .skuy-profile-empty {
+    padding: 40px 24px;
+    border: 1px solid var(--flow-border);
+    border-radius: 16px;
+    background: var(--flow-panel);
+    color: var(--flow-text-secondary);
+}
+html[data-flow-page="feed"] .skuy-points-page ol > li {
+    gap: 14px;
+    padding-block: 18px;
+    border-color: var(--flow-border);
+}
+html[data-flow-page="feed"] .skuy-follow-list-page .skuy-feed-content > div:first-child .skuy-action {
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+}
+html[data-flow-page="feed"] .skuy-follow-list-page .skuy-feed-content > .space-y-3 > div {
+    border-color: var(--flow-border);
+    border-radius: 14px;
+    background: var(--flow-panel);
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-follow-list-page .skuy-feed-content > .space-y-3 > div:hover {
+    background: var(--flow-panel-muted);
+}
+html[data-flow-page="feed"] .skuy-follow-list-page .skuy-post__display-name {
+    color: var(--flow-text);
+    font-size: 15px;
+    font-weight: 700;
+}
+html[data-flow-page="feed"] .skuy-follow-list-page .skuy-post__username {
+    color: var(--flow-text-muted);
+    font-size: 13px;
+}
+html[data-flow-page="feed"] .skuy-follow-list-page button[aria-pressed="false"] {
+    border-color: var(--flow-accent);
+    background: var(--flow-accent);
+    color: white;
+}
+html[data-flow-page="feed"] .skuy-follow-list-page button[aria-pressed="true"] {
+    border-color: var(--flow-border-strong);
+    color: var(--flow-accent-ink);
+    background: var(--flow-panel);
+}
+html[data-flow-page="feed"] .skuy-follow-list-page button[aria-pressed]:hover {
+    filter: brightness(.97);
+}
+html[data-flow-page="feed"] :is(.skuy-points-page, .skuy-follow-list-page) :is(a, button):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+@media (max-width: 640px) {
+    html[data-flow-page="feed"] .skuy-points-page .skuy-points-content,
+    html[data-flow-page="feed"] .skuy-follow-list-page > .skuy-feed-content {
+        padding-inline: 12px;
+    }
+}

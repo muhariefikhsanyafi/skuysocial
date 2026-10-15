@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="skuy-feed-page skuy-messages-page skuy-direct-chat-page">
+    <div class="skuy-feed-page skuy-messages-page skuy-direct-chat-page" data-flow-messages="conversation">
         <div class="skuy-feed-content skuy-messages-content skuy-direct-chat-content mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-8">
             <header class="skuy-direct-chat-header">
                 <a href="{{ route('messages.index') }}" class="skuy-direct-chat-back">

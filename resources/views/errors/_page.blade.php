@@ -15,14 +15,14 @@
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/css/skuy-flow-guest.css', 'resources/css/skuy-flow-errors.css', 'resources/js/app.js'])
     </head>
-    <body class="skuy-product min-h-screen antialiased">
+    <body class="skuy-product min-h-screen antialiased" data-flow-guest="error">
         <main class="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
             <section
                 aria-labelledby="error-title"
                 aria-describedby="error-description"
-                class="w-full max-w-2xl rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] border-t-2 border-t-[var(--skuy-secondary)] bg-[var(--skuy-surface)] p-6 shadow-[var(--skuy-elevation-2)] sm:p-10"
+                class="skuy-flow-error-card w-full max-w-2xl rounded-[var(--radius-large)] border border-[var(--skuy-border-subtle)] border-t-2 border-t-[var(--skuy-secondary)] bg-[var(--skuy-surface)] p-6 shadow-[var(--skuy-elevation-2)] sm:p-10"
             >
                 <header class="flex items-center justify-between gap-4 border-b border-[var(--skuy-border-subtle)] pb-5">
                     <a
@@ -57,7 +57,7 @@
                 <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                     <a
                         href="{{ $primaryUrl }}"
-                        class="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-small)] bg-[var(--skuy-brand)] px-5 py-3 text-center text-sm font-bold text-[var(--skuy-on-brand)] transition-colors hover:bg-[var(--skuy-brand-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--skuy-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--skuy-surface)]"
+                        class="skuy-flow-error-primary inline-flex min-h-11 items-center justify-center rounded-[var(--radius-small)] bg-[var(--skuy-brand)] px-5 py-3 text-center text-sm font-bold text-[var(--skuy-on-brand)] transition-colors hover:bg-[var(--skuy-brand-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--skuy-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--skuy-surface)]"
                     >
                         {{ $primaryLabel }}
                     </a>

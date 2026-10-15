@@ -6,7 +6,7 @@
         </div>
     </x-slot>
 
-    <div class="skuy-profile-page skuy-security-page">
+    <div class="skuy-profile-page skuy-security-page" data-flow-security="two-factor">
         <div class="skuy-security-shell space-y-6">
             <section class="skuy-settings-panel">
                 <h2 class="text-lg font-bold text-[var(--skuy-text-primary)]">{{ __('settings.two_factor.status_heading') }}</h2>

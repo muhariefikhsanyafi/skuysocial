@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="skuy-discovery-page">
+    <div class="skuy-discovery-page" data-flow-discovery="hashtag">
         <div class="skuy-discovery-shell">
             <a href="{{ route('search') }}" class="skuy-discovery-back">
                 <x-fa-icon name="arrow-left-long" />

@@ -4,7 +4,7 @@
     $isDashboard = request()->routeIs('dashboard');
     $isFeed = request()->routeIs('feed');
     $isProfileFlow = request()->routeIs('user.profile', 'user.edit');
-    $isModernSocialShell = $isFeed || $isProfileFlow || request()->routeIs('search', 'bookmarks.index');
+    $isModernSocialShell = $isFeed || $isProfileFlow || $isDashboard || request()->routeIs('search', 'bookmarks.index', 'profile.edit');
     $showDashboardNavigation = $user->hasVerifiedEmail() || $isDashboard;
     $unreadNotificationCount = (int) ($unreadNotificationCount ?? 0);
     $unreadMessageCount = (int) ($unreadMessageCount ?? 0);

@@ -1,0 +1,100 @@
+/* SkuySocial Flow — security pages, scoped to authenticated password-confirmed routes.
+   Do not alter forms, secret values, recovery-code logic or warning semantics. */
+html[data-flow-page="profile"] .skuy-security-page {
+    min-width: 0;
+    min-height: min(75vh, 720px);
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-security-shell {
+    box-sizing: border-box;
+    width: min(calc(100% - 36px), 720px);
+    max-width: 720px;
+    margin-inline: auto;
+    padding: 26px 0 calc(116px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel {
+    min-width: 0;
+    padding: clamp(20px, 3vw, 30px);
+    border: 1px solid var(--flow-border);
+    border-radius: 18px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: none;
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel h2 {
+    font-size: clamp(18px, 2.5vw, 22px);
+    letter-spacing: -0.025em;
+    line-height: 1.35;
+    color: var(--flow-text);
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel h3 {
+    color: var(--flow-text);
+    font-size: 16px;
+    line-height: 1.4;
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel :is(p, label) {
+    overflow-wrap: anywhere;
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel code {
+    display: inline-block;
+    max-width: 100%;
+    color: var(--flow-text);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel li {
+    min-width: 0;
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel input {
+    max-width: 100%;
+    border-radius: 12px;
+    border-color: var(--flow-border-strong);
+    color: var(--flow-text);
+    background: var(--flow-panel);
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel input:focus-visible,
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel :is(a, button):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel .skuy-button--primary,
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel .skuy-on-brand {
+    color: #fff;
+    background: var(--flow-accent);
+    border-color: var(--flow-accent);
+}
+html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel img {
+    max-width: 100%;
+    height: auto;
+}
+html[data-flow-page="profile"] .skuy-security-page[data-flow-security="recovery-codes"] ul {
+    margin-block: 22px;
+}
+html[data-flow-page="profile"] .skuy-security-page[data-flow-security="recovery-codes"] li {
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: var(--flow-panel-muted);
+}
+html[data-flow-page="profile"] .skuy-security-page[data-flow-security="recovery-codes"] li code {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+}
+@media (max-width: 480px) {
+    html[data-flow-page="profile"] .skuy-security-page .skuy-security-shell {
+        width: min(calc(100% - 24px), 720px);
+        padding-block: 18px calc(116px + env(safe-area-inset-bottom, 0px));
+    }
+    html[data-flow-page="profile"] .skuy-security-page .skuy-settings-panel {
+        padding: 18px 14px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    html[data-flow-page="profile"] .skuy-security-page *,
+    html[data-flow-page="profile"] .skuy-security-page *::before,
+    html[data-flow-page="profile"] .skuy-security-page *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

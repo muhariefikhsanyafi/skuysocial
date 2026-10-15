@@ -9,7 +9,7 @@
         )->locale(app()->getLocale())->translatedFormat('j F Y');
     @endphp
 
-    <div class="skuy-dashboard-page">
+    <div class="skuy-dashboard-page" data-flow-dashboard="home">
         <div class="skuy-dashboard-frame skuy-dashboard-frame--bento">
             <section class="skuy-dashboard-welcome" aria-labelledby="dashboard-title">
                 <div>

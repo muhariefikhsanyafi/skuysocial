@@ -3,7 +3,7 @@
         $isRepost = $post->id !== $displayPost->id;
     @endphp
 
-    <div class="skuy-feed-page skuy-post-detail-page" data-skuy-prism-detail>
+    <div class="skuy-feed-page skuy-post-detail-page" data-skuy-prism-detail data-flow-thread="detail">
         <div class="skuy-post-detail__layout">
             <section class="skuy-feed-content skuy-post-detail__main skuy-post-detail__content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <!-- Header Kembali -->

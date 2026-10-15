@@ -53,7 +53,7 @@ function command(executable, args, cwd = root) {
         child.on('exit', code => code === 0 ? resolve(stdout) : reject(new Error(`${path.basename(executable)} exited ${code}: ${stderr.slice(-1500)} ${stdout.slice(-1500)}`)));
     });
 }
-const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], appreciationVisual: [], externalRequestsBlocked: [] };
+const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], flowVisual: [], appreciationVisual: [], externalRequestsBlocked: [] };
 function check(name, condition, evidence) {
     results.checks.push({ name, pass: Boolean(condition), evidence });
     if (!condition) console.log(`FAIL ${name}: ${JSON.stringify(evidence).slice(0,600)}`);
@@ -678,6 +678,68 @@ try {
         const toggled = await cdp.evaluate(`({dark:document.documentElement.classList.contains('dark'),saved:localStorage.getItem('theme')})`);
         check('theme toggle persists light', toggled.dark === false && toggled.saved === 'light', toggled);
         await capture(own.profile,'light','profile-after-toggle');
+    if (phase === 'after') {
+        // Visual evidence for the redesigned authenticated screens (not a pixel-level approval).
+        // Capture both themes at the narrowest supported mobile width and at desktop width.
+        await login(2);
+        for (const width of [320, 1280]) {
+            await viewport(width, width === 320 ? 740 : 900);
+            for (const mode of ['light', 'dark']) {
+                await theme(mode);
+                for (const { key, url, scope } of fixture.flowRoutes) {
+                    await navigate(url);
+                    // Collect diagnostic screenshot even when a route renders an HTTP error
+                    // instead of throwing a blind timeout before evidence is captured.
+                    await until(() => cdp.evaluate(`(document.querySelector('#main-content')?.innerText.trim().length ?? 0) > 0`).catch(() => false),
+                        'rendered Flow route ' + key, 4000).catch(() => false);
+                    await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+                    const metrics = await cdp.evaluate(`(() => {
+                        const main = document.querySelector('#main-content');
+                        const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                        const nav = [...document.querySelectorAll('[data-mobile-nav-key]')].map(node => node.dataset.mobileNavKey);
+                        const root = main?.querySelector('[data-flow-thread], [data-flow-messages], [data-flow-activity], .skuy-discovery-page, .skuy-dashboard-page, .skuy-points-page, .skuy-profile-page');
+                        const panel = root ?? main;
+                        return {
+                            route: location.pathname, theme, scope: document.documentElement.dataset.flowPage,
+                            documentTitle: document.title,
+                            visibleText: document.body?.innerText.slice(0, 200) ?? '',
+                            statusHeading: document.querySelector('h1')?.innerText ?? null,
+                            viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth,
+                            mainTextLength: main?.innerText.trim().length ?? 0,
+                            rootBackground: panel ? getComputedStyle(panel).backgroundColor : null,
+                            nav,
+                            hasErrorPage: !!document.querySelector('[data-flow-guest="error"]'),
+                        };
+                    })()`);
+                    const image = await screenshot(`flow-qa-${key}-${width}-${mode}`);
+                    results.flowVisual.push({ key, url, width, mode, scope, metrics, image });
+                    if (key === 'conversation' && width <= 390) {
+                        // Regression for the fixed five-item dock hiding Chat's send action.
+                        // Scroll only within the isolated visual QA fixture (never real users).
+                        await cdp.evaluate(`document.querySelector('[data-message-submit]')?.scrollIntoView({block:'center'})`);
+                        await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+                        const chatSend = await cdp.evaluate(`(() => {
+                            const send = document.querySelector('[data-message-submit]');
+                            const dock = document.querySelector('.skuy-mobile-nav');
+                            if (!send || !dock) return null;
+                            const rect = send.getBoundingClientRect();
+                            const nav = dock.getBoundingClientRect();
+                            return { height: rect.height, top: rect.top, bottom: rect.bottom, dockTop: nav.top };
+                        })()`);
+                        check(`Flow mobile Chat submit visible above dock ${width}px ${mode}`,
+                            chatSend !== null && chatSend.height >= 44 &&
+                            chatSend.top >= 0 && chatSend.bottom <= chatSend.dockTop - 8, chatSend);
+                        await screenshot(`flow-qa-chat-submit-${width}-${mode}`);
+                    }
+                    check(`Flow ${key} ${width}px ${mode}: rendered theme, shell, safe viewport, real navigation`,
+                        metrics.theme === mode && metrics.scope === scope && !metrics.hasErrorPage &&
+                        metrics.mainTextLength > 0 && metrics.documentWidth <= width &&
+                        metrics.nav.join(',') === 'home,search,create,activity,messages', metrics);
+                }
+            }
+        }
+        await viewport(390, 844);
+    }
         const baseline = await fs.readFile(path.join(output,'../before/results.json'),'utf8').then(JSON.parse).catch(()=>null);
         if (baseline) {
             check('Feed badge geometry / colors unchanged from baseline', results.badges.filter(row=>row.route==='/feed').every(row=>{

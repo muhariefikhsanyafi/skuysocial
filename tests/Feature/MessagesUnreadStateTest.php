@@ -194,6 +194,8 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertNull($unreadNotification->fresh()->read_at);
 
         $html = $response->getContent();
+        $this->assertStringContainsString('data-flow-page="messages"', $html);
+        $this->assertStringContainsString('data-flow-messages="inbox"', $html);
         $this->assertSame(2, substr_count($html, 'data-unread-messages-badge'));
         $this->assertSame(2, substr_count($html, 'data-unread-notifications-badge'));
         $this->assertSame(3, substr_count($html, 'aria-label="Unread messages: 2"'));
@@ -243,7 +245,9 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertStringContainsString('href="'.route('announcements.index').'"', $desktopRail);
         $this->assertStringContainsString('aria-label="Unread: 1"', $desktopRail);
 
-        $this->get(route('messages.show', $conversation))->assertOk();
+        $this->get(route('messages.show', $conversation))
+            ->assertOk()
+            ->assertSee('data-flow-messages="conversation"', false);
         $this->assertSame(0, $viewer->fresh()->unreadMessageCount());
 
         $readInbox = $this->get(route('messages.index'));
