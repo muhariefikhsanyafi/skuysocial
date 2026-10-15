@@ -1,0 +1,484 @@
+/* SkuySocial Flow — messaging. Exact palette and navigation shell shared with Feed. */
+html[data-flow-page="messages"] {
+    color-scheme: light;
+    --flow-canvas: #ffffff;
+    --flow-panel: #ffffff;
+    --flow-panel-muted: #f7f7f9;
+    --flow-text: #19191f;
+    --flow-text-secondary: #5e5e68;
+    --flow-text-muted: #696a76;
+    --flow-border: #e6e6eb;
+    --flow-border-strong: #838492;
+    --flow-like: #be185d;
+    --flow-nav-search: #0369a1;
+    --flow-nav-activity: #b45309;
+    --flow-nav-messages: #047857;
+    --flow-nav-saved: #be185d;
+    --flow-accent: #6e5bef;
+    --flow-accent-hover: #5a49d7;
+    --flow-accent-ink: #5848dd;
+    --flow-accent-soft: #f1efff;
+    --flow-glass: rgb(255 255 255 / 94%);
+    --flow-shadow: 0 8px 26px rgb(25 25 31 / 7%);
+    --skuy-bg-canvas: var(--flow-canvas);
+    --skuy-bg-workspace: var(--flow-canvas);
+    --skuy-background: var(--flow-canvas);
+    --skuy-surface: var(--flow-panel);
+    --skuy-surface-elevated: var(--flow-panel);
+    --skuy-surface-subtle: var(--flow-panel-muted);
+    --skuy-surface-base: var(--flow-canvas);
+    --skuy-surface-raised: var(--flow-panel);
+    --skuy-surface-overlay: var(--flow-panel);
+    --skuy-surface-glass: var(--flow-glass);
+    --skuy-text-primary: var(--flow-text);
+    --skuy-text-secondary: var(--flow-text-secondary);
+    --skuy-text-muted: var(--flow-text-muted);
+    --skuy-border-subtle: var(--flow-border);
+    --skuy-border-soft: var(--flow-border);
+    --skuy-border-strong: var(--flow-border-strong);
+    --skuy-brand: var(--flow-accent);
+    --skuy-brand-hover: var(--flow-accent-hover);
+    --skuy-brand-pressed: #4939c4;
+    --skuy-on-brand: #ffffff;
+    --skuy-secondary: var(--flow-text-secondary);
+    --skuy-secondary-hover: var(--flow-text);
+    --skuy-on-secondary: #ffffff;
+    --skuy-focus: var(--flow-accent);
+    --skuy-selected: var(--flow-accent-soft);
+    --skuy-on-selected: #5140ce;
+    --skuy-surface-accent: var(--flow-accent-soft);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-shadow-soft: 0 2px 8px rgb(25 25 31 / 7%);
+    --skuy-shadow-floating: 0 8px 26px rgb(25 25 31 / 8%);
+}
+
+html[data-flow-page="messages"].dark {
+    color-scheme: dark;
+    --flow-canvas: #0d0e13;
+    --flow-panel: #1b1c25;
+    --flow-panel-muted: #22232e;
+    --flow-text: #f2f2f5;
+    --flow-text-secondary: #c5c5ce;
+    --flow-text-muted: #9899a5;
+    --flow-border: #30313e;
+    --flow-border-strong: #777989;
+    --flow-like: #f472b6;
+    --flow-nav-search: #7dd3fc;
+    --flow-nav-activity: #fbbf24;
+    --flow-nav-messages: #6ee7b7;
+    --flow-nav-saved: #f9a8d4;
+    --flow-accent: #6e5bef;
+    --flow-accent-hover: #5d4be0;
+    --flow-accent-ink: #c4baff;
+    --flow-accent-soft: #292544;
+    --flow-glass: rgb(20 21 27 / 95%);
+    --flow-shadow: 0 10px 30px rgb(0 0 0 / 28%);
+    --skuy-bg-canvas: var(--flow-canvas);
+    --skuy-bg-workspace: var(--flow-canvas);
+    --skuy-background: var(--flow-canvas);
+    --skuy-surface: var(--flow-panel);
+    --skuy-surface-elevated: #1b1c24;
+    --skuy-surface-subtle: var(--flow-panel-muted);
+    --skuy-surface-base: var(--flow-canvas);
+    --skuy-surface-raised: var(--flow-panel);
+    --skuy-surface-overlay: #1b1c24;
+    --skuy-surface-glass: var(--flow-glass);
+    --skuy-text-primary: var(--flow-text);
+    --skuy-text-secondary: var(--flow-text-secondary);
+    --skuy-text-muted: var(--flow-text-muted);
+    --skuy-border-subtle: var(--flow-border);
+    --skuy-border-soft: var(--flow-border);
+    --skuy-border-strong: var(--flow-border-strong);
+    --skuy-brand: var(--flow-accent);
+    --skuy-brand-hover: var(--flow-accent-hover);
+    --skuy-brand-pressed: #6f61e3;
+    --skuy-on-brand: #ffffff;
+    --skuy-secondary: var(--flow-text-secondary);
+    --skuy-secondary-hover: var(--flow-text);
+    --skuy-on-secondary: #15161c;
+    --skuy-focus: var(--flow-accent-ink);
+    --skuy-selected: var(--flow-accent-soft);
+    --skuy-on-selected: #cec8ff;
+    --skuy-surface-accent: var(--flow-accent-soft);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-shadow-soft: 0 3px 12px rgb(0 0 0 / 24%);
+    --skuy-shadow-floating: 0 10px 30px rgb(0 0 0 / 30%);
+}
+
+html[data-flow-page="messages"] body.skuy-product,
+html[data-flow-page="messages"] .skuy-app-shell,
+html[data-flow-page="messages"] .skuy-app-shell__workspace,
+html[data-flow-page="messages"] #main-content {
+    min-width: 0;
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+
+html[data-flow-page="messages"] .skuy-app-shell::before,
+html[data-flow-page="messages"] .skuy-app-shell::after {
+    display: none;
+    content: none;
+    background: none;
+}
+
+html[data-flow-page="messages"] .skuy-app-shell__workspace {
+    padding-block-end: 24px;
+}
+
+html[data-flow-page="messages"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+    position: fixed;
+    inset: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: var(--flow-panel);
+    box-shadow: var(--skuy-shadow-floating);
+    color: var(--flow-text);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="messages"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail,
+html[data-flow-page="messages"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__inner {
+    border-color: var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="messages"] .skuy-app-nav__link {
+    min-height: 44px;
+    border-radius: 10px;
+    color: var(--flow-text-secondary);
+}
+
+html[data-flow-page="messages"] .skuy-app-nav__link[aria-current="page"],
+html[data-flow-page="messages"] .skuy-mobile-nav__item[aria-current="page"] {
+    background: var(--flow-accent-soft);
+    color: var(--skuy-on-selected);
+    font-weight: 700;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+html[data-flow-page="messages"] .skuy-app-rail__compose,
+html[data-flow-page="messages"] .skuy-button--primary {
+    border-color: var(--flow-accent);
+    background: var(--flow-accent);
+    color: #ffffff;
+}
+
+html[data-flow-page="messages"] .skuy-app-rail__compose:hover,
+html[data-flow-page="messages"] .skuy-button--primary:hover {
+    border-color: var(--flow-accent-hover);
+    background: var(--flow-accent-hover);
+    color: #ffffff;
+}
+
+html[data-flow-page="messages"] .skuy-mobile-nav {
+    z-index: 80;
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    width: min(480px, calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    min-height: 72px;
+    padding: 7px 8px;
+    border: 1px solid var(--flow-border);
+    border-radius: 20px;
+    background: var(--flow-glass);
+    box-shadow: var(--skuy-shadow-floating);
+    transform: translateX(-50%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+html[data-flow-page="messages"] .skuy-mobile-nav__item {
+    min-width: 44px;
+    min-height: 52px;
+    border-radius: 14px;
+    color: var(--flow-text-secondary);
+}
+
+html[data-flow-page="messages"] .skuy-mobile-nav__item > span:last-child {
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+html[data-flow-page="messages"] .skuy-mobile-nav__item--compose {
+    width: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    margin-inline: auto;
+    border: 0;
+    border-radius: 16px;
+    background: var(--flow-accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgb(65 49 190 / 22%);
+}
+
+html[data-flow-page="messages"] .skuy-mobile-nav__item--compose:hover,
+html[data-flow-page="messages"] .skuy-mobile-nav__item--compose:focus-visible {
+    background: var(--flow-accent-hover);
+    color: #ffffff;
+}
+
+html[data-flow-page="messages"] .skuy-menu-surface,
+html[data-flow-page="messages"] .skuy-mobile-account-menu,
+html[data-flow-page="messages"] .skuy-appreciation__popover {
+    border: 1px solid var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: var(--flow-shadow);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="messages"] .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+    padding-block-start: calc(72px + env(safe-area-inset-top, 0px));
+}
+
+
+/* Keep all changes isolated to Inbox and Conversations; other product pages are unchanged. */
+html[data-flow-page="messages"] .skuy-messages-page {
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+    min-height: min(75vh, 680px);
+}
+html[data-flow-page="messages"] .skuy-messages-content {
+    box-sizing: border-box;
+    width: min(100%, 780px);
+    max-width: none;
+    margin: 0 auto;
+    padding: clamp(20px, 3.2vw, 36px) clamp(16px, 3.2vw, 32px) calc(110px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="messages"] .skuy-list-page-header {
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--flow-border);
+}
+html[data-flow-page="messages"] .skuy-list-page-header__title {
+    font-size: clamp(24px, 3vw, 30px);
+    letter-spacing: -0.035em;
+    line-height: 1.2;
+}
+html[data-flow-page="messages"] .skuy-list-page-header .skuy-action,
+html[data-flow-page="messages"] .skuy-direct-chat-back {
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+}
+html[data-flow-page="messages"] .skuy-list-page-header .skuy-action:hover,
+html[data-flow-page="messages"] .skuy-direct-chat-back:hover {
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="messages"] .skuy-message-list {
+    border-top: 0;
+}
+html[data-flow-page="messages"] .skuy-message-list > li {
+    min-width: 0;
+}
+html[data-flow-page="messages"] .skuy-message-row {
+    column-gap: 14px;
+    row-gap: 6px;
+    min-height: 84px;
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: transparent;
+}
+html[data-flow-page="messages"] .skuy-message-row:hover,
+html[data-flow-page="messages"] .skuy-message-row:focus-visible {
+    background: var(--flow-panel-muted);
+}
+html[data-flow-page="messages"] .skuy-message-row--unread {
+    background: var(--flow-accent-soft);
+}
+html[data-flow-page="messages"] .skuy-message-row--unread:hover,
+html[data-flow-page="messages"] .skuy-message-row--unread:focus-visible {
+    background: color-mix(in srgb, var(--flow-accent-soft) 75%, var(--flow-panel));
+}
+html[data-flow-page="messages"] .skuy-message-row__avatar {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--flow-border);
+    background: var(--flow-panel-muted);
+}
+html[data-flow-page="messages"] .skuy-message-row__name {
+    color: var(--flow-text);
+    font-size: 15px;
+    font-weight: 700;
+}
+html[data-flow-page="messages"] .skuy-message-row__username,
+html[data-flow-page="messages"] .skuy-message-row__time {
+    color: var(--flow-text-muted);
+    font-size: 12px;
+}
+html[data-flow-page="messages"] .skuy-message-row__preview {
+    color: var(--flow-text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+html[data-flow-page="messages"] .skuy-message-row__unread-badge {
+    min-width: 22px;
+    min-height: 22px;
+    border: 0;
+    border-radius: 9999px;
+    background: var(--flow-accent);
+    color: white;
+    font-weight: 700;
+    box-shadow: none;
+}
+html[data-flow-page="messages"] .skuy-social-empty {
+    gap: 12px;
+    padding: 52px 24px;
+    border: 1px solid var(--flow-border);
+    border-radius: 18px;
+    background: var(--flow-panel);
+}
+html[data-flow-page="messages"] .skuy-social-empty__mark {
+    width: 48px;
+    height: 48px;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="messages"] .skuy-direct-chat-header {
+    gap: 16px;
+    padding-bottom: 18px;
+    border-color: var(--flow-border);
+}
+html[data-flow-page="messages"] .skuy-direct-chat-back {
+    justify-self: start;
+    padding: 8px 14px;
+    min-height: 44px;
+    font-size: 13px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-identity {
+    gap: 14px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-avatar {
+    border: 1px solid var(--flow-border);
+    width: 50px;
+    height: 50px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-title {
+    font-size: clamp(18px, 2.2vw, 22px);
+    letter-spacing: -0.025em;
+    color: var(--flow-text);
+}
+html[data-flow-page="messages"] .skuy-direct-chat-username {
+    color: var(--flow-text-muted);
+    font-size: 13px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-history-nav a {
+    border-radius: 10px;
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="messages"] .skuy-direct-chat-history {
+    gap: 12px;
+    margin-top: 26px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-message {
+    max-width: min(84%, 40rem);
+    gap: 6px;
+    padding: 12px 16px;
+    border: 1px solid var(--flow-border);
+    border-radius: 18px 18px 18px 6px;
+    background: var(--flow-panel-muted);
+    color: var(--flow-text);
+    box-shadow: none;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-message-row--own .skuy-direct-chat-message {
+    background: var(--flow-accent-soft);
+    border-color: color-mix(in srgb, var(--flow-accent) 22%, var(--flow-border));
+    border-radius: 18px 18px 6px 18px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-message__body {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--flow-text);
+}
+html[data-flow-page="messages"] .skuy-direct-chat-message__time {
+    color: var(--flow-text-muted);
+    font-size: 12px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-composer {
+    margin-top: 28px;
+    padding: 18px;
+    border: 1px solid var(--flow-border);
+    border-radius: 20px;
+    background: var(--flow-panel);
+}
+html[data-flow-page="messages"] .skuy-direct-chat-composer__input {
+    min-height: 100px;
+    padding: 14px 16px;
+    border: 1px solid var(--flow-border-strong);
+    border-radius: 14px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    font-size: 15px;
+    line-height: 1.55;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-composer__input:focus-visible {
+    border-color: var(--flow-accent);
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 2px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-submit {
+    min-height: 44px;
+    padding-inline: 24px;
+    border: 1px solid var(--flow-accent);
+    border-radius: 12px;
+    background: var(--flow-accent);
+    color: #ffffff;
+    font-size: 14px;
+}
+html[data-flow-page="messages"] .skuy-direct-chat-submit:hover:not(:disabled) {
+    border-color: var(--flow-accent-hover);
+    background: var(--flow-accent-hover);
+}
+html[data-flow-page="messages"] .skuy-direct-chat-readonly {
+    border-color: var(--flow-border-strong);
+    border-radius: 12px;
+    background: var(--flow-panel-muted);
+}
+html[data-flow-page="messages"] :is(
+    .skuy-message-row, .skuy-direct-chat-back, .skuy-direct-chat-submit,
+    .skuy-direct-chat-history-nav a, .skuy-direct-chat-title a
+):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+@media (max-width: 640px) {
+    html[data-flow-page="messages"] .skuy-messages-content {
+        padding: 18px 12px calc(106px + env(safe-area-inset-bottom, 0px));
+    }
+    html[data-flow-page="messages"] .skuy-message-row {
+        padding: 14px 10px;
+    }
+    html[data-flow-page="messages"] .skuy-direct-chat-header {
+        gap: 10px;
+    }
+    html[data-flow-page="messages"] .skuy-direct-chat-composer {
+        padding: 14px;
+    }
+    html[data-flow-page="messages"] .skuy-direct-chat-message {
+        max-width: 92%;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    html[data-flow-page="messages"] .skuy-message-row,
+    html[data-flow-page="messages"] .skuy-direct-chat-submit {
+        transition: none;
+    }
+}

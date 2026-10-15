@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    data-flow-page="{{ request()->routeIs('feed', 'bookmarks.index', 'search') ? 'feed' : (request()->routeIs('user.profile', 'user.edit') ? 'profile' : '') }}"
+    data-flow-page="{{ request()->routeIs('feed', 'bookmarks.index', 'search') ? 'feed' : (request()->routeIs('user.profile', 'user.edit') ? 'profile' : (request()->routeIs('messages.*') ? 'messages' : '')) }}"
     x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
     x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     :class="{ 'dark': darkMode }"
@@ -30,6 +30,8 @@
             @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-post-actions.css', 'resources/js/skuy-flow-profile.js'])
         @elseif (request()->routeIs('user.edit'))
             @vite('resources/css/skuy-flow-profile.css')
+        @elseif (request()->routeIs('messages.*'))
+            @vite('resources/css/skuy-flow-messages.css')
         @endif
     </head>
     <body class="skuy-product antialiased">

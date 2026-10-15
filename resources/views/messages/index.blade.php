@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="skuy-feed-page skuy-messages-page">
+    <div class="skuy-feed-page skuy-messages-page" data-flow-messages="inbox">
         <div class="skuy-feed-content skuy-messages-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <header class="skuy-list-page-header">
                 <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action">
