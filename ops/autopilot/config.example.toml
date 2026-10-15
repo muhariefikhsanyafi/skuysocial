@@ -1,0 +1,17 @@
+# Local CLI diagnostic configuration; persistent system worker uses system.config.example.toml.
+# Trusted operator configuration. Never accept executable commands from task text.
+repo = "/home/skuysocialdev/projects/skuysocial"
+state = "/home/skuysocialdev/projects/skuysocial/.autopilot"
+poll_seconds = 10
+
+[[gates]]
+name = "quality"
+argv = ["python3", "/home/skuysocialdev/projects/skuysocial/ops/autopilot/quality.py", "--all", "--output", "{artifacts}/quality"]
+timeout = 900
+
+[github]
+enabled = false
+repository = "muhariefikhsanyafi/skuysocial"
+owner = "muhariefikhsanyafi"
+bot_login = "REPLACE_WITH_AUTHORIZED_BOT_LOGIN"
+token_file = "/home/skuysocialdev/.config/skuysocial-autopilot/github-token"

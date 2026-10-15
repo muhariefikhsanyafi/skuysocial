@@ -1,0 +1,117 @@
+name: SkuySocial Quality
+on:
+  pull_request:
+  push:
+    branches: [main, 'feat/**', 'codex/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_KEY: 'base64:BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc='
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      DB_URL: ''
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+      ONESIGNAL_ENABLED: 'false'
+      TURNSTILE_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, curl, sqlite3, pdo_sqlite, intl, zip, gd, bcmath
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies without application setup scripts
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress --no-scripts
+          npm ci --ignore-scripts
+      - name: Runner and deployment safety tests
+        run: python3 -m unittest discover -s ops/autopilot/tests -v
+      - name: Laravel, frontend, types, build, smoke, and artifact gates
+        run: python3 ops/autopilot/quality.py --all --output autopilot-artifacts/quality
+      - name: Package validated source and assets
+        run: python3 ops/deploy/release.py pack --output autopilot-artifacts/release
+      - name: Publish failure summary
+        if: always()
+        run: |
+          python3 ops/autopilot/ci_summary.py autopilot-artifacts/quality >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: application-qa-${{ github.sha }}
+          path: autopilot-artifacts/
+          retention-days: 14
+          if-no-files-found: warn
+  security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - run: composer validate --strict --no-check-publish
+      - run: composer audit --locked --no-interaction
+      - run: npm audit --package-lock-only --audit-level=high
+      - run: python3 ops/autopilot/security_check.py
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, curl, sqlite3, pdo_sqlite, intl, zip, gd
+          coverage: none
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Real isolated theme and navigation rendering
+        run: |
+          browser_path=$(command -v google-chrome || command -v chromium)
+          test -n "$browser_path"
+          python3 ops/autopilot/quality.py --only browser --browser "$browser_path" --output autopilot-artifacts/browser
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: browser-qa-${{ github.sha }}
+          path: autopilot-artifacts/browser/
+          retention-days: 7
+  release-gate:
+    needs: [application, security, browser]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - run: echo 'All quality gates passed. Production auto-deploy remains DISABLED.' >> "$GITHUB_STEP_SUMMARY"

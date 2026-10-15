@@ -1,0 +1,57 @@
+[Unit]
+Description=SkuySocial finite non-root Development validation
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+ConditionPathExists=/etc/skuysocial-autopilot/runner.toml
+
+OnSuccess=skuysocial-autopilot-system.service
+
+[Service]
+# Dedicated account: never reuse the Desktop/SSH/deployment user's identity.
+User=skuysocial-autopilot
+Group=skuysocial-autopilot
+CapabilityBoundingSet=
+AmbientCapabilities=
+Type=oneshot
+# Admin-owned, secret-scanned source snapshot; never bind the live home checkout.
+WorkingDirectory=/opt/skuysocial-autopilot/source
+ExecStart=/usr/bin/python3 -I -S /opt/skuysocial-autopilot/source/ops/autopilot/validate_service.py
+Environment=HOME=/var/lib/skuysocial-autopilot
+Environment=CODEX_HOME=/var/lib/skuysocial-autopilot/codex
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+StateDirectory=skuysocial-autopilot
+StateDirectoryMode=0700
+Restart=on-failure
+RestartSec=2
+RestartPreventExitStatus=1 78 80
+TimeoutStartSec=900
+TimeoutStopSec=15
+KillMode=control-group
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+# System manager sets up mounts before dropping privileges; keep host user namespace.
+PrivateUsers=false
+PrivateTmp=true
+ReadWritePaths=/var/lib/skuysocial-autopilot-status
+PrivateDevices=true
+ProtectProc=invisible
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+InaccessiblePaths=-/var/backups -/var/www -/srv -/mnt -/media -/etc/ssh -/etc/ssl/private -/etc/skuysocial-deploy
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=4G
+CPUQuota=200%
+TasksMax=128
+LimitCORE=0
+LimitFSIZE=33554432
+StandardOutput=journal
+StandardError=journal
