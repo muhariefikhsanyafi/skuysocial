@@ -1,17 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center">
-            <h2 class="text-xl font-bold text-[var(--skuy-text-primary)]">
-                {{ __('threads.edit.title') }}
-            </h2>
-        </div>
-    </x-slot>
-
-    <div class="min-h-screen bg-[var(--skuy-background)]">
-        <div class="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
-            <section class="skuy-composer" aria-labelledby="edit-post-form-title">
-                <h1 id="edit-post-form-title" class="sr-only">{{ __('threads.edit.title') }}</h1>
-
+    <div class="skuy-feed-page skuy-edit-thread-page" data-flow-thread="edit">
+        <div class="skuy-edit-thread-shell">
+            <header class="skuy-edit-thread-header">
+                <a href="{{ route('feed') }}" class="skuy-action" aria-label="{{ __('navigation.back_to_feed') }}">
+                    <x-fa-icon name="arrow-left-long" class="text-xl" />
+                </a>
+                <h1 id="edit-post-form-title">{{ __('threads.edit.title') }}</h1>
+            </header>
+            <section class="skuy-composer skuy-edit-thread-composer" aria-labelledby="edit-post-form-title">
                 <form action="{{ route('posts.update', $post->uid) }}" method="POST">
                     @csrf
                     @method('PATCH')
@@ -23,7 +19,8 @@
                         rows="6"
                         class="skuy-composer__textarea min-h-[160px]"
                         required
-                    >{{ $post->content }}</textarea>
+                        maxlength="1000"
+                    >{{ old('content', $post->content) }}</textarea>
 
                     <div class="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-[var(--skuy-border-subtle)] pt-4">
                         <!-- Tombol Batal -->
