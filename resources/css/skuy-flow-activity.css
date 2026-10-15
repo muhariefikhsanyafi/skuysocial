@@ -1,0 +1,428 @@
+/* SkuySocial Flow — Activity and Announcements, scoped from Feed shell. */
+html[data-flow-page="activity"] {
+    color-scheme: light;
+    --flow-canvas: #ffffff;
+    --flow-panel: #ffffff;
+    --flow-panel-muted: #f7f7f9;
+    --flow-text: #19191f;
+    --flow-text-secondary: #5e5e68;
+    --flow-text-muted: #696a76;
+    --flow-border: #e6e6eb;
+    --flow-border-strong: #838492;
+    --flow-like: #be185d;
+    --flow-nav-search: #0369a1;
+    --flow-nav-activity: #b45309;
+    --flow-nav-messages: #047857;
+    --flow-nav-saved: #be185d;
+    --flow-accent: #6e5bef;
+    --flow-accent-hover: #5a49d7;
+    --flow-accent-ink: #5848dd;
+    --flow-accent-soft: #f1efff;
+    --flow-glass: rgb(255 255 255 / 94%);
+    --flow-shadow: 0 8px 26px rgb(25 25 31 / 7%);
+    --skuy-bg-canvas: var(--flow-canvas);
+    --skuy-bg-workspace: var(--flow-canvas);
+    --skuy-background: var(--flow-canvas);
+    --skuy-surface: var(--flow-panel);
+    --skuy-surface-elevated: var(--flow-panel);
+    --skuy-surface-subtle: var(--flow-panel-muted);
+    --skuy-surface-base: var(--flow-canvas);
+    --skuy-surface-raised: var(--flow-panel);
+    --skuy-surface-overlay: var(--flow-panel);
+    --skuy-surface-glass: var(--flow-glass);
+    --skuy-text-primary: var(--flow-text);
+    --skuy-text-secondary: var(--flow-text-secondary);
+    --skuy-text-muted: var(--flow-text-muted);
+    --skuy-border-subtle: var(--flow-border);
+    --skuy-border-soft: var(--flow-border);
+    --skuy-border-strong: var(--flow-border-strong);
+    --skuy-brand: var(--flow-accent);
+    --skuy-brand-hover: var(--flow-accent-hover);
+    --skuy-brand-pressed: #4939c4;
+    --skuy-on-brand: #ffffff;
+    --skuy-secondary: var(--flow-text-secondary);
+    --skuy-secondary-hover: var(--flow-text);
+    --skuy-on-secondary: #ffffff;
+    --skuy-focus: var(--flow-accent);
+    --skuy-selected: var(--flow-accent-soft);
+    --skuy-on-selected: #5140ce;
+    --skuy-surface-accent: var(--flow-accent-soft);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-shadow-soft: 0 2px 8px rgb(25 25 31 / 7%);
+    --skuy-shadow-floating: 0 8px 26px rgb(25 25 31 / 8%);
+}
+
+html[data-flow-page="activity"].dark {
+    color-scheme: dark;
+    --flow-canvas: #0d0e13;
+    --flow-panel: #1b1c25;
+    --flow-panel-muted: #22232e;
+    --flow-text: #f2f2f5;
+    --flow-text-secondary: #c5c5ce;
+    --flow-text-muted: #9899a5;
+    --flow-border: #30313e;
+    --flow-border-strong: #777989;
+    --flow-like: #f472b6;
+    --flow-nav-search: #7dd3fc;
+    --flow-nav-activity: #fbbf24;
+    --flow-nav-messages: #6ee7b7;
+    --flow-nav-saved: #f9a8d4;
+    --flow-accent: #6e5bef;
+    --flow-accent-hover: #5d4be0;
+    --flow-accent-ink: #c4baff;
+    --flow-accent-soft: #292544;
+    --flow-glass: rgb(20 21 27 / 95%);
+    --flow-shadow: 0 10px 30px rgb(0 0 0 / 28%);
+    --skuy-bg-canvas: var(--flow-canvas);
+    --skuy-bg-workspace: var(--flow-canvas);
+    --skuy-background: var(--flow-canvas);
+    --skuy-surface: var(--flow-panel);
+    --skuy-surface-elevated: #1b1c24;
+    --skuy-surface-subtle: var(--flow-panel-muted);
+    --skuy-surface-base: var(--flow-canvas);
+    --skuy-surface-raised: var(--flow-panel);
+    --skuy-surface-overlay: #1b1c24;
+    --skuy-surface-glass: var(--flow-glass);
+    --skuy-text-primary: var(--flow-text);
+    --skuy-text-secondary: var(--flow-text-secondary);
+    --skuy-text-muted: var(--flow-text-muted);
+    --skuy-border-subtle: var(--flow-border);
+    --skuy-border-soft: var(--flow-border);
+    --skuy-border-strong: var(--flow-border-strong);
+    --skuy-brand: var(--flow-accent);
+    --skuy-brand-hover: var(--flow-accent-hover);
+    --skuy-brand-pressed: #6f61e3;
+    --skuy-on-brand: #ffffff;
+    --skuy-secondary: var(--flow-text-secondary);
+    --skuy-secondary-hover: var(--flow-text);
+    --skuy-on-secondary: #15161c;
+    --skuy-focus: var(--flow-accent-ink);
+    --skuy-selected: var(--flow-accent-soft);
+    --skuy-on-selected: #cec8ff;
+    --skuy-surface-accent: var(--flow-accent-soft);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-shadow-soft: 0 3px 12px rgb(0 0 0 / 24%);
+    --skuy-shadow-floating: 0 10px 30px rgb(0 0 0 / 30%);
+}
+
+html[data-flow-page="activity"] body.skuy-product,
+html[data-flow-page="activity"] .skuy-app-shell,
+html[data-flow-page="activity"] .skuy-app-shell__workspace,
+html[data-flow-page="activity"] #main-content {
+    min-width: 0;
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+
+html[data-flow-page="activity"] .skuy-app-shell::before,
+html[data-flow-page="activity"] .skuy-app-shell::after {
+    display: none;
+    content: none;
+    background: none;
+}
+
+html[data-flow-page="activity"] .skuy-app-shell__workspace {
+    padding-block-end: 24px;
+}
+
+html[data-flow-page="activity"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+    position: fixed;
+    inset: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: var(--flow-panel);
+    box-shadow: var(--skuy-shadow-floating);
+    color: var(--flow-text);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="activity"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail,
+html[data-flow-page="activity"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__inner {
+    border-color: var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="activity"] .skuy-app-nav__link {
+    min-height: 44px;
+    border-radius: 10px;
+    color: var(--flow-text-secondary);
+}
+
+html[data-flow-page="activity"] .skuy-app-nav__link[aria-current="page"],
+html[data-flow-page="activity"] .skuy-mobile-nav__item[aria-current="page"] {
+    background: var(--flow-accent-soft);
+    color: var(--skuy-on-selected);
+    font-weight: 700;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+html[data-flow-page="activity"] .skuy-app-rail__compose,
+html[data-flow-page="activity"] .skuy-button--primary {
+    border-color: var(--flow-accent);
+    background: var(--flow-accent);
+    color: #ffffff;
+}
+
+html[data-flow-page="activity"] .skuy-app-rail__compose:hover,
+html[data-flow-page="activity"] .skuy-button--primary:hover {
+    border-color: var(--flow-accent-hover);
+    background: var(--flow-accent-hover);
+    color: #ffffff;
+}
+
+html[data-flow-page="activity"] .skuy-mobile-nav {
+    z-index: 80;
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    width: min(480px, calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    min-height: 72px;
+    padding: 7px 8px;
+    border: 1px solid var(--flow-border);
+    border-radius: 20px;
+    background: var(--flow-glass);
+    box-shadow: var(--skuy-shadow-floating);
+    transform: translateX(-50%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+html[data-flow-page="activity"] .skuy-mobile-nav__item {
+    min-width: 44px;
+    min-height: 52px;
+    border-radius: 14px;
+    color: var(--flow-text-secondary);
+}
+
+html[data-flow-page="activity"] .skuy-mobile-nav__item > span:last-child {
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+html[data-flow-page="activity"] .skuy-mobile-nav__item--compose {
+    width: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    margin-inline: auto;
+    border: 0;
+    border-radius: 16px;
+    background: var(--flow-accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgb(65 49 190 / 22%);
+}
+
+html[data-flow-page="activity"] .skuy-mobile-nav__item--compose:hover,
+html[data-flow-page="activity"] .skuy-mobile-nav__item--compose:focus-visible {
+    background: var(--flow-accent-hover);
+    color: #ffffff;
+}
+
+html[data-flow-page="activity"] .skuy-menu-surface,
+html[data-flow-page="activity"] .skuy-mobile-account-menu,
+html[data-flow-page="activity"] .skuy-appreciation__popover {
+    border: 1px solid var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: var(--flow-shadow);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="activity"] .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+    padding-block-start: calc(72px + env(safe-area-inset-top, 0px));
+}
+
+
+/* Quiet, content-first notification and announcement surfaces. */
+html[data-flow-page="activity"] .skuy-activity-page {
+    min-height: min(75vh, 680px);
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+html[data-flow-page="activity"] .skuy-activity-content {
+    box-sizing: border-box;
+    width: min(100%, 780px);
+    max-width: none;
+    margin-inline: auto;
+    padding: clamp(20px, 3.2vw, 36px) clamp(16px, 3.2vw, 32px) calc(110px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="activity"] .skuy-list-page-header {
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-color: var(--flow-border);
+}
+html[data-flow-page="activity"] .skuy-list-page-header__title {
+    min-width: 0;
+    color: var(--flow-text);
+    font-size: clamp(24px, 3vw, 30px);
+    letter-spacing: -0.035em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+html[data-flow-page="activity"] .skuy-list-page-header .skuy-action {
+    flex: 0 0 44px;
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+}
+html[data-flow-page="activity"] .skuy-list-page-header .skuy-action:hover {
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="activity"] .skuy-activity-list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+    list-style: none;
+}
+html[data-flow-page="activity"] .skuy-activity-item {
+    gap: 12px;
+    min-width: 0;
+    padding: 18px 12px;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: transparent;
+}
+html[data-flow-page="activity"] .skuy-activity-item--unread {
+    padding-inline-start: 12px;
+    border-inline-start: 3px solid var(--flow-accent);
+    background: var(--flow-accent-soft);
+}
+html[data-flow-page="activity"] .skuy-activity-item__avatar {
+    border: 1px solid var(--flow-border);
+    background: var(--flow-panel-muted);
+}
+html[data-flow-page="activity"] .skuy-activity-item__message {
+    color: var(--flow-text);
+    font-size: 15px;
+    line-height: 1.6;
+}
+html[data-flow-page="activity"] .skuy-activity-item__actor {
+    color: var(--flow-text);
+    font-weight: 700;
+}
+html[data-flow-page="activity"] .skuy-activity-item__actor:hover,
+html[data-flow-page="activity"] .skuy-activity-item__target:hover {
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="activity"] .skuy-activity-item__meta {
+    color: var(--flow-text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+html[data-flow-page="activity"] .skuy-activity-item__status {
+    min-height: 22px;
+    padding: 2px 8px;
+    border: 1px solid transparent;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+    font-size: 12px;
+    font-weight: 700;
+}
+html[data-flow-page="activity"] .skuy-activity-item__target {
+    color: var(--flow-accent-ink);
+    font-size: 13px;
+    font-weight: 700;
+}
+html[data-flow-page="activity"] .skuy-activity-item__type {
+    flex: 0 0 auto;
+    border: 1px solid var(--flow-border);
+    background: var(--flow-panel-muted);
+    color: var(--flow-text-secondary);
+}
+html[data-flow-page="activity"] .skuy-activity-item__type--like {
+    color: var(--flow-like);
+}
+html[data-flow-page="activity"] .skuy-activity-item__type--comment,
+html[data-flow-page="activity"] .skuy-activity-item__type--reply,
+html[data-flow-page="activity"] .skuy-activity-item__type--follow {
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="activity"] .skuy-announcement-item {
+    display: block;
+}
+html[data-flow-page="activity"] .skuy-announcement-item .skuy-activity-item__message {
+    margin-bottom: 7px;
+    font-size: 16px;
+    line-height: 1.45;
+    font-weight: 700;
+}
+html[data-flow-page="activity"] .skuy-announcement-item .skuy-activity-item__body > p:last-child {
+    margin-top: 10px;
+    color: var(--flow-text-secondary);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+html[data-flow-page="activity"] .skuy-announcement-detail {
+    border: 1px solid var(--flow-border);
+    border-radius: 16px;
+    padding: 24px;
+    background: var(--flow-panel);
+}
+html[data-flow-page="activity"] .skuy-announcement-detail__body {
+    display: grid;
+    gap: 22px;
+    color: var(--flow-text);
+    font-size: 15px;
+    line-height: 1.75;
+}
+html[data-flow-page="activity"] .skuy-social-empty {
+    gap: 12px;
+    padding: 52px 24px;
+    border: 1px solid var(--flow-border);
+    border-radius: 18px;
+    background: var(--flow-panel);
+}
+html[data-flow-page="activity"] .skuy-social-empty__mark {
+    width: 48px;
+    height: 48px;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="activity"] .skuy-activity-pagination {
+    margin-top: 28px;
+}
+html[data-flow-page="activity"] :is(
+    .skuy-list-page-header .skuy-action, .skuy-activity-item__actor,
+    .skuy-activity-item__target
+):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+@media (max-width: 640px) {
+    html[data-flow-page="activity"] .skuy-activity-content {
+        padding: 18px 12px calc(106px + env(safe-area-inset-bottom, 0px));
+    }
+    html[data-flow-page="activity"] .skuy-activity-item {
+        gap: 10px;
+        padding: 14px 10px;
+    }
+    html[data-flow-page="activity"] .skuy-activity-item--unread {
+        padding-inline-start: 10px;
+    }
+    html[data-flow-page="activity"] .skuy-announcement-detail {
+        padding: 18px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    html[data-flow-page="activity"] .skuy-activity-item,
+    html[data-flow-page="activity"] .skuy-activity-item__target {
+        transition: none;
+    }
+}

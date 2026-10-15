@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="skuy-feed-page skuy-activity-page">
+    <div class="skuy-feed-page skuy-activity-page" data-flow-activity="announcements">
         <div class="skuy-feed-content skuy-activity-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <header class="skuy-list-page-header">
                 <a href="{{ route('feed') }}" aria-label="{{ __('navigation.back_to_feed') }}" class="skuy-action">
