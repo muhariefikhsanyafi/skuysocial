@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="skuy-feed-page">
+    <div class="skuy-feed-page skuy-follow-list-page" data-flow-support="follows">
         <div class="skuy-feed-content mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
             <div class="mb-6 flex items-center gap-3 border-b border-[var(--skuy-border-subtle)] pb-3">
                 <a href="{{ route('user.profile', $profileUser) }}" aria-label="{{ __('navigation.back_to_profile') }}" class="skuy-action">
