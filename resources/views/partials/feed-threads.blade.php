@@ -563,7 +563,7 @@
                                             <span class="skuy-comment__user"><span aria-hidden="true">@</span>{{ $comment->user->username }}</span>
                                             <span class="skuy-comment__time">{{ $comment->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}</span>
                                         </div>
-                                        <p class="skuy-comment__text">{{ $comment->content }}</p>
+                                        @include('partials.comment-edit-control', ['comment' => $comment])
                                         <button @click="openReply = !openReply" type="button" :aria-expanded="openReply.toString()" class="skuy-comment__reply">
                                             {{ __('threads.actions.reply') }}
                                         </button>
@@ -627,7 +627,7 @@
                                                                 <span class="skuy-comment__user"><span aria-hidden="true">@</span>{{ $reply->user->username }}</span>
                                                                 <span class="skuy-comment__time">{{ $reply->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}</span>
                                                             </div>
-                                                            <p class="skuy-comment__text">{{ $reply->content }}</p>
+                                                            @include('partials.comment-edit-control', ['comment' => $reply])
                                                         </div>
                                                     </div>
                                                 @endforeach
