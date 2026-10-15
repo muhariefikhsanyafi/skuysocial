@@ -265,7 +265,7 @@ try {
         await navigate(route);
         await until(() => cdp.evaluate('Boolean(document.querySelector(' + JSON.stringify(selector) + '))'), 'Flow screen ' + label, 16000);
         await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
-        const metrics = await cdp.evaluate('(() => { const html = document.documentElement; const nav = [...document.querySelectorAll(".skuy-mobile-nav [data-mobile-nav-key]")]; const css = getComputedStyle(html); return { theme: html.classList.contains("dark") ? "dark" : "light", flowPage: html.dataset.flowPage ?? "", guestFlow: document.body.dataset.flowGuest ?? "", canvas: css.getPropertyValue("--flow-canvas").trim().toLowerCase(), width: innerWidth, scrollWidth: html.scrollWidth, clientWidth: html.clientWidth, nav: nav.map(x => x.dataset.mobileNavKey), navTapTargets: nav.map(x => { const rect = x.getBoundingClientRect(); return { w: Math.round(rect.width), h: Math.round(rect.height) }; }), heading: document.querySelector("h1")?.textContent?.trim().slice(0, 80) ?? "", bodyLength: document.body.innerText.length }; })()');
+        const metrics = await cdp.evaluate('(() => { const html = document.documentElement; const nav = [...document.querySelectorAll(".skuy-mobile-nav [data-mobile-nav-key]")]; const css = getComputedStyle(html); return { theme: html.classList.contains("dark") ? "dark" : "light", flowPage: html.dataset.flowPage ?? "", guestFlow: document.body.dataset.flowGuest ?? "", canvas: css.getPropertyValue("--flow-canvas").trim().toLowerCase(), width: innerWidth, scrollWidth: html.scrollWidth, clientWidth: html.clientWidth, nav: nav.map(x => x.dataset.mobileNavKey), navTapTargets: nav.map(x => { const rect = x.getBoundingClientRect(); return { w: Math.round(rect.width), h: Math.round(rect.height) }; }), heading: document.querySelector("h1, h2, [role=heading]")?.textContent?.trim().slice(0, 80) ?? "", bodyLength: document.body.innerText.length }; })()');
         const image = await screenshot('flow-' + label + '-' + width + '-' + mode);
         results.flowScreens.push({ label, route, width, height, mode, guest, metrics, image });
         check('Flow ' + label + ' ' + width + ' ' + mode + ': readable viewport and theme',
@@ -525,8 +525,8 @@ try {
         ['points', '/poin/riwayat', '.skuy-points-page'],
         ['followers', fixture.followersPage, '.skuy-feed-page'],
         ['following', fixture.followingPage, '.skuy-feed-page'],
-        ['dashboard', '/dashboard', '[data-flow-overview="dashboard"]'],
-        ['account-settings', own.account, '[data-flow-overview="account"]'],
+        ['dashboard', '/dashboard', '[data-flow-dashboard="home"]'],
+        ['account-settings', own.account, '[data-flow-account="settings"]'],
     ];
     // Password re-confirmation is real, against only the temporary QA user;
     // never bypass the password.confirm.recent middleware or expose secrets.
