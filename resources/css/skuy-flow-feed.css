@@ -1067,8 +1067,7 @@ html[data-flow-page="feed"] .skuy-discovery-page .skuy-discovery-search__input:f
     html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-feed-context {
         display: grid;
         gap: 14px;
-        position: sticky;
-        top: calc(72px + env(safe-area-inset-top, 0px) + 24px);
+        position: static;
         align-self: start;
         max-height: none;
         overflow: visible;
