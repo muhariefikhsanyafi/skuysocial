@@ -149,6 +149,7 @@ jobs:
           import json
           import os
           from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
 
           repo = os.environ['GITHUB_REPOSITORY']
           pr_number = int(os.environ['PR_NUMBER'])
@@ -180,8 +181,18 @@ jobs:
               request = Request(url, data=json.dumps(data).encode() if data is not None else None,
                                 method=method,
                                 headers={**headers, **({'Content-Type': 'application/json'} if data is not None else {})})
-              with urlopen(request, timeout=20) as response:
-                  return json.load(response)
+              try:
+                  with urlopen(request, timeout=20) as response:
+                      return json.load(response)
+              except HTTPError as error:
+                  if error.code != 403:
+                      raise
+                  # Repository Actions may be configured read-only; never fail green CI
+                  # because an optional PR comment lacks permission.
+                  print('::warning title=PR comment not authorized::GitHub Actions token is read-only; see job summary.')
+                  with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
+                      summary.write(body + '\n')
+                  raise SystemExit(0)
 
           # Keep one updateable comment per PR rather than spamming on every commit.
           existing = None
