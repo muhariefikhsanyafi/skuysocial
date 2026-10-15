@@ -48,6 +48,11 @@ class IntegrationTests(unittest.TestCase):
             token.chmod(0o600)
             self.assertEqual('owner/repo', github_bridge.GitHub('owner/repo', token).repository)
 
+    def test_quality_builds_assets_before_php_feature_tests(self):
+        with tempfile.TemporaryDirectory() as temp:
+            steps = [name for name, _ in quality.commands(Path(temp), Path(temp))]
+            self.assertLess(steps.index('build'), steps.index('php'))
+
     def test_quality_refuses_environment_and_weakened_test_database(self):
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)

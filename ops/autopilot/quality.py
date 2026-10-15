@@ -38,10 +38,11 @@ def validate(repo):
 def commands(repo, output, browser=None):
     steps = [
         ('php-unit', ['php', 'vendor/bin/phpunit', '--testsuite', 'Unit']),
+        # Blade/Inertia feature tests render through Vite and require compiled manifest.json.
+        ('build', ['npm', 'run', 'build']),
         ('php', ['php', 'vendor/bin/phpunit', '--no-output', '--log-junit', str(output / 'phpunit.xml')]),
         ('frontend', ['npm', 'run', 'test:client', '--', '--maxWorkers=2']),
         ('types', ['npm', 'run', 'typecheck']),
-        ('build', ['npm', 'run', 'build']),
         ('smoke', ['php', 'vendor/bin/phpunit', '--filter', 'ReleaseSmokeTest|ExampleTest|TrustedHostTest|AuthenticationTest']),
         ('artifact', ['python3', str(Path(__file__).resolve().parents[1] / 'deploy/release.py'),
                       'validate-build', '--repo', str(repo)]),
