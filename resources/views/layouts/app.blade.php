@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    data-flow-page="{{ request()->routeIs('feed', 'bookmarks.index', 'search', 'posts.show', 'posts.edit', 'topik.show', 'tags.show', 'points.history', 'user.followers', 'user.following', 'dashboard') ? 'feed' : (request()->routeIs('user.profile', 'user.edit', 'profile.edit') ? 'profile' : (request()->routeIs('messages.*') ? 'messages' : (request()->routeIs('activity.index', 'announcements.*') ? 'activity' : ''))) }}"
+    data-flow-page="{{ request()->routeIs('feed', 'bookmarks.index', 'search', 'posts.show', 'posts.edit', 'topik.show', 'tags.show', 'points.history', 'user.followers', 'user.following', 'dashboard') ? 'feed' : (request()->routeIs('user.profile', 'user.edit', 'profile.edit', 'security.two-factor.show', 'security.two-factor.recovery-codes.display') ? 'profile' : (request()->routeIs('messages.*') ? 'messages' : (request()->routeIs('activity.index', 'announcements.*') ? 'activity' : ''))) }}"
     x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
     x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     :class="{ 'dark': darkMode }"
@@ -41,6 +41,8 @@
             @vite('resources/css/skuy-flow-profile.css')
         @elseif (request()->routeIs('profile.edit'))
             @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-overview.css'])
+        @elseif (request()->routeIs('security.two-factor.show', 'security.two-factor.recovery-codes.display'))
+            @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-security.css'])
         @elseif (request()->routeIs('messages.*'))
             @vite('resources/css/skuy-flow-messages.css')
         @elseif (request()->routeIs('activity.index', 'announcements.*'))

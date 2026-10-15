@@ -3,7 +3,7 @@
         <h1 class="text-2xl font-bold text-[var(--skuy-text-primary)]">{{ $heading }}</h1>
     </x-slot>
 
-    <div class="skuy-profile-page skuy-security-page">
+    <div class="skuy-profile-page skuy-security-page" data-flow-security="recovery-codes">
         <div class="skuy-security-shell">
             <section class="skuy-settings-panel">
                 <p class="text-sm leading-6 text-[var(--skuy-text-secondary)]" role="status" aria-live="polite">{{ $description }}</p>
