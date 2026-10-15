@@ -166,7 +166,8 @@ class MessagesUnreadStateTest extends TestCase
     public function test_shared_navigation_and_inbox_render_authoritative_message_and_activity_counts(): void
     {
         $viewer = User::factory()->create(['locale' => 'en']);
-        $counterpart = User::factory()->create();
+        // A name containing HTML-sensitive characters must be escaped in rendered attributes.
+        $counterpart = User::factory()->create(['name' => "O'Neil & Sons"]);
         $conversation = app(FindOrCreateDirectConversation::class)->handle($viewer, $counterpart);
         $conversation->messages()->create(['sender_id' => $counterpart->getKey(), 'body' => 'Unread one']);
         $conversation->messages()->create(['sender_id' => $viewer->getKey(), 'body' => 'Own message']);
@@ -200,7 +201,7 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertStringContainsString('data-conversation-unread-badge', $html);
         $this->assertStringContainsString('skuy-message-row--unread', $html);
         $this->assertStringContainsString(
-            'aria-label="'.__('messages.open_conversation_with', ['name' => $counterpart->name]).', Unread messages: 2"',
+            'aria-label="'.e(__('messages.open_conversation_with', ['name' => $counterpart->name]).', Unread messages: 2').'"',
             $html,
         );
 
