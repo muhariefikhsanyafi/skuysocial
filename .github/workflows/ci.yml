@@ -172,6 +172,34 @@ jobs:
         if: always()
         run: rm -f -- .env
 
+  container-safety:
+    name: Container image build and startup safety
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout without persisting credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Reject unsafe Docker startup and tracked private files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          docker = Path("Dockerfile").read_text()
+          ignore = Path(".dockerignore").read_text().splitlines()
+          assert "php artisan migrate" not in docker.split("CMD ", 1)[-1], "Docker startup must not mutate schema"
+          assert "npm ci --ignore-scripts" in docker, "Require locked JS dependencies"
+          assert "USER www-data" in docker, "Runtime must be unprivileged"
+          assert ".env" in ignore and ".env.*" in ignore, "Docker build context must exclude secrets"
+          print("PASS: migration-free startup, locked installs, non-root user, private-file exclusions")
+          PY
+
+      - name: Build disposable container image (no push/deploy)
+        run: docker build --pull --file Dockerfile --tag skuysocial-ci:pr .
+
   dependency-audit:
     name: Dependency security advisories
     runs-on: ubuntu-24.04
