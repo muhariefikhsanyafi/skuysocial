@@ -1,0 +1,133 @@
+/* SkuySocial Flow — topic and hashtag listings. Feed provides theme and dock. */
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] {
+    min-height: min(75vh, 700px);
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-shell {
+    box-sizing: border-box;
+    width: min(calc(100% - 32px), 760px);
+    max-width: 760px;
+    padding-block: clamp(20px, 3vw, 36px) calc(112px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding: 8px 14px;
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    font-size: 14px;
+    font-weight: 600;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-back:hover {
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-context {
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px 0 22px;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-context__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+    font-size: 25px;
+    font-weight: 700;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-eyebrow {
+    color: var(--flow-text-muted);
+    font-size: 12px;
+    letter-spacing: .04em;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-context__title {
+    color: var(--flow-text);
+    font-size: clamp(24px, 3.2vw, 32px);
+    line-height: 1.25;
+    letter-spacing: -.035em;
+    overflow-wrap: anywhere;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-context__count {
+    color: var(--flow-text-muted);
+    font-size: 13px;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-listing__heading {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-color: var(--flow-border);
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-section__title {
+    color: var(--flow-text);
+    font-size: 18px;
+    font-weight: 700;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-post-list {
+    display: grid;
+    gap: 0;
+    min-width: 0;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-post {
+    min-width: 0;
+    margin: 0;
+    padding: 18px 0;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: transparent;
+    color: var(--flow-text);
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-post:hover {
+    background: transparent;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-post .skuy-post__text {
+    color: var(--flow-text);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-hashtag,
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-back:focus-visible {
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-empty {
+    gap: 12px;
+    padding: 48px 24px;
+    border: 1px solid var(--flow-border);
+    border-radius: 16px;
+    background: var(--flow-panel);
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-empty__mark {
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] :is(a, button, textarea, input):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+@media (max-width: 640px) {
+    html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-shell {
+        width: min(calc(100% - 20px), 760px);
+        padding-block-start: 16px;
+    }
+    html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-context {
+        gap: 12px;
+        padding-block: 14px;
+    }
+    html[data-flow-page="feed"] .skuy-discovery-page[data-flow-discovery] .skuy-discovery-post {
+        padding-block: 14px;
+    }
+}

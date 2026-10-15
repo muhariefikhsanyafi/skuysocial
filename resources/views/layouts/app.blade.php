@@ -28,6 +28,8 @@
             @vite(['resources/css/skuy-flow-feed.css', 'resources/css/skuy-flow-post-actions.css'])
             @if (request()->routeIs('posts.show', 'posts.edit'))
                 @vite('resources/css/skuy-flow-thread.css')
+            @elseif (request()->routeIs('topik.show', 'tags.show'))
+                @vite('resources/css/skuy-flow-discovery.css')
             @endif
         @elseif (request()->routeIs('user.profile'))
             @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-post-actions.css', 'resources/js/skuy-flow-profile.js'])
