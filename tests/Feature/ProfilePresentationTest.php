@@ -38,7 +38,7 @@ class ProfilePresentationTest extends TestCase
         $this->assertSame($sortedPositions, $positions);
     }
 
-    public function test_profile_uses_its_own_flow_theme_scope_without_changing_other_routes(): void
+    public function test_public_profile_and_account_settings_share_profile_flow_theme_scope(): void
     {
         $owner = User::factory()->create();
 
@@ -54,7 +54,8 @@ class ProfilePresentationTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $this->assertStringContainsString('data-flow-page=""', $settingsHtml);
+        $this->assertStringContainsString('data-flow-page="profile"', $settingsHtml);
+        $this->assertStringContainsString('data-flow-account="settings"', $settingsHtml);
     }
 
     public function test_profile_layout_renders_the_share_toast_as_an_alpine_listener(): void
