@@ -4,11 +4,11 @@
 
 SkuySocial is a social product built with Laravel. Preserve its working product behavior and current architecture while moving through the roadmap incrementally.
 
-Audit snapshot for this guidance update:
+Current shared GitHub integration branches (verify current refs before acting):
 
-- Repository: D:\SKUYSOCIAL\skuysocial-flow-zcode
-- Branch: feat/skuysocial-flow-ui
-- Local HEAD: d0380fa570f9d820016fea9c04ef4c31a3f833b1; the working tree was clean before this AGENTS.md edit.
+- Repository: github.com/muhariefikhsanyafi/skuysocial
+- Stacked draft PRs: #2 (CI/Flow), #4 (Tailwind v4), #5 (framework refresh), and #6 (integrated release candidate targeting main).
+- `main` and the Production server may differ; verify live Git HEAD and server backup/rollback before any authorized deployment.
 - The project brief reports SkuySocial Flow Stage 1 (Feed) and Stage 2 (Profile) as complete, deployed to Production, and passed through Production QA. Production was not accessed or independently checked for this update.
 - Treat Feed and Profile as completed work. Do not repeat their implementation unless a regression is verified with reproducible evidence and the task is scoped to address it.
 
@@ -23,7 +23,7 @@ The manifests and source tree currently show:
 - React and TypeScript are used selectively through Inertia. The audited tree has one Inertia page, resources/js/pages/Post/Show.tsx, with React components supporting it. Do not migrate another surface to React by default; follow its existing integration unless the task calls for a deliberate change.
 - Filament ~5.0 is installed for the admin application. Keep admin UI work separate from public/product design unless explicitly requested.
 - The frontend manifest declares React ^19.3, @inertiajs/react ^3.7.1, Inertia Laravel ^3.3, TypeScript ^7.0.2, Alpine.js ^3.4.2, and Vite ^8.0.
-- package.json currently declares tailwindcss ^3.1 alongside @tailwindcss/vite ^4.0. Check the lockfile, CSS entry points, and active build setup before changing Tailwind configuration or dependencies; do not assume a single Tailwind major version or silently normalize the setup.
+- Tailwind CSS v4.3.3 uses @tailwindcss/vite with CSS-first design tokens and Chromium regression coverage. Preserve the v4 CSS entry point and the 348 browser QA checks.
 
 These counts and package declarations describe the audited baseline. Recheck current source and manifests before relying on them in later work.
 
