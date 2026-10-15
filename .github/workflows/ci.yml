@@ -149,6 +149,9 @@ jobs:
       - name: Run Laravel tests
         run: php artisan test --no-ansi
 
+      - name: Identify PHPUnit warning root cause (targeted)
+        run: php artisan test --filter=OneSignalExternalIdTest --display-warnings --no-ansi
+
   dependency-audit:
     name: Dependency security advisories
     runs-on: ubuntu-24.04
@@ -178,3 +181,32 @@ jobs:
       - name: npm advisory audit (including dev dependencies)
         if: always()
         run: npm audit --audit-level=critical
+
+      - name: Block high-risk runtime dependency advisories
+        if: always()
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Report remaining npm advisories by severity
+        if: always()
+        shell: bash
+        run: |
+          npm audit --json > "$RUNNER_TEMP/npm-audit-report.json" || true
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/npm-audit-report.json', 'utf8'));
+          if (!report.metadata?.vulnerabilities) {
+            throw new Error('Unable to retrieve advisory counts; review dependency audit logs');
+          }
+          const {critical = 0, high = 0, moderate = 0, low = 0} = report.metadata.vulnerabilities;
+          console.log('npm audit totals: critical=' + critical + ', high=' + high + ', moderate=' + moderate + ', low=' + low);
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            '### npm advisory visibility\\n' +
+            '- Critical: ' + critical + '\\n' +
+            '- High: ' + high + '\\n' +
+            '- Moderate: ' + moderate + '\\n' +
+            '- Low: ' + low + '\\n\\n' +
+            'Runtime: block high+ via npm audit --omit=dev. Build-time: block critical. Remaining development advisories require Tailwind 4 compatibility review.\\n');
+          if (high > 0 || moderate > 0) {
+            console.log('::warning title=Build-time dependency advisories::Non-critical npm findings remain; see job summary.');
+          }
+          JS
