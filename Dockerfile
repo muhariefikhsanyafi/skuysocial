@@ -3,7 +3,7 @@
 FROM php:8.3-cli-bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpq-dev libzip-dev libicu-dev libonig-dev libxml2-dev \
+        libpq-dev libzip-dev libsqlite3-dev libicu-dev libonig-dev libxml2-dev \
         libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
         unzip git curl ca-certificates \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
