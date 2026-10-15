@@ -53,7 +53,7 @@ function command(executable, args, cwd = root) {
         child.on('exit', code => code === 0 ? resolve(stdout) : reject(new Error(`${path.basename(executable)} exited ${code}: ${stderr.slice(-1500)} ${stdout.slice(-1500)}`)));
     });
 }
-const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], appreciationVisual: [], externalRequestsBlocked: [] };
+const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], appreciationVisual: [], flowScreens: [], externalRequestsBlocked: [] };
 function check(name, condition, evidence) {
     results.checks.push({ name, pass: Boolean(condition), evidence });
     if (!condition) console.log(`FAIL ${name}: ${JSON.stringify(evidence).slice(0,600)}`);
@@ -256,6 +256,31 @@ try {
         check(label + ' first paint', early.dark === (expected === 'dark') && early.frames.every(frame => frame.dark === (expected === 'dark')) && (expected !== 'dark' || appliedDark <= firstPaint) && early.background === settled.background, { earlyDark: early.dark, paints: early.paints, classChanges: settled.classes, earlyBackground:early.background,settledBackground:settled.background });
         check(label + ' Alpine retains theme', settled.dark === (expected === 'dark'), settled.dark);
         if (csp) check(label + ' enforced CSP bootstrap', await cdp.evaluate(`typeof window.skuyTheme?.persist === 'function'`), {otherViolations:settled.violations});
+    }
+    // Browser evidence for redesigned public screens. Only synthetic local SQLite
+    // accounts/data are captured; never screenshot 2FA recovery codes or real users.
+    async function flowScreen(route, selector, width, height, mode, label, guest = false) {
+        await viewport(width, height);
+        await theme(mode);
+        await navigate(route);
+        await until(() => cdp.evaluate('Boolean(document.querySelector(' + JSON.stringify(selector) + '))'), 'Flow screen ' + label, 16000);
+        await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+        const metrics = await cdp.evaluate('(() => { const html = document.documentElement; const nav = [...document.querySelectorAll(".skuy-mobile-nav [data-mobile-nav-key]")]; const css = getComputedStyle(html); return { theme: html.classList.contains("dark") ? "dark" : "light", flowPage: html.dataset.flowPage ?? "", guestFlow: document.body.dataset.flowGuest ?? "", canvas: css.getPropertyValue("--flow-canvas").trim().toLowerCase(), width: innerWidth, scrollWidth: html.scrollWidth, clientWidth: html.clientWidth, nav: nav.map(x => x.dataset.mobileNavKey), navTapTargets: nav.map(x => { const rect = x.getBoundingClientRect(); return { w: Math.round(rect.width), h: Math.round(rect.height) }; }), heading: document.querySelector("h1")?.textContent?.trim().slice(0, 80) ?? "", bodyLength: document.body.innerText.length }; })()');
+        const image = await screenshot('flow-' + label + '-' + width + '-' + mode);
+        results.flowScreens.push({ label, route, width, height, mode, guest, metrics, image });
+        check('Flow ' + label + ' ' + width + ' ' + mode + ': readable viewport and theme',
+            metrics.width === width && metrics.scrollWidth <= metrics.clientWidth + 1 &&
+            metrics.theme === mode && metrics.bodyLength > 20 && metrics.heading.length > 0, metrics);
+        if (guest) {
+            check('Flow guest ' + label + ': genuine guest/error surface',
+                ['welcome', 'auth', 'error'].includes(metrics.guestFlow), metrics);
+        } else {
+            check('Flow authenticated ' + label + ': approved shell and palette',
+                ['feed', 'profile', 'messages', 'activity'].includes(metrics.flowPage) &&
+                metrics.canvas === (mode === 'dark' ? '#0d0e13' : '#ffffff') &&
+                metrics.nav.join(',') === 'home,search,create,activity,messages' &&
+                (width > 390 || metrics.navTapTargets.every(target => target.w >= 44 && target.h >= 44)), metrics);
+        }
     }
     async function login(count) {
         await cdp.send('Network.clearBrowserCookies');
@@ -467,9 +492,56 @@ try {
             }
         }
     } else {
+    // New redesigned pages: screenshot actual headless Chromium at mobile and
+    // desktop sizes in both modes. These are additive to existing badge/Feed QA.
+    await cdp.send('Network.clearBrowserCookies');
+    for (const width of [320, 1280]) {
+        const height = width === 320 ? 740 : 900;
+        for (const mode of ['light', 'dark']) {
+            for (const [label, route, selector] of [
+                ['welcome', '/', '[data-flow-guest="welcome"]'],
+                ['login', '/login', '.skuy-auth-content'],
+                ['register', '/register', '.skuy-auth-content'],
+                ['forgot-password', fixture.passwordRequestPage, '.skuy-auth-content'],
+                ['error-404', '/missing-theme-qa-page', '[data-flow-guest="error"]'],
+            ]) {
+                await flowScreen(route, selector, width, height, mode, label, true);
+            }
+        }
+    }
     await viewport(390, 844);
     await login(2);
     const own = fixture.accounts[2];
+
+    const flowAuthenticated = [
+        ['inbox', '/pesan', '[data-flow-messages="inbox"]'],
+        ['chat', own.chat, '[data-flow-messages="conversation"]'],
+        ['activity', '/aktivitas', '[data-flow-activity="notifications"]'],
+        ['announcements', '/pengumuman', '[data-flow-activity="announcements"]'],
+        ['post-detail-react', fixture.post, '[data-flow-thread="detail"]'],
+        ['edit-thread', own.editPost, '[data-flow-thread="edit"]'],
+        ['topic', fixture.topicPage, '.skuy-discovery-page'],
+        ['hashtag', fixture.hashtagPage, '.skuy-discovery-page'],
+        ['points', '/poin/riwayat', '.skuy-points-page'],
+        ['followers', fixture.followersPage, '.skuy-feed-page'],
+        ['following', fixture.followingPage, '.skuy-feed-page'],
+        ['dashboard', '/dashboard', '[data-flow-overview="dashboard"]'],
+        ['account-settings', own.account, '[data-flow-overview="account"]'],
+    ];
+    // Password re-confirmation is real, against only the temporary QA user;
+    // never bypass the password.confirm.recent middleware or expose secrets.
+    await navigate('/confirm-password');
+    await cdp.evaluate('(() => { const form = document.querySelector("form.skuy-auth-form"); const field = form?.querySelector("#password"); if (!field) throw new Error("Missing password confirmation form"); field.value = "password"; form.requestSubmit(); })()');
+    await until(() => cdp.evaluate('location.pathname !== "/confirm-password"'), 'isolated password confirmation');
+    flowAuthenticated.push(['two-factor-settings', '/pengaturan/keamanan/2fa', '[data-flow-security="two-factor"]']);
+    for (const width of [320, 1280]) {
+        const height = width === 320 ? 740 : 900;
+        for (const mode of ['light', 'dark']) {
+            for (const [label, route, selector] of flowAuthenticated) {
+                await flowScreen(route, selector, width, height, mode, label);
+            }
+        }
+    }
     for (const width of [1536, 1280, 1024, 390, 320]) {
         const height = width === 1536 ? 960 : width === 1280 ? 900 : width === 1024 ? 900 : width === 390 ? 844 : 740;
         await viewport(width, height);
