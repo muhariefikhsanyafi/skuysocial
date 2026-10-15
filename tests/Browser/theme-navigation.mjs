@@ -688,7 +688,10 @@ try {
                 await theme(mode);
                 for (const { key, url, scope } of fixture.flowRoutes) {
                     await navigate(url);
-                    await until(() => cdp.evaluate(`(document.querySelector('#main-content')?.innerText.trim().length ?? 0) > 0`).catch(() => false), 'rendered Flow route ' + key);
+                    // Collect diagnostic screenshot even when a route renders an HTTP error
+                    // instead of throwing a blind timeout before evidence is captured.
+                    await until(() => cdp.evaluate(`(document.querySelector('#main-content')?.innerText.trim().length ?? 0) > 0`).catch(() => false),
+                        'rendered Flow route ' + key, 4000).catch(() => false);
                     await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
                     const metrics = await cdp.evaluate(`(() => {
                         const main = document.querySelector('#main-content');
@@ -698,6 +701,9 @@ try {
                         const panel = root ?? main;
                         return {
                             route: location.pathname, theme, scope: document.documentElement.dataset.flowPage,
+                            documentTitle: document.title,
+                            visibleText: document.body?.innerText.slice(0, 200) ?? '',
+                            statusHeading: document.querySelector('h1')?.innerText ?? null,
                             viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth,
                             mainTextLength: main?.innerText.trim().length ?? 0,
                             rootBackground: panel ? getComputedStyle(panel).backgroundColor : null,
