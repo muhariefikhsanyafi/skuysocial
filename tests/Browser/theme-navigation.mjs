@@ -495,6 +495,8 @@ try {
     // New redesigned pages: screenshot actual headless Chromium at mobile and
     // desktop sizes in both modes. These are additive to existing badge/Feed QA.
     await cdp.send('Network.clearBrowserCookies');
+    // about:blank has an opaque origin; establish localhost before using localStorage.
+    await navigate('/login');
     for (const width of [320, 1280]) {
         const height = width === 320 ? 740 : 900;
         for (const mode of ['light', 'dark']) {
