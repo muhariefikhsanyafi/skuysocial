@@ -158,6 +158,16 @@ jobs:
       - name: Run Laravel tests
         run: php artisan test --no-ansi
 
+      - name: Verify SkuySocial UI in isolated Chromium
+        shell: bash
+        run: |
+          BROWSER="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$BROWSER" ]; then
+            echo 'Browser compatibility verification unavailable: no Chromium executable'
+            exit 1
+          fi
+          node tests/Browser/theme-navigation.mjs --phase=after --browser="$BROWSER" --output="$RUNNER_TEMP/skuy-tailwind-v4-browser"
+
       - name: Remove untracked CI-only dotenv placeholder
         if: always()
         run: rm -f -- .env
@@ -188,9 +198,9 @@ jobs:
         with:
           node-version: '24'
 
-      - name: npm advisory audit (including dev dependencies)
+      - name: npm audit blocks high and critical advisories (including dev dependencies)
         if: always()
-        run: npm audit --audit-level=critical
+        run: npm audit --audit-level=high
 
       - name: Block high-risk runtime dependency advisories
         if: always()
@@ -215,7 +225,7 @@ jobs:
             '- High: ' + high + '\\n' +
             '- Moderate: ' + moderate + '\\n' +
             '- Low: ' + low + '\\n\\n' +
-            'Runtime: block high+ via npm audit --omit=dev. Build-time: block critical. Remaining development advisories require Tailwind 4 compatibility review.\\n');
+            'Runtime: block high+ via npm audit --omit=dev. Build-time: block high or critical. Remaining development advisories require Tailwind 4 compatibility review.\\n');
           if (high > 0 || moderate > 0) {
             console.log('::warning title=Build-time dependency advisories::Non-critical npm findings remain; see job summary.');
           }

@@ -33,6 +33,16 @@ if (($argv[1] ?? '') === 'unread') {
     exit;
 }
 
+if (($argv[1] ?? '') === 'social-state') {
+    $viewer = User::query()->where('username', 'qa.theme.'.(int) $argv[2])->firstOrFail();
+    $post = Post::query()->where('uid', $argv[3])->firstOrFail();
+    echo json_encode([
+        'liked' => $post->likes()->where('user_id', $viewer->id)->exists(),
+        'bookmarked' => $post->bookmarks()->where('user_id', $viewer->id)->exists(),
+    ], JSON_THROW_ON_ERROR);
+    exit;
+}
+
 if (($argv[1] ?? '') === 'appreciation-state') {
     $viewer = User::query()->where('username', 'qa.theme.'.(int) $argv[2])->firstOrFail();
     $post = Post::query()->where('uid', $argv[3])->firstOrFail();
@@ -134,7 +144,7 @@ if ($appreciationResult->status !== PostAppreciationStatus::Appreciated) {
 }
 echo json_encode([
     'accounts' => $accounts, 'otherProfile' => route('user.profile', $author->username, false),
-    'post' => route('posts.show', $post, false),
+    'post' => route('posts.show', $posts[22], false), // Not seeded as bookmarked: browser exercises save -> unsave.
     'savedPost' => route('posts.show', $savedPost, false),
     'appreciationStatusPost' => $posts[12]->uid,
     'appreciationChoicePosts' => [$posts[0]->uid, $posts[12]->uid, $posts[23]->uid],
