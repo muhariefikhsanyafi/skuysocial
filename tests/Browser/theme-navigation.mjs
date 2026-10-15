@@ -53,7 +53,7 @@ function command(executable, args, cwd = root) {
         child.on('exit', code => code === 0 ? resolve(stdout) : reject(new Error(`${path.basename(executable)} exited ${code}: ${stderr.slice(-1500)} ${stdout.slice(-1500)}`)));
     });
 }
-const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], appreciationVisual: [], externalRequestsBlocked: [] };
+const results = { phase, engine: 'installed Chromium via CDP', checks: [], paints: [], badges: [], desktop: [], savedSearchVisual: [], flowVisual: [], appreciationVisual: [], externalRequestsBlocked: [] };
 function check(name, condition, evidence) {
     results.checks.push({ name, pass: Boolean(condition), evidence });
     if (!condition) console.log(`FAIL ${name}: ${JSON.stringify(evidence).slice(0,600)}`);
@@ -532,6 +532,44 @@ try {
                 }
             }
         }
+    }
+    if (phase === 'after') {
+        // Visual evidence for the redesigned authenticated screens (not a pixel-level approval).
+        // Capture both themes at the narrowest supported mobile width and at desktop width.
+        await login(2);
+        for (const width of [320, 1280]) {
+            await viewport(width, width === 320 ? 740 : 900);
+            for (const mode of ['light', 'dark']) {
+                await theme(mode);
+                for (const { key, url, scope } of fixture.flowRoutes) {
+                    await navigate(url);
+                    await until(() => cdp.evaluate(`(document.querySelector('#main-content')?.innerText.trim().length ?? 0) > 0`).catch(() => false), 'rendered Flow route ' + key);
+                    await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+                    const metrics = await cdp.evaluate(`(() => {
+                        const main = document.querySelector('#main-content');
+                        const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                        const nav = [...document.querySelectorAll('[data-mobile-nav-key]')].map(node => node.dataset.mobileNavKey);
+                        const root = main?.querySelector('[data-flow-thread], [data-flow-messages], [data-flow-activity], .skuy-discovery-page, .skuy-dashboard-page, .skuy-points-page, .skuy-profile-page');
+                        const panel = root ?? main;
+                        return {
+                            route: location.pathname, theme, scope: document.documentElement.dataset.flowPage,
+                            viewportWidth: innerWidth, documentWidth: document.documentElement.scrollWidth,
+                            mainTextLength: main?.innerText.trim().length ?? 0,
+                            rootBackground: panel ? getComputedStyle(panel).backgroundColor : null,
+                            nav,
+                            hasErrorPage: !!document.querySelector('[data-flow-guest="error"]'),
+                        };
+                    })()`);
+                    const image = await screenshot(`flow-qa-${key}-${width}-${mode}`);
+                    results.flowVisual.push({ key, url, width, mode, scope, metrics, image });
+                    check(`Flow ${key} ${width}px ${mode}: rendered theme, shell, safe viewport, real navigation`,
+                        metrics.theme === mode && metrics.scope === scope && !metrics.hasErrorPage &&
+                        metrics.mainTextLength > 0 && metrics.documentWidth <= width &&
+                        metrics.nav.join(',') === 'home,search,create,activity,messages', metrics);
+                }
+            }
+        }
+        await viewport(390, 844);
     }
     for (const mode of ['dark', 'light']) {
         await theme(mode);

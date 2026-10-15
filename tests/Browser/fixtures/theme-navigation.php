@@ -8,6 +8,7 @@ use App\Enums\PostAppreciationStatus;
 use App\Models\Bookmark;
 use App\Models\Comment;
 use App\Models\Conversation;
+use App\Models\Hashtag;
 use App\Models\Message;
 use App\Models\Post;
 use App\Models\User;
@@ -75,6 +76,8 @@ for ($index = 0; $index < 24; $index++) {
     }
 }
 $accounts = [];
+$flowEditPost = null;
+$flowConversation = null;
 foreach ([0, 1, 2, 12] as $count) {
     $viewer = User::factory()->create([
         'name' => 'QA Theme '.$count, 'username' => 'qa.theme.'.$count, 'email' => 'theme'.$count.'@example.test',
@@ -112,6 +115,17 @@ foreach ([0, 1, 2, 12] as $count) {
         'type' => Conversation::TYPE_DIRECT, 'direct_key' => $author->id.':'.$viewer->id,
     ]);
     $conversation->users()->attach([$author->id, $viewer->id]);
+    if ($count === 2) {
+        // Real private routes for isolated browser review. Never seed a persistent database.
+        $flowEditPost = Post::query()->create([
+            'user_id' => $viewer->id,
+            'content' => 'Flow QA own editable thread #flowqa',
+            'topic' => 'flowqa',
+        ]);
+        $flowTag = Hashtag::query()->firstOrCreate(['name' => 'flowqa']);
+        $flowEditPost->hashtags()->sync([$flowTag->id]);
+        $flowConversation = $conversation;
+    }
     for ($index = 0; $index < $count; $index++) {
         $viewer->notifications()->create([
             'id' => (string) Str::uuid(), 'type' => PostLiked::class,
@@ -153,4 +167,18 @@ echo json_encode([
     'routes' => array_map(fn ($name) => route($name, [], false), [
         'feed', 'search', 'bookmarks.index', 'activity.index', 'messages.index', 'points.history', 'dashboard',
     ]),
+    // Browser screenshot acceptance matrix: each route uses a real auth/session/fixture.
+    'flowRoutes' => [
+        ['key' => 'inbox', 'url' => route('messages.index', [], false), 'scope' => 'messages'],
+        ['key' => 'conversation', 'url' => route('messages.show', $flowConversation, false), 'scope' => 'messages'],
+        ['key' => 'activity', 'url' => route('activity.index', [], false), 'scope' => 'activity'],
+        ['key' => 'announcements', 'url' => route('announcements.index', [], false), 'scope' => 'activity'],
+        ['key' => 'dashboard', 'url' => route('dashboard', [], false), 'scope' => 'feed'],
+        ['key' => 'account-settings', 'url' => $accounts[2]['account'], 'scope' => 'profile'],
+        ['key' => 'points', 'url' => route('points.history', [], false), 'scope' => 'feed'],
+        ['key' => 'post-detail', 'url' => route('posts.show', $flowEditPost, false), 'scope' => 'feed'],
+        ['key' => 'edit-thread', 'url' => route('posts.edit', $flowEditPost, false), 'scope' => 'feed'],
+        ['key' => 'topic', 'url' => route('topik.show', 'flowqa', false), 'scope' => 'feed'],
+        ['key' => 'hashtag', 'url' => route('tags.show', 'flowqa', false), 'scope' => 'feed'],
+    ],
 ], JSON_THROW_ON_ERROR);
