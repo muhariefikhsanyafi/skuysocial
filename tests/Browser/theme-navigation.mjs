@@ -131,8 +131,43 @@ try {
         serverLog = (serverLog + `\nReadiness fetch error: ${error.message}; cause=${error.cause?.code ?? error.cause?.message ?? 'unknown'}; serverExit=${server.exitCode}`).slice(-12000);
         return false;
     }), 'isolated PHP server');
-    browser = spawn(browserExecutable, ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--disable-component-update', '--disable-sync', '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1', `--user-data-dir=${path.join(temporary, 'browser')}`, 'about:blank'], { windowsHide: true, stdio: 'ignore' });
-    const debuggingPort = await until(() => fs.readFile(path.join(temporary, 'browser/DevToolsActivePort'), 'utf8').then(text => text.split('\n')[0]).catch(() => false), 'browser CDP');
+    // Fresh user-data-dir per attempt prevents a crashed Chromium startup from
+    // poisoning a subsequent one. Never retry a failed assertion or actual QA.
+    let debuggingPort;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        const browserProfile = path.join(temporary, `browser-${attempt}`);
+        let startupError = null, browserLog = '';
+        browser = spawn(browserExecutable, [
+            '--headless=new', '--no-first-run', '--no-default-browser-check',
+            '--disable-background-networking', '--disable-component-update', '--disable-sync',
+            '--disable-dev-shm-usage', '--disable-gpu',
+            '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1',
+            `--user-data-dir=${browserProfile}`, 'about:blank',
+        ], { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'] });
+        browser.on('error', error => { startupError = error.message; });
+        browser.stderr.on('data', chunk => { browserLog = (browserLog + chunk).slice(-1500); });
+        try {
+            debuggingPort = await until(async () => {
+                if (startupError) throw new Error('Chromium could not start: ' + startupError);
+                if (browser.exitCode !== null || browser.signalCode !== null) {
+                    throw new Error(`Chromium exited before CDP became ready (exit=${browser.exitCode}, signal=${browser.signalCode})`);
+                }
+                return fs.readFile(path.join(browserProfile, 'DevToolsActivePort'), 'utf8')
+                    .then(text => {
+                        const port = Number(text.split('\n')[0]);
+                        return Number.isInteger(port) && port > 0 && port <= 65535 ? port : false;
+                    }).catch(() => false);
+            }, 'browser CDP startup', 25000);
+            break;
+        } catch (error) {
+            browser.kill();
+            if (attempt === 2) {
+                throw new Error(`${error.message} (after 2 isolated startup attempts); Chromium diagnostics: ${browserLog.slice(-750)}`);
+            }
+            console.warn('Chromium CDP startup unavailable; retrying once with a fresh isolated profile.');
+            await pause(1000);
+        }
+    }
     const tabs = await fetch(`http://127.0.0.1:${debuggingPort}/json/list`).then(response => response.json());
     const socket = new WebSocket(tabs.find(tab => tab.type === 'page').webSocketDebuggerUrl);
     await new Promise((resolve, reject) => { socket.addEventListener('open', resolve, { once: true }); socket.addEventListener('error', reject, { once: true }); });
