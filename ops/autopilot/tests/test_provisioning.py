@@ -131,6 +131,55 @@ class ProvisioningTests(unittest.TestCase):
                 os.close(handle)
             self.assertEqual('fixture', target.read_text())
 
+    def test_readonly_installed_file_verification_rejects_symlink_and_metadata_drift(self):
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as outside:
+            parent = Path(temp)
+            target = parent / 'managed'
+            target.write_bytes(b'synthetic installed file')
+            target.chmod(0o600)
+            expected = hashlib.sha256(target.read_bytes()).hexdigest()
+            check = lambda path: provision.verify_regular_file(
+                path, os.getuid(), os.getgid(), 0o600, expected, len(b'synthetic installed file'))
+            check(target)
+            alias = parent / 'alias'
+            alias.symlink_to(target)
+            with self.assertRaises(OSError):
+                check(alias)
+            target.chmod(0o640)
+            with self.assertRaises(ValueError):
+                check(target)
+            target.chmod(0o600)
+            target.write_bytes(b'synthetic installed file changed')
+            with self.assertRaises(ValueError):
+                check(target)
+            target.write_bytes(b'synthetic installed file')
+            twin = parent / 'hardlink'
+            os.link(target, twin)
+            with self.assertRaises(ValueError):
+                check(target)
+
+    def test_existing_directory_permissions_are_never_silently_repaired(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp) / 'managed'
+            directory.mkdir(mode=0o700)
+            with self.assertRaises(ValueError):
+                provision.directory(directory, os.getuid(), os.getgid(), 0o750)
+            self.assertEqual(0o700, directory.stat().st_mode & 0o777)
+            provision.directory(directory, os.getuid(), os.getgid(), 0o700)
+
+    def test_installed_dependency_links_are_verified_without_following_target(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = Path(temp)
+            link = parent / 'link'
+            link.symlink_to('missing-dependency')
+            provision.verify_dependency_link(link, os.getuid(), os.getgid(), 'missing-dependency')
+            with self.assertRaises(ValueError):
+                provision.verify_dependency_link(link, os.getuid(), os.getgid(), 'replaced')
+            link.unlink()
+            link.symlink_to('/etc/passwd')
+            with self.assertRaises(ValueError):
+                provision.verify_dependency_link(link, os.getuid(), os.getgid(), 'missing-dependency')
+
     def test_existing_service_account_rejects_shared_uid_and_gid(self):
         user = SimpleNamespace(pw_name=provision.ACCOUNT, pw_uid=180, pw_gid=180,
                                pw_dir=str(provision.STATE), pw_shell='/usr/sbin/nologin')

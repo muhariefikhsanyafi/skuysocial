@@ -296,7 +296,10 @@ def directory(path, uid, gid, mode):
                 info = os.fstat(child)
             if not stat.S_ISDIR(info.st_mode) or info.st_uid != uid or info.st_gid != gid:
                 raise ValueError('Existing directory ownership mismatch: ' + str(path))
-            os.fchmod(child, mode)
+            if created:
+                os.fchmod(child, mode)
+            elif stat.S_IMODE(info.st_mode) != mode:
+                raise ValueError('Existing directory permissions differ; never auto-repair: ' + str(path))
         finally:
             os.close(child)
     finally:
@@ -318,13 +321,17 @@ def install_file(fd, item, target, gid):
         if existing is not None:
             try:
                 info = os.fstat(existing)
-                if not stat.S_ISREG(info.st_mode) or info.st_uid != 0:
-                    raise ValueError('Existing managed file is not regular and root-owned')
+                if (not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or
+                        info.st_gid != gid or stat.S_IMODE(info.st_mode) != mode or
+                        info.st_nlink != 1):
+                    raise ValueError('Existing managed file ownership, mode or link count differs; never repair')
                 with os.fdopen(os.dup(existing), 'rb') as stream:
-                    if digest(stream.read()) != item['sha256']:
+                    if digest(stream.read(item['size'] + 1)) != item['sha256']:
                         raise ValueError('Refusing to overwrite a different existing managed file')
-                os.fchown(existing, 0, gid)
-                os.fchmod(existing, mode)
+                after = os.fstat(existing)
+                if ((after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns) !=
+                    (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)):
+                    raise ValueError('Existing managed file changed during verification')
             finally:
                 os.close(existing)
             return
@@ -360,6 +367,51 @@ def check_directory(path, uid, gid, mode):
         os.close(fd)
 
 
+def verify_regular_file(path, uid, gid, mode, expected_hash, expected_size):
+    """Verify one installed inode through an anchored no-follow descriptor, without repair."""
+    parent = dir_fd(path.parent)
+    try:
+        fd = os.open(path.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC,
+                     dir_fd=parent)
+        try:
+            info = os.fstat(fd)
+            if (not stat.S_ISREG(info.st_mode) or info.st_uid != uid or
+                    info.st_gid != gid or stat.S_IMODE(info.st_mode) != mode or
+                    info.st_nlink != 1 or info.st_size != expected_size):
+                raise ValueError('Installed managed file metadata differs from reviewed contract')
+            hasher = hashlib.sha256()
+            total = 0
+            while total <= expected_size:
+                chunk = os.read(fd, min(65536, expected_size + 1 - total))
+                if not chunk:
+                    break
+                total += len(chunk)
+                hasher.update(chunk)
+            if total != expected_size or hasher.hexdigest() != expected_hash:
+                raise ValueError('Installed managed file content differs from reviewed contract')
+            after = os.fstat(fd)
+            if ((info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns) !=
+                (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)):
+                raise ValueError('Installed managed file changed during verification')
+        finally:
+            os.close(fd)
+    finally:
+        os.close(parent)
+
+
+def verify_dependency_link(path, uid, gid, target):
+    """Never resolve the dependency symlink, including its parent directory chain."""
+    parent = dir_fd(path.parent)
+    try:
+        info = os.stat(path.name, dir_fd=parent, follow_symlinks=False)
+        if not stat.S_ISLNK(info.st_mode) or info.st_uid != uid or info.st_gid != gid:
+            raise ValueError('Installed dependency link ownership differs from reviewed contract')
+        if os.readlink(path.name, dir_fd=parent) != target:
+            raise ValueError('Installed dependency link changed')
+    finally:
+        os.close(parent)
+
+
 def verify_layout(records, uid, gid):
     reader_gid = pwd.getpwnam('skuysocialdev').pw_gid
     for path, owner, group, mode in (
@@ -382,20 +434,13 @@ def verify_layout(records, uid, gid):
             target = Path('/etc/systemd/system') / p.name
         else:
             target = CONFIG / p.name
-        info = target.lstat()
         if p.parts[0] == 'units': expected_gid = 0
         else: expected_gid = gid
-        if info.st_uid != 0 or info.st_gid != expected_gid:
-            raise ValueError('Installed managed file ownership differs from reviewed contract')
         if item['kind'] == 'link':
-            if not target.is_symlink() or os.readlink(target) != item['target']:
-                raise ValueError('Installed dependency link changed')
+            verify_dependency_link(target, 0, expected_gid, item['target'])
         else:
             expected_mode = 0o750 if item['executable'] else 0o640
-            if not stat.S_ISREG(info.st_mode) or stat.S_IMODE(info.st_mode) != expected_mode:
-                raise ValueError('Installed managed file permissions differ from reviewed contract')
-            if digest(target.read_bytes()) != item['sha256']:
-                raise ValueError('Installed managed file content differs from reviewed contract')
+            verify_regular_file(target, 0, expected_gid, expected_mode, item['sha256'], item['size'])
     for path in directories:
         check_directory(path, 0, gid, 0o750)
     receipt = CONFIG / 'provisioning.json'
