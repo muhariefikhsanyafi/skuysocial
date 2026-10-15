@@ -26,7 +26,7 @@ STATUS = Path('/var/lib/skuysocial-autopilot-status')
 MAIN = 'skuysocial-autopilot-system.service'
 VALIDATION = 'skuysocial-autopilot-validation.service'
 ENV = {'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'HOME': '/root'}
-UNIT_DIGESTS = {'skuysocial-autopilot-system.service': '0b25a3a139b3ca4f25f3a0adf25489cf73c98de6785e51e0ed85ef26fdb2780b', 'skuysocial-autopilot-validation.service': 'd262c5c3dedd71cbc4466e7b67a31f8ded23a381fd5bf35a8f35ffd1c47ec274'}
+UNIT_DIGESTS = {'skuysocial-autopilot-system.service': '0b25a3a139b3ca4f25f3a0adf25489cf73c98de6785e51e0ed85ef26fdb2780b', 'skuysocial-autopilot-validation.service': '721a90170eec46d3f3c64dd0334187f868a37a556339b641e31521a9e35e053d'}
 CONFIG_DIGEST = '94d5b29e7cf9574d471e866ea53de85cf2a94f431a81ba19635f00550e88c74b'
 
 
