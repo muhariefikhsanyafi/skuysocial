@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html
-    data-flow-page="feed"
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    data-flow-page="feed"
     x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
     x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     x-effect="document.documentElement.classList.toggle('dark', darkMode)"
