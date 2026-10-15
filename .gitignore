@@ -29,3 +29,16 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Private autonomous runner state and generated QA/release evidence
+/.autopilot/
+__pycache__/
+/autopilot-artifacts/
+/skuysocial-app.zip
+/.env.*
+!/.env.example
+
+# Private operational checkpoints; publish code and generic operations guidance only.
+/docs/autopilot/READINESS.md
+/docs/autopilot/QA_BACKLOG.md
+/docs/autopilot/UNBLOCK.md

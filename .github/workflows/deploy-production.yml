@@ -1,0 +1,24 @@
+name: Production Deployment (DISABLED)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: skuysocial-production
+  cancel-in-progress: false
+jobs:
+  disabled:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - run: |
+          echo 'PRODUCTION AUTO-DEPLOY: DISABLED' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No Production connection, credential, migration, or deployment step is configured.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+  production:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - run: exit 1
