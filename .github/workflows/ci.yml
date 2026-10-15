@@ -141,16 +141,26 @@ jobs:
       - name: Build Vite manifest required by Blade tests
         run: npm run build
 
-      - name: Generate ephemeral CI-only encryption key (never log)
+      - name: Create untracked empty dotenv placeholder for isolated tests
         shell: bash
         run: |
-          php -r '$key = base64_encode(random_bytes(32)); file_put_contents(getenv("GITHUB_ENV"), "APP_KEY=base64:".$key.PHP_EOL, FILE_APPEND);'
+          if [ -e .env ] || git ls-files --error-unmatch .env >/dev/null 2>&1; then
+            echo 'BLOCKED: unexpected .env file in CI checkout'
+            exit 1
+          fi
+          : > .env
+
+      - name: Generate and mask ephemeral CI-only encryption key
+        shell: bash
+        run: |
+          php -r '$key = "base64:".base64_encode(random_bytes(32)); fwrite(STDOUT, "::add-mask::".$key.PHP_EOL); file_put_contents(getenv("GITHUB_ENV"), "APP_KEY=".$key.PHP_EOL, FILE_APPEND);'
 
       - name: Run Laravel tests
         run: php artisan test --no-ansi
 
-      - name: Identify PHPUnit warning root cause (targeted)
-        run: php artisan test --filter=OneSignalExternalIdTest --display-warnings --no-ansi
+      - name: Remove untracked CI-only dotenv placeholder
+        if: always()
+        run: rm -f -- .env
 
   dependency-audit:
     name: Dependency security advisories
