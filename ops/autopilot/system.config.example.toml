@@ -1,0 +1,13 @@
+# Administrator-owned /etc/skuysocial-autopilot/runner.toml (0640, runner group).
+# Source must be a root-owned, secret-scanned copy with locked dependencies and Git history.
+repo = "/opt/skuysocial-autopilot/source"
+state = "/var/lib/skuysocial-autopilot/queue"
+poll_seconds = 10
+
+[[gates]]
+name = "quality"
+argv = ["python3", "/opt/skuysocial-autopilot/source/ops/autopilot/quality.py", "--all", "--output", "{artifacts}/quality"]
+timeout = 900
+
+[github]
+enabled = false

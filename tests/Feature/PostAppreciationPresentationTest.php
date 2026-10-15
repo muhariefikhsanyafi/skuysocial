@@ -28,7 +28,7 @@ class PostAppreciationPresentationTest extends TestCase
         $response->assertOk();
 
         $document = new \DOMDocument();
-        $document->loadHTML($response->getContent(), LIBXML_NONET);
+        @$document->loadHTML($response->getContent(), LIBXML_NONET);
         $xpath = new \DOMXPath($document);
         $actionRow = $xpath->query('//div[contains(concat(" ", normalize-space(@class), " "), " skuy-actions--primary ")]')->item(0);
 
@@ -78,7 +78,7 @@ class PostAppreciationPresentationTest extends TestCase
         $response->assertOk();
 
         $document = new \DOMDocument();
-        $document->loadHTML($response->getContent(), LIBXML_NONET);
+        @$document->loadHTML($response->getContent(), LIBXML_NONET);
         $xpath = new \DOMXPath($document);
         $appreciation = $xpath->query('//*[@data-post-appreciation="'.$post->uid.'"]')->item(0);
 
@@ -352,7 +352,7 @@ class PostAppreciationPresentationTest extends TestCase
         $response->assertOk();
 
         $document = new \DOMDocument();
-        $document->loadHTML($response->getContent(), LIBXML_NONET);
+        @$document->loadHTML($response->getContent(), LIBXML_NONET);
         $xpath = new \DOMXPath($document);
         $actionRow = $xpath->query('//div[contains(concat(" ", normalize-space(@class), " "), " skuy-actions--primary ")]')->item(0);
 

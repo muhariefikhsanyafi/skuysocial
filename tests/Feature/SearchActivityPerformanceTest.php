@@ -528,8 +528,8 @@ class SearchActivityPerformanceTest extends TestCase
         $response->assertOk();
         $html = $response->getContent();
         $this->assertSame(2, $recipient->unreadNotifications()->count());
-        $this->assertSame(2, substr_count($html, 'data-unread-notifications-badge'));
-        $this->assertSame(2, substr_count($html, 'aria-label="Unread notifications: 2"'));
+        $this->assertSame(3, substr_count($html, 'data-unread-notifications-badge'));
+        $this->assertSame(3, substr_count($html, 'aria-label="Unread notifications: 2"'));
     }
 
     private function createPost(User $user, string $content, array $attributes = []): Post

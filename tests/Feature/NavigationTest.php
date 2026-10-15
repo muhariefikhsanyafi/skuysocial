@@ -24,12 +24,12 @@ class NavigationTest extends TestCase
             ->assertSee('href="'.route('user.profile', $user->username).'"', false);
 
         $this->assertSame(2, substr_count($html, 'href="'.route('search').'"'));
-        $this->assertSame(2, substr_count($html, 'href="'.route('activity.index').'"'));
+        $this->assertSame(3, substr_count($html, 'href="'.route('activity.index').'"'));
         $this->assertStringContainsString('<div class="skuy-app-shell">', $html);
         $this->assertStringContainsString('<div class="skuy-app-shell__workspace">', $html);
         $this->assertStringContainsString('aria-controls="mobile-navigation"', $html);
-        $this->assertStringContainsString(':aria-expanded="(sidebarOpen && !isDesktop).toString()"', $html);
-        $this->assertStringContainsString(":aria-label=\"sidebarOpen && !isDesktop ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
+        $this->assertStringContainsString(':aria-expanded="(sidebarOpen &amp;&amp; !isDesktop).toString()"', $html);
+        $this->assertStringContainsString(":aria-label=\"sidebarOpen &amp;&amp; !isDesktop ? 'Tutup menu navigasi' : 'Buka menu navigasi'\"", $html);
         $this->assertStringContainsString('id="mobile-navigation"', $html);
         $this->assertStringContainsString('aria-controls="mobile-profile-menu"', $html);
         $this->assertStringContainsString(':aria-expanded="accountMenuOpen.toString()"', $html);

@@ -1,0 +1,11 @@
+{
+  "production_enabled": false,
+  "approved_baseline": null,
+  "approved_release_branch": null,
+  "production_target": null,
+  "deployment_identity": null,
+  "backup_restore_verified": false,
+  "initial_owner_approval": false,
+  "automatic_migrations": false,
+  "reason": "Production audit and first activation have not been authorized or performed."
+}

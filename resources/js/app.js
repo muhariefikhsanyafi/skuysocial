@@ -1,6 +1,8 @@
 import '../css/skuy-prism.css';
 import '../css/skuy-prism-navigation.css';
+import '../css/avatar-studio.css';
 import Alpine from 'alpinejs';
+import { avatarStudio } from './avatarStudio';
 import { acquireFeedPostActionLock } from './feedPostActionLock';
 import { feedTopicAutocomplete } from './feedTopicAutocomplete';
 import { postMediaViewerController, savedPageController } from './skuyPrismPageUi';
@@ -9,6 +11,7 @@ import { initializeOneSignal } from './oneSignal';
 import { playSocialActionMotion } from './socialActionMotion';
 
 window.Alpine = Alpine;
+Alpine.data('avatarStudio', (config) => avatarStudio(config));
 initializeMessageComposers();
 initializeOneSignal();
 

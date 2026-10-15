@@ -1,0 +1,1344 @@
+/* SkuySocial Flow: responsive public profile, isolated from every other route. */
+html[data-flow-page="profile"] {
+    color-scheme: light;
+    --flow-canvas: #ffffff;
+    --flow-panel: #ffffff;
+    --flow-panel-muted: #f7f7f9;
+    --flow-text: #19191f;
+    --flow-text-secondary: #5e5e68;
+    --flow-text-muted: #696a76;
+    --flow-border: #e6e6eb;
+    --flow-border-strong: #838492;
+    --flow-like: #be185d;
+    --flow-nav-search: #0369a1;
+    --flow-nav-activity: #b45309;
+    --flow-nav-messages: #047857;
+    --flow-nav-saved: #be185d;
+    --flow-accent: #6e5bef;
+    --flow-accent-hover: #5a49d7;
+    --flow-accent-ink: #5848dd;
+    --flow-accent-soft: #f1efff;
+    --flow-glass: rgb(255 255 255 / 94%);
+    --flow-shadow: 0 8px 26px rgb(25 25 31 / 7%);
+    --skuy-bg-canvas: var(--flow-canvas);
+    --skuy-bg-workspace: var(--flow-canvas);
+    --skuy-background: var(--flow-canvas);
+    --skuy-surface: var(--flow-panel);
+    --skuy-surface-elevated: var(--flow-panel);
+    --skuy-surface-subtle: var(--flow-panel-muted);
+    --skuy-surface-base: var(--flow-canvas);
+    --skuy-surface-raised: var(--flow-panel);
+    --skuy-surface-overlay: var(--flow-panel);
+    --skuy-surface-glass: var(--flow-glass);
+    --skuy-text-primary: var(--flow-text);
+    --skuy-text-secondary: var(--flow-text-secondary);
+    --skuy-text-muted: var(--flow-text-muted);
+    --skuy-border-subtle: var(--flow-border);
+    --skuy-border-soft: var(--flow-border);
+    --skuy-border-strong: var(--flow-border-strong);
+    --skuy-prism-glass-edge: var(--flow-border);
+    --skuy-brand: var(--flow-accent);
+    --skuy-brand-hover: var(--flow-accent-hover);
+    --skuy-brand-pressed: #4939c4;
+    --skuy-on-brand: #ffffff;
+    --skuy-secondary: var(--flow-text-secondary);
+    --skuy-secondary-hover: var(--flow-text);
+    --skuy-on-secondary: #ffffff;
+    --skuy-focus: var(--flow-accent);
+    --skuy-selected: var(--flow-accent-soft);
+    --skuy-on-selected: #5140ce;
+    --skuy-surface-accent: var(--flow-accent-soft);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-shadow-soft: 0 2px 8px rgb(25 25 31 / 7%);
+    --skuy-shadow-floating: 0 8px 26px rgb(25 25 31 / 8%);
+}
+
+html[data-flow-page="profile"].dark {
+    color-scheme: dark;
+    --flow-canvas: #0d0e13;
+    --flow-panel: #1b1c25;
+    --flow-panel-muted: #22232e;
+    --flow-text: #f2f2f5;
+    --flow-text-secondary: #c5c5ce;
+    --flow-text-muted: #9899a5;
+    --flow-border: #30313e;
+    --flow-border-strong: #777989;
+    --flow-like: #f472b6;
+    --flow-nav-search: #7dd3fc;
+    --flow-nav-activity: #fbbf24;
+    --flow-nav-messages: #6ee7b7;
+    --flow-nav-saved: #f9a8d4;
+    --flow-accent: #6e5bef;
+    --flow-accent-hover: #5d4be0;
+    --flow-accent-ink: #c4baff;
+    --flow-accent-soft: #292544;
+    --flow-glass: rgb(20 21 27 / 95%);
+    --flow-shadow: 0 10px 30px rgb(0 0 0 / 28%);
+    --skuy-bg-canvas: var(--flow-canvas);
+    --skuy-bg-workspace: var(--flow-canvas);
+    --skuy-background: var(--flow-canvas);
+    --skuy-surface: var(--flow-panel);
+    --skuy-surface-elevated: #1b1c24;
+    --skuy-surface-subtle: var(--flow-panel-muted);
+    --skuy-surface-base: var(--flow-canvas);
+    --skuy-surface-raised: var(--flow-panel);
+    --skuy-surface-overlay: #1b1c24;
+    --skuy-surface-glass: var(--flow-glass);
+    --skuy-text-primary: var(--flow-text);
+    --skuy-text-secondary: var(--flow-text-secondary);
+    --skuy-text-muted: var(--flow-text-muted);
+    --skuy-border-subtle: var(--flow-border);
+    --skuy-border-soft: var(--flow-border);
+    --skuy-border-strong: var(--flow-border-strong);
+    --skuy-prism-glass-edge: var(--flow-border);
+    --skuy-brand: var(--flow-accent);
+    --skuy-brand-hover: var(--flow-accent-hover);
+    --skuy-brand-pressed: #6f61e3;
+    --skuy-on-brand: #ffffff;
+    --skuy-secondary: var(--flow-text-secondary);
+    --skuy-secondary-hover: var(--flow-text);
+    --skuy-on-secondary: #15161c;
+    --skuy-focus: var(--flow-accent-hover);
+    --skuy-selected: var(--flow-accent-soft);
+    --skuy-on-selected: #cec8ff;
+    --skuy-surface-accent: var(--flow-accent-soft);
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-shadow-soft: 0 3px 12px rgb(0 0 0 / 24%);
+    --skuy-shadow-floating: 0 10px 30px rgb(0 0 0 / 30%);
+}
+
+html[data-flow-page="profile"] body.skuy-product,
+html[data-flow-page="profile"] .skuy-app-shell,
+html[data-flow-page="profile"] .skuy-app-shell__workspace,
+html[data-flow-page="profile"] #main-content {
+    min-width: 320px;
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-app-shell::before,
+html[data-flow-page="profile"] .skuy-app-shell::after {
+    display: none;
+    content: none;
+    background: none;
+}
+
+html[data-flow-page="profile"] .skuy-app-shell__workspace {
+    min-width: 0;
+    padding-block-end: 0;
+}
+
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+    position: fixed;
+    inset: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: var(--flow-panel);
+    box-shadow: var(--skuy-shadow-floating);
+    color: var(--flow-text);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail,
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__inner {
+    border-color: var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="profile"] .skuy-app-nav__link {
+    min-height: 44px;
+    border-radius: 10px;
+    color: var(--flow-text-secondary);
+}
+
+html[data-flow-page="profile"] .skuy-app-nav__link[aria-current="page"],
+html[data-flow-page="profile"] .skuy-mobile-nav__item[aria-current="page"] {
+    background: var(--flow-accent-soft);
+    color: var(--skuy-on-selected);
+    font-weight: 700;
+}
+
+html[data-flow-page="profile"] .skuy-app-rail__compose,
+html[data-flow-page="profile"] .skuy-button--primary {
+    border-color: var(--flow-accent);
+    background: var(--flow-accent);
+    color: #ffffff;
+}
+
+html[data-flow-page="profile"] .skuy-app-rail__compose:hover,
+html[data-flow-page="profile"] .skuy-button--primary:hover {
+    border-color: var(--flow-accent-hover);
+    background: var(--flow-accent-hover);
+    color: #ffffff;
+}
+
+html[data-flow-page="profile"] .skuy-mobile-nav {
+    z-index: 80;
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    width: min(480px, calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    min-height: 72px;
+    padding: 7px 8px;
+    border: 1px solid var(--flow-border);
+    border-radius: 20px;
+    background: var(--flow-glass);
+    box-shadow: var(--skuy-shadow-floating);
+    transform: translateX(-50%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+html[data-flow-page="profile"] .skuy-mobile-nav__item {
+    min-width: 44px;
+    min-height: 52px;
+    border-radius: 14px;
+    color: var(--flow-text-secondary);
+}
+
+html[data-flow-page="profile"] .skuy-mobile-nav__item > span:last-child {
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+html[data-flow-page="profile"] .skuy-mobile-nav__item--compose {
+    width: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    margin-inline: auto;
+    border: 0;
+    border-radius: 16px;
+    background: var(--flow-accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgb(65 49 190 / 22%);
+}
+
+html[data-flow-page="profile"] .skuy-mobile-nav__item--compose:hover,
+html[data-flow-page="profile"] .skuy-mobile-nav__item--compose:focus-visible {
+    background: var(--flow-accent-hover);
+    color: #ffffff;
+}
+
+html[data-flow-page="profile"] .skuy-menu-surface,
+html[data-flow-page="profile"] .skuy-mobile-account-menu,
+html[data-flow-page="profile"] .skuy-appreciation__popover {
+    border: 1px solid var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: var(--flow-shadow);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+    padding-block-start: calc(72px + env(safe-area-inset-top, 0px));
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] {
+    width: 100%;
+    min-width: 0;
+    min-height: calc(100vh - 72px);
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-shell {
+    width: min(calc(100% - 48px), 760px);
+    min-width: 0;
+    margin-inline: auto;
+    padding: 24px 0 48px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    margin: 0 0 10px;
+    color: var(--flow-text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-back:hover {
+    color: var(--flow-accent-ink);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header {
+    overflow: hidden;
+    border: 1px solid var(--flow-border);
+    border-radius: 16px;
+    background: var(--flow-panel);
+    box-shadow: none;
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-cover {
+    height: 144px;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    background: var(--flow-panel-muted);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-cover--empty {
+    height: 68px;
+    border-bottom: 0;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-cover__image,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-cover__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-cover__image {
+    object-fit: cover;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-cover__placeholder {
+    background: var(--flow-panel-muted);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header__body {
+    min-width: 0;
+    padding: 0 22px 14px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-width: 0;
+    margin-top: -48px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-avatar {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 96px;
+    height: 96px;
+    overflow: hidden;
+    border: 4px solid var(--flow-panel);
+    border-radius: 50%;
+    background: var(--flow-panel-muted);
+    box-shadow: 0 0 0 1px var(--flow-border);
+    color: var(--flow-accent-ink);
+    font-size: 32px;
+    font-weight: 700;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-action {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0 0 2px auto;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-owner-actions,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-visitor-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-owner-actions form,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-visitor-actions form {
+    margin: 0;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-owner-actions .skuy-button,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-visitor-actions .skuy-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 9px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-settings-button,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-message-button {
+    border: 1px solid var(--flow-border-strong);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-settings-button:hover,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-message-button:hover {
+    border-color: var(--flow-accent);
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-follow-button {
+    border: 1px solid var(--flow-accent);
+    background: var(--flow-accent);
+    color: #ffffff;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-follow-button:hover {
+    border-color: var(--flow-accent-hover);
+    background: var(--flow-accent-hover);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-follow-button--following {
+    border-color: var(--flow-border-strong);
+    background: var(--flow-panel-muted);
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-follow-button--following:hover {
+    border-color: var(--flow-accent);
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-identity {
+    min-width: 0;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-title {
+    display: block;
+    min-width: 0;
+    margin: 0;
+    color: var(--flow-text);
+    font-size: clamp(24px, 3vw, 30px);
+    font-weight: 750;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-title > span:first-child {
+    display: inline;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-verified-badge] {
+    display: inline-flex;
+    flex: 0 0 auto;
+    vertical-align: middle;
+    margin-inline-start: 6px;
+    width: 22px;
+    height: 22px;
+    border: 1px solid #5e5e68;
+    background: #5e5e68;
+    color: #ffffff;
+    box-shadow: none;
+}
+
+html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] [data-verified-badge] {
+    border-color: #c4baff;
+    background: #c4baff;
+    color: #0d0e13;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-verified-badge] svg {
+    width: 13px;
+    height: 13px;
+    color: currentColor;
+    stroke: currentColor;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-username {
+    max-width: 100%;
+    margin: 4px 0 0;
+    color: var(--flow-text-muted);
+    font-size: 14px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-details {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    margin-top: 12px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-bio {
+    max-width: 48rem;
+    margin: 0;
+    color: var(--flow-text-secondary);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-bio--empty {
+    color: var(--flow-text-muted);
+    font-size: 14px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-links li {
+    min-width: 0;
+    max-width: 100%;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid var(--flow-border);
+    border-radius: 10px;
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-links a:hover {
+    border-color: var(--flow-accent);
+    background: var(--flow-accent-soft);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 20px;
+    min-width: 0;
+    margin: 12px 0 0;
+    padding: 6px 0 0;
+    border-top: 1px solid var(--flow-border);
+    list-style: none;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stats > li {
+    display: flex;
+    min-width: 0;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stat {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 5px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--flow-text-secondary);
+    text-align: start;
+    text-decoration: none;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] a.skuy-profile-stat:hover {
+    color: var(--flow-accent-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stat__value {
+    color: var(--flow-text);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 750;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stat__label {
+    color: var(--flow-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 0 22px;
+    padding: 5px 0 0;
+    border: 0;
+    border-top: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 48px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 0;
+    color: var(--flow-text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: center;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-tab:hover {
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-tab[aria-current="page"] {
+    background: transparent;
+    color: var(--flow-accent-ink);
+    font-weight: 750;
+    box-shadow: none;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-tab[aria-current="page"]::after {
+    position: absolute;
+    inset-inline: 20%;
+    bottom: -1px;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--flow-accent);
+    content: "";
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-content {
+    min-width: 0;
+    margin-top: 16px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-feed-post,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-profile-post {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--flow-border);
+    border-radius: 14px;
+    background: var(--flow-panel);
+    box-shadow: none;
+    color: var(--flow-text);
+    transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-feed-post:hover,
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-profile-post:hover {
+        border-color: var(--flow-border-strong);
+        background: var(--flow-panel-muted);
+        transform: none;
+    }
+}
+
+/* Override legacy dark-card treatments only on the Flow Profile route. */
+html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-feed-post,
+html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-profile-post {
+    border-color: var(--flow-border);
+    background: var(--flow-panel);
+    background-image: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-feed-post:hover,
+    html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-profile-post:hover {
+        border-color: var(--flow-border-strong);
+        background: var(--flow-panel);
+        background-image: none;
+    }
+}
+
+/* The shared post partial uses this header on both Feed and Profile routes. */
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-feed-post__header {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: start;
+    justify-content: start;
+    gap: 10px;
+    min-width: 0;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-feed-post__header:has(.skuy-post__options) {
+    padding-inline-end: 56px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-feed-post__avatar {
+    width: 40px;
+    height: 40px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__identity {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 3px 7px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__display-name {
+    min-width: 0;
+    max-width: 100%;
+    font-size: 15px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__username,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__time,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__topic {
+    min-width: 0;
+    max-width: 100%;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__username {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-verified-badge {
+    flex: 0 0 auto;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__display-name,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__text {
+    color: var(--flow-text);
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__username,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__time,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-post__topic {
+    color: var(--flow-text-muted);
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-hashtag {
+    color: var(--flow-accent-ink);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-profile-post__single-media img,
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-media-item img {
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post__footer {
+    border-color: var(--flow-border);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post__view-link {
+    color: var(--flow-accent-ink);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-empty {
+    padding: 24px 20px;
+    border: 1px solid var(--flow-border);
+    border-radius: 14px;
+    background: var(--flow-panel);
+    box-shadow: none;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-empty__title {
+    margin: 0;
+    color: var(--flow-text);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-empty__description {
+    max-width: 34rem;
+    margin: 6px 0 0;
+    color: var(--flow-text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-pagination {
+    margin-top: 16px;
+}
+
+html[data-flow-page="profile"] body.skuy-product :where(a, button, input, textarea, select):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__inner {
+    width: 100%;
+    max-width: 1440px;
+    min-height: 72px;
+    padding-inline: 24px;
+    gap: 24px;
+}
+
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__brand-group {
+    display: flex;
+    flex-shrink: 0;
+}
+
+html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__actions {
+    position: static;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-search {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 520px;
+    max-width: 580px;
+    min-width: 0;
+    padding-inline-start: 14px;
+    border: 1px solid var(--flow-border-strong);
+    border-radius: 10px;
+    background: var(--flow-panel-muted);
+    color: var(--flow-text-muted);
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-search input {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--flow-text);
+    font-size: 13px;
+    box-shadow: none;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-search input::placeholder {
+    color: var(--flow-text-muted);
+    opacity: 1;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-search button {
+    flex: 0 0 44px;
+    min-height: 44px;
+    border-radius: 8px;
+    color: var(--flow-text-secondary);
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-shortcuts {
+    display: none;
+    gap: 8px;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-shortcuts .skuy-icon-button {
+    position: relative;
+    border-radius: 10px;
+    background: var(--flow-panel-muted);
+    font-size: 18px;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-badge {
+    position: absolute;
+    top: -4px;
+    right: -5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 19px;
+    min-height: 19px;
+    padding-inline: 4px;
+    border: 2px solid var(--flow-panel);
+    border-radius: 10px;
+    background: var(--flow-accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-avatar {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+    font-weight: 700;
+}
+
+html[data-flow-page="profile"] .skuy-flow-topbar-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+html[data-flow-page="profile"] .skuy-profile-trigger {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 5px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+}
+
+html[data-flow-page="profile"] .skuy-app-page-header {
+    border: 0;
+    background: transparent;
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-app-page-header__inner {
+    width: min(calc(100% - 48px), 760px);
+    margin-inline: auto;
+    padding: 20px 0 8px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] {
+    width: 100%;
+    min-width: 0;
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] .skuy-profile-shell {
+    width: min(calc(100% - 48px), 760px);
+    min-width: 0;
+    margin-inline: auto;
+    padding: 20px 0 56px;
+}
+
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] form.skuy-settings-panel {
+    min-width: 0;
+    border: 1px solid var(--flow-border);
+    border-radius: 16px;
+    background: var(--flow-panel);
+    box-shadow: none;
+    color: var(--flow-text);
+}
+
+@media (min-width: 1280px) {
+    html[data-flow-page="profile"] .skuy-app-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell],
+    html[data-flow-page="profile"] .skuy-app-shell__workspace {
+        grid-area: 1 / 1;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] {
+        width: 0;
+        min-width: 0;
+        justify-self: start;
+    }
+
+    html[data-flow-page="profile"] .skuy-flow-topbar-search,
+    html[data-flow-page="profile"] .skuy-flow-topbar-shortcuts {
+        display: flex;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail {
+        position: sticky;
+        inset-block-start: calc(72px + env(safe-area-inset-top, 0px) + 24px);
+        margin-inline-start: max(20px, calc((100vw - 1440px) / 2 + 24px));
+        align-self: start;
+        width: 216px;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        overflow: visible;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__inner {
+        min-height: 0;
+        padding: 0;
+        background: transparent;
+    }
+
+    html[data-flow-page="profile"] .skuy-app-rail__brand { display: none; }
+    html[data-flow-page="profile"] .skuy-app-rail__spacer { flex: 0 0 24px; }
+    html[data-flow-page="profile"] .skuy-app-rail__compose { min-height: 46px; border-radius: 10px; box-shadow: none; }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        margin-inline-start: max(256px, calc((100vw - 1440px) / 2 + 256px));
+        margin-inline-end: max(0px, calc((100vw - 1440px) / 2));
+    }
+
+    html[data-flow-page="profile"] .skuy-app-nav__link .skuy-app-nav__icon {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--flow-panel-muted);
+        color: var(--flow-accent-ink);
+        font-size: 17px;
+    }
+
+    html[data-flow-page="profile"] [data-nav-key="search"] .skuy-app-nav__icon { color: var(--flow-nav-search); }
+    html[data-flow-page="profile"] [data-nav-key="activity"] .skuy-app-nav__icon { color: var(--flow-nav-activity); }
+    html[data-flow-page="profile"] [data-nav-key="messages"] .skuy-app-nav__icon { color: var(--flow-nav-messages); }
+    html[data-flow-page="profile"] [data-nav-key="saved"] .skuy-app-nav__icon { color: var(--flow-nav-saved); }
+
+    html[data-flow-page="profile"] .skuy-app-nav__link[data-nav-context-active="true"] {
+        background: var(--flow-accent-soft);
+        color: var(--skuy-on-selected);
+        font-weight: 700;
+    }
+
+    html[data-flow-page="profile"] .skuy-app-nav__link[data-nav-context-active="true"] .skuy-app-nav__icon,
+    html[data-flow-page="profile"] .skuy-app-nav__link[aria-current="page"] .skuy-app-nav__icon {
+        background: var(--flow-accent);
+        color: #fff;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail {
+        overflow: visible;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__account-menu {
+        top: auto;
+        right: auto;
+        bottom: 0;
+        left: calc(100% + 8px);
+        width: 156px;
+        max-width: calc(100vw - 24px);
+    }
+}
+
+@media (max-width: 1279px) {
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        padding-block-start: calc(72px + env(safe-area-inset-top, 0px));
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-shell {
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] .skuy-profile-shell {
+        padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+@media (max-width: 767px) {
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        min-height: calc(58px + env(safe-area-inset-top, 0px));
+        padding-block-start: env(safe-area-inset-top, 0px);
+        border: 0;
+        border-bottom: 1px solid var(--flow-border);
+        border-radius: 0 0 12px 12px;
+        box-shadow: var(--skuy-shadow-soft);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        padding-block-start: calc(58px + env(safe-area-inset-top, 0px));
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__inner {
+        min-height: 58px;
+        gap: 6px;
+        padding-inline: 10px;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__brand-group,
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__actions {
+        min-width: 0;
+        gap: 4px;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-brand {
+        font-size: 17px;
+    }
+
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-icon-button {
+        width: 42px;
+        min-width: 42px;
+        min-height: 44px;
+    }
+
+    html[data-flow-page="profile"] .skuy-mobile-nav {
+        position: fixed;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
+        inset-block-end: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: center;
+        gap: 0;
+        width: 100%;
+        max-width: none;
+        min-height: calc(70px + env(safe-area-inset-bottom, 0px));
+        padding: 6px max(5px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(5px, env(safe-area-inset-left, 0px));
+        border-inline: 0;
+        border-bottom: 0;
+        border-radius: 14px 14px 0 0;
+        transform: none;
+        overflow: visible;
+    }
+
+    html[data-flow-page="profile"] .skuy-mobile-nav__item {
+        min-width: 44px;
+        min-height: 54px;
+        padding-inline: 2px;
+        overflow: visible;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-shell {
+        width: min(calc(100% - 24px), 760px);
+        padding-top: 14px;
+    }
+
+    html[data-flow-page="profile"] .skuy-app-page-header__inner {
+        width: min(calc(100% - 24px), 760px);
+        padding-top: 14px;
+        padding-bottom: 4px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile-settings] .skuy-profile-shell {
+        width: min(calc(100% - 24px), 760px);
+        padding-top: 14px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-back {
+        margin-bottom: 8px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-cover {
+        height: 88px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-cover--empty {
+        height: 60px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header__body {
+        padding-inline: 14px;
+        padding-bottom: 12px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        align-items: end;
+        gap: 10px;
+        margin-top: -32px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-avatar {
+        width: 72px;
+        height: 72px;
+        font-size: 24px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-action {
+        width: 100%;
+        margin: 0;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-owner-actions,
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-visitor-actions {
+        gap: 6px;
+        max-width: 100%;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-owner-actions .skuy-button,
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-visitor-actions .skuy-button {
+        gap: 6px;
+        padding-inline: 10px;
+        white-space: normal;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-identity {
+        margin-top: 12px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-title {
+        font-size: clamp(22px, 6vw, 27px);
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stats {
+        gap: 0 12px;
+        margin-top: 10px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-tabs {
+        margin-inline: 14px;
+        padding-top: 3px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-content {
+        margin-top: 12px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-feed-post,
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-profile-post {
+        padding: 12px;
+        border-radius: 12px;
+    }
+}
+
+@media (max-width: 359px) {
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-shell {
+        padding-top: 10px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-identity {
+        margin-top: 10px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-details {
+        margin-top: 8px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-bio {
+        line-height: 1.5;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stats {
+        margin-top: 6px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header__body {
+        padding-inline: 12px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row {
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-avatar {
+        width: 64px;
+        height: 64px;
+    }
+
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-owner-actions .skuy-button,
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-visitor-actions .skuy-button {
+        padding-inline: 8px;
+        font-size: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-flow-page="profile"] *,
+    html[data-flow-page="profile"] *::before,
+    html[data-flow-page="profile"] *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    html[data-flow-page="profile"] .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,
+    html[data-flow-page="profile"] .skuy-mobile-nav,
+    html[data-flow-page="profile"] .skuy-menu-surface,
+    html[data-flow-page="profile"] .skuy-mobile-account-menu,
+    html[data-flow-page="profile"] .skuy-appreciation__popover {
+        background: var(--flow-panel);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+html[data-flow-page="profile"] .skuy-post__options > [role="menu"][data-flow-profile-placement="above"],
+html[data-flow-page="profile"] .skuy-post__options > [role="menu"][data-flow-profile-placement="below"] {
+    max-height: var(--flow-profile-menu-max-height, calc(100vh - 16px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+html[data-flow-page="profile"] .skuy-post__options > [role="menu"][data-flow-profile-placement="above"] {
+    inset-block-start: auto !important;
+    inset-block-end: calc(100% + 8px);
+    margin-block: 0;
+}
+
+html[data-flow-page="profile"] .skuy-post__options > [role="menu"][data-flow-profile-placement="below"] {
+    inset-block-start: calc(100% + 8px);
+    inset-block-end: auto !important;
+    margin-block: 0;
+}

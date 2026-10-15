@@ -38,6 +38,104 @@ class ProfilePresentationTest extends TestCase
         $this->assertSame($sortedPositions, $positions);
     }
 
+    public function test_profile_uses_its_own_flow_theme_scope_without_changing_other_routes(): void
+    {
+        $owner = User::factory()->create();
+
+        $profileHtml = $this->actingAs($owner)
+            ->get(route('user.profile', $owner))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('data-flow-page="profile"', $profileHtml);
+
+        $settingsHtml = $this->actingAs($owner)
+            ->get(route('profile.edit', $owner->username))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('data-flow-page=""', $settingsHtml);
+    }
+
+    public function test_profile_layout_renders_the_share_toast_as_an_alpine_listener(): void
+    {
+        $owner = User::factory()->create();
+        $html = $this->actingAs($owner)
+            ->get(route('user.profile', $owner))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('x-on:show-toast.window=', $html);
+    }
+
+    public function test_text_only_profile_posts_do_not_render_an_empty_lightbox_image_source(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+
+        Post::create([
+            'user_id' => $owner->id,
+            'content' => 'A text-only post for the profile fixture.',
+            'images' => [],
+        ]);
+
+        $html = $this->actingAs($viewer)
+            ->get(route('user.profile', $owner))
+            ->assertOk()
+            ->getContent();
+
+        $matched = preg_match('/<img\\b[^>]*class="skuy-lightbox__image"[^>]*>/s', $html, $image);
+
+        $this->assertSame(1, $matched);
+        $this->assertStringContainsString(':src="activeImage || null"', $image[0]);
+        $this->assertStringNotContainsString('src=""', $image[0]);
+    }
+
+    public function test_profile_flow_post_header_keeps_author_identity_next_to_avatar(): void
+    {
+        $styles = file_get_contents(resource_path('css/skuy-flow-profile.css'));
+
+        $this->assertIsString($styles);
+        $this->assertStringContainsString('html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list .skuy-feed-post__header', $styles);
+        $this->assertStringContainsString('grid-template-columns: 40px minmax(0, 1fr);', $styles);
+        $this->assertStringContainsString('justify-content: start;', $styles);
+        $this->assertStringContainsString('.skuy-feed-post__header:has(.skuy-post__options)', $styles);
+        $this->assertStringContainsString('padding-inline-end: 56px;', $styles);
+    }
+
+    public function test_profile_dark_post_cards_override_legacy_surface_styles(): void
+    {
+        $styles = file_get_contents(resource_path('css/skuy-flow-profile.css'));
+
+        $this->assertIsString($styles);
+        $this->assertStringContainsString('html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] .skuy-profile-post-list > .skuy-feed-post', $styles);
+        $this->assertStringContainsString('background: var(--flow-panel);', $styles);
+        $this->assertStringContainsString('background-image: none;', $styles);
+    }
+
+    public function test_profile_post_popovers_have_route_scoped_flip_styles(): void
+    {
+        $styles = file_get_contents(resource_path('css/skuy-flow-profile.css'));
+
+        $this->assertIsString($styles);
+        $this->assertStringContainsString('data-flow-profile-placement="above"', $styles);
+        $this->assertStringContainsString('inset-block-end: calc(100% + 8px);', $styles);
+        $this->assertStringContainsString('data-flow-profile-placement="below"', $styles);
+        $this->assertStringContainsString('inset-block-start: calc(100% + 8px);', $styles);
+    }
+
+    public function test_narrow_profile_styles_reduce_vertical_rhythm_for_fixed_navigation_clearance(): void
+    {
+        $styles = file_get_contents(resource_path('css/skuy-flow-profile.css'));
+        $narrowStyles = strstr($styles, '@media (max-width: 359px)');
+
+        $this->assertIsString($styles);
+        $this->assertIsString($narrowStyles);
+        $this->assertStringContainsString('padding-top: 10px;', $narrowStyles);
+        $this->assertStringContainsString('line-height: 1.5;', $narrowStyles);
+        $this->assertStringContainsString('margin-top: 6px;', $narrowStyles);
+    }
+
     public function test_settings_pages_omit_the_empty_shell_notice(): void
     {
         $viewer = User::factory()->create();

@@ -25,8 +25,9 @@ export function playSocialActionMotion(
 ): Promise<void> {
     if (!action || typeof window === 'undefined') return Promise.resolve();
 
+    const view = window;
     const icon = Array.from(action.children).find((child) => child.matches('svg, .skuy-fa-icon'));
-    if (!icon || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    if (!icon || view.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
         return Promise.resolve();
     }
 
@@ -45,7 +46,7 @@ export function playSocialActionMotion(
             icon.classList.remove(className);
             icon.removeEventListener('animationend', onAnimationEnd);
             icon.removeEventListener('animationcancel', onAnimationEnd);
-            window.clearTimeout(fallbackTimer);
+            view.clearTimeout(fallbackTimer);
             activeMotions.delete(icon);
             resolve();
         };
@@ -55,6 +56,6 @@ export function playSocialActionMotion(
         icon.addEventListener('animationend', onAnimationEnd);
         icon.addEventListener('animationcancel', onAnimationEnd);
         icon.classList.add(className);
-        fallbackTimer = window.setTimeout(finish, durationMs + 60);
+        fallbackTimer = view.setTimeout(finish, durationMs + 60);
     });
 }

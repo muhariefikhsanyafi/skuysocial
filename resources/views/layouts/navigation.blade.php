@@ -3,6 +3,8 @@
     $profileUrl = route('user.profile', $user->username);
     $isDashboard = request()->routeIs('dashboard');
     $isFeed = request()->routeIs('feed');
+    $isProfileFlow = request()->routeIs('user.profile', 'user.edit');
+    $isModernSocialShell = $isFeed || $isProfileFlow || request()->routeIs('search', 'bookmarks.index');
     $showDashboardNavigation = $user->hasVerifiedEmail() || $isDashboard;
     $unreadNotificationCount = (int) ($unreadNotificationCount ?? 0);
     $unreadMessageCount = (int) ($unreadMessageCount ?? 0);
@@ -67,12 +69,12 @@
             });
         },
         syncOverlayScrollLock() {
-            const shouldLock = (!this.isDesktop && this.sidebarOpen) || this.accountMenuOpen;
-            if (shouldLock && !this.overlayScrollLocked) {
+            const shouldLock = (!this.isDesktop &amp;&amp; this.sidebarOpen) || this.accountMenuOpen;
+            if (shouldLock &amp;&amp; !this.overlayScrollLocked) {
                 this.previousBodyOverflow = document.body.style.overflow;
                 document.body.style.overflow = 'hidden';
                 this.overlayScrollLocked = true;
-            } else if (!shouldLock && this.overlayScrollLocked) {
+            } else if (!shouldLock &amp;&amp; this.overlayScrollLocked) {
                 document.body.style.overflow = this.previousBodyOverflow;
                 this.overlayScrollLocked = false;
             }
@@ -90,10 +92,10 @@
 
             const first = focusable[0];
             const last = focusable[focusable.length - 1];
-            if (event.shiftKey && (document.activeElement === first || !container.contains(document.activeElement))) {
+            if (event.shiftKey &amp;&amp; (document.activeElement === first || !container.contains(document.activeElement))) {
                 event.preventDefault();
                 last.focus();
-            } else if (!event.shiftKey && (document.activeElement === last || !container.contains(document.activeElement))) {
+            } else if (!event.shiftKey &amp;&amp; (document.activeElement === last || !container.contains(document.activeElement))) {
                 event.preventDefault();
                 first.focus();
             }
@@ -115,7 +117,7 @@
             if (this.isDesktop) return;
             this.sidebarOpen = false;
             this.syncOverlayScrollLock();
-            if (restoreFocus && this.navigationReturnFocus?.isConnected) {
+            if (restoreFocus &amp;&amp; this.navigationReturnFocus?.isConnected) {
                 this.$nextTick(() => this.navigationReturnFocus.focus());
             }
         },
@@ -134,14 +136,14 @@
         closeAccountMenu(restoreFocus = true) {
             this.accountMenuOpen = false;
             this.syncOverlayScrollLock();
-            if (restoreFocus && this.accountReturnFocus?.isConnected) {
+            if (restoreFocus &amp;&amp; this.accountReturnFocus?.isConnected) {
                 this.$nextTick(() => this.accountReturnFocus.focus());
             }
         }
     }"
     @desktop-profile-menu-toggle.window="desktopAccountMenuOpen = Boolean($event.detail)"
     x-effect="$el.closest('.skuy-app-shell')?.classList.toggle('skuy-desktop-account-menu-open', desktopAccountMenuOpen)"
-    @keydown.escape.window="if (accountMenuOpen) closeAccountMenu(); else if (!isDesktop && sidebarOpen) closeNavigation()"
+    @keydown.escape.window="if (accountMenuOpen) closeAccountMenu(); else if (!isDesktop &amp;&amp; sidebarOpen) closeNavigation()"
     class="skuy-navigation-shell"
     data-skuy-prism-shell
 >
@@ -150,8 +152,8 @@
         <div class="skuy-topbar__brand-group">
             <button
                 @click="toggleNavigation()"
-                :aria-label="sidebarOpen && !isDesktop ? '{{ __('navigation.close_navigation_menu') }}' : '{{ __('navigation.open_navigation_menu') }}'"
-                :aria-expanded="(sidebarOpen && !isDesktop).toString()"
+                :aria-label="sidebarOpen &amp;&amp; !isDesktop ? '{{ __('navigation.close_navigation_menu') }}' : '{{ __('navigation.open_navigation_menu') }}'"
+                :aria-expanded="(sidebarOpen &amp;&amp; !isDesktop).toString()"
                 aria-controls="mobile-navigation"
                 type="button"
                 class="skuy-icon-button skuy-navigation-trigger xl:hidden"
@@ -165,7 +167,39 @@
             </a>
         </div>
 
+        @if ($isModernSocialShell)
+            <form action="{{ route('search') }}" method="GET" role="search" class="skuy-flow-topbar-search">
+                <x-fa-icon name="magnifying-glass" />
+                <label for="flow-navigation-search" class="sr-only">{{ __('navigation.search') }}</label>
+                <input id="flow-navigation-search" type="search" name="q" placeholder="{{ __('navigation.search_placeholder') }}" maxlength="100" autocomplete="off">
+                <button type="submit" aria-label="{{ __('navigation.search') }}">
+                    <x-fa-icon name="arrow-right" />
+                </button>
+            </form>
+        @endif
+
         <div class="skuy-topbar__actions">
+            @if ($isModernSocialShell)
+                <div class="skuy-flow-topbar-shortcuts">
+                    @if ($user->canPerformSocialWrites())
+                        <a href="{{ $composerHref }}" class="skuy-icon-button" aria-label="{{ __('navigation.create_thread') }}" title="{{ __('navigation.create_thread') }}">
+                            <x-fa-icon name="plus" weight="solid" />
+                        </a>
+                    @endif
+                    <a href="{{ route('messages.index') }}" class="skuy-icon-button" aria-label="{{ $messagesMobileLabel }}" title="{{ __('navigation.messages') }}">
+                        <x-fa-icon name="comment-lines" />
+                        @if ($unreadMessageCount > 0)
+                            <span class="skuy-flow-topbar-badge" data-unread-messages-badge>{{ $displayUnreadMessageCount }}</span>
+                        @endif
+                    </a>
+                    <a href="{{ route('activity.index') }}" class="skuy-icon-button" aria-label="{{ $activityMobileLabel }}" title="{{ __('navigation.activity') }}">
+                        <x-fa-icon name="bell" />
+                        @if ($unreadNotificationCount > 0)
+                            <span class="skuy-flow-topbar-badge" data-unread-notifications-badge aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}">{{ $displayUnreadNotificationCount }}</span>
+                        @endif
+                    </a>
+                </div>
+            @endif
             <x-language-switcher variant="app" />
 
             <button
@@ -193,8 +227,19 @@
                             :aria-expanded="open"
                             aria-controls="desktop-profile-menu"
                         >
-                            <span class="skuy-profile-trigger__name">{{ Auth::user()->name }}</span>
-                            <x-fa-icon name="chevron-down" class="text-base" />
+                            @if ($isModernSocialShell)
+                                <span class="skuy-flow-topbar-avatar" aria-hidden="true">
+                                    @if ($user->avatar)
+                                        <img src="{{ asset('storage/' . $user->avatar) }}" alt="">
+                                    @else
+                                        {{ mb_substr($user->name, 0, 1) }}
+                                    @endif
+                                </span>
+                                <span class="sr-only">{{ Auth::user()->name }}</span>
+                            @else
+                                <span class="skuy-profile-trigger__name">{{ Auth::user()->name }}</span>
+                                <x-fa-icon name="chevron-down" class="text-base" />
+                            @endif
                         </button>
                     </x-slot>
 
@@ -282,7 +327,7 @@
     </section>
 </div>
 
-<div x-show="!isDesktop && sidebarOpen" x-transition.opacity style="display: none;" class="skuy-app-rail__backdrop" aria-hidden="true" @click="closeNavigation()"></div>
+<div x-show="!isDesktop &amp;&amp; sidebarOpen" x-transition.opacity style="display: none;" class="skuy-app-rail__backdrop" aria-hidden="true" @click="closeNavigation()"></div>
 
 <aside
     id="mobile-navigation"
@@ -323,12 +368,13 @@
                         href="{{ $item['href'] }}"
                         data-nav-key="{{ $item['key'] }}"
                         data-nav-surfaces="{{ $item['surfaces'] }}"
+                        @if ($item['key'] === 'feed' && $isProfileFlow) data-nav-context-active="true" @endif
                         aria-label="{{ $item['key'] === 'activity' && $unreadNotificationCount > 0 ? $activityMobileLabel : ($item['key'] === 'messages' && $unreadMessageCount > 0 ? $messagesMobileLabel : ($item['key'] === 'announcements' && $unreadAnnouncementCount > 0 ? $announcementsMobileLabel : $item['label'])) }}"
                         aria-current="{{ $item['active'] ? 'page' : 'false' }}"
                         @click="closeNavigation(false)"
                         class="skuy-app-nav__link"
                     >
-                        <x-fa-icon :name="$item['icon']" :weight="$item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
+                        <x-fa-icon :name="$item['icon']" :weight="$isModernSocialShell || $item['active'] ? 'solid' : 'regular'" class="skuy-app-nav__icon" />
                         <span class="skuy-app-nav__label">{{ $item['label'] }}</span>
                         @if ($item['key'] === 'activity' && $unreadNotificationCount > 0)
                             <span class="skuy-feed-nav__badge" data-unread-notifications-badge aria-label="{{ __('navigation.unread_notifications_count', ['count' => $unreadNotificationCount]) }}">{{ $displayUnreadNotificationCount }}</span>
@@ -354,12 +400,15 @@
         <div class="skuy-app-rail__footer" data-rail-slot="account" x-data="{ accountMenuOpen: false }" @click.outside="accountMenuOpen = false" @keydown.escape.window="accountMenuOpen = false">
             <div class="skuy-app-rail__account-card">
                 <a href="{{ $profileUrl }}" class="skuy-app-rail__account" aria-label="{{ __('navigation.my_profile') }}: {{ $user->name }}">
-                    <span class="skuy-app-rail__account-avatar" aria-hidden="true">
+                    <span class="skuy-app-rail__account-avatar" aria-hidden="true"
+                          x-data="{ avatarUrl: @js($user->avatar ? asset('storage/'.$user->avatar) : '') }"
+                          @avatar-saved.window="if ($event.detail.userId === {{ (int) $user->id }}) avatarUrl = $event.detail.url">
                         @if ($user->avatar)
-                            <img src="{{ asset('storage/' . $user->avatar) }}" alt="">
+                            <img src="{{ asset('storage/' . $user->avatar) }}" :src="avatarUrl" x-show="avatarUrl" x-on:error="avatarUrl = ''" alt="" decoding="async">
                         @else
-                            {{ mb_substr($user->name, 0, 1) }}
+                            <template x-if="avatarUrl"><img :src="avatarUrl" x-on:error="avatarUrl = ''" alt="" decoding="async"></template>
                         @endif
+                        <span x-show="!avatarUrl" @if ($user->avatar) style="display: none;" @endif>{{ mb_substr($user->name, 0, 1) }}</span>
                     </span>
                     <span class="skuy-app-rail__account-copy">
                         <strong>{{ $user->name }}</strong>

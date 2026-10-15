@@ -1,6 +1,52 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@custom-variant dark (&:where(.dark, .dark *));
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+@source "../views/**/*.blade.php";
+@source "../js/**/*.{js,ts,tsx}";
+
+/* Preserve SkuySocial design tokens while adopting Tailwind v4's CSS-first theme. */
+@theme inline {
+    --color-skuy-background: var(--skuy-background);
+    --color-skuy-foreground: var(--skuy-text-primary);
+    --color-skuy-surface: var(--skuy-surface);
+    --color-skuy-card: var(--skuy-surface);
+    --color-skuy-elevated: var(--skuy-surface-elevated);
+    --color-skuy-popover: var(--skuy-surface-elevated);
+    --color-skuy-surface-subtle: var(--skuy-surface-subtle);
+    --color-skuy-muted: var(--skuy-surface-subtle);
+    --color-skuy-muted-foreground: var(--skuy-text-muted);
+    --color-skuy-text-secondary: var(--skuy-text-secondary);
+    --color-skuy-border: var(--skuy-border-subtle);
+    --color-skuy-border-strong: var(--skuy-border-strong);
+    --color-skuy-focus: var(--skuy-focus);
+    --color-skuy-primary: var(--skuy-brand);
+    --color-skuy-primary-hover: var(--skuy-brand-hover);
+    --color-skuy-primary-pressed: var(--skuy-brand-pressed);
+    --color-skuy-on-primary: var(--skuy-on-brand);
+    --color-skuy-selected: var(--skuy-selected);
+    --color-skuy-on-selected: var(--skuy-on-selected);
+    --color-skuy-reaction: var(--skuy-reaction);
+    --color-skuy-on-reaction: var(--skuy-on-reaction);
+    --color-skuy-danger: var(--skuy-danger);
+    --color-skuy-on-danger: var(--skuy-on-danger);
+    --radius-skuy-none: var(--radius-none);
+    --radius-skuy-small: var(--radius-small);
+    --radius-skuy-medium: var(--radius-medium);
+    --radius-skuy-large: var(--radius-large);
+    --radius-skuy-full: var(--radius-full);
+    --shadow-skuy-1: var(--skuy-elevation-1);
+    --shadow-skuy-2: var(--skuy-elevation-2);
+    --font-sans: Figtree, ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Tailwind v3 used gray-200 as the default border color; preserve existing UI borders. */
+@layer base {
+    *, ::after, ::before, ::backdrop, ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+}
 
 .skuy-fa-icon {
     display: inline-block;
@@ -4879,6 +4925,35 @@
     white-space: nowrap;
 }
 
+@media (max-width: 767px) {
+    .skuy-mobile-nav .skuy-mobile-nav__item > .skuy-mobile-nav__icon-wrap {
+        z-index: 1;
+        overflow: visible;
+    }
+
+    .skuy-mobile-nav__item > .skuy-mobile-nav__icon-wrap > .skuy-mobile-nav__badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        top: -8px;
+        right: -14px;
+        z-index: 1;
+        min-width: 18px;
+        width: max-content;
+        max-width: none;
+        min-height: 18px;
+        padding-inline: 4px;
+        overflow: visible;
+        text-overflow: clip;
+        background: #6e5bef;
+        color: #ffffff;
+        font-size: 10px;
+        line-height: 1;
+        white-space: nowrap;
+        transform: translate(50%, -25%);
+    }
+}
+
 .skuy-mobile-nav__item:hover,
 .skuy-mobile-nav__item[aria-current='page'] {
     border-color: color-mix(in srgb, var(--skuy-secondary) 25%, var(--skuy-border-soft));
@@ -7707,6 +7782,13 @@ a.skuy-message-row:focus-visible {
 
 .skuy-appreciation__feedback--error {
     color: var(--skuy-danger);
+}
+
+@media (min-width: 768px) {
+    .skuy-feed-post:has(.skuy-appreciation--inline [data-post-appreciation-trigger][aria-expanded='true']) {
+        position: relative;
+        z-index: 1;
+    }
 }
 
 @media (max-width: 767px) {

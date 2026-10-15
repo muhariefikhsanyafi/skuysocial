@@ -225,7 +225,6 @@ class UserController extends Controller
         }
 
         $disk = Storage::disk('public');
-        $oldAvatar = $user->avatar;
         $oldCover = $user->cover;
         $newAvatar = null;
         $newCover = null;
@@ -281,7 +280,6 @@ class UserController extends Controller
         }
 
         $obsoletePaths = array_filter([
-            $newAvatar !== null && $newAvatar !== $oldAvatar ? $oldAvatar : null,
             $newCover !== null && $newCover !== $oldCover ? $oldCover : null,
         ]);
         $disk->delete(array_values(array_unique($obsoletePaths)));

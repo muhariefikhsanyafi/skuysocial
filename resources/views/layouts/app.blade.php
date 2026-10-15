@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    x-data="{ darkMode: localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches }"
-    x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
+    data-flow-page="{{ request()->routeIs('feed', 'bookmarks.index', 'search') ? 'feed' : (request()->routeIs('user.profile', 'user.edit') ? 'profile' : '') }}"
+    x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
+    x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     :class="{ 'dark': darkMode }"
 >
     <head>
@@ -10,10 +11,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        @include('partials.theme-bootstrap', ['darkDefault' => request()->routeIs('feed')])
+
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&amp;display=swap" rel="stylesheet" />
 
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/regular.min.css') }}">
@@ -21,6 +24,13 @@
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/brands.min.css') }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if (request()->routeIs('feed', 'bookmarks.index', 'search'))
+            @vite(['resources/css/skuy-flow-feed.css', 'resources/css/skuy-flow-post-actions.css'])
+        @elseif (request()->routeIs('user.profile'))
+            @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-post-actions.css', 'resources/js/skuy-flow-profile.js'])
+        @elseif (request()->routeIs('user.edit'))
+            @vite('resources/css/skuy-flow-profile.css')
+        @endif
     </head>
     <body class="skuy-product antialiased">
         @if (auth()->check() && (bool) config('services.onesignal.enabled', false) && filled(config('services.onesignal.app_id')))
@@ -66,7 +76,7 @@
 
         <div
             x-data="{ showToast: false, toastMessage: '', toastTimeout: null }"
-            @show-toast.window="
+            x-on:show-toast.window="
                 toastMessage = $event.detail;
                 showToast = true;
                 clearTimeout(toastTimeout);

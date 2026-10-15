@@ -277,9 +277,9 @@ class BookmarkTest extends TestCase
 
             /** @var \DOMElement $form */
             $form = $bookmarkForms->item(0);
-            $this->assertSame('toggleBookmark($event)', $form->getAttribute('@submit.prevent'));
+            $this->assertSame('toggleBookmark($event)', $form->getAttribute('x-on:submit.prevent'));
             $this->assertStringContainsString('likeControl({', $form->getAttribute('x-data'));
-            $this->assertSame('syncPeerState($event)', $form->getAttribute('@skuy-post-action-state.window'));
+            $this->assertSame('syncPeerState($event)', $form->getAttribute('x-on:skuy-post-action-state.window'));
             $this->assertSame(
                 $post->is($otherPost),
                 str_contains($form->getAttribute('class'), 'skuy-post-options__bookmark'),

@@ -1,0 +1,91 @@
+.skuy-avatar-studio-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgb(0 0 0 / 64%);
+}
+
+.skuy-avatar-studio {
+    --studio-panel: #fff;
+    --studio-muted: #f7f7f9;
+    --studio-text: #19191f;
+    --studio-secondary: #5e5e68;
+    --studio-border: #d5d5de;
+    --studio-control-border: #838492;
+    --studio-selected: #f1efff;
+    --studio-accent-ink: #5848dd;
+    width: min(760px, 100%);
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 24px;
+    border: 1px solid var(--studio-border);
+    border-radius: 20px;
+    background: var(--studio-panel);
+    color: var(--studio-text);
+    box-shadow: 0 24px 64px rgb(0 0 0 / 24%);
+}
+
+.dark .skuy-avatar-studio {
+    --studio-panel: #1b1c25;
+    --studio-muted: #242530;
+    --studio-text: #f2f2f5;
+    --studio-secondary: #b9b9c6;
+    --studio-border: #434553;
+    --studio-control-border: #777989;
+    --studio-selected: #292544;
+    --studio-accent-ink: #c4baff;
+}
+
+.skuy-avatar-studio__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.skuy-avatar-studio__header h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
+.skuy-avatar-studio__header p { margin: 0; color: var(--studio-secondary); font-size: 14px; }
+.skuy-avatar-studio button { min-height: 44px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+.skuy-avatar-studio button:disabled { cursor: not-allowed; opacity: .55; }
+.skuy-avatar-studio :where(button, input):focus-visible { outline: 3px solid var(--studio-accent-ink); outline-offset: 3px; }
+.skuy-avatar-studio__close { min-width: 44px; background: var(--studio-muted); }
+.skuy-avatar-studio__modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin: 24px 0; padding: 4px; border-radius: 12px; background: var(--studio-muted); }
+.skuy-avatar-studio__modes button { padding: 8px 12px; color: var(--studio-secondary); }
+.skuy-avatar-studio__modes button[aria-pressed="true"] { background: var(--studio-panel); color: var(--studio-accent-ink); box-shadow: 0 2px 6px rgb(0 0 0 / 8%); }
+.skuy-avatar-studio__body { display: grid; grid-template-columns: 176px minmax(0, 1fr); gap: 24px; align-items: start; }
+.skuy-avatar-studio__preview { display: grid; justify-items: center; gap: 6px; padding-block: 12px; }
+.skuy-avatar-studio__portrait { position: relative; display: grid; place-items: center; width: 160px; height: 160px; overflow: hidden; border: 2px solid var(--studio-border); border-radius: 50%; background: var(--studio-muted); font-size: 40px; }
+.skuy-avatar-studio__portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--studio-muted); }
+.skuy-avatar-studio__preview p { margin: 8px 0 0; font-size: 13px; color: var(--studio-secondary); }
+.skuy-avatar-studio__preview > span { color: var(--studio-accent-ink); font-size: 14px; font-weight: 700; }
+.skuy-avatar-studio__styles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.skuy-avatar-studio .skuy-avatar-studio__style { display: grid; justify-items: center; align-content: start; gap: 8px; min-width: 0; min-height: 150px; padding: 12px 8px; border: 2px solid var(--studio-control-border); border-radius: 12px; background: var(--studio-panel); color: var(--studio-text); }
+.skuy-avatar-studio .skuy-avatar-studio__style[aria-pressed="true"] { border-color: #6e5bef; background: var(--studio-selected); }
+.skuy-avatar-studio__sample { position: relative; display: grid; place-items: center; width: 72px; height: 72px; overflow: hidden; border-radius: 14px; background: var(--studio-muted); font-size: 24px; }
+.skuy-avatar-studio__sample img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--studio-muted); }
+.skuy-avatar-studio__sample img.is-failed { visibility: hidden; }
+.skuy-avatar-studio__selection { color: var(--studio-accent-ink); font-size: 12px; }
+.skuy-avatar-studio__current { font-size: 11px; color: var(--studio-secondary); }
+.skuy-avatar-studio__upload { display: grid; gap: 12px; padding: 20px; border: 1px dashed var(--studio-border); border-radius: 12px; background: var(--studio-muted); }
+.skuy-avatar-studio__upload-icon { color: var(--studio-accent-ink); font-size: 28px; }
+.skuy-avatar-studio__upload label { font-weight: 600; font-size: 14px; }
+.skuy-avatar-studio__upload input { min-width: 0; min-height: 44px; width: 100%; padding: 8px; border: 1px solid var(--studio-control-border); border-radius: 8px; font-size: 13px; }
+.skuy-avatar-studio__upload p { margin: 0; color: var(--studio-secondary); font-size: 12px; }
+.skuy-avatar-studio__feedback { margin-top: 16px; font-size: 13px; line-height: 1.6; }
+.skuy-avatar-studio__feedback button { color: var(--studio-accent-ink); text-decoration: underline; }
+.skuy-avatar-studio__error { color: #b3261e; }
+.dark .skuy-avatar-studio__error { color: #ff9b92; }
+.skuy-avatar-studio__success { color: var(--studio-accent-ink); font-weight: 600; }
+.skuy-avatar-studio__privacy { margin: 20px 0; color: var(--studio-secondary); font-size: 12px; line-height: 1.6; }
+.skuy-avatar-studio__footer { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid var(--studio-border); }
+.skuy-avatar-studio__footer button { padding: 10px 16px; border: 1px solid var(--studio-border); }
+.skuy-avatar-studio .skuy-avatar-studio__save, .skuy-avatar-studio-launch { border-color: #6e5bef; background: #6e5bef; color: #fff; }
+.skuy-avatar-studio-launch { min-height: 44px; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+
+@media (max-width: 600px) {
+    .skuy-avatar-studio { padding: 16px; border-radius: 16px; }
+    .skuy-avatar-studio__body { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .skuy-avatar-studio__portrait { width: 120px; height: 120px; }
+    .skuy-avatar-studio__styles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .skuy-avatar-studio__modes button { padding: 8px 4px; font-size: 13px; }
+    .skuy-avatar-studio__footer { position: sticky; bottom: -16px; padding-bottom: 16px; background: var(--studio-panel); }
+    .skuy-avatar-studio__footer button { flex: 1; padding-inline: 8px; }
+}

@@ -77,8 +77,8 @@
                     network: @js(__('threads.feedback.network')),
                 },
             })"
-            @skuy-post-action-state.window="syncPeerState($event)"
-            @submit.prevent="toggleBookmark($event)"
+            x-on:skuy-post-action-state.window="syncPeerState($event)"
+            x-on:submit.prevent="toggleBookmark($event)"
             :action="bookmarkFormAction()"
         >
             @csrf

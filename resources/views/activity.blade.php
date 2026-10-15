@@ -21,6 +21,8 @@
                     @foreach ($notifications as $notification)
                         @php
                             $data = $notification->data;
+                            $actor = $notificationActors->get($data['user_id'] ?? null);
+                            $actorAvatar = $actor ? $actor->avatar : ($data['avatar'] ?? null);
                             $message = match ($data['type'] ?? null) {
                                 'like' => __('activity.messages.like'),
                                 'comment' => __('activity.messages.comment'),
@@ -45,9 +47,11 @@
 
                         <li class="skuy-activity-item{{ $isUnread ? ' skuy-activity-item--unread' : '' }}" data-notification-read="{{ $isUnread ? 'unread' : 'read' }}">
                             <a href="{{ route('user.profile', $data['username']) }}" class="skuy-avatar skuy-avatar--small skuy-activity-item__avatar" aria-label="{{ __('threads.media.avatar_of', ['name' => $data['name']]) }}">
-                                <img src="{{ isset($data['avatar']) ? asset('storage/' . $data['avatar']) : 'https://ui-avatars.com/api/?name='.urlencode($data['name']).'&background=random&color=fff&font-weight=bold' }}"
-                                     alt="{{ $data['name'] }}"
-                                     class="object-cover">
+                                @if ($actorAvatar)
+                                    <img src="{{ asset('storage/' . $actorAvatar) }}" alt="{{ $data['name'] }}" class="object-cover" loading="lazy" decoding="async">
+                                @else
+                                    <span aria-hidden="true">{{ mb_substr($data['name'], 0, 1) }}</span>
+                                @endif
                             </a>
 
                             <div class="skuy-activity-item__body">

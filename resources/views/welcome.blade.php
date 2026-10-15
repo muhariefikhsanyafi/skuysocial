@@ -5,14 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ config('app.name', 'SkuySocial') }} | {{ __('home.public.page_title_suffix') }}</title>
 
-        <script>
-            const savedTheme = window.localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-            if (savedTheme === 'dark' || (savedTheme !== 'light' && prefersDark)) {
-                document.documentElement.classList.add('dark');
-            }
-        </script>
+        @include('partials.theme-bootstrap')
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
@@ -23,7 +16,7 @@
         <div
             class="skuy-guest-shell skuy-public-shell"
             x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
-            x-init="$watch('darkMode', value => localStorage.setItem('theme', value ? 'dark' : 'light'))"
+            x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
             x-effect="document.documentElement.classList.toggle('dark', darkMode)"
         >
             @if (Route::has('login'))

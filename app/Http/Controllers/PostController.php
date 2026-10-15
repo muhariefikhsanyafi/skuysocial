@@ -27,6 +27,7 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $isEnhancedFeedRequest = $request->header('X-Feed-Fragment') === '1';
+        $isFollowingFeed = $request->query('feed') === 'following';
         $viewerId = $request->user()->getKey();
         $loadDisplayPost = function ($query) use ($viewerId): void {
             $query
@@ -65,6 +66,13 @@ class PostController extends Controller
                     'reposts as reposted_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
                     'bookmarks as bookmarked_by_me' => fn (Builder $query) => $query->where('user_id', $viewerId),
                 ])
+                ->when(
+                    $isFollowingFeed,
+                    fn (Builder $query) => $query->whereIn(
+                        'posts.user_id',
+                        $request->user()->followings()->select('users.id'),
+                    ),
+                )
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->cursorPaginate(10);
@@ -74,6 +82,10 @@ class PostController extends Controller
             }
 
             abort(422);
+        }
+
+        if ($isFollowingFeed) {
+            $posts->appends(['feed' => 'following']);
         }
 
         if ($isEnhancedFeedRequest) {
@@ -116,6 +128,7 @@ class PostController extends Controller
             'posts',
             'trendingHashtags',
             'availableTopics',
+            'isFollowingFeed',
         ));
     }
 
