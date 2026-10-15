@@ -532,7 +532,7 @@ try {
             const scroll = await inspect();
             const scrollImage = await screenshot(`desktop-${width}-${mode}-scroll`);
             results.desktop.push({width,mode,start,scroll,startImage,scrollImage});
-            check(`desktop sticky ${width} ${mode}`, scroll.filter(item=>['.skuy-app-rail','.skuy-feed-context'].includes(item.selector)).every(item=>item.position === 'sticky' && item.y >= 72 && !['auto','scroll'].includes(item.overflowY)), scroll);
+            check(`desktop feed rails ${width} ${mode}`, scroll.some(item=>item.selector==='.skuy-app-rail' && item.position==='sticky' && item.y>=72 && !['auto','scroll'].includes(item.overflowY)) && scroll.some(item=>item.selector==='.skuy-feed-context' && item.position==='static' && !['auto','scroll'].includes(item.overflowY)), scroll);
         }
     }
     if (phase === 'after') {
@@ -543,14 +543,17 @@ try {
         const cardSelector=`[data-feed-post-uid="${postUid}"]`;
         const bookmarkSelector=cardSelector+' .skuy-bookmark-menu-action';
         const likeSelector=cardSelector+' form[action$="/like"]';
-        const browserAttribute=await cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector)}).getAttribute('@submit.prevent')`);
+        const browserAttribute=await cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector)}).getAttribute('x-on:submit.prevent')`);
         check('browser preserves Alpine bookmark attribute', browserAttribute==='toggleBookmark($event)',browserAttribute);
         await cdp.evaluate(`document.querySelector(${JSON.stringify(cardSelector)}).querySelector('[aria-haspopup="menu"]').click(); document.querySelector(${JSON.stringify(bookmarkSelector)}).requestSubmit()`);
-        await until(()=>cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector+' button')}).getAttribute('aria-pressed')==='true'`),'mobile bookmark saved');
+        await until(()=>cdp.evaluate(`(() => { const button=document.querySelector(${JSON.stringify(bookmarkSelector+' button')}); return button?.getAttribute('aria-pressed')==='true' && button?.getAttribute('aria-busy')==='false'; })()`),'mobile bookmark saved and request settled');
         await cdp.evaluate(`document.querySelector(${JSON.stringify(likeSelector)}).requestSubmit()`);
-        await until(()=>cdp.evaluate(`document.querySelector(${JSON.stringify(likeSelector+' button')}).getAttribute('aria-pressed')==='true'`),'like saved');
+        await until(()=>cdp.evaluate(`(() => { const button=document.querySelector(${JSON.stringify(likeSelector+' button')}); return button?.getAttribute('aria-pressed')==='true' && button?.getAttribute('aria-busy')==='false'; })()`),'like saved and request settled');
+        const persisted = JSON.parse(await command(php, ['tests/Browser/fixtures/theme-navigation.php','social-state','2',postUid]));
+        check('Like and Bookmark confirmed in isolated database',persisted.liked===true && persisted.bookmarked===true,persisted);
         await navigate(fixture.otherProfile);
-        check('Like and Mobile Bookmark persist on Profile',await cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector+' button')}).getAttribute('aria-pressed')==='true' && document.querySelector(${JSON.stringify(likeSelector+' button')}).getAttribute('aria-pressed')==='true'`),'real local controllers / synthetic post');
+        const profileActions = await cdp.evaluate(`(() => ({ bookmark:document.querySelector(${JSON.stringify(bookmarkSelector+' button')})?.getAttribute('aria-pressed')??null, like:document.querySelector(${JSON.stringify(likeSelector+' button')})?.getAttribute('aria-pressed')??null }))()`);
+        check('Like and Mobile Bookmark persist on Profile',profileActions.bookmark==='true' && profileActions.like==='true',profileActions);
         await screenshot('profile-live-like-bookmark');
 
         await navigate(fixture.savedPage);
@@ -562,7 +565,8 @@ try {
         await until(()=>cdp.evaluate(`document.querySelector(${JSON.stringify(savedCardSelector)})===null`),'saved item removed from collection');
         await screenshot('saved-live-after-unsave');
         await navigate(fixture.savedPage);
-        check('Saved removal persists and preserves other saved posts',await cdp.evaluate(`document.querySelector(${JSON.stringify(savedCardSelector)})===null && document.querySelector(${JSON.stringify(cardSelector+' .skuy-bookmark-menu-action button')})?.getAttribute('aria-pressed')==='true'`),'real bookmark destroy controller / synthetic posts');
+        const savedActions = await cdp.evaluate(`(() => ({ removed:document.querySelector(${JSON.stringify(savedCardSelector)})===null, otherBookmark:document.querySelector(${JSON.stringify(cardSelector+' .skuy-bookmark-menu-action button')})?.getAttribute('aria-pressed')??null }))()`);
+        check('Saved removal persists and preserves other saved posts',savedActions.removed && savedActions.otherBookmark==='true',savedActions);
 
         await navigate(fixture.searchResults);
         const searchCardSelector=`[data-feed-post-uid="${postUid}"]`;
@@ -584,7 +588,8 @@ try {
         await cdp.evaluate(`document.querySelector(${JSON.stringify(searchCardSelector)}).querySelector('[aria-haspopup="menu"]').click(); document.querySelector(${JSON.stringify(searchBookmarkSelector)}).requestSubmit()`);
         await until(()=>cdp.evaluate(`document.querySelector(${JSON.stringify(searchBookmarkSelector+' button')})?.getAttribute('aria-pressed')==='false'`),'search bookmark toggled off');
         await navigate('/feed');
-        check('Search bookmark interaction persists to Feed',await cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector+' button')})?.getAttribute('aria-pressed')==='false' && document.querySelector(${JSON.stringify(likeSelector+' button')})?.getAttribute('aria-pressed')==='true'`),'real bookmark and like controllers / synthetic post');
+        const feedActions = await cdp.evaluate(`(() => ({ bookmark:document.querySelector(${JSON.stringify(bookmarkSelector+' button')})?.getAttribute('aria-pressed')??null, like:document.querySelector(${JSON.stringify(likeSelector+' button')})?.getAttribute('aria-pressed')??null }))()`);
+        check('Search bookmark interaction persists to Feed',feedActions.bookmark==='false' && feedActions.like==='true',feedActions);
 
         await navigate(own.settings);
         await cdp.evaluate(`document.querySelector('.skuy-avatar-studio-launch').focus();document.querySelector('.skuy-avatar-studio-launch').click()`);
