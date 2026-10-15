@@ -1,0 +1,9 @@
+# Windows 9Router GitHub CI auto-fix
+
+This implementation is **prepared, not active** until reviewed workflow reaches default `main` and a dedicated Windows runner is online. GitHub `workflow_run` only triggers workflows from the default branch.
+
+One-time Windows setup: GitHub repository **Settings → Actions → Runners → New self-hosted runner → Windows x64**. Register with extra label `skuysocial-autofix` and run as an unprivileged dedicated user that has only Development-repository Git write access. Use the registration instructions shown by GitHub, **never share the expiring registration token**. Keep Windows awake and 9Router running locally on port 20128. Install/configure Codex CLI through existing 9Router account and Gitleaks v8.30.1, then verify `codex`, `git` and `gitleaks` from that same Windows account. Do not connect Production credentials or grant administrator privileges to the agent.
+
+The trigger listens for failed SkuySocial CI/Quality runs on the maintainer's same-repository Draft PR, verifies owner/ref/current SHA in a separate GitHub-hosted job, then uses the dedicated Windows runner to run sandboxed Codex with 9Router. It refuses changes outside existing tracked app/resources/routes/tests/lang paths, rejects deletions/new files, scans with Gitleaks, runs diff checks and attempts one normal non-force branch push via **pre-authorized scoped Windows Git credentials**. The subsequent GitHub CI is the authoritative test result. This design performs **one bounded repair attempt per matching failed event**, not an unrestricted fix loop. No secrets are supplied to Codex via the workflow.
+
+**Current blockers**: runner not registered/observed online; Windows Codex/9Router and Gitleaks availability not tested; Windows Git write credential not confirmed; default-branch workflow not reviewed/merged. No Windows machine was accessed, no Production changes and no automated repairs are claimed.
