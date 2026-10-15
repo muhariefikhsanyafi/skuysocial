@@ -589,6 +589,7 @@ try {
                     return {
                         page: document.documentElement.dataset.flowPage,
                         viewport: innerWidth,
+                        layoutWidth: document.documentElement.clientWidth,
                         topbar: measure('.skuy-topbar'),
                         actions: measure('.skuy-topbar__actions'),
                         rail: measure('.skuy-app-rail'),
@@ -606,12 +607,12 @@ try {
                     && geometry.navKeys.join(',') === 'home,search,create,activity,messages'
                     && geometry.topbar?.position === 'fixed'
                     && Math.abs(geometry.topbar.x) <= 1
-                    && Math.abs(geometry.topbar.width - width) <= 2
+                    && Math.abs(geometry.topbar.width - geometry.layoutWidth) <= 2
                     && geometry.actions?.x >= 0
                     && geometry.actions.x + geometry.actions.width <= width + 2
-                    && geometry.iconWidths.every(value => value !== null && Math.abs(value - 34) <= 1)
                     && (width >= 1280
-                        ? geometry.rail?.position === 'sticky'
+                        ? geometry.iconWidths.every(value => value !== null && Math.abs(value - 34) <= 1)
+                            && geometry.rail?.position === 'sticky'
                             && geometry.rail.width >= 200 && geometry.rail.width <= 230
                             && geometry.search?.display === 'flex'
                         : geometry.mobileNav?.display === 'grid'
