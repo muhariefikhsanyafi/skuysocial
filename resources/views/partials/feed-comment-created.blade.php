@@ -26,7 +26,7 @@
                 {{ $comment->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}
             </time>
         </div>
-        <p class="skuy-comment__text">{{ $comment->content }}</p>
+        @include('partials.comment-edit-control', ['comment' => $comment])
 
         @unless ($isReply)
             <button @click="openReply = !openReply" type="button" :aria-expanded="openReply.toString()" class="skuy-comment__reply">

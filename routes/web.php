@@ -124,6 +124,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
         ->middleware(['moderation.active', 'throttle:10,1'])
         ->name('comments.store');
+    Route::patch('/comments/{comment}', [CommentController::class, 'update'])
+        ->middleware(['moderation.active', 'throttle:10,1'])
+        ->name('comments.update');
     Route::post('/comments/{comment}/like', [CommentController::class, 'like'])
         ->middleware('moderation.active')
         ->name('comments.like');

@@ -103,6 +103,27 @@ class CommentController extends Controller
         return response()->json($response, 201);
     }
 
+    public function update(Request $request, Comment $comment): JsonResponse|RedirectResponse
+    {
+        abort_unless((int) $comment->user_id === (int) $request->user()->getKey(), 403);
+
+        $validated = $request->validate([
+            'content' => ['required', 'string', 'max:500'],
+        ]);
+
+        $comment->update(['content' => $validated['content']]);
+
+        if (! $request->expectsJson()) {
+            return back();
+        }
+
+        return response()->json([
+            'comment_id' => (int) $comment->getKey(),
+            'content' => (string) $comment->content,
+            'updated_at' => $comment->updated_at->toIso8601String(),
+        ]);
+    }
+
     public function like(Request $request, Comment $comment): JsonResponse|RedirectResponse
     {
         if (! $request->expectsJson()) {
