@@ -15,6 +15,7 @@ export default defineConfig({
                 'resources/css/skuy-flow-thread.css',
                 'resources/css/skuy-flow-discovery.css',
                 'resources/css/skuy-flow-support.css',
+                'resources/css/skuy-flow-overview.css',
                 'resources/css/skuy-flow-post-actions.css',
                 'resources/js/app.js',
                 'resources/js/skuy-flow-profile.js',

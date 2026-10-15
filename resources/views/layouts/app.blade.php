@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    data-flow-page="{{ request()->routeIs('feed', 'bookmarks.index', 'search', 'posts.show', 'posts.edit', 'topik.show', 'tags.show', 'points.history', 'user.followers', 'user.following') ? 'feed' : (request()->routeIs('user.profile', 'user.edit') ? 'profile' : (request()->routeIs('messages.*') ? 'messages' : (request()->routeIs('activity.index', 'announcements.*') ? 'activity' : ''))) }}"
+    data-flow-page="{{ request()->routeIs('feed', 'bookmarks.index', 'search', 'posts.show', 'posts.edit', 'topik.show', 'tags.show', 'points.history', 'user.followers', 'user.following', 'dashboard') ? 'feed' : (request()->routeIs('user.profile', 'user.edit', 'profile.edit') ? 'profile' : (request()->routeIs('messages.*') ? 'messages' : (request()->routeIs('activity.index', 'announcements.*') ? 'activity' : ''))) }}"
     x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
     x-init="$watch('darkMode', value => window.skuyTheme.persist(value))"
     :class="{ 'dark': darkMode }"
@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/brands.min.css') }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @if (request()->routeIs('feed', 'bookmarks.index', 'search', 'posts.show', 'posts.edit', 'topik.show', 'tags.show', 'points.history', 'user.followers', 'user.following'))
+        @if (request()->routeIs('feed', 'bookmarks.index', 'search', 'posts.show', 'posts.edit', 'topik.show', 'tags.show', 'points.history', 'user.followers', 'user.following', 'dashboard'))
             @vite(['resources/css/skuy-flow-feed.css', 'resources/css/skuy-flow-post-actions.css'])
             @if (request()->routeIs('posts.show', 'posts.edit'))
                 @vite('resources/css/skuy-flow-thread.css')
@@ -32,11 +32,15 @@
                 @vite('resources/css/skuy-flow-discovery.css')
             @elseif (request()->routeIs('points.history', 'user.followers', 'user.following'))
                 @vite('resources/css/skuy-flow-support.css')
+            @elseif (request()->routeIs('dashboard'))
+                @vite('resources/css/skuy-flow-overview.css')
             @endif
         @elseif (request()->routeIs('user.profile'))
             @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-post-actions.css', 'resources/js/skuy-flow-profile.js'])
         @elseif (request()->routeIs('user.edit'))
             @vite('resources/css/skuy-flow-profile.css')
+        @elseif (request()->routeIs('profile.edit'))
+            @vite(['resources/css/skuy-flow-profile.css', 'resources/css/skuy-flow-overview.css'])
         @elseif (request()->routeIs('messages.*'))
             @vite('resources/css/skuy-flow-messages.css')
         @elseif (request()->routeIs('activity.index', 'announcements.*'))

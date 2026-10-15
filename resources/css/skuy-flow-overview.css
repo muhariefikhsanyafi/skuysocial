@@ -1,0 +1,265 @@
+/* SkuySocial Flow: Dashboard and Account Settings only.
+   Respect the Feed/Profile palette, five-item navigation, and real form actions. */
+
+/* DASHBOARD: content-first layout replaces the old glowing hero and bento mosaic. */
+html[data-flow-page="feed"] .skuy-dashboard-page {
+    min-width: 0;
+    min-height: calc(100vh - 80px);
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-frame {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(270px, 0.75fr);
+    grid-template-areas: "welcome account" "checkin checkin" "routes routes";
+    align-items: start;
+    gap: 20px;
+    box-sizing: border-box;
+    width: min(calc(100% - 40px), 1040px);
+    max-width: 1040px;
+    margin-inline: auto;
+    padding: 32px 0 calc(110px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="feed"] .skuy-dashboard-page :is(
+    .skuy-dashboard-welcome, .skuy-dashboard-account,
+    .skuy-dashboard-checkin, .skuy-dashboard-routes
+) {
+    min-width: 0;
+    min-height: 0;
+    padding: clamp(18px, 2.4vw, 28px);
+    border: 1px solid var(--flow-border);
+    border-radius: 18px;
+    background: var(--flow-panel);
+    background-image: none;
+    color: var(--flow-text);
+    box-shadow: none;
+    isolation: auto;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-welcome {
+    gap: 20px;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-title {
+    max-width: none;
+    margin: 8px 0 12px;
+    color: var(--flow-text);
+    font-size: clamp(24px, 2.8vw, 34px);
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+    overflow-wrap: anywhere;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-kicker {
+    color: var(--flow-accent-ink);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    text-transform: none;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page :is(
+    .skuy-dashboard-welcome__copy, .skuy-dashboard-routes__description,
+    .skuy-dashboard-checkin__description, .skuy-dashboard-checkin__day,
+    .skuy-dashboard-checkin__timezone-note, .skuy-dashboard-checkin__feedback,
+    .skuy-dashboard-checkin__balance
+) {
+    color: var(--flow-text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-account__name,
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-checkin__title,
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-section-title {
+    color: var(--flow-text);
+    letter-spacing: -0.025em;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page :is(
+    .skuy-dashboard-account__eyebrow, .skuy-dashboard-account__username,
+    .skuy-dashboard-account__details dt
+) { color: var(--flow-text-muted); }
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-account__details {
+    border-color: var(--flow-border);
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-account__details dd {
+    color: var(--flow-text);
+    overflow-wrap: anywhere;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-checkin {
+    gap: 16px;
+    border-color: var(--flow-border);
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-checkin__reward {
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+    box-shadow: none;
+    border-radius: 14px;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-checkin__reward strong,
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-checkin__balance strong,
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-checkin__day time {
+    color: var(--flow-text);
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-route-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: "feed search" "activity saved";
+    gap: 10px;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-route {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    min-height: 84px;
+    padding: 14px;
+    border: 1px solid var(--flow-border);
+    border-radius: 14px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-route:hover {
+    border-color: var(--flow-border-strong);
+    background: var(--flow-panel-muted);
+    box-shadow: none;
+    transform: none;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-route__icon {
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-route__label {
+    color: var(--flow-text);
+    font-size: 14px;
+    font-weight: 700;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-route__description {
+    color: var(--flow-text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page :is(
+    .skuy-dashboard-primary-action, .skuy-dashboard-checkin__button
+) {
+    min-height: 44px;
+    border: 1px solid var(--flow-accent);
+    border-radius: 12px;
+    background: var(--flow-accent);
+    color: #fff;
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-dashboard-page :is(
+    .skuy-dashboard-primary-action, .skuy-dashboard-checkin__button
+):hover {
+    background: var(--flow-accent-hover);
+    border-color: var(--flow-accent-hover);
+}
+html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-account__link {
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="feed"] .skuy-dashboard-page :is(a, button):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+
+/* ACCOUNT: shared Profile shell, clean section hierarchy, non-destructive forms. */
+html[data-flow-page="profile"] .skuy-app-page-header {
+    border-bottom-color: var(--flow-border);
+    background: var(--flow-canvas);
+    box-shadow: none;
+}
+html[data-flow-page="profile"] .skuy-app-page-header__inner {
+    width: min(calc(100% - 36px), 760px);
+    max-width: 760px;
+    margin-inline: auto;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-flow-account="settings"] {
+    min-width: 0;
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-flow-account="settings"] .skuy-profile-shell {
+    box-sizing: border-box;
+    width: min(calc(100% - 36px), 760px);
+    max-width: 760px;
+    padding: 24px 0 calc(110px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="profile"] [data-flow-account="settings"] .skuy-settings-panel {
+    min-width: 0;
+    border-radius: 16px;
+    background: var(--flow-panel);
+    background-image: none;
+    color: var(--flow-text);
+    box-shadow: none;
+}
+html[data-flow-page="profile"] [data-flow-account="settings"] .skuy-settings-panel:not([aria-labelledby="delete-account-heading"]) {
+    border: 1px solid var(--flow-border);
+}
+html[data-flow-page="profile"] [data-flow-account="settings"] .skuy-settings-panel:not(.skuy-settings-panel--flush) {
+    padding: clamp(18px, 3vw, 26px);
+}
+html[data-flow-page="profile"] [data-flow-account="settings"] .skuy-settings-panel h2 {
+    font-size: clamp(18px, 2.2vw, 21px);
+    letter-spacing: -0.025em;
+    line-height: 1.35;
+}
+html[data-flow-page="profile"] [data-flow-account="settings"] .skuy-settings-panel :is(input, select, textarea) {
+    max-width: 100%;
+}
+html[data-flow-page="profile"] [data-flow-account="settings"] .skuy-settings-panel :is(input, select, textarea):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 2px;
+}
+html[data-flow-page="profile"] [data-flow-account="settings"] .skuy-settings-panel :is(a, button):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+html[data-flow-page="profile"] [data-flow-account="settings"] .skuy-settings-panel .skuy-button--primary {
+    background: var(--flow-accent);
+    border-color: var(--flow-accent);
+    color: #fff;
+}
+@media (max-width: 880px) {
+    html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-frame {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "welcome" "checkin" "account" "routes";
+        max-width: 680px;
+    }
+}
+@media (max-width: 560px) {
+    html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-frame {
+        width: min(calc(100% - 24px), 680px);
+        gap: 12px;
+        padding: 18px 0 calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+    html[data-flow-page="feed"] .skuy-dashboard-page :is(
+        .skuy-dashboard-welcome, .skuy-dashboard-account,
+        .skuy-dashboard-checkin, .skuy-dashboard-routes
+    ) { padding: 18px 14px; }
+    html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-route-list {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "feed" "search" "activity" "saved";
+    }
+    html[data-flow-page="feed"] .skuy-dashboard-page :is(
+        .skuy-dashboard-checkin__content, .skuy-dashboard-checkin__action
+    ) {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    html[data-flow-page="feed"] .skuy-dashboard-page .skuy-dashboard-checkin__reward {
+        width: 100%;
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-flow-account="settings"] .skuy-profile-shell {
+        width: min(calc(100% - 24px), 760px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    html[data-flow-page="feed"] .skuy-dashboard-page *,
+    html[data-flow-page="profile"] [data-flow-account="settings"] * {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
