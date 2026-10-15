@@ -543,6 +543,8 @@ try {
         const cardSelector=`[data-feed-post-uid="${postUid}"]`;
         const bookmarkSelector=cardSelector+' .skuy-bookmark-menu-action';
         const likeSelector=cardSelector+' form[action$="/like"]';
+        const initialBookmark = await cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector+' button')})?.getAttribute('aria-pressed') ?? null`);
+        check('Browser social-action fixture starts unbookmarked',initialBookmark==='false',initialBookmark);
         const browserAttribute=await cdp.evaluate(`document.querySelector(${JSON.stringify(bookmarkSelector)}).getAttribute('x-on:submit.prevent')`);
         check('browser preserves Alpine bookmark attribute', browserAttribute==='toggleBookmark($event)',browserAttribute);
         await cdp.evaluate(`document.querySelector(${JSON.stringify(cardSelector)}).querySelector('[aria-haspopup="menu"]').click(); document.querySelector(${JSON.stringify(bookmarkSelector)}).requestSubmit()`);

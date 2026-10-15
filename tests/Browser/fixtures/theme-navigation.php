@@ -144,7 +144,7 @@ if ($appreciationResult->status !== PostAppreciationStatus::Appreciated) {
 }
 echo json_encode([
     'accounts' => $accounts, 'otherProfile' => route('user.profile', $author->username, false),
-    'post' => route('posts.show', $post, false),
+    'post' => route('posts.show', $posts[22], false), // Not seeded as bookmarked: browser exercises save -> unsave.
     'savedPost' => route('posts.show', $savedPost, false),
     'appreciationStatusPost' => $posts[12]->uid,
     'appreciationChoicePosts' => [$posts[0]->uid, $posts[12]->uid, $posts[23]->uid],
