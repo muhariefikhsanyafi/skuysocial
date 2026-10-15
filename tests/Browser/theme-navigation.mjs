@@ -568,6 +568,60 @@ try {
             }
         }
     }
+    // Guard the approved Feed shell against route-specific CSS regressions.
+    // Exercise authenticated pages in real Chromium rather than relying on static CSS checks.
+    await login(2);
+    for (const width of [1536, 390]) {
+        await viewport(width, width === 1536 ? 900 : 844);
+        for (const mode of ['dark', 'light']) {
+            await theme(mode);
+            for (const [surface, route] of [['feed', '/feed'], ['messages', '/pesan'], ['activity', '/aktivitas']]) {
+                await navigate(route);
+                const geometry = await cdp.evaluate(`(() => {
+                    const measure = selector => {
+                        const node = document.querySelector(selector);
+                        if (!node) return null;
+                        const box = node.getBoundingClientRect();
+                        const style = getComputedStyle(node);
+                        return { x: box.x, y: box.y, width: box.width, height: box.height,
+                            position: style.position, display: style.display, overflowY: style.overflowY };
+                    };
+                    return {
+                        page: document.documentElement.dataset.flowPage,
+                        viewport: innerWidth,
+                        layoutWidth: document.documentElement.clientWidth,
+                        topbar: measure('.skuy-topbar'),
+                        actions: measure('.skuy-topbar__actions'),
+                        rail: measure('.skuy-app-rail'),
+                        search: measure('.skuy-flow-topbar-search'),
+                        mobileNav: measure('.skuy-mobile-nav'),
+                        navKeys: [...document.querySelectorAll('[data-mobile-nav-key]')].map(n => n.dataset.mobileNavKey),
+                        iconWidths: ['feed','search','activity','messages','saved'].map(key => measure('[data-nav-key="' + key + '"] .skuy-app-nav__icon')?.width),
+                        overflow: document.documentElement.scrollWidth > innerWidth,
+                    };
+                })()`);
+                const shot = await screenshot(`flow-nav-${surface}-${width}-${mode}`);
+                results.flowVisual.push({ surface, width, mode, geometry, image: shot });
+                check(`Flow navigation parity ${surface} ${width}px ${mode}`,
+                    !geometry.overflow
+                    && geometry.navKeys.join(',') === 'home,search,create,activity,messages'
+                    && geometry.topbar?.position === 'fixed'
+                    && Math.abs(geometry.topbar.x) <= 1
+                    && Math.abs(geometry.topbar.width - geometry.layoutWidth) <= 2
+                    && geometry.actions?.x >= 0
+                    && geometry.actions.x + geometry.actions.width <= width + 2
+                    && (width >= 1280
+                        ? geometry.iconWidths.every(value => value !== null && Math.abs(value - 34) <= 1)
+                            && geometry.rail?.position === 'sticky'
+                            && geometry.rail.width >= 200 && geometry.rail.width <= 230
+                            && geometry.search?.display === 'flex'
+                        : geometry.mobileNav?.display === 'grid'
+                            && geometry.mobileNav.x >= -1
+                            && geometry.mobileNav.x + geometry.mobileNav.width <= width + 1),
+                    geometry);
+            }
+        }
+    }
     await login(2);
     for (const width of [1536,1280]) {
         await viewport(width, 900);

@@ -48,6 +48,10 @@
         @elseif (request()->routeIs('activity.index', 'announcements.*'))
             @vite('resources/css/skuy-flow-activity.css')
         @endif
+        {{-- Reuse the exact Feed navigation pattern on every authenticated Flow surface. --}}
+        @if (request()->routeIs('messages.*', 'activity.index', 'announcements.*', 'user.profile', 'user.edit', 'profile.edit', 'security.two-factor.show', 'security.two-factor.recovery-codes.display'))
+            @vite('resources/css/skuy-flow-navigation.css')
+        @endif
     </head>
     <body class="skuy-product antialiased">
         @if (auth()->check() && (bool) config('services.onesignal.enabled', false) && filled(config('services.onesignal.app_id')))
