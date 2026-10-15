@@ -8,6 +8,7 @@ use App\Enums\PostAppreciationStatus;
 use App\Models\Bookmark;
 use App\Models\Comment;
 use App\Models\Conversation;
+use App\Models\Hashtag;
 use App\Models\Message;
 use App\Models\Post;
 use App\Models\User;
@@ -74,6 +75,11 @@ for ($index = 0; $index < 24; $index++) {
         $savedPost = $post;
     }
 }
+// Dedicated product-flow routes in an ephemeral SQLite database only.
+$flowPost = $posts[7];
+$flowPost->forceFill(['topic' => 'skuy-flow-qa'])->save();
+$flowTag = Hashtag::query()->firstOrCreate(['name' => 'skuysocialqa']);
+$flowPost->hashtags()->syncWithoutDetaching([$flowTag->id]);
 $accounts = [];
 foreach ([0, 1, 2, 12] as $count) {
     $viewer = User::factory()->create([
@@ -106,7 +112,7 @@ foreach ([0, 1, 2, 12] as $count) {
             'r6c:theme-browser:credit:'.$viewer->id,
         );
     }
-    Post::query()->create(['user_id' => $viewer->id, 'content' => 'Synthetic own profile post']);
+    $ownPost = Post::query()->create(['user_id' => $viewer->id, 'content' => 'Synthetic own profile post']);
     Post::query()->create(['user_id' => $viewer->id, 'content' => '', 'repost_id' => $post->id]);
     $conversation = Conversation::query()->create([
         'type' => Conversation::TYPE_DIRECT, 'direct_key' => $author->id.':'.$viewer->id,
@@ -125,6 +131,8 @@ foreach ([0, 1, 2, 12] as $count) {
         'email' => $viewer->email, 'profile' => route('user.profile', $viewer->username, false),
         'settings' => route('user.edit', $viewer->username, false),
         'account' => route('profile.edit', $viewer->username, false),
+        'chat' => route('messages.show', $conversation, false),
+        'editPost' => route('posts.edit', $ownPost, false),
     ];
 }
 $commenter = User::factory()->create([
@@ -149,6 +157,11 @@ echo json_encode([
     'appreciationStatusPost' => $posts[12]->uid,
     'appreciationChoicePosts' => [$posts[0]->uid, $posts[12]->uid, $posts[23]->uid],
     'savedPage' => route('bookmarks.index', [], false),
+    'topicPage' => route('topik.show', ['topic' => 'skuy-flow-qa'], false),
+    'hashtagPage' => route('tags.show', ['name' => 'skuysocialqa'], false),
+    'followersPage' => route('user.followers', $author, false),
+    'followingPage' => route('user.following', $author, false),
+    'passwordRequestPage' => route('password.request', [], false),
     'searchResults' => route('search', ['q' => 'theme'], false),
     'routes' => array_map(fn ($name) => route($name, [], false), [
         'feed', 'search', 'bookmarks.index', 'activity.index', 'messages.index', 'points.history', 'dashboard',
