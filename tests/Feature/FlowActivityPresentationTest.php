@@ -17,7 +17,9 @@ class FlowActivityPresentationTest extends TestCase
         $this->actingAs($user)->get(route('activity.index'))
             ->assertOk()
             ->assertSee('data-flow-page="activity"', false)
-            ->assertSee('data-flow-activity="notifications"', false);
+            ->assertSee('data-flow-activity="notifications"', false)
+            ->assertSee('class="skuy-flow-topbar-search"', false)
+            ->assertSee('class="skuy-flow-topbar-shortcuts"', false);
     }
 
     public function test_announcements_index_uses_the_same_flow_shell(): void
@@ -27,6 +29,7 @@ class FlowActivityPresentationTest extends TestCase
         $this->actingAs($user)->get(route('announcements.index'))
             ->assertOk()
             ->assertSee('data-flow-page="activity"', false)
-            ->assertSee('data-flow-activity="announcements"', false);
+            ->assertSee('data-flow-activity="announcements"', false)
+            ->assertSee('class="skuy-flow-topbar-search"', false);
     }
 }

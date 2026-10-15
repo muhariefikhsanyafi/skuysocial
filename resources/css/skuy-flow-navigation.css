@@ -1,0 +1,497 @@
+/* Feed-derived canonical navigation for every non-Feed Flow screen. */
+/* Keep navigation blocks aligned with resources/css/skuy-flow-feed.css. */
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-shell,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-shell__workspace {
+    min-width: 0;
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-shell::before,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-shell::after {
+    display: none;
+    content: none;
+    background: none;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-shell__workspace {
+    padding-block-end: 24px;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+    position: fixed;
+    inset: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: var(--flow-panel);
+    box-shadow: var(--skuy-shadow-floating);
+    color: var(--flow-text);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__inner {
+    border-color: var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-nav__link {
+    min-height: 44px;
+    border-radius: 10px;
+    color: var(--flow-text-secondary);
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-nav__link[aria-current="page"],
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav__item[aria-current="page"] {
+    background: var(--flow-accent-soft);
+    color: var(--skuy-on-selected);
+    font-weight: 700;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-rail__compose {
+    border-color: var(--flow-accent);
+    background: var(--flow-accent);
+    color: #ffffff;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-rail__compose:hover {
+    border-color: var(--flow-accent-hover);
+    background: var(--flow-accent-hover);
+    color: #ffffff;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav {
+    z-index: 80;
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    width: min(480px, calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+    min-height: 72px;
+    padding: 7px 8px;
+    border: 1px solid var(--flow-border);
+    border-radius: 20px;
+    background: var(--flow-glass);
+    box-shadow: var(--skuy-shadow-floating);
+    transform: translateX(-50%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav__item {
+    min-width: 44px;
+    min-height: 52px;
+    border-radius: 14px;
+    color: var(--flow-text-secondary);
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav__item > span:last-child {
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav__item--compose {
+    width: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    margin-inline: auto;
+    border: 0;
+    border-radius: 16px;
+    background: var(--flow-accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgb(65 49 190 / 22%);
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav__item--compose:hover,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav__item--compose:focus-visible {
+    background: var(--flow-accent-hover);
+    color: #ffffff;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-menu-surface,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-account-menu {
+    border: 1px solid var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: var(--flow-shadow);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+    padding-block-start: calc(72px + env(safe-area-inset-top, 0px));
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__inner {
+    width: 100%;
+    max-width: 1440px;
+    min-height: 72px;
+    padding-inline: 24px;
+    gap: 24px;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__brand-group {
+    display: flex;
+    flex-shrink: 0;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__actions {
+    position: static;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-search {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 520px;
+    max-width: 580px;
+    min-width: 0;
+    padding-inline-start: 14px;
+    border: 1px solid var(--flow-border-strong);
+    border-radius: 10px;
+    background: var(--flow-panel-muted);
+    color: var(--flow-text-muted);
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-search input {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--flow-text);
+    font-size: 13px;
+    box-shadow: none;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-search input::placeholder {
+    color: var(--flow-text-muted);
+    opacity: 1;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-search button {
+    flex: 0 0 44px;
+    min-height: 44px;
+    border-radius: 8px;
+    color: var(--flow-text-secondary);
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-shortcuts {
+    display: none;
+    gap: 8px;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-shortcuts .skuy-icon-button {
+    position: relative;
+    border-radius: 10px;
+    background: var(--flow-panel-muted);
+    font-size: 18px;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-badge {
+    position: absolute;
+    top: -4px;
+    right: -5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 19px;
+    min-height: 19px;
+    padding-inline: 4px;
+    border: 2px solid var(--flow-panel);
+    border-radius: 10px;
+    background: var(--flow-accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-avatar {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+    font-weight: 700;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-profile-trigger {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 5px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-nav__link .skuy-app-nav__icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+    font-size: 17px;
+}
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) [data-nav-key="search"] .skuy-app-nav__icon { color: var(--flow-nav-search); }
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) [data-nav-key="activity"] .skuy-app-nav__icon { color: var(--flow-nav-activity); }
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) [data-nav-key="messages"] .skuy-app-nav__icon { color: var(--flow-nav-messages); }
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) [data-nav-key="saved"] .skuy-app-nav__icon { color: var(--flow-nav-saved); }
+
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-nav__link[aria-current="page"] .skuy-app-nav__icon {
+    background: var(--flow-accent);
+    color: #fff;
+}
+
+@media (min-width: 768px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-search { display: flex; }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell],
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-shell__workspace {
+        grid-area: 1 / 1;
+    }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] {
+        width: 0;
+        min-width: 0;
+        justify-self: start;
+    }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-flow-topbar-shortcuts { display: flex; }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail {
+        position: sticky;
+        inset-block-start: calc(72px + env(safe-area-inset-top, 0px) + 24px);
+        margin-inline-start: max(20px, calc((100vw - 1440px) / 2 + 24px));
+        align-self: start;
+        width: 216px;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        overflow: visible;
+    }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__inner {
+        min-height: 0;
+        padding: 0;
+        background: transparent;
+    }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-rail__brand { display: none; }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-rail__spacer { flex: 0 0 24px; }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-app-rail__compose { min-height: 46px; border-radius: 10px; box-shadow: none; }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        margin-inline-start: max(256px, calc((100vw - 1440px) / 2 + 256px));
+        margin-inline-end: max(0px, calc((100vw - 1440px) / 2));
+    }
+}
+
+@media (max-width: 1279px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        padding-block-start: calc(72px + env(safe-area-inset-top, 0px));
+        padding-block-end: calc(100px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail {
+        overflow: visible;
+    }
+}
+
+@media (min-width: 1280px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-app-rail__account-menu {
+        top: auto;
+        right: auto;
+        bottom: 0;
+        left: calc(100% + 8px);
+        width: 156px;
+        max-width: calc(100vw - 24px);
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar {
+        min-height: calc(58px + env(safe-area-inset-top, 0px));
+        padding-block-start: env(safe-area-inset-top, 0px);
+        border: 0;
+        border-bottom: 1px solid var(--flow-border);
+        border-radius: 0 0 12px 12px;
+        box-shadow: var(--skuy-shadow-soft);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] + .skuy-app-shell__workspace {
+        padding-block-start: calc(58px + env(safe-area-inset-top, 0px));
+        padding-block-end: calc(104px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__inner {
+        min-height: 58px;
+        gap: 6px;
+        padding-inline: 10px;
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__brand-group,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__actions {
+        min-width: 0;
+        gap: 4px;
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-brand {
+        font-size: 17px;
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-icon-button {
+        width: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav {
+        position: fixed;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
+        inset-block-end: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: center;
+        gap: 0;
+        width: 100%;
+        max-width: none;
+        min-height: calc(70px + env(safe-area-inset-bottom, 0px));
+        padding: 6px max(5px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(5px, env(safe-area-inset-left, 0px));
+        border-inline: 0;
+        border-bottom: 0;
+        border-radius: 14px 14px 0 0;
+        transform: none;
+        overflow: visible;
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav__item {
+        min-width: 44px;
+        min-height: 54px;
+        padding-inline: 2px;
+        overflow: visible;
+    }
+}
+
+@media (max-width: 767px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav__item > span:last-child {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 359px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__inner {
+        gap: 4px;
+        padding-inline: 8px;
+    }
+}
+
+@media (max-width: 359px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-brand {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 359px) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar__actions {
+        gap: 2px;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-navigation-shell[data-skuy-prism-shell] .skuy-topbar,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-nav,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-menu-surface,
+html:is([data-flow-page="messages"], [data-flow-page="activity"], [data-flow-page="profile"]) .skuy-mobile-account-menu {
+        background: var(--flow-panel);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}

@@ -196,10 +196,12 @@ class MessagesUnreadStateTest extends TestCase
         $html = $response->getContent();
         $this->assertStringContainsString('data-flow-page="messages"', $html);
         $this->assertStringContainsString('data-flow-messages="inbox"', $html);
-        $this->assertSame(2, substr_count($html, 'data-unread-messages-badge'));
-        $this->assertSame(2, substr_count($html, 'data-unread-notifications-badge'));
+        $this->assertStringContainsString('class="skuy-flow-topbar-search"', $html);
+        $this->assertStringContainsString('class="skuy-flow-topbar-shortcuts"', $html);
+        $this->assertSame(3, substr_count($html, 'data-unread-messages-badge'));
+        $this->assertSame(3, substr_count($html, 'data-unread-notifications-badge'));
         $this->assertSame(3, substr_count($html, 'aria-label="Unread messages: 2"'));
-        $this->assertSame(2, substr_count($html, 'aria-label="Unread notifications: 1"'));
+        $this->assertSame(3, substr_count($html, 'aria-label="Unread notifications: 1"'));
         $this->assertStringContainsString('data-conversation-unread-badge', $html);
         $this->assertStringContainsString('skuy-message-row--unread', $html);
         $this->assertStringContainsString(
@@ -278,9 +280,9 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertSame(100, $viewer->fresh()->unreadMessageCount());
         $this->assertSame(100, $viewer->fresh()->unreadNotifications()->count());
         $this->assertSame(100, $response->viewData('rows')->first()['unread_count']);
-        $this->assertSame(2, substr_count($html, 'data-unread-messages-badge'));
-        $this->assertSame(2, substr_count($html, 'data-unread-notifications-badge'));
-        $this->assertSame(5, substr_count($html, '>99+</span>'));
+        $this->assertSame(3, substr_count($html, 'data-unread-messages-badge'));
+        $this->assertSame(3, substr_count($html, 'data-unread-notifications-badge'));
+        $this->assertSame(7, substr_count($html, '>99+</span>'));
         $this->assertSame(3, substr_count($html, 'aria-label="Unread messages: 100"'));
         $this->assertSame(2, substr_count($html, 'aria-label="Unread notifications: 100"'));
     }
