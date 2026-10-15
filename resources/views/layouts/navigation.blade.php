@@ -69,12 +69,12 @@
             });
         },
         syncOverlayScrollLock() {
-            const shouldLock = (!this.isDesktop && this.sidebarOpen) || this.accountMenuOpen;
-            if (shouldLock && !this.overlayScrollLocked) {
+            const shouldLock = (!this.isDesktop &amp;&amp; this.sidebarOpen) || this.accountMenuOpen;
+            if (shouldLock &amp;&amp; !this.overlayScrollLocked) {
                 this.previousBodyOverflow = document.body.style.overflow;
                 document.body.style.overflow = 'hidden';
                 this.overlayScrollLocked = true;
-            } else if (!shouldLock && this.overlayScrollLocked) {
+            } else if (!shouldLock &amp;&amp; this.overlayScrollLocked) {
                 document.body.style.overflow = this.previousBodyOverflow;
                 this.overlayScrollLocked = false;
             }
@@ -92,10 +92,10 @@
 
             const first = focusable[0];
             const last = focusable[focusable.length - 1];
-            if (event.shiftKey && (document.activeElement === first || !container.contains(document.activeElement))) {
+            if (event.shiftKey &amp;&amp; (document.activeElement === first || !container.contains(document.activeElement))) {
                 event.preventDefault();
                 last.focus();
-            } else if (!event.shiftKey && (document.activeElement === last || !container.contains(document.activeElement))) {
+            } else if (!event.shiftKey &amp;&amp; (document.activeElement === last || !container.contains(document.activeElement))) {
                 event.preventDefault();
                 first.focus();
             }
@@ -117,7 +117,7 @@
             if (this.isDesktop) return;
             this.sidebarOpen = false;
             this.syncOverlayScrollLock();
-            if (restoreFocus && this.navigationReturnFocus?.isConnected) {
+            if (restoreFocus &amp;&amp; this.navigationReturnFocus?.isConnected) {
                 this.$nextTick(() => this.navigationReturnFocus.focus());
             }
         },
@@ -136,14 +136,14 @@
         closeAccountMenu(restoreFocus = true) {
             this.accountMenuOpen = false;
             this.syncOverlayScrollLock();
-            if (restoreFocus && this.accountReturnFocus?.isConnected) {
+            if (restoreFocus &amp;&amp; this.accountReturnFocus?.isConnected) {
                 this.$nextTick(() => this.accountReturnFocus.focus());
             }
         }
     }"
     @desktop-profile-menu-toggle.window="desktopAccountMenuOpen = Boolean($event.detail)"
     x-effect="$el.closest('.skuy-app-shell')?.classList.toggle('skuy-desktop-account-menu-open', desktopAccountMenuOpen)"
-    @keydown.escape.window="if (accountMenuOpen) closeAccountMenu(); else if (!isDesktop && sidebarOpen) closeNavigation()"
+    @keydown.escape.window="if (accountMenuOpen) closeAccountMenu(); else if (!isDesktop &amp;&amp; sidebarOpen) closeNavigation()"
     class="skuy-navigation-shell"
     data-skuy-prism-shell
 >
@@ -152,8 +152,8 @@
         <div class="skuy-topbar__brand-group">
             <button
                 @click="toggleNavigation()"
-                :aria-label="sidebarOpen && !isDesktop ? '{{ __('navigation.close_navigation_menu') }}' : '{{ __('navigation.open_navigation_menu') }}'"
-                :aria-expanded="(sidebarOpen && !isDesktop).toString()"
+                :aria-label="sidebarOpen &amp;&amp; !isDesktop ? '{{ __('navigation.close_navigation_menu') }}' : '{{ __('navigation.open_navigation_menu') }}'"
+                :aria-expanded="(sidebarOpen &amp;&amp; !isDesktop).toString()"
                 aria-controls="mobile-navigation"
                 type="button"
                 class="skuy-icon-button skuy-navigation-trigger xl:hidden"
@@ -327,7 +327,7 @@
     </section>
 </div>
 
-<div x-show="!isDesktop && sidebarOpen" x-transition.opacity style="display: none;" class="skuy-app-rail__backdrop" aria-hidden="true" @click="closeNavigation()"></div>
+<div x-show="!isDesktop &amp;&amp; sidebarOpen" x-transition.opacity style="display: none;" class="skuy-app-rail__backdrop" aria-hidden="true" @click="closeNavigation()"></div>
 
 <aside
     id="mobile-navigation"

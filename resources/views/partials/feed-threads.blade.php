@@ -137,8 +137,8 @@
                                             network: @js(__('threads.feedback.network')),
                                         },
                                     })"
-                                    @skuy-post-action-state.window="syncPeerState($event)"
-                                    @submit.prevent="toggleBookmark($event)"
+                                    x-on:skuy-post-action-state.window="syncPeerState($event)"
+                                    x-on:submit.prevent="toggleBookmark($event)"
                                     :action="bookmarkFormAction()"
                                 >
                                     @csrf
@@ -378,7 +378,7 @@
                                 network: @js(__('threads.feedback.network')),
                             },
                         })"
-                        @skuy-post-action-state.window="syncPeerState($event)"
+                        x-on:skuy-post-action-state.window="syncPeerState($event)"
                     >
                         <div class="skuy-actions skuy-actions--primary skuy-feed-post__actions">
                             <form
@@ -453,7 +453,7 @@
                                 action="{{ $displayPost->bookmarked_by_me ? route('bookmarks.destroy', $displayPost->uid) : route('bookmarks.store', $displayPost->uid) }}"
                                 method="POST"
                                 :action="bookmarkFormAction()"
-                                @submit.prevent="toggleBookmark($event)"
+                                x-on:submit.prevent="toggleBookmark($event)"
                             >
                                 @csrf
                                 <input
@@ -493,9 +493,9 @@
                                 :role="feedbackIsError ? 'alert' : 'status'"
                                 :aria-live="feedbackIsError ? 'assertive' : 'polite'"
                                 aria-atomic="true"
-                                style="display: none;"
+                                style="display: none; font-size: 0.75rem; font-weight: 600;"
                                 :class="feedbackIsError ? 'text-[var(--skuy-danger)]' : 'text-[var(--skuy-secondary)]'"
-                                class="text-xs font-semibold"
+                                class="min-h-5"
                             ></p>
                         </div>
                     </div>
