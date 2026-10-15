@@ -34,6 +34,13 @@ if (($argv[1] ?? '') === 'unread') {
     exit;
 }
 
+if (($argv[1] ?? '') === 'reset-message-unread') {
+    // Undo the read marker advanced by QA's visit to the synthetic chat.
+    User::query()->where('username', 'qa.theme.'.(int) $argv[2])->firstOrFail()
+        ->conversationParticipants()->update(['last_read_message_id' => null]);
+    exit;
+}
+
 if (($argv[1] ?? '') === 'social-state') {
     $viewer = User::query()->where('username', 'qa.theme.'.(int) $argv[2])->firstOrFail();
     $post = Post::query()->where('uid', $argv[3])->firstOrFail();

@@ -277,7 +277,7 @@ try {
         } else {
             check('Flow authenticated ' + label + ': approved shell and palette',
                 ['feed', 'profile', 'messages', 'activity'].includes(metrics.flowPage) &&
-                metrics.canvas === (mode === 'dark' ? '#0d0e13' : '#ffffff') &&
+                (mode === 'dark' ? metrics.canvas === '#0d0e13' : ['#fff', '#ffffff'].includes(metrics.canvas)) &&
                 metrics.nav.join(',') === 'home,search,create,activity,messages' &&
                 (width > 390 || metrics.navTapTargets.every(target => target.w >= 44 && target.h >= 44)), metrics);
         }
@@ -544,6 +544,9 @@ try {
             }
         }
     }
+    // Conversation visits mark synthetic messages as read; restore their
+    // initial boundary before the existing 0/1/2/12 badge regression matrix.
+    await command(php, ['tests/Browser/fixtures/theme-navigation.php', 'reset-message-unread', '2']);
     for (const width of [1536, 1280, 1024, 390, 320]) {
         const height = width === 1536 ? 960 : width === 1280 ? 900 : width === 1024 ? 900 : width === 390 ? 844 : 740;
         await viewport(width, height);
