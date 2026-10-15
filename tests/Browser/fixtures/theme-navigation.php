@@ -109,23 +109,22 @@ foreach ([0, 1, 2, 12] as $count) {
             'r6c:theme-browser:credit:'.$viewer->id,
         );
     }
-    Post::query()->create(['user_id' => $viewer->id, 'content' => 'Synthetic own profile post']);
+    $ownPost = Post::query()->create([
+        'user_id' => $viewer->id,
+        'content' => 'Synthetic own profile post',
+        'topic' => $count === 2 ? 'flowqa' : null,
+    ]);
+    if ($count === 2) {
+        $flowEditPost = $ownPost;
+        $flowConversation = $conversation;
+        $flowTag = Hashtag::query()->firstOrCreate(['name' => 'flowqa']);
+        $flowEditPost->hashtags()->sync([$flowTag->id]);
+    }
     Post::query()->create(['user_id' => $viewer->id, 'content' => '', 'repost_id' => $post->id]);
     $conversation = Conversation::query()->create([
         'type' => Conversation::TYPE_DIRECT, 'direct_key' => $author->id.':'.$viewer->id,
     ]);
     $conversation->users()->attach([$author->id, $viewer->id]);
-    if ($count === 2) {
-        // Real private routes for isolated browser review. Never seed a persistent database.
-        $flowEditPost = Post::query()->create([
-            'user_id' => $viewer->id,
-            'content' => 'Flow QA own editable thread #flowqa',
-            'topic' => 'flowqa',
-        ]);
-        $flowTag = Hashtag::query()->firstOrCreate(['name' => 'flowqa']);
-        $flowEditPost->hashtags()->sync([$flowTag->id]);
-        $flowConversation = $conversation;
-    }
     for ($index = 0; $index < $count; $index++) {
         $viewer->notifications()->create([
             'id' => (string) Str::uuid(), 'type' => PostLiked::class,
