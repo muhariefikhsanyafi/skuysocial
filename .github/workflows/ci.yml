@@ -158,6 +158,17 @@ jobs:
       - name: Run Laravel tests
         run: php artisan test --no-ansi
 
+      - name: Verify Tailwind v4 UI in isolated Chromium
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/tailwind-v4-migration-20261015'
+        shell: bash
+        run: |
+          BROWSER="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$BROWSER" ]; then
+            echo 'Browser compatibility verification unavailable: no Chromium executable'
+            exit 1
+          fi
+          node tests/Browser/theme-navigation.mjs --phase=after --browser="$BROWSER" --output="$RUNNER_TEMP/skuy-tailwind-v4-browser"
+
       - name: Remove untracked CI-only dotenv placeholder
         if: always()
         run: rm -f -- .env
