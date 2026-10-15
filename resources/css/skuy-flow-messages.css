@@ -470,7 +470,14 @@ html[data-flow-page="messages"] :is(
         gap: 10px;
     }
     html[data-flow-page="messages"] .skuy-direct-chat-composer {
-        padding: 14px;
+        /* Reserve visible space above the 5-item dock on compact chat screens. */
+        margin-top: 12px;
+        padding: 12px;
+    }
+    html[data-flow-page="messages"] .skuy-direct-chat-composer__input {
+        height: 84px;
+        min-height: 84px;
+        padding-block: 10px;
     }
     html[data-flow-page="messages"] .skuy-direct-chat-message {
         max-width: 92%;

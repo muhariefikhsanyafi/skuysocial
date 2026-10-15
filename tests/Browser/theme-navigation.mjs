@@ -268,6 +268,11 @@ try {
         const metrics = await cdp.evaluate('(() => { const html = document.documentElement; const nav = [...document.querySelectorAll(".skuy-mobile-nav [data-mobile-nav-key]")]; const css = getComputedStyle(html); return { theme: html.classList.contains("dark") ? "dark" : "light", flowPage: html.dataset.flowPage ?? "", guestFlow: document.body.dataset.flowGuest ?? "", canvas: css.getPropertyValue("--flow-canvas").trim().toLowerCase(), width: innerWidth, scrollWidth: html.scrollWidth, clientWidth: html.clientWidth, nav: nav.map(x => x.dataset.mobileNavKey), navTapTargets: nav.map(x => { const rect = x.getBoundingClientRect(); return { w: Math.round(rect.width), h: Math.round(rect.height) }; }), heading: document.querySelector("h1, h2, [role=heading]")?.textContent?.trim().slice(0, 80) ?? "", bodyLength: document.body.innerText.length }; })()');
         const image = await screenshot('flow-' + label + '-' + width + '-' + mode);
         results.flowScreens.push({ label, route, width, height, mode, guest, metrics, image });
+        if (label === 'chat' && width <= 390) {
+            const visibility = await cdp.evaluate('(() => { const action = document.querySelector("[data-message-submit]"); const dock = document.querySelector(".skuy-mobile-nav"); if (!action || !dock) return null; const a = action.getBoundingClientRect(); const n = dock.getBoundingClientRect(); return { buttonTop: a.top, buttonBottom: a.bottom, dockTop: n.top, height: a.height, overlap: Math.max(0, a.bottom - n.top) }; })()');
+            check('Flow mobile chat send button clears fixed dock ' + width + ' ' + mode,
+                visibility !== null && visibility.height >= 44 && visibility.buttonBottom <= visibility.dockTop - 8, visibility);
+        }
         check('Flow ' + label + ' ' + width + ' ' + mode + ': readable viewport and theme',
             metrics.width === width && metrics.scrollWidth <= metrics.clientWidth + 1 &&
             metrics.theme === mode && metrics.bodyLength > 20 && metrics.heading.length > 0, metrics);
