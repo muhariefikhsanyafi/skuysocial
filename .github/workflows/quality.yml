@@ -123,3 +123,84 @@ jobs:
     timeout-minutes: 2
     steps:
       - run: echo 'All quality gates passed. Production auto-deploy remains DISABLED.' >> "$GITHUB_STEP_SUMMARY"
+
+  report:
+    name: Immediate PR quality status
+    # Isolated API-only job: no checkout, no execution of PR code with write credentials.
+    if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'muhariefikhsanyafi' }}
+    needs: [application, security, browser, release-gate]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      issues: write
+    env:
+      RESULT_APPLICATION: ${{ needs.application.result }}
+      RESULT_SECURITY: ${{ needs.security.result }}
+      RESULT_BROWSER: ${{ needs.browser.result }}
+      RESULT_RELEASE: ${{ needs.release-gate.result }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Upsert PR status on every test completion
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.request import Request, urlopen
+
+          repo = os.environ['GITHUB_REPOSITORY']
+          pr_number = int(os.environ['PR_NUMBER'])
+          if pr_number < 1 or repo != 'muhariefikhsanyafi/skuysocial':
+              raise RuntimeError('Unexpected PR target')
+          results = {key: os.environ['RESULT_' + key] for key in (
+              'APPLICATION', 'SECURITY', 'BROWSER', 'RELEASE')}
+          if any(value not in {'success', 'failure', 'cancelled', 'skipped'} for value in results.values()):
+              raise RuntimeError('Unexpected GitHub job status')
+          passing = all(value == 'success' for value in results.values())
+          marker = '<!-- skuysocial-quality-event-v1 -->'
+          url = 'https://github.com/' + repo + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
+          body = (
+              marker + '\n' +
+              '**SkuySocial Quality: ' + ('PASS' if passing else 'CHECKS NOT GREEN') + '**\n\n' +
+              '\n'.join('- ' + key.capitalize() + ': **' + value + '**'
+                        for key, value in results.items()) +
+              '\n\n[Detail GitHub Actions](' + url + ')\n\n'
+              'Production deployment remains disabled. PR is not auto-merged.'
+          )
+          api = 'https://api.github.com/repos/' + repo + '/issues/' + str(pr_number) + '/comments'
+          headers = {
+              'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN'],
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'User-Agent': 'skuysocial-quality-event',
+          }
+          def call(url, method='GET', data=None):
+              request = Request(url, data=json.dumps(data).encode() if data is not None else None,
+                                method=method,
+                                headers={**headers, **({'Content-Type': 'application/json'} if data is not None else {})})
+              with urlopen(request, timeout=20) as response:
+                  return json.load(response)
+
+          # Keep one updateable comment per PR rather than spamming on every commit.
+          existing = None
+          page = 1
+          while page <= 5:
+              comments = call(api + '?per_page=100&page=' + str(page))
+              for item in comments:
+                  if (item.get('user', {}).get('login') == 'github-actions[bot]' and
+                          item.get('body', '').startswith(marker)):
+                      existing = item
+                      break
+              if existing or len(comments) < 100:
+                  break
+              page += 1
+          if existing:
+              call(existing['url'], 'PATCH', {'body': body})
+              print('Updated existing PR quality status comment.')
+          else:
+              call(api, 'POST', {'body': body})
+              print('Created PR quality status comment.')
+          print('Quality state:', 'PASS' if passing else 'CHECKS NOT GREEN')
+          PY
