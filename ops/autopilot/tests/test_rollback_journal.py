@@ -24,8 +24,10 @@ class RecoveryJournalTests(unittest.TestCase):
         with scope:
             (managed / 'preexisting.txt').write_text('persistent application data')
             journal.start()
+            journal.reserve('new-dir', 'directory')
             (managed / 'new-dir').mkdir()
             journal.record('new-dir', 'directory')
+            journal.reserve('new-dir/new.txt', 'file')
             (managed / 'new-dir' / 'new.txt').write_text('created')
             journal.record('new-dir/new.txt', 'file')
             self.assertTrue((managed / 'new-dir/new.txt').exists())
@@ -38,8 +40,10 @@ class RecoveryJournalTests(unittest.TestCase):
         scope, managed, _, journal = self.roots()
         with scope:
             journal.start()
+            journal.reserve('first', 'file')
             (managed / 'first').write_text('fixture')
             journal.record('first', 'file')
+            journal.reserve('second', 'file')
             (managed / 'second').write_text('fixture')
             journal.record('second', 'file')
             (managed / 'first').write_text('changed by someone else')
@@ -52,6 +56,7 @@ class RecoveryJournalTests(unittest.TestCase):
             foreign = Path(outside) / 'private'
             foreign.write_text('untouched')
             journal.start()
+            journal.reserve('new', 'file')
             (managed / 'new').write_text('created')
             journal.record('new', 'file')
             (managed / 'new').unlink()
@@ -73,16 +78,18 @@ class RecoveryJournalTests(unittest.TestCase):
         scope, managed, _, journal = self.roots()
         with scope:
             journal.start()
+            journal.reserve('new-dir', 'directory')
             (managed / 'new-dir').mkdir()
             journal.record('new-dir', 'directory')
             (managed / 'new-dir' / 'user-content').write_text('keep')
-            with self.assertRaises(OSError): journal.recover()
+            with self.assertRaises(ValueError): journal.recover()
             self.assertTrue((managed / 'new-dir' / 'user-content').exists())
 
     def test_recovery_refuses_changed_metadata(self):
         scope, managed, _, journal = self.roots()
         with scope:
             journal.start()
+            journal.reserve('file', 'file')
             path = managed / 'file'
             path.write_text('fixture')
             path.chmod(0o600)
@@ -95,8 +102,10 @@ class RecoveryJournalTests(unittest.TestCase):
         scope, managed, _, journal = self.roots()
         with scope:
             journal.start()
+            journal.reserve('new-dir', 'directory')
             (managed / 'new-dir').mkdir()
             journal.record('new-dir', 'directory')
+            journal.reserve('new-dir/file', 'file')
             (managed / 'new-dir' / 'file').write_text('fixture')
             journal.record('new-dir/file', 'file')
             data = journal._read()
@@ -110,10 +119,47 @@ class RecoveryJournalTests(unittest.TestCase):
         scope, managed, _, journal = self.roots()
         with scope:
             journal.start()
+            journal.reserve('a', 'file')
             path = managed / 'a'
             path.write_text('fixture')
             (managed / 'b').hardlink_to(path)
             with self.assertRaises(ValueError): journal.record('a', 'file')
+
+    def test_write_ahead_pending_refuses_recovery_without_deleting_objects(self):
+        scope, managed, _, journal = self.roots()
+        with scope:
+            journal.start()
+            journal.reserve('pending', 'file')
+            (managed / 'pending').write_text('new creation after reservation')
+            with self.assertRaises(ValueError): journal.recover()
+            self.assertEqual('new creation after reservation', (managed / 'pending').read_text())
+            journal.record('pending', 'file')
+            self.assertEqual('reverted', journal.recover()['status'])
+            self.assertFalse((managed / 'pending').exists())
+
+    def test_unrecorded_directory_content_blocks_entire_recovery_preflight(self):
+        scope, managed, _, journal = self.roots()
+        with scope:
+            journal.start()
+            journal.reserve('first', 'file')
+            (managed / 'first').write_text('preserved')
+            journal.record('first', 'file')
+            journal.reserve('new-dir', 'directory')
+            (managed / 'new-dir').mkdir()
+            journal.record('new-dir', 'directory')
+            (managed / 'new-dir' / 'unrecorded-user-file').write_text('keep')
+            with self.assertRaises(ValueError): journal.recover()
+            self.assertEqual('preserved', (managed / 'first').read_text())
+            self.assertTrue((managed / 'new-dir' / 'unrecorded-user-file').exists())
+
+    def test_reservation_refuses_existing_files_and_unscheduled_recording(self):
+        scope, managed, _, journal = self.roots()
+        with scope:
+            journal.start()
+            (managed / 'existing').write_text('user data')
+            with self.assertRaises(ValueError): journal.reserve('existing', 'file')
+            with self.assertRaises(ValueError): journal.record('existing', 'file')
+            self.assertEqual('user data', (managed / 'existing').read_text())
 
     def test_private_journal_permissions_required(self):
         scope, managed, private, journal = self.roots()

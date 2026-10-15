@@ -98,8 +98,9 @@ def fingerprint(parent_fd, name, kind):
 class RecoveryJournal:
     """Journal is in a trusted, already-existing private (0700) directory.
 
-    record() is called ONLY for newly created objects. A future installer must
-    solve the write-ahead crash window *before* privileged apply can be enabled.
+    reserve() writes durable intent BEFORE creation. record() captures proof
+    only afterward. Unfinished intents require manual intervention; privileged
+    apply is still blocked until complete crash-safe orchestration is audited.
     """
     def __init__(self, root, journal_dir, manifest_sha256):
         self.root = Path(root)
@@ -166,25 +167,117 @@ class RecoveryJournal:
             raise ValueError('Existing recovery journal must be inspected, not overwritten')
         self._write({'format': 1, 'manifest': self.manifest, 'phase': 'recording', 'entries': []})
 
-    def record(self, relative, kind):
+    def reserve(self, relative, kind):
+        """Durably document intent *before* a future installer creates an object.
+
+        The installer must still use O_EXCL/mkdir to avoid replacing any object.
+        A pending entry is never eligible for automatic deletion.
+        """
         data = self._read()
         if data is None or data['phase'] != 'recording':
             raise ValueError('Recovery journal is not recording')
+        if kind not in {'file', 'directory', 'link'}:
+            raise ValueError('Unsupported recovery object type')
+        if any(item['path'] == relative for item in data['entries']):
+            raise ValueError('Recovery path already reserved')
+        fd, name = inside(self.root, relative)
+        try:
+            try:
+                os.stat(name, dir_fd=fd, follow_symlinks=False)
+            except FileNotFoundError:
+                pass
+            else:
+                raise ValueError('Refusing to reserve a pre-existing object')
+        finally:
+            os.close(fd)
+        data['entries'].append({'path': relative, 'kind': kind, 'pending': True})
+        self._write(data)
+
+    def record(self, relative, kind):
+        """Commit exact inode/content evidence for a previously reserved creation."""
+        data = self._read()
+        if data is None or data['phase'] != 'recording':
+            raise ValueError('Recovery journal is not recording')
+        slots = [i for i, entry in enumerate(data['entries']) if entry['path'] == relative]
+        if len(slots) != 1 or data['entries'][slots[0]] != {'path': relative, 'kind': kind, 'pending': True}:
+            raise ValueError('Creation must be reserved before recording')
         fd, name = inside(self.root, relative)
         try:
             entry = {'path': relative, **fingerprint(fd, name, kind)}
         finally:
             os.close(fd)
-        if any(old['path'] == relative for old in data['entries']):
-            raise ValueError('Already recorded recovery path')
-        data['entries'].append(entry)
+        data['entries'][slots[0]] = entry
         self._write(data)
+
+    @staticmethod
+    def _validate_entries(entries):
+        """Fail closed on tampered or incomplete journals before any deletion."""
+        seen = set()
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise ValueError('Invalid recovery journal record')
+            relative = entry.get('path')
+            safe_parts(relative)
+            if relative in seen:
+                raise ValueError('Duplicate recovery journal entry')
+            seen.add(relative)
+            kind = entry.get('kind')
+            base = {'path', 'kind', 'dev', 'ino', 'uid', 'gid', 'mode'}
+            if kind == 'file':
+                expected = base | {'size', 'sha256'}
+            elif kind == 'link':
+                expected = base | {'target'}
+            elif kind == 'directory':
+                expected = base
+            else:
+                raise ValueError('Unsupported recovery journal type')
+            if entry.get('pending') is True:
+                if set(entry) != {'path', 'kind', 'pending'}:
+                    raise ValueError('Invalid pending recovery entry')
+                raise ValueError('Incomplete write-ahead creation; manual inspection required')
+            if set(entry) != expected:
+                raise ValueError('Incomplete recovery journal evidence')
+            for key in ('dev', 'ino', 'uid', 'gid', 'mode'):
+                if type(entry[key]) is not int or entry[key] < 0:
+                    raise ValueError('Invalid recovery identity metadata')
+            if kind == 'file':
+                if (type(entry['size']) is not int or not 0 <= entry['size'] <= MAX_FILE or
+                        not isinstance(entry['sha256'], str) or len(entry['sha256']) != 64 or
+                        any(x not in '0123456789abcdef' for x in entry['sha256'])):
+                    raise ValueError('Invalid recovery file evidence')
+            if kind == 'link' and not isinstance(entry['target'], str):
+                raise ValueError('Invalid recovery link evidence')
+
+    def _preflight_new_directories(self, entries, phase):
+        """Refuse any unjournaled child before unlinking even one recorded file."""
+        for entry in entries:
+            if entry['kind'] != 'directory':
+                continue
+            parent, name = inside(self.root, entry['path'])
+            try:
+                try:
+                    child = os.open(name, FLAGS, dir_fd=parent)
+                except FileNotFoundError:
+                    if phase == 'reverting':
+                        continue
+                    raise
+                try:
+                    prefix = entry['path'] + '/'
+                    authorized = {item['path'][len(prefix):].split('/', 1)[0]
+                                  for item in entries if item['path'].startswith(prefix)}
+                    if not set(os.listdir(child)).issubset(authorized):
+                        raise ValueError('Refusing recovery of a directory containing unrecorded data')
+                finally:
+                    os.close(child)
+            finally:
+                os.close(parent)
 
     def recover(self):
         """Explicit recovery; preflight entire transaction before first deletion."""
         data = self._read()
         if data is None or data['phase'] == 'reverted':
             raise ValueError('No pending recovery transaction')
+        self._validate_entries(data['entries'])
         # No deletion on any mismatch. Missing entries are allowed only after
         # recovery was durably marked started, to resume an interrupted rollback.
         for entry in reversed(data['entries']):
@@ -204,6 +297,7 @@ class RecoveryJournal:
                     raise ValueError('Recovery refused: object replaced or changed')
             finally:
                 os.close(fd)
+        self._preflight_new_directories(data['entries'], data['phase'])
         data['phase'] = 'reverting'
         self._write(data)
         for entry in reversed(data['entries']):
