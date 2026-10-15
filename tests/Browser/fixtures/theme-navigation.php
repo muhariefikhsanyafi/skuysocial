@@ -116,7 +116,6 @@ foreach ([0, 1, 2, 12] as $count) {
     ]);
     if ($count === 2) {
         $flowEditPost = $ownPost;
-        $flowConversation = $conversation;
         $flowTag = Hashtag::query()->firstOrCreate(['name' => 'flowqa']);
         $flowEditPost->hashtags()->sync([$flowTag->id]);
     }
@@ -125,6 +124,9 @@ foreach ([0, 1, 2, 12] as $count) {
         'type' => Conversation::TYPE_DIRECT, 'direct_key' => $author->id.':'.$viewer->id,
     ]);
     $conversation->users()->attach([$author->id, $viewer->id]);
+    if ($count === 2) {
+        $flowConversation = $conversation;
+    }
     for ($index = 0; $index < $count; $index++) {
         $viewer->notifications()->create([
             'id' => (string) Str::uuid(), 'type' => PostLiked::class,
