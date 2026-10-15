@@ -284,6 +284,6 @@ class MessagesUnreadStateTest extends TestCase
         $this->assertSame(3, substr_count($html, 'data-unread-notifications-badge'));
         $this->assertSame(7, substr_count($html, '>99+</span>'));
         $this->assertSame(3, substr_count($html, 'aria-label="Unread messages: 100"'));
-        $this->assertSame(2, substr_count($html, 'aria-label="Unread notifications: 100"'));
+        $this->assertSame(3, substr_count($html, 'aria-label="Unread notifications: 100"'));
     }
 }
