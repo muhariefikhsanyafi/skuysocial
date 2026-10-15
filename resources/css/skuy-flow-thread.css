@@ -1,0 +1,174 @@
+/* SkuySocial Flow: post detail (Blade and React) and thread editor only. */
+/* Shared palette, shell, and mobile navigation originate from skuy-flow-feed.css. */
+html[data-flow-page="feed"] .skuy-post-detail-page,
+html[data-flow-page="feed"] .skuy-edit-thread-page {
+    min-width: 0;
+    min-height: min(75vh, 700px);
+    color: var(--flow-text);
+    background: var(--flow-canvas);
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post-detail__content {
+    width: min(100%, 760px);
+    max-width: 760px;
+    padding: clamp(18px, 3vw, 32px) clamp(14px, 3vw, 28px) calc(112px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="feed"] .skuy-post-detail__layout { gap: clamp(18px, 3vw, 30px); }
+html[data-flow-page="feed"] .skuy-post-detail__header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 60px;
+    padding-bottom: 15px;
+    margin-bottom: 16px;
+    border-color: var(--flow-border);
+}
+html[data-flow-page="feed"] .skuy-post-detail__title {
+    color: var(--flow-text);
+    font-size: clamp(22px, 2.7vw, 28px);
+    letter-spacing: -0.025em;
+}
+html[data-flow-page="feed"] .skuy-post-detail__header .skuy-action {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+}
+html[data-flow-page="feed"] .skuy-post-detail__header .skuy-action:hover {
+    background: var(--flow-panel-muted);
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post--detail-root {
+    margin-bottom: 0;
+    padding: 20px 0;
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: transparent;
+    color: var(--flow-text);
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post--detail-root:hover { background: transparent; }
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post__display-name {
+    color: var(--flow-text);
+    font-size: 16px;
+    font-weight: 700;
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post__text {
+    color: var(--flow-text);
+    font-size: 16px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+html[data-flow-page="feed"] .skuy-post-detail-page :is(.skuy-post__username, .skuy-post__time, .skuy-post__meta, .skuy-post-detail__reply-time) {
+    color: var(--flow-text-muted);
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post-detail__composer {
+    border-color: var(--flow-border);
+    background: var(--flow-panel);
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post-detail__reply-heading {
+    color: var(--flow-text);
+    border-color: var(--flow-border);
+    font-size: 18px;
+    font-weight: 700;
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post-detail__reply--root,
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post-detail__reply--nested {
+    color: var(--flow-text);
+    border-color: var(--flow-border);
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post-detail__context {
+    border-color: var(--flow-border);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-hashtag,
+html[data-flow-page="feed"] .skuy-post-detail-page .skuy-action--selected {
+    color: var(--flow-accent-ink);
+}
+html[data-flow-page="feed"] .skuy-edit-thread-shell {
+    box-sizing: border-box;
+    width: min(100%, 760px);
+    margin-inline: auto;
+    padding: clamp(20px, 3vw, 36px) clamp(14px, 3vw, 28px) calc(112px + env(safe-area-inset-bottom, 0px));
+}
+html[data-flow-page="feed"] .skuy-edit-thread-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--flow-border);
+}
+html[data-flow-page="feed"] .skuy-edit-thread-header h1 {
+    margin: 0;
+    color: var(--flow-text);
+    font-size: clamp(23px, 2.7vw, 28px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+}
+html[data-flow-page="feed"] .skuy-edit-thread-header .skuy-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 44px;
+    min-height: 44px;
+    border: 1px solid var(--flow-border);
+    border-radius: 12px;
+    color: var(--flow-text);
+    background: var(--flow-panel);
+}
+html[data-flow-page="feed"] .skuy-edit-thread-header .skuy-action:hover {
+    color: var(--flow-accent-ink);
+    background: var(--flow-panel-muted);
+}
+html[data-flow-page="feed"] .skuy-edit-thread-composer {
+    padding: clamp(18px, 3vw, 26px);
+    border: 1px solid var(--flow-border);
+    border-radius: 18px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+    box-shadow: none;
+}
+html[data-flow-page="feed"] .skuy-edit-thread-composer .skuy-composer__textarea {
+    width: 100%;
+    min-height: 190px;
+    color: var(--flow-text);
+    background: var(--flow-panel);
+    font-size: 16px;
+    line-height: 1.6;
+}
+html[data-flow-page="feed"] .skuy-edit-thread-composer .skuy-composer__textarea:focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+html[data-flow-page="feed"] .skuy-edit-thread-page .skuy-button--primary {
+    background: var(--flow-accent);
+    border-color: var(--flow-accent);
+    color: white;
+}
+html[data-flow-page="feed"] .skuy-edit-thread-page .skuy-button--primary:hover {
+    background: var(--flow-accent-hover);
+    border-color: var(--flow-accent-hover);
+}
+html[data-flow-page="feed"] :is(.skuy-post-detail-page, .skuy-edit-thread-page) :is(a, button):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+@media (max-width: 640px) {
+    html[data-flow-page="feed"] .skuy-post-detail-page .skuy-post-detail__content,
+    html[data-flow-page="feed"] .skuy-edit-thread-shell { padding-inline: 12px; }
+    html[data-flow-page="feed"] .skuy-edit-thread-composer { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    html[data-flow-page="feed"] :is(.skuy-post-detail-page, .skuy-edit-thread-page) *,
+    html[data-flow-page="feed"] :is(.skuy-post-detail-page, .skuy-edit-thread-page) *::before,
+    html[data-flow-page="feed"] :is(.skuy-post-detail-page, .skuy-edit-thread-page) *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
