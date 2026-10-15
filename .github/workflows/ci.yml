@@ -230,3 +230,63 @@ jobs:
             console.log('::warning title=Build-time dependency advisories::Non-critical npm findings remain; see job summary.');
           }
           JS
+
+  framework-versions-preview:
+    if: github.event_name == 'pull_request' && github.head_ref == 'chore/latest-compatible-frameworks-20261015'
+    name: Compatible framework updates (read-only preview)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout safely
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, curl, zip, bcmath, intl, gd, sqlite3, pdo_sqlite
+          tools: composer:v2
+          coverage: none
+
+      - name: Set up Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+
+      - name: Preview direct Composer version candidates
+        shell: bash
+        run: |
+          composer install --no-interaction --no-progress --no-scripts --no-plugins --prefer-dist
+          composer outdated --direct --no-interaction || true
+
+      - name: Refresh compatible Composer lockfile (no lifecycle scripts)
+        run: composer update --with-all-dependencies --no-interaction --no-progress --no-scripts --no-plugins --no-audit
+
+      - name: Composer vulnerability and platform checks
+        shell: bash
+        run: |
+          composer audit --locked --no-interaction
+          composer check-platform-reqs --no-interaction
+
+      - name: Refresh compatible npm lockfile (no major upgrades)
+        shell: bash
+        run: |
+          npm outdated || true
+          npm update --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+          npm run test:client
+          npm run build
+          npm audit --audit-level=high
+
+      - name: Print reviewed lockfile patch (no credentials)
+        if: always()
+        shell: bash
+        run: |
+          git diff --no-ext-diff --no-color -- composer.lock package-lock.json > "$RUNNER_TEMP/framework-updates.patch"
+          echo 'BEGIN_FRAMEWORK_LOCK_PATCH_BASE64'
+          base64 --wrap=0 "$RUNNER_TEMP/framework-updates.patch"
+          echo
+          echo 'END_FRAMEWORK_LOCK_PATCH_BASE64'
