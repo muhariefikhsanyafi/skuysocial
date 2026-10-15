@@ -13,9 +13,9 @@
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/css/skuy-flow-guest.css', 'resources/js/app.js'])
     </head>
-    <body class="skuy-product skuy-guest-surface antialiased">
+    <body class="skuy-product skuy-guest-surface antialiased" data-flow-guest="auth">
         <div
             class="skuy-guest-shell"
             x-data="{ darkMode: document.documentElement.classList.contains('dark') }"

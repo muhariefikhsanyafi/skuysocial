@@ -1,0 +1,253 @@
+/* SkuySocial Flow — guest/welcome/auth surfaces. Deliberately no changes
+   to forms, verification, anti-bot, auth controllers or locale/theme behavior. */
+body[data-flow-guest] {
+    color-scheme: light;
+    --flow-canvas: #ffffff;
+    --flow-panel: #ffffff;
+    --flow-panel-muted: #f7f7f9;
+    --flow-text: #19191f;
+    --flow-text-secondary: #5e5e68;
+    --flow-text-muted: #696a76;
+    --flow-border: #e6e6eb;
+    --flow-border-strong: #838492;
+    --flow-accent: #6e5bef;
+    --flow-accent-hover: #5a49d7;
+    --flow-accent-ink: #5848dd;
+    --flow-accent-soft: #f1efff;
+    --flow-glass: rgb(255 255 255 / 94%);
+    --skuy-bg-canvas: var(--flow-canvas);
+    --skuy-bg-workspace: var(--flow-canvas);
+    --skuy-background: var(--flow-canvas);
+    --skuy-surface: var(--flow-panel);
+    --skuy-surface-base: var(--flow-canvas);
+    --skuy-surface-raised: var(--flow-panel);
+    --skuy-surface-elevated: var(--flow-panel);
+    --skuy-surface-subtle: var(--flow-panel-muted);
+    --skuy-surface-glass: var(--flow-glass);
+    --skuy-text-primary: var(--flow-text);
+    --skuy-text-secondary: var(--flow-text-secondary);
+    --skuy-text-muted: var(--flow-text-muted);
+    --skuy-border-subtle: var(--flow-border);
+    --skuy-border-soft: var(--flow-border);
+    --skuy-border-strong: var(--flow-border-strong);
+    --skuy-brand: var(--flow-accent);
+    --skuy-brand-hover: var(--flow-accent-hover);
+    --skuy-brand-pressed: #4939c4;
+    --skuy-secondary: var(--flow-accent-ink);
+    --skuy-secondary-hover: var(--flow-accent-hover);
+    --skuy-selected: var(--flow-accent-soft);
+    --skuy-on-selected: #5140ce;
+    --skuy-focus: var(--flow-accent);
+    --skuy-on-brand: #fff;
+    --skuy-on-secondary: #fff;
+    --skuy-glow-primary: transparent;
+    --skuy-glow-secondary: transparent;
+    --skuy-shadow-soft: 0 2px 8px rgb(25 25 31 / 7%);
+    --skuy-shadow-raised: 0 8px 26px rgb(25 25 31 / 7%);
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+html.dark body[data-flow-guest] {
+    color-scheme: dark;
+    --flow-canvas: #0d0e13;
+    --flow-panel: #1b1c25;
+    --flow-panel-muted: #22232e;
+    --flow-text: #f2f2f5;
+    --flow-text-secondary: #c5c5ce;
+    --flow-text-muted: #9899a5;
+    --flow-border: #30313e;
+    --flow-border-strong: #777989;
+    --flow-accent: #6e5bef;
+    --flow-accent-hover: #5d4be0;
+    --flow-accent-ink: #c4baff;
+    --flow-accent-soft: #292544;
+    --flow-glass: rgb(20 21 27 / 95%);
+    --skuy-on-selected: #cec8ff;
+    --skuy-brand-pressed: #6f61e3;
+    --skuy-shadow-soft: 0 3px 12px rgb(0 0 0 / 24%);
+    --skuy-shadow-raised: 0 10px 30px rgb(0 0 0 / 28%);
+}
+body[data-flow-guest] .skuy-guest-shell {
+    min-width: 0;
+    min-height: 100vh;
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+body[data-flow-guest] .skuy-guest-header {
+    position: relative;
+    z-index: 10;
+    border-bottom: 1px solid var(--flow-border);
+    background: var(--flow-glass);
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+body[data-flow-guest] .skuy-guest-header__inner {
+    min-height: 68px;
+}
+body[data-flow-guest] .skuy-guest-brand {
+    color: var(--flow-text);
+    letter-spacing: -0.04em;
+}
+body[data-flow-guest] .skuy-guest-brand__accent {
+    color: var(--flow-accent-ink);
+}
+body[data-flow-guest] .skuy-guest-header__action,
+body[data-flow-guest] .skuy-guest-header :is(.skuy-theme-toggle, .skuy-guest-language-trigger) {
+    border-color: var(--flow-border);
+    border-radius: 12px;
+    color: var(--flow-text);
+    background: var(--flow-panel);
+}
+body[data-flow-guest] .skuy-auth-main {
+    min-width: 0;
+    background: var(--flow-canvas);
+}
+body[data-flow-guest] .skuy-auth-panel {
+    padding: clamp(20px, 4vw, 34px);
+    border: 1px solid var(--flow-border);
+    border-radius: 20px;
+    background: var(--flow-panel);
+    box-shadow: none;
+}
+body[data-flow-guest] .skuy-auth-content {
+    gap: 26px;
+}
+body[data-flow-guest] .skuy-auth-heading {
+    color: var(--flow-text);
+    font-size: clamp(26px, 4vw, 34px);
+    letter-spacing: -0.04em;
+}
+body[data-flow-guest] :is(.skuy-auth-intro__copy, .skuy-auth-signup) {
+    color: var(--flow-text-secondary);
+    line-height: 1.6;
+}
+body[data-flow-guest] .skuy-auth-label {
+    color: var(--flow-text);
+}
+body[data-flow-guest] :is(.skuy-auth-input, .skuy-auth-form input:not([type="checkbox"])) {
+    min-width: 0;
+    max-width: 100%;
+    border-color: var(--flow-border-strong);
+    border-radius: 12px;
+    background: var(--flow-panel);
+    color: var(--flow-text);
+}
+body[data-flow-guest] .skuy-auth-input::placeholder {
+    color: var(--flow-text-muted);
+}
+body[data-flow-guest] .skuy-auth-primary-action {
+    min-height: 48px;
+    border: 1px solid var(--flow-accent);
+    border-radius: 12px;
+    background: var(--flow-accent);
+    color: #fff;
+    box-shadow: none;
+    transform: none;
+}
+body[data-flow-guest] .skuy-auth-primary-action:hover {
+    background: var(--flow-accent-hover);
+    border-color: var(--flow-accent-hover);
+}
+body[data-flow-guest] :is(.skuy-auth-link, .skuy-auth-signup__link) {
+    color: var(--flow-accent-ink);
+}
+body[data-flow-guest] .skuy-auth-status {
+    border-color: var(--flow-border);
+    border-radius: 12px;
+    background: var(--flow-accent-soft);
+    color: var(--flow-text);
+}
+body[data-flow-guest] :is(a, button, input, textarea, select):focus-visible {
+    outline: 2px solid var(--flow-accent);
+    outline-offset: 3px;
+}
+/* Welcome content and preview remain real, not decorative fake interactions. */
+body[data-flow-guest="welcome"] .skuy-welcome {
+    isolation: auto;
+    background: var(--flow-canvas);
+}
+body[data-flow-guest="welcome"] .skuy-welcome::before,
+body[data-flow-guest="welcome"] .skuy-welcome::after {
+    display: none;
+    content: none;
+    background: none;
+}
+body[data-flow-guest="welcome"] .skuy-welcome__hero {
+    gap: clamp(22px, 4vw, 52px);
+    padding-block: clamp(46px, 7vw, 84px);
+}
+body[data-flow-guest="welcome"] .skuy-welcome__hero h1 {
+    color: var(--flow-text);
+    font-size: clamp(30px, 5vw, 52px);
+    letter-spacing: -0.045em;
+    line-height: 1.12;
+}
+body[data-flow-guest="welcome"] .skuy-welcome__hero-copy > p {
+    color: var(--flow-text-secondary);
+    line-height: 1.65;
+}
+body[data-flow-guest="welcome"] .skuy-public-button {
+    border-radius: 12px;
+    box-shadow: none;
+}
+body[data-flow-guest="welcome"] .skuy-public-button--primary {
+    border-color: var(--flow-accent);
+    background: var(--flow-accent);
+    color: #fff;
+}
+body[data-flow-guest="welcome"] .skuy-public-button--primary:hover {
+    border-color: var(--flow-accent-hover);
+    background: var(--flow-accent-hover);
+}
+body[data-flow-guest="welcome"] .skuy-public-button--secondary {
+    border-color: var(--flow-border-strong);
+    background: var(--flow-panel);
+    color: var(--flow-text);
+}
+body[data-flow-guest="welcome"] .skuy-thread-preview {
+    border: 1px solid var(--flow-border);
+    border-radius: 18px;
+    background: var(--flow-panel);
+    background-image: none;
+    color: var(--flow-text);
+    box-shadow: none;
+}
+body[data-flow-guest="welcome"] .skuy-welcome-story {
+    background: var(--flow-canvas);
+    color: var(--flow-text);
+}
+body[data-flow-guest="welcome"] .skuy-welcome-story :is(article, section) {
+    border-color: var(--flow-border);
+    box-shadow: none;
+}
+body[data-flow-guest="welcome"] .skuy-guest-footer {
+    border-top-color: var(--flow-border);
+    background: var(--flow-canvas);
+    color: var(--flow-text-secondary);
+}
+@media (max-width: 640px) {
+    body[data-flow-guest] .skuy-guest-header__inner {
+        width: min(calc(100% - 24px), 1180px);
+    }
+    body[data-flow-guest] .skuy-auth-panel {
+        padding: 20px 16px;
+    }
+    body[data-flow-guest="welcome"] .skuy-welcome__hero {
+        padding-block: 32px 42px;
+    }
+}
+@media (prefers-reduced-transparency: reduce) {
+    body[data-flow-guest] .skuy-guest-header {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--flow-panel);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    body[data-flow-guest] *, body[data-flow-guest] *::before, body[data-flow-guest] *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
