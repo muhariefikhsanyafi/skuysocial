@@ -1,0 +1,36 @@
+[Unit]
+# Legacy diagnostic unit. Disabled on this host; use reviewed system unit instead.
+Description=SkuySocial bounded Development task worker
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=simple
+WorkingDirectory=/home/skuysocialdev/projects/skuysocial
+ExecStart=/usr/bin/python3 /home/skuysocialdev/projects/skuysocial/ops/autopilot/runner.py worker
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=15
+KillMode=control-group
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/skuysocialdev/projects/skuysocial/.autopilot /home/skuysocialdev/.codex
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryMax=4G
+CPUQuota=200%
+TasksMax=128
+LimitCORE=0
+LimitFSIZE=33554432
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

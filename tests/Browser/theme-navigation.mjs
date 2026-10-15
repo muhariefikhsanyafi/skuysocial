@@ -91,8 +91,22 @@ class CDP {
     send(method, params = {}) {
         return new Promise((resolve, reject) => {
             const id = ++this.id;
-            this.pending.set(id, { resolve, reject });
-            this.socket.send(JSON.stringify({ id, method, params }));
+            // A stalled DevTools command must fail with diagnostics, not hang CI for 15 minutes.
+            const timer = setTimeout(() => {
+                this.pending.delete(id);
+                reject(new Error(`CDP command timed out after 30s: ${method}`));
+            }, 30000);
+            this.pending.set(id, {
+                resolve: value => { clearTimeout(timer); resolve(value); },
+                reject: error => { clearTimeout(timer); reject(error); },
+            });
+            try {
+                this.socket.send(JSON.stringify({ id, method, params }));
+            } catch (error) {
+                this.pending.delete(id);
+                clearTimeout(timer);
+                reject(error);
+            }
         });
     }
     async evaluate(expression) {
@@ -183,6 +197,7 @@ try {
         return `${phase}/${name}.png`;
     }
     async function capture(route, expected, label, reload = false, click = false) {
+        console.log('Browser QA capture: ' + label);
         holdModule = true;
         heldRequests = [];
         if (click) {
