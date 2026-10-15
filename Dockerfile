@@ -1,6 +1,6 @@
 # Standalone container build; Production migrations must NEVER run on startup.
 # Production DB/files remain external to the disposable container.
-FROM php:8.3-cli-bookworm
+FROM php:8.5-cli-bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq-dev libzip-dev libsqlite3-dev libicu-dev libonig-dev libxml2-dev \
