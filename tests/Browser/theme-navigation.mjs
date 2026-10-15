@@ -713,6 +713,24 @@ try {
                     })()`);
                     const image = await screenshot(`flow-qa-${key}-${width}-${mode}`);
                     results.flowVisual.push({ key, url, width, mode, scope, metrics, image });
+                    if (key === 'conversation' && width <= 390) {
+                        // Regression for the fixed five-item dock hiding Chat's send action.
+                        // Scroll only within the isolated visual QA fixture (never real users).
+                        await cdp.evaluate(`document.querySelector('[data-message-submit]')?.scrollIntoView({block:'center'})`);
+                        await cdp.evaluate('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+                        const chatSend = await cdp.evaluate(`(() => {
+                            const send = document.querySelector('[data-message-submit]');
+                            const dock = document.querySelector('.skuy-mobile-nav');
+                            if (!send || !dock) return null;
+                            const rect = send.getBoundingClientRect();
+                            const nav = dock.getBoundingClientRect();
+                            return { height: rect.height, top: rect.top, bottom: rect.bottom, dockTop: nav.top };
+                        })()`);
+                        check(`Flow mobile Chat submit visible above dock ${width}px ${mode}`,
+                            chatSend !== null && chatSend.height >= 44 &&
+                            chatSend.top >= 0 && chatSend.bottom <= chatSend.dockTop - 8, chatSend);
+                        await screenshot(`flow-qa-chat-submit-${width}-${mode}`);
+                    }
                     check(`Flow ${key} ${width}px ${mode}: rendered theme, shell, safe viewport, real navigation`,
                         metrics.theme === mode && metrics.scope === scope && !metrics.hasErrorPage &&
                         metrics.mainTextLength > 0 && metrics.documentWidth <= width &&
