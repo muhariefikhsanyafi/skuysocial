@@ -181,7 +181,7 @@ jobs:
 
   container-safety:
     name: Container image build and startup safety
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'pull_request' && (github.base_ref == 'main' || github.head_ref == 'feat/php85-compat-20261015')
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
