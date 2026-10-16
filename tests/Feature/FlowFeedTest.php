@@ -170,32 +170,29 @@ class FlowFeedTest extends TestCase
         }
     }
 
-    public function test_dark_feed_verified_component_uses_violet_fill_and_a_contrasting_checkmark(): void
+    public function test_dark_feed_verified_component_reuses_the_blue_icon_without_a_theme_override(): void
     {
         $css = file_get_contents(resource_path('css/skuy-flow-feed.css'));
+        $sharedCss = file_get_contents(resource_path('css/skuy-prism.css'));
         $component = file_get_contents(resource_path('views/components/verified-badge.blade.php'));
+        $icon = file_get_contents(public_path('images/verified-badge.svg'));
         $feedPartial = file_get_contents(resource_path('views/partials/feed-threads.blade.php'));
         $this->assertIsString($css);
+        $this->assertIsString($sharedCss);
         $this->assertIsString($component);
+        $this->assertIsString($icon);
         $this->assertIsString($feedPartial);
 
         $this->assertStringContainsString('<x-verified-badge />', $feedPartial);
         $this->assertStringContainsString('data-verified-badge', $component);
-        $this->assertStringContainsString('stroke="currentColor"', $component);
-        $this->assertStringContainsString(
+        $this->assertStringContainsString("asset('images/verified-badge.svg')", $component);
+        $this->assertStringContainsString('fill="#1877F2"', $icon);
+        $this->assertStringContainsString('stroke="#fff"', $icon);
+        $this->assertStringContainsString('.skuy-verified-badge > img', $sharedCss);
+        $this->assertStringNotContainsString(
             'html[data-flow-page="feed"].dark .skuy-feed-page[data-flow-feed] [data-verified-badge]',
             $css,
         );
-
-        $verifiedRule = $this->lastCssRule($css, '[data-verified-badge]');
-        foreach ([
-            'background: var(--flow-accent-ink);',
-            'border-color: var(--flow-accent-ink);',
-            'color: var(--flow-canvas);',
-            'box-shadow: none;',
-        ] as $contract) {
-            $this->assertStringContainsString($contract, $verifiedRule, "Missing dark verified badge contract: {$contract}");
-        }
     }
 
     public function test_verified_author_renders_the_actual_badge_in_a_feed_post_header(): void
@@ -209,7 +206,7 @@ class FlowFeedTest extends TestCase
         $response->assertOk()
             ->assertSee($post->content)
             ->assertSee('data-verified-badge', false)
-            ->assertSee('stroke="currentColor"', false);
+            ->assertSee('images/verified-badge.svg', false);
     }
 
     public function test_flow_feed_mobile_chrome_metadata_and_desktop_context_follow_layout_contracts(): void
