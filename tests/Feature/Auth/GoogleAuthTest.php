@@ -95,7 +95,7 @@ class GoogleAuthTest extends TestCase
         $this->assertSame(UserRole::User->value, $user->role);
         $this->assertSame(ModerationState::Active->value, $user->moderation_state);
         $this->assertSame(0, $user->authSessionVersion());
-        $this->assertSessionMissing('google_oauth.pending_registration');
+        $this->assertNull(session('google_oauth.pending_registration'));
 
         $this->post(route('logout'))->assertRedirect('/');
         $state = $this->start();
@@ -168,7 +168,7 @@ class GoogleAuthTest extends TestCase
 
         $this->assertGuest();
         $this->assertDatabaseCount('users', 0);
-        $this->assertSessionMissing('google_oauth.pending_registration');
+        $this->assertNull(session('google_oauth.pending_registration'));
     }
 
     public function test_cancelling_google_onboarding_does_not_create_an_account(): void
@@ -200,7 +200,7 @@ class GoogleAuthTest extends TestCase
 
         $this->assertGuest();
         $this->assertDatabaseCount('users', 1);
-        $this->assertSessionMissing('google_oauth.pending_registration');
+        $this->assertNull(session('google_oauth.pending_registration'));
     }
 
     public function test_google_does_not_claim_preexisting_password_account_by_email(): void
