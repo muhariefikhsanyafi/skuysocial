@@ -613,13 +613,6 @@ html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-verified-badge
     flex: 0 0 auto;
 }
 
-html[data-flow-page="feed"].dark .skuy-feed-page[data-flow-feed] [data-verified-badge] {
-    background: var(--flow-accent-ink);
-    border-color: var(--flow-accent-ink);
-    color: var(--flow-canvas);
-    box-shadow: none;
-}
-
 html[data-flow-page="feed"] .skuy-feed-page[data-flow-feed] .skuy-post__content {
     min-width: 0;
     margin-block-start: 6px;
