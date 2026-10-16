@@ -109,6 +109,9 @@ class GoogleAuthTest extends TestCase
 
     public function test_google_completion_rejects_duplicate_or_invalid_usernames_without_creating_account(): void
     {
+        // Validate multiple form errors without exhausting the route's real-world HTTP throttle.
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+
         User::factory()->create(['username' => 'taken_name']);
         $this->fakeGoogle('candidate-sub', 'candidate@gmail.com', true, 'Candidate');
         $state = $this->start();
