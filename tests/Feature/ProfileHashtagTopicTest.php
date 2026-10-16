@@ -660,4 +660,40 @@ class ProfileHashtagTopicTest extends TestCase
 
         return $queryCount;
     }
+    public function test_flow_profile_without_cover_has_no_phantom_banner_and_uses_thematic_verification(): void
+    {
+        $viewer = User::factory()->create();
+        $profile = User::factory()->create([
+            'name' => 'Visual QA Profile',
+            'username' => 'visual_qa_profile',
+            'cover' => null,
+            'is_verified' => true,
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('user.profile', $profile->username))
+            ->assertOk()
+            ->assertSee('skuy-profile-header--no-cover', false)
+            ->assertSee('data-profile-identity', false)
+            ->assertSee('data-flow-verified', false)
+            ->assertSee('data-profile-actions', false)
+            ->assertSee('data-profile-statistics', false)
+            ->assertSee('data-profile-tabs', false);
+    }
+
+    public function test_flow_profile_keeps_real_cover_when_present(): void
+    {
+        $viewer = User::factory()->create();
+        $profile = User::factory()->create([
+            'username' => 'visual_qa_cover',
+            'cover' => 'covers/preserved.jpg',
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('user.profile', $profile->username))
+            ->assertOk()
+            ->assertSee('skuy-profile-header--has-cover', false)
+            ->assertSee('storage/covers/preserved.jpg', false);
+    }
+
 }

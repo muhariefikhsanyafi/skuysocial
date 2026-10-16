@@ -1342,3 +1342,193 @@ html[data-flow-page="profile"] .skuy-post__options > [role="menu"][data-flow-pro
     inset-block-end: auto !important;
     margin-block: 0;
 }
+
+
+/* Profile visual QA corrective: no phantom cover and no blue verification square.
+   Keeps uploaded covers, existing follow/message actions and all user content intact. */
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header {
+    border: 0;
+    border-bottom: 1px solid var(--flow-border);
+    border-radius: 0;
+    background: var(--flow-canvas);
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--no-cover .skuy-profile-cover {
+    display: none;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--has-cover .skuy-profile-cover {
+    overflow: hidden;
+    border-radius: 16px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header__body {
+    padding: 0 4px 12px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row {
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr) auto;
+    grid-template-areas: "avatar identity actions";
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    margin-top: 0;
+    padding-top: 14px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row > .skuy-profile-avatar { grid-area: avatar; }
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row > .skuy-profile-identity {
+    grid-area: identity;
+    min-width: 0;
+    margin-top: 0;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row > .skuy-profile-action {
+    grid-area: actions;
+    margin: 0;
+    justify-self: end;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--no-cover .skuy-profile-avatar {
+    width: 80px;
+    height: 80px;
+    border: 2px solid var(--flow-border);
+    background: var(--flow-accent-soft);
+    box-shadow: none;
+    font-size: 29px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--has-cover .skuy-profile-hero-row {
+    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-areas: "avatar actions" "identity identity";
+    gap: 10px 14px;
+    margin-top: -44px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--has-cover .skuy-profile-hero-row > .skuy-profile-action {
+    align-self: end;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--has-cover .skuy-profile-hero-row > .skuy-profile-identity {
+    padding-top: 4px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-title {
+    font-size: clamp(23px, 3.2vw, 30px);
+    letter-spacing: -0.035em;
+    line-height: 1.14;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-flow-verified] {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    margin-inline-start: 3px;
+    vertical-align: -0.13em;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--flow-accent);
+    box-shadow: none;
+}
+html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] [data-flow-verified] {
+    border: 0;
+    background: transparent;
+    color: #a998ff;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-flow-verified] svg {
+    width: 22px;
+    height: 22px;
+    stroke: none;
+    color: inherit;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-flow-verified] svg path:last-child {
+    stroke: #fff;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-details {
+    margin-top: 14px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stats {
+    gap: 8px 24px;
+    margin-top: 16px;
+    padding-top: 12px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stat {
+    gap: 6px;
+    min-height: 44px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stat__value {
+    font-size: 15px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-tabs {
+    margin: 0;
+    padding-top: 0;
+    border-color: var(--flow-border);
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-tab {
+    min-height: 52px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-content {
+    margin-top: 0;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-empty {
+    display: grid;
+    justify-items: start;
+    gap: 9px;
+    margin: 0;
+    padding: 32px 4px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-empty__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 3px;
+    border-radius: 13px;
+    background: var(--flow-accent-soft);
+    color: var(--flow-accent-ink);
+    font-size: 20px;
+}
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-empty__title {
+    font-size: 17px;
+}
+@media (max-width: 767px) {
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header__body {
+        padding-inline: 2px;
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row {
+        grid-template-columns: 72px minmax(0, 1fr);
+        grid-template-areas: "avatar identity" "actions actions";
+        align-items: center;
+        gap: 12px;
+        margin-top: 0;
+        padding-top: 12px;
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--no-cover .skuy-profile-avatar {
+        width: 68px;
+        height: 68px;
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--has-cover .skuy-profile-hero-row {
+        grid-template-columns: 72px minmax(0, 1fr);
+        grid-template-areas: "avatar actions" "identity identity";
+        margin-top: -30px;
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row > .skuy-profile-action {
+        justify-self: stretch;
+        justify-content: start;
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-owner-actions,
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-visitor-actions {
+        justify-content: start;
+        flex-wrap: wrap;
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-stats {
+        gap: 6px 16px;
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-empty {
+        padding: 28px 4px;
+    }
+}
+@media (max-width: 359px) {
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-hero-row {
+        grid-template-columns: 64px minmax(0, 1fr);
+    }
+    html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header--no-cover .skuy-profile-avatar {
+        width: 60px;
+        height: 60px;
+    }
+}
