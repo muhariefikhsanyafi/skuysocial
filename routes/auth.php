@@ -22,6 +22,14 @@ Route::middleware('guest')->group(function () {
     Route::get('auth/google', [GoogleAuthController::class, 'redirect'])
         ->middleware('throttle:10,1')
         ->name('auth.google.redirect');
+    Route::get('auth/google/complete', [GoogleAuthController::class, 'complete'])
+        ->name('auth.google.complete');
+    Route::post('auth/google/complete', [GoogleAuthController::class, 'storeCompleted'])
+        ->middleware('throttle:5,1')
+        ->name('auth.google.complete.store');
+    Route::post('auth/google/cancel', [GoogleAuthController::class, 'cancelRegistration'])
+        ->middleware('throttle:10,1')
+        ->name('auth.google.complete.cancel');
     Route::get('two-factor/challenge', [TwoFactorLoginChallengeController::class, 'show'])
         ->name('two-factor.challenge');
     Route::post('two-factor/challenge', [TwoFactorLoginChallengeController::class, 'verify'])

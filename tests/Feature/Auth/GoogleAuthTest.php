@@ -60,30 +60,150 @@ class GoogleAuthTest extends TestCase
         $this->assertNotSame('', $parameters['code_challenge']);
     }
 
-    public function test_verified_google_identity_creates_standard_user_and_can_log_in_again(): void
+    public function test_new_google_user_must_choose_their_name_and_permanent_username_before_account_creation(): void
     {
-        $this->fakeGoogle('google-sub-123', 'new@gmail.com', true, 'Flow Member');
+        $this->fakeGoogle('google-sub-123', 'new@gmail.com', true, 'Google Suggested Name');
 
         $state = $this->start();
         $this->get(route('auth.google.callback', ['state' => $state, 'code' => 'mock-code']))
-            ->assertRedirect(route('dashboard', absolute: false));
+            ->assertRedirect(route('auth.google.complete'));
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 0);
+
+        $this->get(route('auth.google.complete'))
+            ->assertOk()
+            ->assertSee('data-google-complete', false)
+            ->assertSee('Google Suggested Name')
+            ->assertSee('new@gmail.com')
+            ->assertSee('name="username"', false)
+            ->assertDontSee('name="password"', false);
+
+        $this->post(route('auth.google.complete.store'), [
+            'name' => 'My Chosen Name',
+            'username' => 'My_Chosen.Name',
+            'email' => 'injected@gmail.com',
+            'google_sub' => 'attacker-sub',
+        ])->assertRedirect(route('dashboard', absolute: false));
 
         $user = User::query()->where('google_sub', 'google-sub-123')->firstOrFail();
         $this->assertAuthenticatedAs($user);
+        $this->assertSame('My Chosen Name', $user->name);
+        $this->assertSame('my_chosen.name', $user->username);
         $this->assertSame('new@gmail.com', $user->email);
         $this->assertNotNull($user->email_verified_at);
         $this->assertSame(UserRole::User->value, $user->role);
         $this->assertSame(ModerationState::Active->value, $user->moderation_state);
         $this->assertSame(0, $user->authSessionVersion());
-        $this->assertMatchesRegularExpression('/^google_[a-z0-9]{20}$/', $user->username);
+        $this->assertNull(session('google_oauth.pending_registration'));
 
         $this->post(route('logout'))->assertRedirect('/');
         $state = $this->start();
         $this->get(route('auth.google.callback', ['state' => $state, 'code' => 'mock-code']))
             ->assertRedirect(route('dashboard', absolute: false));
 
-        $this->assertSame(1, User::query()->where('google_sub', 'google-sub-123')->count());
         $this->assertAuthenticatedAs($user);
+        $this->assertSame(1, User::query()->where('google_sub', 'google-sub-123')->count());
+        $this->assertSame('my_chosen.name', $user->fresh()->username);
+    }
+
+    public function test_google_completion_rejects_duplicate_or_invalid_usernames_without_creating_account(): void
+    {
+        // Validate multiple form errors without exhausting the route's real-world HTTP throttle.
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+
+        User::factory()->create(['username' => 'taken_name']);
+        $this->fakeGoogle('candidate-sub', 'candidate@gmail.com', true, 'Candidate');
+        $state = $this->start();
+        $this->get(route('auth.google.callback', ['state' => $state, 'code' => 'code']))
+            ->assertRedirect(route('auth.google.complete'));
+
+        $this->post(route('auth.google.complete.store'), [
+            'name' => 'Candidate',
+            'username' => 'Taken_Name',
+        ])->assertSessionHasErrors('username');
+
+        $this->post(route('auth.google.complete.store'), [
+            'name' => 'Candidate',
+            'username' => 'invalid username',
+        ])->assertSessionHasErrors('username');
+
+        $this->post(route('auth.google.complete.store'), [
+            'name' => '',
+            'username' => 'valid_name',
+        ])->assertSessionHasErrors('name');
+
+        $this->assertGuest();
+        $this->assertSame(1, User::query()->count());
+        $this->assertNull(User::query()->where('google_sub', 'candidate-sub')->first());
+
+        $this->post(route('auth.google.complete.store'), [
+            'name' => 'Valid Display Name',
+            'username' => 'valid_name',
+        ])->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertSame('valid_name', User::query()->where('google_sub', 'candidate-sub')->firstOrFail()->username);
+    }
+
+    public function test_google_completion_requires_a_fresh_verified_oauth_session_and_cannot_replay(): void
+    {
+        $this->get(route('auth.google.complete'))
+            ->assertRedirect(route('login'))->assertSessionHasErrors('google');
+        $this->post(route('auth.google.complete.store'), [
+            'name' => 'Forged User',
+            'username' => 'forged',
+        ])->assertRedirect(route('login'))->assertSessionHasErrors('google');
+        $this->assertGuest();
+
+        $this->fakeGoogle('expiring-google-sub', 'expired@gmail.com');
+        $state = $this->start();
+        $this->get(route('auth.google.callback', ['state' => $state, 'code' => 'code']))
+            ->assertRedirect(route('auth.google.complete'));
+        $pending = session('google_oauth.pending_registration');
+        $this->withSession(['google_oauth.pending_registration' => [
+            ...$pending,
+            'created_at' => time() - 601,
+        ]]);
+        $this->post(route('auth.google.complete.store'), [
+            'name' => 'Expired',
+            'username' => 'expired_google',
+        ])->assertRedirect(route('login'))->assertSessionHasErrors('google');
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 0);
+        $this->assertNull(session('google_oauth.pending_registration'));
+    }
+
+    public function test_cancelling_google_onboarding_does_not_create_an_account(): void
+    {
+        $this->fakeGoogle('cancel-google-sub', 'cancel@gmail.com');
+        $state = $this->start();
+        $this->get(route('auth.google.callback', ['state' => $state, 'code' => 'code']))
+            ->assertRedirect(route('auth.google.complete'));
+
+        $this->post(route('auth.google.complete.cancel'))->assertRedirect(route('login'));
+        $this->get(route('auth.google.complete'))
+            ->assertRedirect(route('login'))->assertSessionHasErrors('google');
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_google_completion_refuses_accounts_created_by_another_session_in_the_meantime(): void
+    {
+        $this->fakeGoogle('pending-sub', 'race@gmail.com');
+        $state = $this->start();
+        $this->get(route('auth.google.callback', ['state' => $state, 'code' => 'code']))
+            ->assertRedirect(route('auth.google.complete'));
+
+        User::factory()->create(['email' => 'race@gmail.com']);
+        $this->post(route('auth.google.complete.store'), [
+            'name' => 'Race Candidate',
+            'username' => 'racer',
+        ])->assertRedirect(route('login'))->assertSessionHasErrors('google');
+
+        $this->assertGuest();
+        $this->assertDatabaseCount('users', 1);
+        $this->assertNull(session('google_oauth.pending_registration'));
     }
 
     public function test_google_does_not_claim_preexisting_password_account_by_email(): void
