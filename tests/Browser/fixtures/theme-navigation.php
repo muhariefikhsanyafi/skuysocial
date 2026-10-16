@@ -61,6 +61,7 @@ if ($migrationExit !== 0) {
 }
 $author = User::factory()->create([
     'name' => 'QA Theme Author', 'username' => 'qa.theme.author', 'email' => 'author@example.test',
+    'is_verified' => true, 'cover' => null,
 ]);
 $post = null;
 $savedPost = null;

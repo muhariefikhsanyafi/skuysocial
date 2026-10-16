@@ -470,6 +470,52 @@ try {
     await viewport(390, 844);
     await login(2);
     const own = fixture.accounts[2];
+    // Real Chromium layout acceptance of the empty-cover, verified visitor Profile.
+    // Unlike a green route/status test, these assertions inspect the visible computed result.
+    for (const [profileWidth, profileMode] of [[1280, 'light'], [1280, 'dark'], [390, 'light'], [390, 'dark']]) {
+        await viewport(profileWidth, profileWidth === 390 ? 844 : 800);
+        await theme(profileMode);
+        await navigate(fixture.otherProfile);
+        const profileVisual = await cdp.evaluate(`(() => {
+            const root = document.querySelector('[data-skuy-profile]');
+            const header = root?.querySelector('[data-profile-hero]');
+            const cover = header?.querySelector('.skuy-profile-cover');
+            const avatar = header?.querySelector('.skuy-profile-avatar');
+            const identity = header?.querySelector('[data-profile-identity]');
+            const actions = header?.querySelector('[data-profile-actions]');
+            const verified = identity?.querySelector('[data-flow-verified]');
+            const rect = node => {
+                if (!node) return null;
+                const r = node.getBoundingClientRect();
+                return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};
+            };
+            return {
+                scope: document.documentElement.dataset.flowPage,
+                mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                coverClass: header?.classList.contains('skuy-profile-header--no-cover'),
+                coverDisplay: cover ? getComputedStyle(cover).display : null,
+                badgeSvg: !!verified?.querySelector('svg'),
+                badgeColor: verified ? getComputedStyle(verified).color : null,
+                avatar: rect(avatar), identity: rect(identity), actions: rect(actions),
+                overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+            };
+        })()`);
+        await screenshot(`profile-visual-fix-${profileWidth}-${profileMode}`);
+        const expectedColor = profileMode === 'light' ? 'rgb(110, 91, 239)' : 'rgb(169, 152, 255)';
+        const aligned = profileVisual.avatar && profileVisual.identity && profileVisual.actions
+            && profileVisual.identity.left >= profileVisual.avatar.right - 2
+            && (profileWidth >= 768
+                ? profileVisual.actions.left >= profileVisual.identity.right - 2
+                : profileVisual.actions.top >= profileVisual.avatar.bottom - 2);
+        check(`Profile visual QA: no phantom cover, Flow badge, readable composition ${profileWidth}px ${profileMode}`,
+            profileVisual.scope === 'profile'
+            && profileVisual.mode === profileMode
+            && profileVisual.coverClass
+            && profileVisual.coverDisplay === 'none'
+            && profileVisual.badgeSvg
+            && profileVisual.badgeColor === expectedColor
+            && aligned && !profileVisual.overflow, profileVisual);
+    }
     for (const width of [1536, 1280, 1024, 390, 320]) {
         const height = width === 1536 ? 960 : width === 1280 ? 900 : width === 1024 ? 900 : width === 390 ? 844 : 740;
         await viewport(width, height);
