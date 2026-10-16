@@ -1961,28 +1961,30 @@
     -webkit-user-drag: none;
 }
 
-.skuy-verified-badge,
-.skuy-profile-verified {
+/* One shared SVG badge, identical in all SkuySocial themes and surfaces. */
+.skuy-verified-badge {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 22px;
     height: 22px;
     flex: 0 0 22px;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid color-mix(in srgb, var(--skuy-on-secondary) 12%, var(--skuy-secondary));
-    border-radius: var(--radius-full);
-    background: var(--skuy-secondary);
-    color: var(--skuy-on-secondary);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--skuy-secondary) 12%, transparent);
     vertical-align: middle;
+    line-height: 1;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    box-shadow: none;
 }
 
-.skuy-verified-badge svg,
-.skuy-profile-verified svg {
+.skuy-verified-badge > img {
     display: block;
-    width: 14px;
-    height: 14px;
-    flex: 0 0 14px;
+    width: 22px;
+    height: 22px;
+    max-width: none;
+    flex: 0 0 22px;
+    object-fit: contain;
 }
 
 @media (min-width: 1200px) {
