@@ -85,9 +85,7 @@
                                                         <span aria-hidden="true">@</span>{{ $post->user->username }}
                                                     </a>
                                                     @if ($post->user->is_verified)
-                                                        <span class="skuy-discovery-verified" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path></svg>
-                                                        </span>
+                                                        <x-verified-badge />
                                                     @endif
                                                     @if ($post->topic)
                                                         <span aria-hidden="true" class="text-[var(--skuy-text-muted)]">&middot;</span>

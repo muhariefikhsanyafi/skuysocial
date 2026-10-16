@@ -2,8 +2,9 @@ import { usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { PostDetailPageProps, ReactiveCommentCreationResponse } from '../../types/post';
 import { Avatar } from '../../components/post/Avatar';
+import { VerifiedBadge } from '../../components/post/VerifiedBadge';
 import { CommentList } from '../../components/post/CommentList';
-import { ArrowLeftIcon, CheckIcon, ImageIcon, RepostContextIcon } from '../../components/post/icons';
+import { ArrowLeftIcon, ImageIcon, RepostContextIcon } from '../../components/post/icons';
 import { MediaViewer } from '../../components/post/MediaViewer';
 import { PostActions } from '../../components/post/PostActions';
 import { PostOptions } from '../../components/post/PostOptions';
@@ -88,9 +89,7 @@ export default function Show() {
                                     <span className="skuy-post__display-name">{displayPost.author.name}</span>
                                     <span className="skuy-post__username">@{displayPost.author.username}</span>
                                     {displayPost.author.is_verified && (
-                                        <span className="skuy-verified-badge" data-verified-badge role="img" title={translations.verified} aria-label={translations.verified}>
-                                            <CheckIcon />
-                                        </span>
+                                        <VerifiedBadge label={translations.verified} />
                                     )}
                                     <span className="skuy-post__meta-separator" aria-hidden="true">·</span>
                                     <time dateTime={displayPost.datetime} className="skuy-post__time">
@@ -171,9 +170,7 @@ export default function Show() {
                                 <span>@{displayPost.author.username}</span>
                             </span>
                             {displayPost.author.is_verified && (
-                                <span className="skuy-verified-badge" data-verified-badge role="img" title={translations.verified} aria-label={translations.verified}>
-                                    <CheckIcon />
-                                </span>
+                                <VerifiedBadge label={translations.verified} />
                             )}
                         </a>
                         <p className="skuy-post-detail__creator-bio">{authorContext.bio?.trim() || translations.no_bio}</p>

@@ -28,11 +28,7 @@
                             @endif
 
                             @if ($counterpart?->is_verified)
-                                <span class="skuy-profile-verified" title="{{ __('threads.verified') }}" aria-label="{{ __('threads.verified') }}">
-                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"></path>
-                                    </svg>
-                                </span>
+                                <x-verified-badge />
                             @endif
                         </h1>
                         @if ($counterpart)
