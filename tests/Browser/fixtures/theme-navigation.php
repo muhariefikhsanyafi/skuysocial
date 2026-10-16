@@ -63,6 +63,11 @@ $author = User::factory()->create([
     'name' => 'QA Theme Author', 'username' => 'qa.theme.author', 'email' => 'author@example.test',
     'is_verified' => true, 'cover' => null,
 ]);
+$emptyVerified = User::factory()->create([
+    'name' => 'QA Empty Verified Profile', 'username' => 'qa.theme.empty.verified',
+    'email' => 'empty-verified@example.test', 'cover' => null, 'bio' => null,
+    'is_verified' => true,
+]);
 $post = null;
 $savedPost = null;
 $posts = [];
@@ -160,6 +165,7 @@ if ($appreciationResult->status !== PostAppreciationStatus::Appreciated) {
 }
 echo json_encode([
     'accounts' => $accounts, 'otherProfile' => route('user.profile', $author->username, false),
+    'emptyVerifiedProfile' => route('user.profile', $emptyVerified->username, false),
     'post' => route('posts.show', $posts[22], false), // Not seeded as bookmarked: browser exercises save -> unsave.
     'savedPost' => route('posts.show', $savedPost, false),
     'appreciationStatusPost' => $posts[12]->uid,

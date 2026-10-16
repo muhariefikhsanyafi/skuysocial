@@ -475,7 +475,7 @@ try {
     for (const [profileWidth, profileMode] of [[1280, 'light'], [1280, 'dark'], [390, 'light'], [390, 'dark']]) {
         await viewport(profileWidth, profileWidth === 390 ? 844 : 800);
         await theme(profileMode);
-        await navigate(fixture.otherProfile);
+        await navigate(fixture.emptyVerifiedProfile);
         const profileVisual = await cdp.evaluate(`(() => {
             const root = document.querySelector('[data-skuy-profile]');
             const header = root?.querySelector('[data-profile-hero]');
@@ -494,6 +494,8 @@ try {
                 mode: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
                 coverClass: header?.classList.contains('skuy-profile-header--no-cover'),
                 coverDisplay: cover ? getComputedStyle(cover).display : null,
+                emptyStateVisible: Boolean(root?.querySelector('.skuy-profile-empty')?.getClientRects().length),
+                postCount: root?.querySelector('.skuy-profile-stat__value')?.textContent.trim(),
                 badgeSvg: !!verified?.querySelector('svg'),
                 badgeColor: verified ? getComputedStyle(verified).color : null,
                 avatar: rect(avatar), identity: rect(identity), actions: rect(actions),
@@ -512,6 +514,7 @@ try {
             && profileVisual.mode === profileMode
             && profileVisual.coverClass
             && profileVisual.coverDisplay === 'none'
+            && profileVisual.emptyStateVisible && profileVisual.postCount === '0'
             && profileVisual.badgeSvg
             && profileVisual.badgeColor === expectedColor
             && aligned && !profileVisual.overflow, profileVisual);
