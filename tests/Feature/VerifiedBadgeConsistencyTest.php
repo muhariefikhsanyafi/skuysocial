@@ -23,24 +23,37 @@ class VerifiedBadgeConsistencyTest extends TestCase
         $this->assertStringContainsString('alt=""', $markup);
     }
 
-    public function test_verified_profiles_and_messages_reuse_the_shared_badge(): void
+    public function test_profile_uses_flow_verification_while_messages_keep_the_existing_shared_badge(): void
     {
         $viewer = User::factory()->create();
         $account = User::factory()->create();
         $account->forceFill(['is_verified' => true])->save();
         $conversation = app(FindOrCreateDirectConversation::class)->handle($viewer, $account);
 
-        foreach ([
-            route('user.profile', $account),
-            route('messages.index'),
-            route('messages.show', $conversation),
-        ] as $url) {
+        $this->actingAs($viewer)
+            ->get(route('user.profile', $account))
+            ->assertOk()
+            ->assertSee('data-verified-badge', false)
+            ->assertSee('data-flow-verified', false);
+
+        // Other surfaces retain their existing SVG asset until explicitly redesigned.
+        foreach ([route('messages.index'), route('messages.show', $conversation)] as $url) {
             $this->actingAs($viewer)
                 ->get($url)
                 ->assertOk()
                 ->assertSee('data-verified-badge', false)
                 ->assertSee('images/verified-badge.svg', false);
         }
+    }
+
+    public function test_flow_badge_variant_renders_accessible_inline_svg(): void
+    {
+        $markup = Blade::render('<x-verified-badge flow />');
+
+        $this->assertStringContainsString('data-flow-verified', $markup);
+        $this->assertStringContainsString('<svg', $markup);
+        $this->assertStringContainsString('aria-label="'.e(__('threads.verified')).'"', $markup);
+        $this->assertStringNotContainsString('images/verified-badge.svg', $markup);
     }
 
     public function test_unverified_profile_does_not_gain_a_verification_badge(): void
