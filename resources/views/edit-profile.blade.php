@@ -210,6 +210,24 @@
                 </div>
             </form>
 
+
+            @if (config('services.google.enabled') && filled(config('services.google.client_id')) && filled(config('services.google.client_secret')))
+                <section class="skuy-settings-panel" aria-labelledby="google-link-heading">
+                    <h2 id="google-link-heading" class="text-lg font-bold text-[var(--skuy-text-primary)]">Google</h2>
+                    @if (session('google_linked'))
+                        <p role="status" class="mt-2 text-sm text-[var(--skuy-text-primary)]">{{ __('google_auth.linked_success') }}</p>
+                    @endif
+                    @if (filled($user->google_sub))
+                        <p class="mt-2 text-sm text-[var(--skuy-text-secondary)]">{{ __('google_auth.linked') }}</p>
+                    @else
+                        <p class="mt-2 text-sm text-[var(--skuy-text-secondary)]">{{ __('google_auth.link_note') }}</p>
+                        <a href="{{ route('auth.google.link') }}" class="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[var(--skuy-border-subtle)] bg-[var(--skuy-surface)] px-4 py-2 text-sm font-semibold text-[var(--skuy-text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--skuy-focus)]">
+                            {{ __('google_auth.link') }}
+                        </a>
+                    @endif
+                </section>
+            @endif
+
             @include('partials.avatar-studio')
 
         </div>

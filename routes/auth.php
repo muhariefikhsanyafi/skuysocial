@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -12,7 +13,15 @@ use App\Http\Controllers\Auth\TwoFactorLoginChallengeController;
 use App\Http\Controllers\Auth\VerifyEmailOtpController;
 use Illuminate\Support\Facades\Route;
 
+// Callback also handles an explicit profile-settings link for authenticated users.
+Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])
+    ->middleware('throttle:10,1')
+    ->name('auth.google.callback');
+
 Route::middleware('guest')->group(function () {
+    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])
+        ->middleware('throttle:10,1')
+        ->name('auth.google.redirect');
     Route::get('two-factor/challenge', [TwoFactorLoginChallengeController::class, 'show'])
         ->name('two-factor.challenge');
     Route::post('two-factor/challenge', [TwoFactorLoginChallengeController::class, 'verify'])
@@ -48,6 +57,9 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('auth/google/link', [GoogleAuthController::class, 'link'])
+        ->middleware(['verified', 'password.confirm.recent', 'throttle:10,1'])
+        ->name('auth.google.link');
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 

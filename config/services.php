@@ -14,6 +14,13 @@ return [
     |
     */
 
+    'google' => [
+        'enabled' => (bool) env('GOOGLE_OAUTH_ENABLED', false),
+        'client_id' => env('GOOGLE_OAUTH_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_OAUTH_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_OAUTH_REDIRECT_URI'),
+    ],
+
     'turnstile' => [
         'enabled' => env('TURNSTILE_ENABLED', false),
         'site_key' => env('TURNSTILE_SITE_KEY'),
