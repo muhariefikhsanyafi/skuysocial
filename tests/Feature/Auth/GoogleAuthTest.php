@@ -5,6 +5,8 @@ namespace Tests\Feature\Auth;
 use App\Enums\ModerationState;
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Models\TwoFactorAuthentication;
+use App\Services\TwoFactorLoginChallengeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
@@ -128,6 +130,25 @@ class GoogleAuthTest extends TestCase
         $this->get(route('auth.google.callback', ['state' => $state, 'code' => 'code']))
             ->assertRedirect(route('login'))->assertSessionHasErrors('google');
         $this->assertGuest();
+    }
+
+    public function test_google_login_cannot_bypass_existing_two_factor_challenge(): void
+    {
+        $user = User::factory()->create(['google_sub' => 'two-factor-google']);
+        $security = new TwoFactorAuthentication();
+        $security->user_id = $user->getKey();
+        $security->secret = 'JBSWY3DPEHPK3PXP';
+        $security->enabled_at = now();
+        $security->save();
+
+        $this->fakeGoogle('two-factor-google', $user->email);
+        $state = $this->start();
+
+        $this->get(route('auth.google.callback', ['state' => $state, 'code' => 'code']))
+            ->assertRedirect(route('two-factor.challenge'));
+
+        $this->assertGuest();
+        $this->assertNotNull(app(TwoFactorLoginChallengeService::class)->active(request()));
     }
 
     public function test_existing_user_can_link_matching_google_only_after_password_confirmation(): void
