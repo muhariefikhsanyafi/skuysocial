@@ -33,6 +33,7 @@ The current product direction supplied for this guidance update is **SkuySocial 
 
 - Light Mode uses clean white, #FFFFFF. Dark Mode uses neutral dark, #0D0E13.
 - Use violet selectively as an accent. Keep the interface content-first, readable, and responsive.
+- **Verification badge is immutable:** the canonical `public/images/verified-badge.svg` uses Facebook blue `#1877F2` with a white checkmark in **both** Light and Dark modes, on Profile, Feed, Post Detail, Messages, and every other surface. Never recolor it violet/teal or substitute a separately themed inline SVG. The violet accent is reserved for unrelated interface elements.
 - Use subtle glassmorphism for navigation, menus, and floating elements. Keep text and controls legible in both themes and avoid making every surface translucent.
 - Do not add aurora effects, decorative gradients, or excessive glow.
 - Mobile bottom navigation has exactly five items, in this order: Beranda, Cari, Buat, Aktivitas, Pesan. Preserve real destinations and behavior, accessible labels, selected state, safe-area spacing, and sufficient content clearance.
