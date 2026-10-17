@@ -54,7 +54,7 @@
                         </a>
 
                         @if ($displayPost->user->is_verified)
-                            <x-verified-badge />
+                            <x-verified-badge :flow="(bool) ($flowVerifiedBadge ?? false)" />
                         @endif
 
                         @if ($displayPost->topic)

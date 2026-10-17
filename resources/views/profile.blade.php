@@ -10,7 +10,7 @@
                 <span>{{ __('navigation.back_to_feed') }}</span>
             </a>
 
-            <section class="skuy-profile-header" data-profile-hero aria-labelledby="profile-title">
+            <section class="skuy-profile-header {{ $user->cover ? 'skuy-profile-header--has-cover' : 'skuy-profile-header--no-cover' }}" data-profile-hero aria-labelledby="profile-title">
                 <div class="skuy-profile-cover {{ $user->cover ? 'skuy-profile-cover--image' : 'skuy-profile-cover--empty' }}" data-profile-cover="{{ $user->cover ? 'image' : 'fallback' }}">
                     @if ($user->cover)
                         <img src="{{ asset('storage/' . $user->cover) }}" alt="{{ __('profile.media.cover_of', ['name' => $user->name]) }}" class="skuy-profile-cover__image">
@@ -28,6 +28,16 @@
                                 <span aria-hidden="true">{{ mb_substr($user->name, 0, 1) }}</span>
                             @endif
                         </div>
+
+                        <div class="skuy-profile-identity" data-profile-identity>
+                        <h1 id="profile-title" class="skuy-profile-title">
+                            <span>{{ $user->name }}</span>
+                            @if ($user->is_verified)
+                                <x-verified-badge flow />
+                            @endif
+                        </h1>
+                        <p class="skuy-profile-username">{{ '@' . $user->username }}</p>
+                    </div>
 
                         <div class="skuy-profile-action" data-profile-actions>
                             @if (auth()->id() === $user->id)
@@ -68,15 +78,7 @@
                         </div>
                     </div>
 
-                    <div class="skuy-profile-identity" data-profile-identity>
-                        <h1 id="profile-title" class="skuy-profile-title">
-                            <span>{{ $user->name }}</span>
-                            @if ($user->is_verified)
-                                <x-verified-badge />
-                            @endif
-                        </h1>
-                        <p class="skuy-profile-username">{{ '@' . $user->username }}</p>
-                    </div>
+
 
                     <div class="skuy-profile-details">
                         <p class="skuy-profile-bio{{ filled(trim($user->bio ?? '')) ? '' : ' skuy-profile-bio--empty' }}">{{ filled(trim($user->bio ?? '')) ? $user->bio : __('profile.no_bio') }}</p>
@@ -134,11 +136,12 @@
                 @auth
                     @if ($posts->count() > 0)
                         <div class="skuy-profile-post-list" data-profile-post-stream x-data="skuyPostMediaViewer">
-                            @include('partials.feed-threads', ['posts' => $posts])
+                            @include('partials.feed-threads', ['posts' => $posts, 'flowVerifiedBadge' => true])
                             @include('partials.post-media-lightbox')
                         </div>
                     @else
                         <div class="skuy-profile-empty" role="status">
+                            <span class="skuy-profile-empty__icon" aria-hidden="true"><x-fa-icon name="comment-lines" /></span>
                             <h2 class="skuy-profile-empty__title">
                                 {{ $activeTab === 'likes' ? __('profile.empty.liked_threads_title') : __('profile.empty.threads_title') }}
                             </h2>
@@ -201,7 +204,7 @@
                                                     <span aria-hidden="true">@</span>{{ $displayPost->user->username }}
                                                 </a>
                                                 @if ($displayPost->user->is_verified)
-                                                    <x-verified-badge />
+                                                    <x-verified-badge flow />
                                                 @endif
                                                 <time datetime="{{ $displayPost->created_at->toIso8601String() }}" class="skuy-post__time">
                                                     {{ $displayPost->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}

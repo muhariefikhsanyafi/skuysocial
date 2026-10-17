@@ -29,7 +29,7 @@ class ProfilePresentationTest extends TestCase
             strpos($html, '<main id="main-content"'),
             strpos($html, '<div class="skuy-profile-page" data-skuy-profile>'),
             strpos($html, 'class="skuy-profile-back"'),
-            strpos($html, '<section class="skuy-profile-header"'),
+            strpos($html, '<section class="skuy-profile-header skuy-profile-header--no-cover"'),
             strpos($html, 'class="skuy-profile-cover '),
         ];
         $this->assertNotContains(false, $positions);
@@ -206,9 +206,9 @@ class ProfilePresentationTest extends TestCase
         $markers = [
             'class="skuy-profile-cover',
             'class="skuy-profile-avatar',
-            'class="skuy-profile-action"',
             'class="skuy-profile-identity"',
             'class="skuy-profile-username"',
+            'class="skuy-profile-action"',
             'class="skuy-profile-bio',
             'class="skuy-profile-stats"',
             'class="skuy-profile-tabs"',

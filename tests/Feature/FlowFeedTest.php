@@ -183,7 +183,7 @@ class FlowFeedTest extends TestCase
         $this->assertIsString($icon);
         $this->assertIsString($feedPartial);
 
-        $this->assertStringContainsString('<x-verified-badge />', $feedPartial);
+        $this->assertStringContainsString('<x-verified-badge :flow="(bool) ($flowVerifiedBadge ?? false)" />', $feedPartial);
         $this->assertStringContainsString('data-verified-badge', $component);
         $this->assertStringContainsString("asset('images/verified-badge.svg')", $component);
         $this->assertStringContainsString('fill="#1877F2"', $icon);
