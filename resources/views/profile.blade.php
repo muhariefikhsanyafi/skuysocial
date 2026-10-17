@@ -136,7 +136,7 @@
                 @auth
                     @if ($posts->count() > 0)
                         <div class="skuy-profile-post-list" data-profile-post-stream x-data="skuyPostMediaViewer">
-                            @include('partials.feed-threads', ['posts' => $posts])
+                            @include('partials.feed-threads', ['posts' => $posts, 'flowVerifiedBadge' => true])
                             @include('partials.post-media-lightbox')
                         </div>
                     @else
@@ -204,7 +204,7 @@
                                                     <span aria-hidden="true">@</span>{{ $displayPost->user->username }}
                                                 </a>
                                                 @if ($displayPost->user->is_verified)
-                                                    <x-verified-badge />
+                                                    <x-verified-badge flow />
                                                 @endif
                                                 <time datetime="{{ $displayPost->created_at->toIso8601String() }}" class="skuy-post__time">
                                                     {{ $displayPost->created_at->locale(app()->getLocale())->diffForHumans(null, true) }}

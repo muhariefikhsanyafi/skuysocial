@@ -56,6 +56,33 @@ class VerifiedBadgeConsistencyTest extends TestCase
         $this->assertStringNotContainsString('images/verified-badge.svg', $markup);
     }
 
+    public function test_profile_post_cards_use_the_same_violet_flow_badge_for_authenticated_and_guest_views(): void
+    {
+        $owner = User::factory()->create(['is_verified' => true]);
+        \App\Models\Post::query()->create([
+            'user_id' => $owner->id,
+            'content' => 'Verified profile thread',
+        ]);
+
+        $viewer = User::factory()->create();
+        $url = route('user.profile', $owner);
+
+        foreach ([
+            $this->actingAs($viewer)->get($url),
+            $this->get($url),
+        ] as $response) {
+            $response->assertOk()
+                ->assertSee('Verified profile thread')
+                ->assertDontSee('images/verified-badge.svg', false);
+
+            $this->assertGreaterThanOrEqual(
+                2,
+                substr_count($response->getContent(), 'data-flow-verified'),
+                'Both the profile name and its verified post card must use Flow badges.',
+            );
+        }
+    }
+
     public function test_unverified_profile_does_not_gain_a_verification_badge(): void
     {
         $viewer = User::factory()->create();
