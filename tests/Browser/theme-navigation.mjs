@@ -476,7 +476,7 @@ try {
         await viewport(profileWidth, profileWidth <= 390 ? 844 : 800);
         await theme(profileMode);
         await navigate(fixture.emptyVerifiedProfile);
-        const profileVisual = await cdp.evaluate(`(() => {
+        const profileVisual = await cdp.evaluate(`(async () => {
             const root = document.querySelector('[data-skuy-profile]');
             const header = root?.querySelector('[data-profile-hero]');
             const cover = header?.querySelector('.skuy-profile-cover');
@@ -484,6 +484,9 @@ try {
             const identity = header?.querySelector('[data-profile-identity]');
             const actions = header?.querySelector('[data-profile-actions]');
             const verified = identity?.querySelector('[data-flow-verified]');
+            const badgeImage = verified?.querySelector('img');
+            const badgeBlue = badgeImage?.complete && badgeImage.naturalWidth > 0
+                && await fetch(badgeImage.src).then(response => response.ok ? response.text() : '').then(svg => svg.includes('fill="#1877F2"')).catch(() => false);
             const rect = node => {
                 if (!node) return null;
                 const r = node.getBoundingClientRect();
@@ -496,14 +499,13 @@ try {
                 coverDisplay: cover ? getComputedStyle(cover).display : null,
                 emptyStateVisible: Boolean(root?.querySelector('.skuy-profile-empty')?.getClientRects().length),
                 postCount: root?.querySelector('.skuy-profile-stat__value')?.textContent.trim(),
-                badgeSvg: !!verified?.querySelector('svg'),
-                badgeColor: verified ? getComputedStyle(verified).color : null,
+                badgeAsset: badgeImage?.getAttribute('src') ?? null,
+                badgeBlue: Boolean(badgeBlue),
                 avatar: rect(avatar), identity: rect(identity), actions: rect(actions),
                 overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
             };
         })()`);
         await screenshot(`profile-visual-fix-${profileWidth}-${profileMode}`);
-        const expectedColor = profileMode === 'light' ? 'rgb(110, 91, 239)' : 'rgb(169, 152, 255)';
         const aligned = profileVisual.avatar && profileVisual.identity && profileVisual.actions
             && profileVisual.identity.left >= profileVisual.avatar.right - 2
             && (profileWidth >= 768
@@ -515,8 +517,8 @@ try {
             && profileVisual.coverClass
             && profileVisual.coverDisplay === 'none'
             && profileVisual.emptyStateVisible && profileVisual.postCount === '0'
-            && profileVisual.badgeSvg
-            && profileVisual.badgeColor === expectedColor
+            && profileVisual.badgeAsset === '/images/verified-badge.svg'
+            && profileVisual.badgeBlue
             && aligned && !profileVisual.overflow, profileVisual);
     }
     // The populated cover state is exercised with an in-browser synthetic image.
