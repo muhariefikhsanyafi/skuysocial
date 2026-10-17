@@ -499,7 +499,7 @@ try {
                 coverDisplay: cover ? getComputedStyle(cover).display : null,
                 emptyStateVisible: Boolean(root?.querySelector('.skuy-profile-empty')?.getClientRects().length),
                 postCount: root?.querySelector('.skuy-profile-stat__value')?.textContent.trim(),
-                badgeAsset: badgeImage?.getAttribute('src') ?? null,
+                badgePath: badgeImage ? new URL(badgeImage.src).pathname : null,
                 badgeBlue: Boolean(badgeBlue),
                 avatar: rect(avatar), identity: rect(identity), actions: rect(actions),
                 overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -517,7 +517,7 @@ try {
             && profileVisual.coverClass
             && profileVisual.coverDisplay === 'none'
             && profileVisual.emptyStateVisible && profileVisual.postCount === '0'
-            && profileVisual.badgeAsset === '/images/verified-badge.svg'
+            && profileVisual.badgePath === '/images/verified-badge.svg'
             && profileVisual.badgeBlue
             && aligned && !profileVisual.overflow, profileVisual);
     }
