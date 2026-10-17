@@ -46,17 +46,22 @@ class VerifiedBadgeConsistencyTest extends TestCase
         }
     }
 
-    public function test_flow_badge_variant_renders_accessible_inline_svg(): void
+    public function test_flow_badge_variant_reuses_the_facebook_blue_svg_asset(): void
     {
         $markup = Blade::render('<x-verified-badge flow />');
 
         $this->assertStringContainsString('data-flow-verified', $markup);
-        $this->assertStringContainsString('<svg', $markup);
+        $this->assertStringContainsString('src="'.asset('images/verified-badge.svg').'"', $markup);
         $this->assertStringContainsString('aria-label="'.e(__('threads.verified')).'"', $markup);
-        $this->assertStringNotContainsString('images/verified-badge.svg', $markup);
+        $this->assertStringNotContainsString('<svg', $markup);
+
+        // One canonical icon for Blade Flow, other Blade pages, and React.
+        $asset = file_get_contents(public_path('images/verified-badge.svg'));
+        $this->assertIsString($asset);
+        $this->assertStringContainsString('fill="#1877F2"', $asset);
     }
 
-    public function test_profile_post_cards_use_the_same_violet_flow_badge_for_authenticated_and_guest_views(): void
+    public function test_profile_post_cards_use_the_same_blue_svg_for_authenticated_and_guest_views(): void
     {
         $owner = User::factory()->create(['is_verified' => true]);
         \App\Models\Post::query()->create([
@@ -74,7 +79,7 @@ class VerifiedBadgeConsistencyTest extends TestCase
         foreach ([$authenticated, $guest] as $response) {
             $response->assertOk()
                 ->assertSee('Verified profile thread')
-                ->assertDontSee('images/verified-badge.svg', false);
+                ->assertSee('images/verified-badge.svg', false);
 
             $this->assertGreaterThanOrEqual(
                 2,

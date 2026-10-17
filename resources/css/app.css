@@ -3587,8 +3587,8 @@
         width: 22px;
         height: 22px;
         border-radius: var(--radius-full);
-        background: var(--skuy-secondary);
-        color: var(--skuy-on-secondary);
+        background: #1877F2;
+        color: #ffffff;
     }
 
     .skuy-profile-username {
@@ -4498,7 +4498,7 @@
         justify-content: center;
         width: 16px;
         height: 16px;
-        color: var(--skuy-secondary);
+        color: #1877F2;
     }
 
     .skuy-discovery-verified svg {

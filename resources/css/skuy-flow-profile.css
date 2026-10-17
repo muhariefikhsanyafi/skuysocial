@@ -456,30 +456,25 @@ html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profi
     overflow-wrap: anywhere;
 }
 
+/* The verified badge is one immutable #1877F2 SVG asset in both themes. */
 html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-verified-badge] {
     display: inline-flex;
-    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 22px;
     vertical-align: middle;
     margin-inline-start: 6px;
     width: 22px;
     height: 22px;
-    border: 1px solid #5e5e68;
-    background: #5e5e68;
-    color: #ffffff;
+    border: 0;
+    background: transparent;
     box-shadow: none;
 }
-
-html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] [data-verified-badge] {
-    border-color: #c4baff;
-    background: #c4baff;
-    color: #0d0e13;
-}
-
-html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-verified-badge] svg {
-    width: 13px;
-    height: 13px;
-    color: currentColor;
-    stroke: currentColor;
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-verified-badge] > img {
+    display: block;
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
 }
 
 html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-username {
@@ -1344,7 +1339,7 @@ html[data-flow-page="profile"] .skuy-post__options > [role="menu"][data-flow-pro
 }
 
 
-/* Profile visual QA corrective: no phantom cover and no blue verification square.
+/* Profile visual QA corrective: no phantom cover; preserve the shared blue verified badge.
    Keeps uploaded covers, existing follow/message actions and all user content intact. */
 html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-header {
     border: 0;
@@ -1416,24 +1411,15 @@ html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-flow-
     margin-inline-start: 3px;
     vertical-align: -0.13em;
     border: 0;
-    border-radius: 0;
     background: transparent;
-    color: var(--flow-accent);
     box-shadow: none;
 }
-html[data-flow-page="profile"].dark .skuy-profile-page[data-skuy-profile] [data-flow-verified] {
-    border: 0;
-    background: transparent;
-    color: #a998ff;
-}
-html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-flow-verified] svg {
+/* Badge blue is contained in the shared SVG; no theme-specific recoloring. */
+html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-flow-verified] > img {
+    display: block;
     width: 22px;
     height: 22px;
-    stroke: none;
-    color: inherit;
-}
-html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] [data-flow-verified] svg path:last-child {
-    stroke: #fff;
+    object-fit: contain;
 }
 html[data-flow-page="profile"] .skuy-profile-page[data-skuy-profile] .skuy-profile-details {
     margin-top: 14px;
