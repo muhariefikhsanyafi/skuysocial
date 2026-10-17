@@ -38,7 +38,7 @@ The current product direction supplied for this guidance update is **SkuySocial 
 - Do not add aurora effects, decorative gradients, or excessive glow.
 - Mobile bottom navigation has exactly five items, in this order: Beranda, Cari, Buat, Aktivitas, Pesan. Preserve real destinations and behavior, accessible labels, selected state, safe-area spacing, and sufficient content clearance.
 
-Read DESIGN.md before UI work. The current DESIGN.md still names SkuySocial Expressive Clean and specifies a warm-neutral/teal/mint/saffron palette with limited shell glow and gradient treatments. Those visual directions conflict with the current product direction above. This task is scoped to AGENTS.md, so DESIGN.md is unchanged. Until it is reconciled in separately scoped work, this section records the latest explicit product direction for palette, visual effects, and the five-item mobile navigation; use DESIGN.md for its non-conflicting guidance on behavior, responsive composition, accessibility, localization, and interface states. Do not blend the conflicting palettes or effects. Surface any additional unresolved design conflict before implementing UI.
+Read `DESIGN.md` before product UI work. The reconciled design authority in this documentation branch is **SkuySocial Flow — Minimalist Glassmorphism**, consistent with the design direction above. Feed and the latest approved Profile remain the visual references. The former SkuySocial Expressive Clean / Premium Visual Revolution palette (warm neutrals, teal, mint, saffron) and decorative shell glow/gradients are retired; do not reintroduce or blend them into Flow. Preserve non-conflicting rules for content hierarchy, responsive composition, accessibility, localization, interaction states, and real application behavior. Treat existing CSS or live UI that still differs as a discrepancy requiring evidence and explicit scope approval, not permission for an unrequested redesign.
 
 Anti-Slop is a quality filter, not an alternate design system. It must not expand an approved scope or override intentional SkuySocial patterns. For backend-only work, do not use Anti-Slop findings to trigger unrelated UI, Blade, CSS, copy, or design changes; report them only. If a generic suggestion materially conflicts with an intentional project decision, preserve the project direction and report the conflict.
 
@@ -96,7 +96,7 @@ The composer.json setup script copies/creates .env, generates an application key
 
 ## Documentation Status
 
-- DESIGN.md is the product design reference, subject to the current explicit direction and conflict handling documented above.
+- `DESIGN.md` is the authoritative public/product UI design reference for **SkuySocial Flow — Minimalist Glassmorphism**. Its reconciliation is proposed together with this `AGENTS.md` update in Draft PR #32; until merge, `main` may still contain the previous document.
 - README.md is still the Laravel starter README and is not a project-specific setup guide.
 - SKUYSOCIAL-AUDIT.md is titled as an initial technical audit and lists candidate issues from an earlier snapshot. Treat it as historical context, not a live backlog. Verify any listed condition in the current code and tests before treating it as open or changing it.
 - Do not repeat an old issue list as current status without verification.
