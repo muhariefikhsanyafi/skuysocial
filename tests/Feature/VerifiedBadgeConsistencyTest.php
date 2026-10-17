@@ -67,10 +67,11 @@ class VerifiedBadgeConsistencyTest extends TestCase
         $viewer = User::factory()->create();
         $url = route('user.profile', $owner);
 
-        foreach ([
-            $this->actingAs($viewer)->get($url),
-            $this->get($url),
-        ] as $response) {
+        $authenticated = $this->actingAs($viewer)->get($url);
+        auth()->logout();
+        $guest = $this->get($url);
+
+        foreach ([$authenticated, $guest] as $response) {
             $response->assertOk()
                 ->assertSee('Verified profile thread')
                 ->assertDontSee('images/verified-badge.svg', false);
